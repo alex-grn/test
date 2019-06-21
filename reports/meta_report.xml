@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="meta_report.xlsx" documentPath="meta_report.xlsx" outputType="xlsx" outputNamePattern="meta_report.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="spec1" orientation="H">
+				<bands>
+					<band name="tH_act" orientation="H">
+						<queries>
+                            <query name="tH_act" type="sql">
+                                <script>
+								WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+								SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+								FROM units 
+								where hid = ${spec1.ACT_ID}
+								UNION all
+								SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+								FROM source1 pr, units p
+								WHERE pr.id = p.hid 
+								)
+								select s.id
+								from source1 s
+								where upper(s.classnode) = 'ACTION'
+								and s.metaclassid is not null
+								order by path limit 1;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+					 <band name="spec_tit1" orientation="H">
+                        <queries>
+                            <query name="spec_tit1" type="sql">
+                                <script>
+								WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+								SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+								FROM units 
+								where hid = ${spec1.ACT_ID}
+								UNION all
+								SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+								FROM source1 pr, units p
+								WHERE pr.id = p.hid 
+								)
+								select s.name as act_ti
+								from source1 s
+								where upper(s.classnode) = 'ACTION'
+								and s.metaclassid is not null
+								order by path;
+                                </script>
+                            </query>
+                        </queries>
+                    </band>
+					<band name="tH_rep" orientation="H">
+						<queries>
+                            <query name="tH_rep" type="sql">
+                                <script>
+                                WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+								SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+								FROM units 
+								where hid = ${spec1.REP_ID}
+								UNION all
+								SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+								FROM source1 pr, units p
+								WHERE pr.id = p.hid 
+								)
+								select s.id
+								from source1 s
+								where upper(s.classnode) = 'REPORT'
+								and s.metaclassid is not null
+								order by path limit 1;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+                    <band name="spec_ti2" orientation="H">
+                        <queries>
+                            <query name="spec_ti2" type="sql">
+                                <script>
+                                WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+								SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+								FROM units 
+								where hid = ${spec1.REP_ID}
+								UNION all
+								SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+								FROM source1 pr, units p
+								WHERE pr.id = p.hid 
+								)
+								select s.name as rep_ti
+								from source1 s
+								where upper(s.classnode) = 'REPORT'
+								and s.metaclassid is not null
+								order by path;
+                                </script>
+                            </query>
+                        </queries>
+                    </band>
+					<band name="one_line" orientation="H"/>
+                    <band name="spec_title" orientation="H">
+					     <bands>
+						    <band name="spec_title_1" orientation="H">
+								<bands>
+									<band name="name_t" orientation="H"/>
+									<band name="spec_t1" orientation="H">
+										<queries>
+											<query name="spec_t1" type="sql">
+												<script>
+												select 'Идентификатор' as table_name,'ID' as table_code,'int' as table_tD,'Да' as table_nec
+												union all
+												select 'Родитель иерархии' as table_name, 'HID' as table_code, 'Ссылка на '||upper(${spec_title_1.table_code}) as table_tD,'Нет' as table_nec
+												from metaclassprops g where g.metaclassid = ${spec_title_1.metaclassid} and g.propnode = 'hid';
+												</script>
+											</query>
+										</queries>
+									</band>
+									<band name="spec_t1" orientation="H">
+										<queries>
+											<query name="spec_t1" type="sql">
+												<script>
+												WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+												SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+												FROM units 
+												where hid = ${spec_title_1.id}
+												UNION all
+												SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+												FROM source1 pr, units p
+												WHERE pr.id = p.hid 
+												)
+												select s.name as table_name, s.code as table_code,
+												case
+												when
+												k.data_type = 'ARRAY' then
+												(select json_array_elements(('{'||P_SYSTEM_GET_CLASS_BY_ID(s.metaclassid)||'}')::json#>'{A}') ->>'type')||'[]'
+												when (select json_array_elements(('{'||P_SYSTEM_GET_CLASS_BY_ID(s.metaclassid)||'}')::json#>'{A}') ->>'type') = 'ref' then 
+												'Ссылка на '||(select upper(ccu.table_name)
+                                                 				  from information_schema.table_constraints tc , 
+      																   information_schema.constraint_column_usage ccu ,
+      									   	                           information_schema.key_column_usage kcu
+														         where tc.constraint_catalog = ccu.constraint_catalog
+														           and tc.constraint_schema = ccu.constraint_schema
+														           and tc.constraint_name = ccu.constraint_name
+														           AND tc.constraint_type = 'FOREIGN KEY'
+														           and upper(tc.table_name) = upper(${spec_title_1.table_code})
+														           and tc.constraint_catalog = kcu.constraint_catalog
+														           AND tc.constraint_schema = kcu.constraint_schema
+														           AND tc.constraint_name = kcu.constraint_name
+ 														          and lower(kcu.column_name) = lower(s.code))
+												else (select json_array_elements(('{'||P_SYSTEM_GET_CLASS_BY_ID(s.metaclassid)||'}')::json#>'{A}') ->>'type')
+												end	as  table_tD, 
+												case (select upper(ltrim(rtrim((('{'||P_SYSTEM_GET_CLASS_BY_ID(s.metaclassid)||'}')::json#>'{A}')::text,']'),'[')::json->>'nulls'))
+												when 'FALSE' then 'Да'
+												when 'TRUE'  then 'Нет'
+												else 'Нет'
+												end as table_nec
+												from source1 s,
+												information_schema.columns k,
+												metaclass m
+												where lower(k.table_name) = lower(${spec_title_1.table_code})
+												and lower(k.column_name) = lower(s.code)
+												and m.id = s.metaclassid
+												and s.metaclassid is not null
+												order by m.position,path;
+												</script>
+											</query>
+										</queries>
+									</band>
+									<band name="tH_act" orientation="H">
+										<queries>
+											<query name="tH_act" type="sql">
+												<script>
+												WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+												SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+												FROM units 
+												where hid = ${spec_title_1.id}
+												UNION all
+												SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+												FROM source1 pr, units p
+												WHERE pr.id = p.hid 
+												)
+												select s.id
+												from source1 s
+												where upper(s.classnode) = 'ACTION'
+												and s.path::varchar not like '%Действия с записями%'
+												and lower(s.name) !='настройка' 
+												and s.level BETWEEN 1 and 3
+												and s.metaclassid is not null
+												order by path limit 1;	
+												</script>
+											</query>
+										</queries>
+									</band>
+									<band name="spec_tit1" orientation="H">
+										<queries>
+											<query name="spec_tit1" type="sql">
+												<script>
+												WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+												SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+												FROM units 
+												where hid = ${spec_title_1.id}
+												UNION all
+												SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+												FROM source1 pr, units p
+												WHERE pr.id = p.hid 
+												)
+												select s.name as act_ti
+												from source1 s
+												where upper(s.classnode) = 'ACTION'
+												and s.path::varchar not like '%Действия с записями%'
+												and lower(s.name) !='настройка'
+												and s.level BETWEEN 1 and 3
+												and s.metaclassid is not null
+												order by path;
+												</script>
+											</query>
+										</queries>
+									</band>
+									<band name="tH_rep" orientation="H">
+										<queries>
+											<query name="tH_rep" type="sql">
+												<script>
+												WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+												SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+												FROM units 
+												where hid = ${spec_title_1.id}
+												UNION all
+												SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+												FROM source1 pr, units p
+												WHERE pr.id = p.hid 
+												)
+												select s.id
+												from source1 s
+												where upper(s.classnode) = 'REPORT'
+												and s.level BETWEEN 1 and 3
+												and s.metaclassid is not null
+												order by path limit 1;
+												</script>
+											</query>
+										</queries>
+									</band>
+									<band name="spec_ti2" orientation="H">
+										<queries>
+											<query name="spec_ti2" type="sql">
+												<script>
+												WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+												SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+												FROM units 
+												where hid = ${spec_title_1.id}
+												UNION all
+												SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+												FROM source1 pr, units p
+												WHERE pr.id = p.hid 
+												)
+												select s.name as rep_ti
+												from source1 s
+												where upper(s.classnode) = 'REPORT'
+												and s.level BETWEEN 1 and 3
+												and s.metaclassid is not null
+												order by path;
+												</script>
+											</query>
+										</queries>
+									</band>
+									<band name="one_line" orientation="H"/>
+								</bands>
+								<queries>
+									<query name="spec_title_1" type="sql">
+										<script>
+										WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+										SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+										FROM units 
+										where hid = ${spec_title.fID}
+										UNION all
+										SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+										FROM source1 pr, units p
+										WHERE pr.id = p.hid 
+										)
+										select ${spec_title.sFORM}||row_number() over(order by m.position,path)||'. Таблица «'||s.name||'»('||s.code||')' as title_st, s.id, s.hid, s.metaclassid,
+										case s.classnode
+										when 'TABLE' then s.code 
+										else '-1' 
+										end as table_code
+										from source1 s,
+											 metaclass m
+										where upper(s.classnode) = 'TABLE'
+										  and m.id = s.metaclassid
+										and s.metaclassid is not null
+										order by m.position,path;
+										</script>
+									</query>
+								</queries>
+							</band>
+						 </bands>
+					    <queries>
+                            <query name="spec_title" type="sql">
+                                <script>
+                                WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+								SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+								FROM units 
+								where hid = ${spec1.RAZ_ID}
+								UNION all
+								SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+								FROM source1 pr, units p
+								WHERE pr.id = p.hid 
+								)
+								select row_number() over(order by path)||'. Раздел «'||s.name||'»' as title_s, s.id as fID, row_number() over(order by path)||'.' as sFORM,
+								case s.classnode
+								when 'TABLE' then s.code 
+								else '-1' 
+								end as table_code
+								from source1 s
+								where s.hid = ${spec1.RAZ_ID} and upper(s.classnode) = 'FORM'
+								and s.level BETWEEN 1 and 3
+								and s.metaclassid is not null
+								order by path;
+                                </script>
+                            </query>
+                        </queries>
+                    </band>
+					
+                </bands>
+                <queries>
+                    <query name="spec1" type="sql">
+                        <script>
+                            WITH RECURSIVE source1(id, hid,classnode,code,name,path,level,metaclassid) AS (
+							SELECT id, hid ,classnode,code,name,ARRAY[name],1,metaclassid
+							FROM units 
+							where hid is null
+							UNION all
+							SELECT p.id, p.hid,p.classnode,p.code,p.name,path || p.name,level+1,p.metaclassid
+							FROM source1 pr, units p
+							WHERE pr.id = p.hid 
+							)
+							select s.name as title,
+									COALESCE((select x.id from source1 x where UPPER(x.classnode) = 'ACTIONS' AND x.hid = s.id),-1) AS ACT_ID,
+									COALESCE((select x.id from source1 x where UPPER(x.classnode) = 'REPORT' AND x.hid = s.id),-1) AS REP_ID,
+									COALESCE((select x.id from source1 x where UPPER(x.classnode) = 'FORMS' AND x.hid = s.id),-1) AS RAZ_ID
+							from source1 s
+							where s.level = 2
+							and s.metaclassid is not null
+							order by path;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
