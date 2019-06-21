@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="card_software.xlsx" documentPath="card_software.xlsx" outputType="xlsx" outputNamePattern="card_software.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							SELECT w.name owner_name FROM equipment t, owner w WHERE t.id = ${id} ::bigint and w.id=t.ownerid
+                        </script>
+                    </query>
+                </queries>			
+			</band>
+
+            <band name="Title1" orientation="H">
+			</band>
+		
+            <band name="Spec1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT 'Наименование'   prop,  ts.name            val       
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid 
+                           WHERE s.id = ${id} ::bigint
+                           UNION ALL 
+
+                           SELECT 'Версия'         prop,  vs.version         val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Лицензия'       prop,  tlic.name          val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Номер лицензии' prop,  lic.serial         val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Номер инвентарной карточки' prop, inv.cardnumb   val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'МОЛ'            prop,  inv.exec           val       
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Подразделение'  prop,  inv.establishment  val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Дата ввода в эксплуатацию' prop, to_char(inv.datecommissioning,'yyyy.mm.dd') val       
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Дата списания'  prop,  (select to_char(max(h.dateoperation),'yyyy.mm.dd') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4'/*Списание*/) val       
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint
+                           UNION ALL 
+
+                           SELECT 'Начальная стоимость' prop,     trim(to_char(inv.sumnew,'999999999999.00'))      val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Начальный износ'     prop,     trim(to_char(inv.sumamort,'999999999999.00'))    val       
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Начисленная амортизация' prop, trim(to_char(inv.sumamortnew,'999999999999.00')) val       
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 
+                           UNION ALL 
+
+                           SELECT 'Остаточная стоимость'    prop, trim(to_char(inv.sumpost,'999999999999.00'))     val
+                            FROM software s
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE s.id = ${id} ::bigint 						
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+		
+            <band name="Title2" orientation="H">
+			</band>
+
+            <band name="Spec2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT own.name       sowner,
+                                  t.name         stype,
+                                  m.model        smodel,
+                                  eq.description sdescription,
+                                  loc.name       slocations
+                            FROM spequipmentpo s
+                            LEFT JOIN equipment eq ON eq.id=s.equipmentid
+                               LEFT JOIN owner own ON own.id=eq.ownerid
+                            LEFT JOIN typesequipment t ON t.id=eq.typesequipmentid    
+                            LEFT JOIN modelequipment m ON m.id=eq.modelequipmentid    
+                            LEFT JOIN locations loc ON loc.id=eq.locationsid
+                           WHERE s.softwareid = ${id} ::bigint
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+			
+            <band name="Title3" orientation="H">
+			</band>
+            <band name="Spec3" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT trim(to_char(hist.dateoperation,'dd.mm.yyyy')) sdateoperation, hist.execnew sexecnew, hist.establishmentnew sestablishmentnew, 
+                                  hist.sumnew nsumnew, hist.sumamort nsumamort, hist.sumamortnew nsumamortnew, hist.sumpost nsumpost
+                            FROM software s
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                            LEFT JOIN inventoryhistory hist ON hist.inventoryid=inv.id
+                           WHERE s.id = ${id} ::bigint
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+
+			
+            <band name="Title4" orientation="H">
+			</band>
+			
+			
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>

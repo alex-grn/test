@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="object_employees_list.xlsx" documentPath="object_employees_list.xlsx" outputType="xlsx" outputNamePattern="object_employees_list.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+			
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+						   SELECT t.code semployees FROM employees t WHERE t.id = ${employees} ::bigint
+						</script>
+                    </query>
+                </queries>
+			</band>
+			
+            <band name="Spec" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT w.code            sowner,
+						          'Компьютерная техника' sobj_types,
+                                  t.name            stypes,
+                                  m.model           smodel,
+                                  m.description     sdescription,
+                                  inv.objnumber     sobjnumber,
+                                  inv.cardnumb      scardnumb,
+                                  inv.exec          sexec,
+                                  inv.establishment sestablishment,
+                                  st.name           sstatuses,
+                                  loc.name          slocations,
+                                  inv.worsnumber    sworsnumber, /*Заводской номер*/
+                                  inv.producer      sproducer, /*Изготовитель*/
+                                  to_char(inv.dateissue,'dd.mm.yyyy') sdateissue, /*Дата выпуска*/
+                                  to_char(inv.datecommissioning,'dd.mm.yyyy') sdatecommissioning, /*Дата ввода в эксплуатацию*/
+                                  (select to_char(min(h.dateoperation),'dd.mm.yyyy') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4') sdateout,/*Дата списания*/
+                                  to_char(e.datewarrantyf,'dd.mm.yyyy') sdatewarrantyf, /*Дата окончания гарантии*/
+                                  trim(to_char(inv.sumnew,'999999999999.00')) nsumnew, /*Начальная стоимость*/
+                                  trim(to_char(inv.sumamort,'999999999999.00')) nsumamort,/*Начальный износ*/
+                                  trim(to_char(inv.sumamortnew,'999999999999.00')) nsumamortnew, /*Начисленная амортизация*/
+                                  trim(to_char(inv.sumpost,'999999999999.00')) nsumpost /*Остаточная стоимость*/
+                             FROM equipment e
+                             LEFT JOIN owner w ON w.id=e.ownerid 
+                             LEFT JOIN typesequipment t ON t.id=e.typesequipmentid 
+                             LEFT JOIN modelequipment m ON m.id=e.modelequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE (${owner}::text='' OR w.id=(regexp_replace(${owner}::text, '^$', '0')::bigint))
+                              AND (${typeobject}::text='' OR ${typeobject}::text='EQUIPMENT')
+							  AND (${employees}::text='' OR e.employeesid=(regexp_replace(${employees}::text, '^$', '0')::bigint))
+
+                            UNION ALL
+
+                           SELECT w.code            sowner,
+						          'Оргтехника'      sobj_types,
+                                  t.name            stypes,
+                                  m.model           smodel,
+                                  m.description     sdescription,
+                                  inv.objnumber     sobjnumber,
+                                  inv.cardnumb      scardnumb,
+                                  inv.exec          sexec,
+                                  inv.establishment sestablishment,
+                                  st.name           sstatuses,
+                                  loc.name          slocations,
+                                  inv.worsnumber    sworsnumber, /*Заводской номер*/
+                                  inv.producer      sproducer, /*Изготовитель*/
+                                  to_char(inv.dateissue,'dd.mm.yyyy') sdateissue, /*Дата выпуска*/
+                                  to_char(inv.datecommissioning,'dd.mm.yyyy') sdatecommissioning, /*Дата ввода в эксплуатацию*/
+                                  (select to_char(min(h.dateoperation),'dd.mm.yyyy') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4') sdateout,/*Дата списания*/
+                                  to_char(e.datewarrantyf,'dd.mm.yyyy') sdatewarrantyf, /*Дата окончания гарантии*/
+                                  trim(to_char(inv.sumnew,'999999999999.00')) nsumnew, /*Начальная стоимость*/
+                                  trim(to_char(inv.sumamort,'999999999999.00')) nsumamort,/*Начальный износ*/
+                                  trim(to_char(inv.sumamortnew,'999999999999.00')) nsumamortnew, /*Начисленная амортизация*/
+                                  trim(to_char(inv.sumpost,'999999999999.00')) nsumpost /*Остаточная стоимость*/
+                             FROM officeequipment e
+                             LEFT JOIN owner w ON w.id=e.ownerid 
+                             LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                             LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE (${owner}::text='' OR w.id=(regexp_replace(${owner}::text, '^$', '0')::bigint))
+                              AND (${typeobject}::text='' OR ${typeobject}::text='OFFICEEQUIPMENT')
+							  AND (${employees}::text='' OR e.employeesid=(regexp_replace(${employees}::text, '^$', '0')::bigint))
+
+                           UNION ALL
+
+                           SELECT w.code            sowner,
+						          'Сетевое оборудование' sobj_types,
+                                  t.name            stypes,
+                                  m.model           smodel,
+                                  m.description     sdescription,
+                                  inv.objnumber     sobjnumber,
+                                  inv.cardnumb      scardnumb,
+                                  inv.exec          sexec,
+                                  inv.establishment sestablishment,
+                                  st.name           sstatuses,
+                                  loc.name          slocations,
+                                  inv.worsnumber    sworsnumber, /*Заводской номер*/
+                                  inv.producer      sproducer, /*Изготовитель*/
+                                  to_char(inv.dateissue,'dd.mm.yyyy') sdateissue, /*Дата выпуска*/
+                                  to_char(inv.datecommissioning,'dd.mm.yyyy') sdatecommissioning, /*Дата ввода в эксплуатацию*/
+                                  (select to_char(min(h.dateoperation),'dd.mm.yyyy') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4') sdateout,/*Дата списания*/
+                                  to_char(e.datewarrantyf,'dd.mm.yyyy') sdatewarrantyf, /*Дата окончания гарантии*/
+                                  trim(to_char(inv.sumnew,'999999999999.00')) nsumnew, /*Начальная стоимость*/
+                                  trim(to_char(inv.sumamort,'999999999999.00')) nsumamort,/*Начальный износ*/
+                                  trim(to_char(inv.sumamortnew,'999999999999.00')) nsumamortnew, /*Начисленная амортизация*/
+                                  trim(to_char(inv.sumpost,'999999999999.00')) nsumpost /*Остаточная стоимость*/
+                             FROM networksequipment e
+                             LEFT JOIN owner w ON w.id=e.ownerid 
+                             LEFT JOIN typesnetworksequipment t ON t.id=e.typesnetworksequipmentid 
+                             LEFT JOIN modelnetworksequipment m ON m.id=e.modelnetworksequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE (${owner}::text='' OR w.id=(regexp_replace(${owner}::text, '^$', '0')::bigint))
+                              AND (${typeobject}::text='' OR ${typeobject}::text='NETWORKSEQUIPMENT')
+							  AND (${employees}::text='' OR e.employeesid=(regexp_replace(${employees}::text, '^$', '0')::bigint))
+
+                           UNION ALL
+
+                           SELECT w.code            sowner,
+						          'Средства связи'  sobj_types,
+                                  t.name            stypes,
+                                  m.model           smodel,
+                                  m.description     sdescription,
+                                  inv.objnumber     sobjnumber,
+                                  inv.cardnumb      scardnumb,
+                                  inv.exec          sexec,
+                                  inv.establishment sestablishment,
+                                  st.name           sstatuses,
+                                  loc.name          slocations,
+                                  inv.worsnumber    sworsnumber, /*Заводской номер*/
+                                  inv.producer      sproducer, /*Изготовитель*/
+                                  to_char(inv.dateissue,'dd.mm.yyyy') sdateissue, /*Дата выпуска*/
+                                  to_char(inv.datecommissioning,'dd.mm.yyyy') sdatecommissioning, /*Дата ввода в эксплуатацию*/
+                                  (select to_char(min(h.dateoperation),'dd.mm.yyyy') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4') sdateout,/*Дата списания*/
+                                  to_char(e.datewarrantyf,'dd.mm.yyyy') sdatewarrantyf, /*Дата окончания гарантии*/
+                                  trim(to_char(inv.sumnew,'999999999999.00')) nsumnew, /*Начальная стоимость*/
+                                  trim(to_char(inv.sumamort,'999999999999.00')) nsumamort,/*Начальный износ*/
+                                  trim(to_char(inv.sumamortnew,'999999999999.00')) nsumamortnew, /*Начисленная амортизация*/
+                                  trim(to_char(inv.sumpost,'999999999999.00')) nsumpost /*Остаточная стоимость*/
+                             FROM communications e
+                             LEFT JOIN owner w ON w.id=e.ownerid 
+                             LEFT JOIN typescommunicationfacilities t ON t.id=e.typescommunicationfacilitiesid 
+                             LEFT JOIN modelcommunicationfacilities m ON m.id=e.modelcommunicationfacilitiesid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE (${owner}::text='' OR w.id=(regexp_replace(${owner}::text, '^$', '0')::bigint))
+                              AND (${typeobject}::text='' OR ${typeobject}::text='COMMUNICATIONS')
+							  AND (${employees}::text='' OR e.employeesid=(regexp_replace(${employees}::text, '^$', '0')::bigint))
+                        </script>
+                    </query>
+                </queries>
+            </band>
+
+        </bands>
+    </rootBand>
+</report>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="card_licence.xlsx" documentPath="card_licence.xlsx" outputType="xlsx" outputNamePattern="card_licence.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							SELECT w.name owner_name FROM licenses t, owner w WHERE t.id = ${id} ::bigint and w.id=t.ownerid
+                        </script>
+                    </query>
+                </queries>			
+			</band>
+			
+            <band name="Spec" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+							SELECT 'Лицензия' prop, p.code val
+                              FROM licenses t
+                              LEFT JOIN typeslicenses p ON p.id=t.typeslicensesid						
+                             WHERE t.id = ${id} ::bigint	
+							
+							union all
+							
+							SELECT 'Номер договора' prop, c.docnumb val
+                              FROM licenses t
+                              LEFT JOIN contracts c ON c.id=t.contractsid
+                             WHERE t.id = ${id} ::bigint	
+
+							union all
+							
+							SELECT 'Дата договора' prop, to_char(c.docdate,'dd.mm.yyyy') val
+                              FROM licenses t
+                              LEFT JOIN contracts c ON c.id=t.contractsid
+                             WHERE t.id = ${id} ::bigint	
+
+							union all
+							
+							SELECT 'Поставщик' prop, c.contractor val
+                              FROM licenses t
+                              LEFT JOIN contracts c ON c.id=t.contractsid
+                             WHERE t.id = ${id} ::bigint								 
+
+							union all
+							
+							SELECT 'Дата начала эксплуатации лицензии' prop, to_char(t.datestart,'dd.mm.yyyy') val FROM licenses t WHERE id = ${id} ::bigint 
+
+							union all
+							
+							SELECT 'Дата окончания' prop, to_char(t.datefinish,'dd.mm.yyyy') val FROM licenses t WHERE id = ${id} ::bigint 
+							 
+							union all
+							
+                            SELECT 'Серийный номер' prop, t.serial val FROM licenses t WHERE id = ${id} ::bigint
+							
+							union all
+							
+                            SELECT 'Описание' prop, t.description val FROM licenses t WHERE id = ${id} ::bigint
+							
+							union all
+							
+                            SELECT 'Количество' prop, trim(to_char(t.amount,'99999999999999')) val FROM licenses t WHERE id = ${id} ::bigint
+							
+							union all
+							
+                            SELECT 'Использовано' prop, trim(to_char(count(*),'99999999999999')) val FROM licenses t	
+							
+							union all
+                            
+							SELECT 'Свободно' prop, trim(to_char(t.amount-(SELECT count(*) FROM licenses),'99999999999999')) val FROM licenses t WHERE id = ${id} ::bigint
+							
+                        </script>
+                    </query>
+                </queries>
+            </band>
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>

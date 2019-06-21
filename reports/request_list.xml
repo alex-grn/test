@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="request_list.xlsx" documentPath="request_list.xlsx" outputType="xlsx" outputNamePattern="request_list.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+			
+            <band name="Header" orientation="H"/>
+			
+            <band name="Spec" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT w.code     sOWNER,
+                                  e.code     sEMPLOYEES,
+                                  pf.finyear sFINYEAR,
+                                  to_char(pf.docdate,'dd.mm.yyyy') sDOCDATE,
+                                  f_purchasefin_get_summ(pf.id,1) nSUMMNEW,
+                                  f_purchasefin_get_summ(pf.id,2) nSUMMOLD,
+                                  f_purchasefin_get_summ(pf.id,0) nSUMMTOTAL,
+                                  pf.note    sNOTE
+       
+                             FROM purchasefin pf
+                             LEFT JOIN owner w ON w.id=pf.ownerid
+                             LEFT JOIN employees e ON e.id=pf.employeesid
+                            WHERE (${owner}::text='' OR pf.ownerid=(regexp_replace(${owner}::text, '^$', '0')::bigint))
+							  AND (${repyear}::text='' OR ${repyear}::text is null OR pf.finyear=(regexp_replace(${repyear}::text, '^$', pf.finyear)::text))
+							  AND pf.cid is null
+                            ORDER BY w.code,pf.finyear,e.code
+                        </script>
+                    </query>
+                </queries>
+            </band>
+
+        </bands>
+    </rootBand>
+</report>

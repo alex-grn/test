@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="card_components.xlsx" documentPath="card_components.xlsx" outputType="xlsx" outputNamePattern="card_components.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							SELECT w.name owner_name FROM components t, owner w WHERE t.id = ${id} ::bigint and w.id=t.ownerid
+                        </script>
+                    </query>
+                </queries>			
+			</band>
+			
+            <band name="Title1" orientation="H">			
+			</band>			
+			
+            <band name="Spec1" orientation="V">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT w.code            sowner, /*Принадлежность*/
+                                  c.name            sname,  /*Наименование*/
+                                  tc.name           stypescomponents, /*Тип комплектующих*/
+                                  c.description     sdescription, /*Описание*/
+                                  c.docnumb         sdocnumb,     /*Документ поставки, номер*/
+                                  to_char(c.docdate,'dd.mm.yyyy') sdocdate, /*Документ поставки, дата*/
+                                  coalesce(c.price,0) nprice, /*Цена единицы*/
+                                  coalesce(c.quant,0) nquant,/*Количество*/
+                                  coalesce(c.price,0)*coalesce(c.quant,0) nsum,/*Сумма*/
+                                  (select coalesce(sum(u.quant),0) from spcomponentsused u where u.componentsid=c.id) nturn,/*Израсходовано*/
+                                  (select coalesce(c.quant,0)-coalesce(sum(u.quant),0) from spcomponentsused u where u.componentsid=c.id) nrest/*Остаток*/
+
+                             FROM components c
+                             LEFT JOIN owner w ON w.id=c.ownerid
+                             LEFT JOIN typescomponents tc ON tc.id=c.typescomponentsid
+                           WHERE c.id = ${id} ::bigint;
+
+                        </script>
+                    </query>
+                </queries>
+            </band>
+			
+            <band name="Title2" orientation="H">			
+			</band>
+			
+            <band name="Spec2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT p.code semployees,
+                                  concat(te.code,'\'||e.description) sequipment,
+                                  concat(toe.code,'\'||oe.description) sofficeequipment,
+                                  concat(tne.code,'\'||ne.description) stypesnetworksequipment,       
+                                  coalesce(s.quant,0) nquant,
+                                  s.note snote
+                             FROM spcomponentsused s  
+                             LEFT JOIN employees p ON p.id=s.employeesid
+                             LEFT JOIN equipment e ON e.id=s.equipmentid
+                                LEFT JOIN typesequipment te ON te.id=e.typesequipmentid
+                             LEFT JOIN officeequipment oe ON oe.id=s.officeequipmentid
+                                LEFT JOIN typesofficeequipment toe ON toe.id=oe.typesofficeequipmentid
+                             LEFT JOIN networksequipment ne ON ne.id=s.networksequipmentid
+                                LEFT JOIN typesnetworksequipment tne ON tne.id=ne.typesnetworksequipmentid
+                            WHERE s.componentsid = ${id} ::bigint;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>
