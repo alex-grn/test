@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="card_computer.xlsx" documentPath="card_computer.xlsx" outputType="xlsx" outputNamePattern="card_computer.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							SELECT w.name owner_name FROM equipment t, owner w WHERE t.id = ${id} ::bigint and w.id=t.ownerid
+                        </script>
+                    </query>
+                </queries>			
+			</band>
+
+            <band name="Title1" orientation="H">
+			</band>
+		
+            <band name="Spec1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+							SELECT 'Тип оборудования' prop, tp.name val
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid  
+                             WHERE e.id = ${id} ::bigint
+							
+							union all
+							
+							SELECT 'Модель' prop, md.model val
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint  							
+							 
+							 union all
+							 
+							SELECT 'Описание' prop, e.description val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint
+							
+							 union all
+							 
+							SELECT 'Инвентарный номер' prop, inv.objnumber val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							
+							 
+							 union all
+							 
+							SELECT 'Номер инвентарной карточки' prop, inv.cardnumb val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							
+							 
+							 union all
+							 
+							SELECT 'МОЛ' prop, inv.exec val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint														 
+							 
+							 union all
+							 
+							SELECT 'Подразделение' prop, inv.establishment val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint														 							 
+							 
+							 union all
+							 
+							SELECT 'Статус' prop, st.name val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint														 							 							 
+							 
+							 union all
+							 
+							SELECT 'Местоположение' prop, loc.name val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint														 							 							 							 
+							 
+							 union all
+							 
+							SELECT 'Заводской номер' prop, inv.worsnumber val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint														 							 							 							 							 
+							 
+							 union all
+							 
+							SELECT 'Изготовитель' prop, inv.producer val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint														 							 							 							 							 							 
+
+							 union all
+							 
+							SELECT 'Дата выпуска' prop, to_char(inv.dateissue,'dd.mm.yyyy') val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+							 
+							 union all
+							 
+							SELECT 'Дата ввода в эксплуатацию' prop, to_char(inv.datecommissioning,'dd.mm.yyyy') val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+							 
+							 union all
+							 
+							SELECT 'Дата списания' prop, (select to_char(min(h.dateoperation),'dd.mm.yyyy') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4' /*списание*/) val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+							 
+							 union all
+							 
+							SELECT 'Дата окончания гарантии' prop, to_char(e.datewarrantyf,'dd.mm.yyyy') val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+							 
+							 union all
+							 
+							SELECT 'Начальная стоимость' prop, trim(to_char(inv.sumnew,'999999999999.00')) val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+							 
+							 union all
+							 
+							SELECT 'Начальный износ' prop, trim(to_char(inv.sumamortnew,'999999999999.00')) val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+							 
+							 union all
+							 
+							SELECT 'Начисленная амортизация' prop, trim(to_char(inv.sumamort,'999999999999.00')) val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 							 
+							 
+							 union all
+							 
+							SELECT 'Остаточная стоимость' prop, trim(to_char(inv.sumpost,'999999999999.00')) val       
+                              FROM equipment e
+                              LEFT JOIN typesequipment tp ON tp.id=e.typesequipmentid
+                              LEFT JOIN modelequipment md ON md.id=e.modelequipmentid
+                              LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                              LEFT JOIN statuses st ON st.id=e.statusesid
+                              LEFT JOIN locations loc ON loc.id=e.locationsid						
+                             WHERE e.id = ${id} ::bigint							 
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+		
+            <band name="Title2" orientation="H">
+			</band>
+
+            <band name="Spec2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                            SELECT t.name prop, coalesce(to_char(s.numvalue,'999999999999.99'),to_char(s.datvalue,'dd.mm.yyyy'),s.strvalue) val, s.note
+                              FROM specificationsequipment s
+                              LEFT JOIN specifications t ON t.id=s.specificationsid
+                             WHERE s.equipmentid = ${id} ::bigint
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+			
+            <band name="Title3" orientation="H">
+			</band>
+            <band name="Spec3" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tsw.name,
+                                  vsw.version,
+                                  lic.serial,
+                                  cnt.contractor
+                             FROM spequipmentpo s
+                             LEFT JOIN software sw ON sw.id=s.softwareid
+                                LEFT JOIN typessoftware tsw ON tsw.id=sw.typessoftwareid
+                                LEFT JOIN versionsoftware vsw ON vsw.id=sw.versionsoftwareid
+                                LEFT JOIN licenses lic ON lic.id=sw.licensesid
+                                  LEFT JOIN contracts cnt ON cnt.id=lic.contractsid
+                            WHERE s.equipmentid=${id} ::bigint
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+
+			
+            <band name="Title4" orientation="H">
+			</band>
+			
+			
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>

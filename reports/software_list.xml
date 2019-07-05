@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="software_list.xlsx" documentPath="software_list.xlsx" outputType="xlsx" outputNamePattern="software_list.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+			
+            <band name="Header" orientation="H"/>
+			
+            <band name="Spec" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT w.code            sowner, /*Принадлежность*/
+                                  ts.name           sname, /*Наименование*/
+                                  vs.version        sversion, /*Версия*/
+                                  tlic.name         slicenses, /*Лицензия*/
+                                  lic.serial        sserial, /*Номер лицензии*/
+                                  inv.cardnumb      scardnumb, /*Номер инвентарной карточки*/
+                                  inv.exec          sexec, /*МОЛ*/
+                                  inv.establishment sestablishment, /*Подразделение*/
+                                  to_char(inv.datecommissioning,'yyyy.mm.dd') sdatecommissioning, /*Дата ввода в эксплуатацию*/
+                                  (select to_char(max(h.dateoperation),'yyyy.mm.dd') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4'/*Списание*/) sdateout, /*Дата списания*/
+                                  inv.sumnew        nsumnew, /*Начальная стоимость*/
+                                  inv.sumamort      nsumamort, /*Начальный износ*/
+                                  inv.sumamortnew   nsumamortnew, /*Начисленная амортизация*/
+                                  inv.sumpost       nsumpost /*Остаточная стоимость*/
+                            FROM software s
+                            LEFT JOIN owner w ON w.id=s.ownerid
+                            LEFT JOIN typessoftware ts ON ts.id=s.typessoftwareid
+                            LEFT JOIN versionsoftware vs ON vs.id=s.versionsoftwareid
+                            LEFT JOIN licenses lic ON lic.id=s.licensesid
+                               LEFT JOIN typeslicenses tlic ON tlic.id=lic.typeslicensesid
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                           WHERE (${owner}::text='' OR w.id=(regexp_replace(${owner}::text, '^$', '0')::bigint))
+                             AND (${typessoftware}::text='' OR ts.id=(regexp_replace(${typessoftware}::text, '^$', '0')::bigint))
+                        </script>
+                    </query>
+                </queries>
+            </band>
+
+        </bands>
+    </rootBand>
+</report>

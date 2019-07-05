@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="card_purchasefin.xlsx" documentPath="card_purchasefin.xlsx" outputType="xlsx" outputNamePattern="card_purchasefin.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							SELECT w.name owner_name FROM purchasefin t, owner w WHERE t.id = ${id} ::bigint and w.id=t.ownerid
+                        </script>
+                    </query>
+                </queries>			
+			</band>
+			
+            <band name="Title1" orientation="H">			
+			</band>			
+			
+            <band name="Spec1" orientation="V">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT pf.finyear nFINYEAR,
+                                  to_char(pf.docdate,'dd.mm.yyyy') sDOCDATE,
+                                  e.code     sEMPLOYEES,
+                                  f_purchasefin_get_summ(pf.id,1) nSUMMNEW,
+                                  f_purchasefin_get_summ(pf.id,2) nSUMMOLD,
+                                  f_purchasefin_get_summ(pf.id,0) nSUMMTOTAL,
+                                  pf.note    sNOTE
+                             FROM purchasefin pf
+                             LEFT JOIN employees e ON e.id=pf.employeesid
+                            WHERE pf.id = ${id} ::bigint
+							  and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+			
+            <band name="Header2" orientation="H">			
+			</band>
+			
+            <band name="Title2_1" orientation="H">			
+			</band>			
+            <band name="Spec2_1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tp.code sTYPES,
+                                  m.model sMODEL,
+                                  pf.description sDESCRIPTION,
+                                  pf.summ nSUMM,
+                                  pf.note sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfequipment pf
+                             LEFT JOIN typesequipment tp ON tp.id=pf.typesequipmentid
+                             LEFT JOIN modelequipment m ON m.id=pf.modelequipmentid
+							WHERE pf.purchasefinid = ${id} ::bigint
+							  and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title2_2" orientation="H">			
+			</band>			
+            <band name="Spec2_2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tp.code sTYPES,
+                                  m.version sMODEL,
+                                  pf.description sDESCRIPTION,
+                                  pf.summ nSUMM,
+                                  pf.note sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfsoftware pf
+                             LEFT JOIN typessoftware tp ON tp.id=pf.typessoftwareid
+                             LEFT JOIN versionsoftware m ON m.id=pf.versionsoftwareid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+							  and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title2_3" orientation="H">			
+			</band>			
+            <band name="Spec2_3" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tp.code sTYPES,
+                                  m.model sMODEL,
+                                  pf.description sDESCRIPTION,
+                                  pf.summ nSUMM,
+                                  pf.note sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfofficeequipment pf
+                             LEFT JOIN typesofficeequipment tp ON tp.id=pf.typesofficeequipmentid
+                             LEFT JOIN modelofficeequipment m ON m.id=pf.modelofficeequipmentid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+							  and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title2_4" orientation="H">			
+			</band>			
+            <band name="Spec2_4" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tp.code sTYPES,
+                                  m.model sMODEL,
+                                  pf.description sDESCRIPTION,
+                                  pf.summ nSUMM,
+                                  pf.note sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfnetworksequipment pf
+                             LEFT JOIN typesnetworksequipment tp ON tp.id=pf.typesnetworksequipmentid
+                             LEFT JOIN modelnetworksequipment m ON m.id=pf.modelnetworksequipmentid
+                           WHERE pf.purchasefinid = ${id} ::bigint
+						     and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>						
+
+            <band name="Title2_5" orientation="H">			
+			</band>			
+            <band name="Spec2_5" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tp.code sTYPES,
+                                  m.model sMODEL,
+                                  pf.description sDESCRIPTION,
+                                  pf.summ nSUMM,
+                                  pf.note sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfcommunications pf
+                             LEFT JOIN typescommunicationfacilities tp ON tp.id=pf.typescommunicationfacilitiesid
+                             LEFT JOIN modelcommunicationfacilities m ON m.id=pf.modelcommunicationfacilitiesid
+                           WHERE pf.purchasefinid = ${id} ::bigint
+                             and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>						
+
+            <band name="Title2_6" orientation="H">			
+			</band>			
+            <band name="Spec2_6" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT tp.code  sTYPES,
+                                  pf.name  sNAME,
+                                  pf.quant nQUANT,
+                                  pf.summ  nSUMM,
+                                  pf.note  sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfcomponents pf
+                             LEFT JOIN typescomponents tp ON tp.id=pf.typescomponentsid
+                           WHERE pf.purchasefinid = ${id} ::bigint
+                             and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>		
+
+			<band name="Header3" orientation="H">			
+			</band>
+			
+            <band name="Title3_1" orientation="H">			
+			</band>			
+            <band name="Spec3_1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT te.code       sTYPES,
+                                  me.model      sMODEL,
+                                  e.description sDESCRIPTION,
+                                  case when pf.typepurchasefin='0' then 'Ремонт'
+                                       when pf.typepurchasefin='1' then 'Модернизация'
+                                       when pf.typepurchasefin='2' then 'Обслуживание'
+                                       else ''  
+                                  end           sTYPEPF,
+                                  pf.summ       nSUMM,
+                                  pf.note       sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfequipmentold pf
+                             LEFT JOIN equipment e ON e.id=pf.equipmentid
+                               LEFT JOIN typesequipment te ON te.id=e.typesequipmentid
+                               LEFT JOIN modelequipment me ON me.id=e.modelequipmentid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+                              and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title3_2" orientation="H">			
+			</band>			
+            <band name="Spec3_2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT te.code        sTYPES,
+                                  me.version     sMODEL,
+                                  te.name        sDESCRIPTION,
+                                  case when pf.typepurchasefinsoft='0' then 'Сопровождение'
+                                       when pf.typepurchasefinsoft='1' then 'Модернизация'
+                                       when pf.typepurchasefinsoft='2' then 'Развитие'
+                                       else ''  
+                                  end            sTYPEPF,
+                                  pf.summ        nSUMM,
+                                  pf.note        sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfsoftwareold pf
+                             LEFT JOIN software e ON e.id=pf.softwareid
+                               LEFT JOIN typessoftware te ON te.id=e.typessoftwareid
+                               LEFT JOIN versionsoftware me ON me.id=e.versionsoftwareid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+                              and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>						
+			
+            <band name="Title3_3" orientation="H">			
+			</band>			
+            <band name="Spec3_3" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT te.code       sTYPES,
+                                  me.model      sMODEL,
+                                  e.description sDESCRIPTION,
+                                  case when pf.typepurchasefin='0' then 'Ремонт'
+                                       when pf.typepurchasefin='1' then 'Модернизация'
+                                       when pf.typepurchasefin='2' then 'Обслуживание'
+                                       else ''  
+                                  end           sTYPEPF,
+                                  pf.summ       nSUMM,
+                                  pf.note       sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfofficeequipmentold pf
+                             LEFT JOIN officeequipment e ON e.id=pf.officeequipmentid
+                               LEFT JOIN typesofficeequipment te ON te.id=e.typesofficeequipmentid
+                               LEFT JOIN modelofficeequipment me ON me.id=e.modelofficeequipmentid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+                              and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+
+            <band name="Title3_4" orientation="H">			
+			</band>			
+            <band name="Spec3_4" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT te.code       sTYPES,
+                                  me.model      sMODEL,
+                                  e.description sDESCRIPTION,
+                                  case when pf.typepurchasefin='0' then 'Ремонт'
+                                       when pf.typepurchasefin='1' then 'Модернизация'
+                                       when pf.typepurchasefin='2' then 'Обслуживание'
+                                       else ''  
+                                  end           sTYPEPF,
+                                  pf.summ       nSUMM,
+                                  pf.note       sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfnetworksequipmentold pf
+                             LEFT JOIN networksequipment e ON e.id=pf.networksequipmentid
+                               LEFT JOIN typesnetworksequipment te ON te.id=e.typesnetworksequipmentid
+                               LEFT JOIN modelnetworksequipment me ON me.id=e.modelnetworksequipmentid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+                              and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title3_5" orientation="H">			
+			</band>			
+            <band name="Spec3_5" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT te.code       sTYPES,
+                                  me.model      sMODEL,
+                                  e.description sDESCRIPTION,
+                                  case when pf.typepurchasefin='0' then 'Ремонт'
+                                       when pf.typepurchasefin='1' then 'Модернизация'
+                                       when pf.typepurchasefin='2' then 'Обслуживание'
+                                       else ''  
+                                  end           sTYPEPF,
+                                  pf.summ       nSUMM,
+                                  pf.note       sNOTE,
+                                  case when pf.statusepf='0' then 'Новая'
+                                       when pf.statusepf='1' then 'Утверждена'
+                                       when pf.statusepf='2' then 'Отклонена'
+                                       else ''
+                                  end sSTATUSEPF
+                             FROM pfcommunicationsold pf
+                             LEFT JOIN communications e ON e.id=pf.communicationsid
+                               LEFT JOIN typescommunicationfacilities te ON te.id=e.typescommunicationfacilitiesid
+                               LEFT JOIN modelcommunicationfacilities me ON me.id=e.modelcommunicationfacilitiesid
+                            WHERE pf.purchasefinid = ${id} ::bigint
+                              and pf.cid is null;
+                        </script>
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>

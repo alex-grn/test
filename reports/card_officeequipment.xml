@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="card_officeequipment.xlsx" documentPath="card_officeequipment.xlsx" outputType="xlsx" outputNamePattern="card_officeequipment.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							SELECT w.name owner_name FROM officeequipment t, owner w WHERE t.id = ${id} ::bigint and w.id=t.ownerid
+                        </script>
+                    </query>
+                </queries>			
+			</band>
+
+            <band name="Title1" orientation="H">
+			</band>
+		
+            <band name="Spec1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT 'Тип оргтехники' prop, t.name val
+                             FROM officeequipment e
+                             LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                             LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE e.id = ${id} ::bigint
+							
+                            UNION ALL
+							
+                           SELECT 'Модель' prop, m.model val
+                             FROM officeequipment e
+                             LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                             LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE e.id = ${id} ::bigint
+
+                            UNION ALL
+
+                           SELECT 'Описание' prop, m.description val
+                             FROM officeequipment e
+                             LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                             LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE e.id = ${id} ::bigint
+
+                            UNION ALL
+
+                           SELECT 'Инвентарный номер' prop, inv.objnumber val
+                             FROM officeequipment e
+                             LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                             LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE e.id = ${id} ::bigint
+
+                            UNION ALL
+
+                           SELECT 'Номер инвентарной карточки' prop, inv.cardnumb val
+                             FROM officeequipment e
+                             LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                             LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                             LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                             LEFT JOIN statuses st ON st.id=e.statusesid
+                             LEFT JOIN locations loc ON loc.id=e.locationsid
+                            WHERE e.id = ${id} ::bigint
+
+                           UNION ALL
+                           
+                          SELECT 'МОЛ' prop, inv.exec val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Подразделение' prop, inv.establishment val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Статус' prop, st.name val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+
+                           UNION ALL
+                           
+                           SELECT 'Местоположение' prop, loc.name val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Заводской номер' prop, inv.worsnumber val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Изготовитель' prop, inv.producer val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+
+                           UNION ALL
+                           
+                          SELECT 'Дата выпуска' prop, to_char(inv.dateissue,'dd.mm.yyyy') val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                           SELECT 'Дата ввода в эксплуатацию' prop, to_char(inv.datecommissioning,'dd.mm.yyyy') val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Дата списания' prop, (select to_char(min(h.dateoperation),'dd.mm.yyyy') from inventoryhistory h where h.inventoryid=inv.id and h.typeoperation='4') val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+
+                           UNION ALL
+                           
+                          SELECT 'Дата окончания гарантии' prop, to_char(e.datewarrantyf,'dd.mm.yyyy') val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Начальная стоимость' prop, trim(to_char(inv.sumnew,'999999999999.00')) val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Начальный износ' prop, trim(to_char(inv.sumamort,'999999999999.00')) val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+
+                           UNION ALL
+                           
+                          SELECT 'Начисленная амортизация' prop, trim(to_char(inv.sumamortnew,'999999999999.00')) val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                           
+                           UNION ALL
+                           
+                          SELECT 'Остаточная стоимость' prop, trim(to_char(inv.sumpost,'999999999999.00')) val
+                            FROM officeequipment e
+                            LEFT JOIN typesofficeequipment t ON t.id=e.typesofficeequipmentid 
+                            LEFT JOIN modelofficeequipment m ON m.id=e.modelofficeequipmentid 
+                            LEFT JOIN inventory inv ON inv.id=e.inventoryid
+                            LEFT JOIN statuses st ON st.id=e.statusesid
+                            LEFT JOIN locations loc ON loc.id=e.locationsid
+                           WHERE e.id = ${id} ::bigint
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+		
+            <band name="Title2" orientation="H">
+			</band>
+			
+            <band name="Spec2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT t.name prop, coalesce(to_char(s.numvalue,'999999999999.99'),to_char(s.datvalue,'dd.mm.yyyy'),s.strvalue) val, s.note description
+                             FROM specificationsofficeequipment s
+                             LEFT JOIN specifications t ON t.id=s.specificationsid
+                            WHERE s.officeequipmentid = ${id} ::bigint
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+			
+            <band name="Title3" orientation="H">
+			</band>
+			
+            <band name="Spec3" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title4" orientation="H">
+			</band>
+			
+            <band name="Spec4" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>			
+			
+            <band name="Title5" orientation="H">
+			</band>
+            <band name="Spec5" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                           SELECT trim(to_char(hist.dateoperation,'dd.mm.yyyy')) sdateoperation, 
+                                  loc.name slocations,
+                                  (select case max(h.typeoperation) when '0' then 'В эксплуатации' when '4' then 'Списано' else 'Не введена в эксплуатацию' end as sstatus 
+                                     from inventoryhistory h 
+                                    where h.inventoryid=inv.id
+									  and h.dateoperation&lt;=hist.dateoperation
+                                      and h.typeoperation in ('0' /*Принятие к учету*/,'4' /*Списание*/) 
+                                  ) sstatus,
+                                  hist.execnew sexecnew, hist.establishmentnew sestablishmentnew, 
+                                  hist.sumnew nsumnew, hist.sumamort nsumamort, hist.sumamortnew nsumamortnew, hist.sumpost nsumpost
+                            FROM officeequipment s
+                            LEFT JOIN inventory inv ON inv.id=s.inventoryid
+                            LEFT JOIN inventoryhistory hist ON hist.inventoryid=inv.id
+                            LEFT JOIN locations loc ON loc.id=s.locationsid
+                           WHERE s.id = ${id} ::bigint
+						   ORDER BY hist.dateoperation, hist.id
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>
+
+			
+            <band name="Title6" orientation="H">
+			</band>
+            <band name="Spec6" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                        </script>
+						
+                    </query>
+                </queries>
+            </band>			
+			
+			
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>
