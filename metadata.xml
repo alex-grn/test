@@ -20,11 +20,19 @@
 				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
 				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
 				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
+				<MENU name="Конвертер">
+					<MI name="Форматы обмена данными" formlist="Concepts"/>
+					<MI name="Алгоритмы загрузки" formlist="Conv"/>
+					<MI name="Источники данных" formlist="ConceptDocs"/>
+				</MENU>
 			</MENU>
 			<MENU name="Справочники">
 				<MI name="Классы метаданных" formlist="MetaClass"/>
 				<MI name="Объекты доступа" formlist="Units"/>
 				<MI name="Уровни доступа" formlist="LevAccess"/>
+			</MENU>
+			<MENU name="Справка">
+				<MI name="Содержание" actionlist="Help"/>
 			</MENU>
 		</MENU>
 		<MENU id="BeneficiarsReg" name="Реестры получателей пособий">
@@ -95,11 +103,10 @@
 					<MI name="Индексация пособий" formlist="BenefitsIndexdir"/>
 				</MENU>
 			</MENU>
-			<MENU name="Справка"/>
 		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
-		<A id="CODE" name="Код" caption="Мнемокод" type="string" len="40" nulls="false"/>
+		<A id="CODE" name="Код" caption="Мнемокод" type="string" nulls="false"/>
 		<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="true"/>
 		<A id="NOTE" name="Примечание" caption="Примечание" type="text" nulls="true"/>
 		<A id="DESCRIPTION" name="Описание" caption="Описание" type="text" nulls="true"/>
@@ -175,8 +182,7 @@
 			<AI id="ext" name="Расширение файла"/>
 			<AI id="href" name="Гиперссылка"/>
 			<AI id="before" name="Действие до"/>
-			<AI id="change" name="Действие после изменения"/>
-			<AI id="after" name="Действие после"/>
+			<AI id="childrenrefresh" name="Обновить подчиненные таблицы при любых действиях с записью (наличие триггеров)"/>
 			<AI id="unique" name="Уникальный индекс"/>
 			<AI id="index" name="Индекс"/>
 			<AI id="check" name="Проверка"/>
@@ -287,6 +293,12 @@
 		<A id="CONFIGCOLUMNSID" name="Настройки интерфейса колонок" caption="Настройки интерфейса колонок" type="ref" table="CONFIGCOLUMNS" ret="COLUMNID" nulls="false"/>
 		<A id="WIDTH" name="Ширина" caption="Ширина" type="int" nulls="false"/>
 		<A id="VISIBLE" name="Видимость" caption="Видимость" type="boolean" nulls="false"/>
+		<A id="CONCEPTID" name="Формат" caption="Формат" type="ref" table="CONCEPTS" ret="NAME" form="Concepts" nulls="false"/>
+		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="false"/>
+		<A id="CONVID" name="Алгоритм загрузки" caption="Алгоритм загрузки" labelwidth="150" type="ref" table="CONV" ret="NAME" form="Conv" nulls="false"/>
+		<A id="CONVACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVACTION_ret" nulls="false"/>
+		<A id="CONVACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVACTPARAMS" ret="CODE" form="Conv" nulls="false"/>
+		<A id="CONCEPTDOCSID" name="Источник данных" caption="Источник данных" labelwidth="150" type="ref" table="CONCEPTDOCS" ret="NAME" form="ConceptDocs" nulls="false"/>
 		<A id="FEDERALREGIONDIRID" name="Федеральный округ" caption="Федеральный округ" labelwidth="120" type="ref" table="FEDERALREGIONDIR" ret="NAME" nulls="false"/>
 		<A id="COMPANYNAMEID" name="Организация" caption="Организация" labelwidth="150" type="ref" table="COMPANYDIR" ret="COMPANYNAME" nulls="false"/>
 		<A id="SUBJECTSDIRID" name="Отправитель (регион)" caption="Отправитель (регион)" labelwidth="150" type="ref" table="SUBJECTSDIR" ret="NAME" nulls="false"/>
@@ -336,14 +348,14 @@
 		</GA>
 		<GA id="Document" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" caption="Документ" width="40"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
-			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and cid=0"/>
+			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="DocumentP" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" labelwidth="90" width="20"/>
 			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
-			<A id="DOCNUMB" caption="Номер №" labelwidth="70" width="40"/>
-			<A id="DOCDATE" labelwidth="45" width="20" formula="sysdate"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="FileInformation" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
 			<A id="FILELINKSID" name="Описание файла"/>
@@ -672,6 +684,131 @@
 			<A id="CONFIGTABLESID" parentkey="cascade"/>
 			<GA id="ConfigColumns"/>
 			<TI unique="CONFIGTABLESID,COLUMNID"/>
+		</TABLE>
+		<TABLE id="CONCEPTS" name="Конвертер: Форматы обмена данными">
+			<A id="NAME" nulls="false"/>
+			<GA>
+				<A id="FORMAT" name="Формат" caption="Формат" width="70" type="list" nulls="false" local="true">
+					<AI id="xls" name="Книга Excel"/>
+					<AI id="xml" name="Файл XML"/>
+					<AI id="json" name="Файл JSON"/>
+					<AI id="txtsep" name="Текстовый файл с разделителями"/>
+					<AI id="txtfix" name="Текстовый файл с полями фиксированной длины"/>
+				</A>
+				<A id="CODEPAGE" name="Кодовая страница" caption="Кодовая страница" labelwidth="120" width="30" type="list" nulls="false" value="UTF-8">
+					<AI id="UTF-8" name="UTF-8"/>
+					<AI id="WIN-1251" name="WIN-1251"/>
+					<AI id="WIN-866" name="WIN-866"/>
+				</A>
+			</GA>
+			<TI id="CONCEPTS_NAME_UK" unique="NAME"/>
+		</TABLE>
+		<TABLE id="CONCEPTITEMS" name="Конвертер: Форматы обмена данными (элементы)" hid="CODE">
+			<A id="CONCEPTID" parentkey="cascade"/>
+			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
+			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
+			<A id="NAME" labelwidth="150"/>
+			<GA>
+				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@ID ::bigint, @ATTR ::boolean)" local="true">
+					<AI id="xlssheet" name="Страница Excel"/>
+					<AI id="xlscol" name="Колонка Excel"/>
+					<AI id="xmlnode" name="Таг XML"/>
+					<AI id="xmlattr" name="Атрибут XML"/>
+					<AI id="jsonobj" name="Объект JSON"/>
+					<AI id="jsonkey" name="Ключ JSON"/>
+					<AI id="txtrow" name="Строка текстового файла"/>
+					<AI id="txtcol" name="Поле текстового файла"/>
+				</A>
+				<A id="ATTR" name="Подтип" caption="Подтип" labelwidth="50" width="10" type="boolean" nulls="false" value="false" local="true"/>
+			</GA>
+			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, HID, CODE, ITEM_TYPE"/>
+		</TABLE>
+		<TABLE id="CONV" name="Конвертер: Алгоритмы загрузки">
+			<A id="NAME" nulls="false"/>
+			<A id="CONCEPTID"/>
+			<TI id="CONV_NAME_UK" unique="NAME"/>
+		</TABLE>
+		<TABLE id="CONVACTS" name="Конвертер: Алгоритмы загрузки (действия)" childrenrefresh="true">
+			<A id="CONVID" parentkey="true"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID::bigint"/>
+			<GA>
+				<A id="POSITION" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
+				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="80" formula="select coalesce(@CONCEPTITEMID ::bigint, min(id)) from conceptitems where conceptid=@CONCEPTID ::bigint and hid is null and cid=0"/>
+			</GA>
+			<GA name="Объект базы данных" caption="Объект базы данных">
+				<A id="CONVUNITTYPE" name="Тип" caption="Тип" labelwidth="36" width="15" type="list" nulls="false" local="true">
+					<AI id="table" name="Таблица"/>
+					<AI id="procedure" name="Процедура"/>
+				</A>
+				<A id="CONVUNIT" name="Наименование" caption="Наименование" labelwidth="110" width="85" type="list" nulls="false" query="select upper(tablename) as id, (select coalesce(upper(tablename)||' - '||max(m.name),upper(tablename)) from metaclass m where m.classnode='TABLE' and m.code=upper(tablename)) as code from pg_tables where schemaname = 'public' and @CONVUNITTYPE = 'table' union all select upper(p.proname) as id, (select coalesce(upper(p.proname)||' - '||max(m.name),upper(p.proname)) from metaclass m, metaclassprops mp where m.classnode='ACTION' and m.id = mp.metaclassid and mp.propnode='procedure' and lower(mp.strvalue)=p.proname) as code from pg_proc p, pg_namespace s where p.pronamespace = s.oid and s.nspname='public' and @CONVUNITTYPE = 'procedure'" local="true"/>
+			</GA>
+			<GA>
+				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
+				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true"/>
+			</GA>
+			<A id="CONDITION" name="Условие выполнения" caption="Условие выполнения" labelwidth="80" type="text" nulls="true" local="true"/>
+			<A id="NOTE" labelwidth="80"/>
+		</TABLE>
+		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
+			<A id="CONVACTSID" parentkey="true"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTSID ::bigint and a.convid=n.id"/>
+			<GA name="Параметр" caption="Параметр">
+				<A id="POSITION" readonly="true"/>
+				<A id="CODE" readonly="true"/>
+				<A id="NAME" type="string" readonly="true"/>
+				<GA>
+					<A id="PARAMTYPE" name="Тип" caption="Тип" width="44" type="list" readonly="true">
+						<AI id="field" name="Поле"/>
+						<AI id="virtual" name="Логическое поле"/>
+						<AI id="in" name="Входной"/>
+						<AI id="out" name="Выходной"/>
+						<AI id="inout" name="Входной/выходной"/>
+					</A>
+					<A id="DATATYPE" name="Тип данных" caption="Тип данных" labelwidth="80" width="44" type="list" readonly="true">
+						<AI id="varchar" name="Строка"/>
+						<AI id="int" name="Целое число"/>
+						<AI id="numeric" name="Действительное число"/>
+						<AI id="date" name="Дата"/>
+						<AI id="timestamp without time zone" name="Дата и время"/>
+						<AI id="boolean" name="Логическое"/>
+						<AI id="bigint" name="Ссылка"/>
+						<AI id="bigserial" name="Первичный ключ"/>
+						<AI id="ret" name="Возвращаемое значение"/>
+						<AI id="bytea" name="Бинарный файл"/>
+					</A>
+					<A id="DATANOTNULL" name="Обязательное" caption="Обязательное" labelwidth="93" width="6" type="list" readonly="true">
+						<AI id="no" name="Нет"/>
+						<AI id="yes" name="Да"/>
+					</A>
+					<A id="DATAARRAY" name="Массив" caption="Массив" labelwidth="50" width="6" type="list" readonly="true">
+						<AI id="no" name="Нет"/>
+						<AI id="yes" name="Да"/>
+					</A>
+				</GA>
+			</GA>
+			<GA name="Источник значения" caption="Источник значения">
+				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true"/>
+				<A id="VALUE_PARAM" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVACTPARAMS" ret="CODE" form="Conv" nulls="true"/>
+				<A id="VALUE_DEFAULT" name="Значение по умолчанию" caption="Значение по умолчанию" labelwidth="150" type="string" nulls="true"/>
+			</GA>
+			<GA name="Обработка значения" caption="Формула">
+				<A id="VALUE_FORMULA" name="Формула" caption="" width="100" type="text" nulls="true"/>
+				<A id="VALUE_TRIM" name="Удалить пробелы" caption="Удалить крайние пробелы" width="30" type="boolean"/>
+				<A id="VALUE_UNIQUE" name="Обеспечить уникальность" caption="Обеспечить уникальность" width="70" type="boolean"/>
+			</GA>
+			<GA caption="Ключи поиска записи">
+				<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="boolean" array="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="CONCEPTDOCS" name="Конвертер: Источники данных">
+			<GA name="Документ" caption="Документ">
+				<A id="CONCEPTID" caption="Документ" width="40"/>
+				<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from conceptdocs where conceptid=@CONCEPTID ::bigint and cid=0"/>
+				<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
+			</GA>
+			<A id="NAME"/>
+			<GA id="FileInformation"/>
+			<TI id="CONCEPTDOCS_NUMB_UK" unique="CONCEPTID,DOCNUMB,DOCDATE"/>
 		</TABLE>
 		<TABLE id="BENEFITSPACKETS" name="Пакеты реестров">
 			<A id="SUBJECTSDIRID"/>
@@ -1046,6 +1183,7 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
+		<ACTION id="Help" name="Справка" type="link" href="help" visible="window"/>
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
@@ -1077,6 +1215,12 @@
 				</GRID>
 			</FORM>
 		</ACTION>
+		<ACTION id="ConceptLoad" name="Создать формат по образцу файла" type="procedure" procedure="p_system_concept_load">
+			<FORM>
+				<A id="BFILE" nulls="false"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="convactparams_fill" name="Обновить список параметров" type="procedure" procedure="p_system_convactparams_fill"/>
 		<ACTION id="ParseReestr" name="Отработать реестр" type="procedure" procedure="p_reestr_parse"/>
 		<ACTION id="loadReestr" name="Загрузить реестр" type="script" actionlist="uploadFilelinks;FilelinksToFilebuffer;ParseReestr"/>
 		<ACTION id="exportReestr" name="Выгрузить реестр" type="script" actionlist="loadFilelinks"/>
@@ -1188,9 +1332,9 @@
 			<GRID id="LevAccess" name="Уровни доступа" table="LEVACCESS"/>
 		</FORM>
 		<FORM id="MetaClass" name="Классы метаданных">
-			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad" reportlist="MetaClassReport">
+			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad;ConfigTables" reportlist="MetaClassReport">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;ConfigTables">
+					<MI actionlist="Insert;Copy;Update">
 						<FORM>
 							<RECORD/>
 							<GRID id="MetaClassProps" name="Свойства метаданных" table="METACLASSPROPS"/>
@@ -1234,6 +1378,18 @@
 					<MI actionlist="Update;ConfigTables"/>
 				</MENU>
 			</GRID>
+		</FORM>
+		<FORM id="Concepts" name="Форматы обмена данными">
+			<GRID id="Concepts" name="Форматы обмена данными" table="CONCEPTS" actionlist="ConceptLoad"/>
+			<GRID id="ConceptItems" name="Элементы" table="CONCEPTITEMS"/>
+		</FORM>
+		<FORM id="Conv" name="Алгоритмы загрузки">
+			<GRID id="Conv" name="Алгоритмы загрузки" table="CONV"/>
+			<GRID id="ConvActs" name="Алгоритмы загрузки (действия)" table="CONVACTS" actionlist="convactparams_fill"/>
+			<GRID id="ConvActParams" name="Алгоритмы загрузки (параметры)" table="CONVACTPARAMS"/>
+		</FORM>
+		<FORM id="ConceptDocs" name="Источники данных">
+			<GRID id="ConceptDocs" name="Источники данных" table="CONCEPTDOCS"/>
 		</FORM>
 		<FORM id="BenefitsPackets" name="Пакеты реестров">
 			<GRID id="BENEFITSPACKETS" name="Пакеты реестров" table="BENEFITSPACKETS"/>
