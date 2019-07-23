@@ -40,6 +40,9 @@
 		
 		<MENU id="BeneficiarsReg" name="Реестры получателей пособий">
 			<MENU name="Сервис">
+			<!-- ВРЕМЕННО -->
+			<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+			
 				<MI name="Выход" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Реестры">
@@ -59,27 +62,23 @@
 				</MENU>
 			</MENU>
 			<MENU name="Отчеты">
+				<MI name="Сводный отчет по гражданам, имеющим детей" reportlist="Summreport_Reg"/>
 				<MENU name="Первичные отчеты">
-					<MENU name="Единовременные пособия">
-						<MI name="Отчет по беременности и родам" reportlist="Areport_benefit02"/>
-						<MI name="Отчет по ранним срокам беременности" reportlist="Areport_benefit03"/>
-						<MI name="Отчет по рождении ребенка" reportlist="Areport_benefit04"/>
-						<MI name="Отчет по беременной жене военнослужащего" reportlist="Areport_benefit06"/>
-					</MENU>
-					<MENU name="Ежемесячные пособия">
-						<MI name="Отчет по уходу за ребенком" reportlist="Areport_benefit01"/>
-						<MI name="Отчет по ребенку военнослужащего" reportlist="Areport_benefit05"/>
-						<MI name="Отчет по рождению (усыновлению)" reportlist="Areport_benefit07"/>
-					</MENU>
+					<MI name="Отчет по уходу за ребенком" reportlist="Areport_benefit01"/>
+					<MI name="Отчет по беременности и родам" reportlist="Areport_benefit02"/>
+					<MI name="Отчет по ранним срокам беременности" reportlist="Areport_benefit03"/>
+					<MI name="Отчет по рождении ребенка" reportlist="Areport_benefit04"/>
+					<MI name="Отчет по ребенку военнослужащего" reportlist="Areport_benefit05"/>
+					<MI name="Отчет по беременной жене военнослужащего" reportlist="Areport_benefit06"/>
+					<MI name="Отчет по рождению (усыновлению)" reportlist="Areport_benefit07"/>
 				</MENU>
 				<MENU name="Сводные отчеты">
-					<MI name="Сводный отчет о назначении и выплате пособий" reportlist="Areport_SummAppPay"/>
-					<MI name="Сводный отчет (накопленным итогом)" reportlist="Areport_SummTotalAppPay"/>
-					<MI name="Сводный отчет по гражданам, имеющим детей (региональный)" reportlist="Areport_SummRegion"/>
+					<MI name="Сводный отчет о назначении и выплате пособий" reportlist="Sreport_AppPay"/>
+					<MI name="Сводный отчет (накопленным итогом)" reportlist="Sreport_AppPay_Total"/> <!--(то же что Sreport_AppPay, только с начала текущего года)-->
 				</MENU>
 			</MENU>
 			<MENU name="Аналитика">
-				<MI name="Личное дело получателя пособий" reportlist="Areport_PersonalFile"/>
+				<MI name="Личное дело получателя пособий" reportlist="PersonalFile"/>
 				<MI name="Поиск неправомерных доплат для ежемесячных пособий по уходу за ребенком" reportlist="Unlawfulsurcharge"/>
 				<MI name="Поиск случаев многократных выплат пособия в разных регионах" reportlist="Multiplepayments"/>
 				<MI name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange"/>
@@ -90,9 +89,6 @@
 				<MI name="Получатели пособий" formlist="Benefitsrecipients"/>
 			</MENU>
 			<MENU name="Справочники">
-				<MENU name="Географические понятия">
-					<MI name="Субъекты" formlist="Subjectsdir"/>
-				</MENU>
 				<MENU name="Документы">
 					<MI name="Документ, удостоверяющий личность" formlist="Persondocumentdir"/>
 					<MI name="Документ, подтверждающий факт рождения ребенка" formlist="CertificateBirthdir"/>
@@ -105,6 +101,7 @@
 					<MI name="Виды пособий" formlist="BenefitsTypedir"/>
 					<MI name="Индексация пособий" formlist="BenefitsIndexdir"/>
 				</MENU>
+				<MI name="Субъекты" formlist="Subjectsdir"/>
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
@@ -307,7 +304,6 @@
 		<A id="BENEFITSTYPENAMEDIRID" name="Тип реестра" caption="Тип реестра" type="ref" table="BENEFITSTYPEDIR" ret="NAME" nulls="false"/>
 		<A id="BENEFITSPACKETSID" name="Регион" caption="Регион" labelwidth="120" type="ref" table="BENEFITSPACKETS" ret="SUBJECTSDIRID_ret" form="BenefitsPackets" nulls="false"/>
 		<A id="BENEFITSTYPEDIRID" name="Тип реестра" caption="Тип реестра" labelwidth="120" type="ref" pid="BENEFITSPACKETSID" table="BENEFICIARIESREGISTERS" ret="BENEFITSTYPENAMEDIRID_ret" nulls="false" visible="form"/>
-		<A id="BENEFICIARIESREGISTERSID" name="Ошибки загрузки реестра" caption="Ошибки загрузки реестра" type="ref" pid="BENEFITSTYPEDIRID" table="BENEFICIARIESREGISTERS" ret="BENEFITSTYPENAMEDIRID_ret" nulls="false" visible="form"/>
 		<A id="BENEFITSRECIPIENTSID" name="Получатель пособия" caption="Получатель пособия" type="ref" table="BENEFITSRECIPIENTS" ret="LASTNAME" form="Benefitsrecipients" nulls="false"/>
 		<A id="REMARKID" name="Примечание" caption="Примечание" type="ref" pid="BENEFITSRECIPIENTSID" table="REMARK" ret="NOTE" nulls="true"/>
 		<A id="DOCBIRTHCHILDTYPEID" name="Вид" caption="Вид" type="ref" table="CERTIFICATEBIRTHDIR" ret="NAME" nulls="false"/>
@@ -449,6 +445,10 @@
 			    when '11' then 'Ноябрь'   
 			    when '12' then 'Декабрь' end" local="true"/>
 		</GA>
+		<GA id="DATEREPORT" caption="Период отчета">
+			<A id="REPSTART" name="Дата с" caption="Дата с" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+			<A id="REPEXPIRY" name="Дата по" caption="Дата по" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+		</GA>
 		<GA id="REPPERIOD" name="Отчетный период">
 			<A id="REPYEARVIRT" name="Год" caption="Год" labelwidth="30" width="10" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.repyear from benefitspackets b where b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
 			<A id="REPMONTHVIRT" name="Месяц" caption="Месяц" labelwidth="45" width="10" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.repmonth from benefitspackets b where b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
@@ -469,16 +469,12 @@
 			   formula="select d.name from companydir b, subjectsdir d where b.subjectsdirid = d.id and b.id= @COMPANYNAMEID ::bigint" local="true"/>
 			<A id="COMPANYNAMEID" name="Наименование организации"/>
 		</GA>
-		<GA id="HEADER">
 		
+		<GA id="HEADER">
 			<A id="BENEFITSPACKETSID" nulls="true"/>
 			<A id="BENEFITSTYPEDIRID" parentkey="cascade" nulls="true"/>
 			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true"
-			  
-
-			  formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
-			  
-			  
+			   formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
 			  
 			<GA id="REPPERIOD"/>
 			<A id="BENEFITSRECIPIENTSID" labelwidth="120" nulls="true"/>
@@ -851,33 +847,52 @@
 			<GA id="FileInformation"/>
 			<TI id="CONCEPTDOCS_NUMB_UK" unique="CONCEPTID,DOCNUMB,DOCDATE"/>
 		</TABLE>
+		
+		
 		<TABLE id="BENEFITSPACKETS" name="Пакеты реестров">
 			<A id="SUBJECTSDIRID"/>
 			<GA id="REPORTING" name="Отчетный период"/>
+			
+			<!-- Если Количество получателей < 1 НЕ ГРУЗИТЬ -->
+			<!-- Если файл не соответствует схеме НЕ ГРУЗИТЬ -->
+			<!-- Если период в файле не соответствует указанному НЕ ГРУЗИТЬ -->
+			<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
+			
+			<!-- Заполняется авто ДА, если строка в главной таблице или хотя бы один реестр в спецификации добавлен после 10 числа до конца текущего месяца -->
 			<A id="TERMSVIOLATION" name="Нарушение сроков загрузки" caption="Нарушение сроков загрузки" type="boolean" nulls="true" visible="grid" value="false" local="true"/>
+			<A id="STATUSPACK" name="Статус" caption="Статус" type="list" nulls="true" value="02" local="true">
+				<!-- По нажатии меню "Утвердить" блокировака на редактирование и загрузку пакетов "Сообщение: Загрузка рееста не возможна, обратитесь к своему куратору в Федеральную службу по труду и занятости"-->
+				<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
+				<AI id="01" name="Утверждено"/>
+				<!-- По умолчанию -->
+				<AI id="02" name="Не утверждено"/>
+				<!-- Если хоть в одном реестре имеется ошибка -->
+				<AI id="03" name="Ошибка"/>
 			<TI unique="SUBJECTSDIRID,REPYEAR,REPMONTH"/>
+			</A>
 		</TABLE>
-		
-		
 		
 		<TABLE id="BENEFICIARIESREGISTERS" name="Реестры получателей">
 			<A id="BENEFITSPACKETSID" parentkey="cascade"/>
 			<A id="DATEFORM" name="Дата формирования" type="date" nulls="true" local="true"/>
 			<A id="STATUS" name="Результат" caption="Результат" type="list" nulls="true" visible="grid" value="02" local="true">
-				<AI id="01" name="Проверен"/>
+				<!-- Автоматом если  нет ошибок -->
+				<AI id="01" name="Проверен"/> 
 				<AI id="02" name="Не проверен"/>
 				<AI id="03" name="Ошибка"/>
 			</A>
-			<A id="BENEFICIARIESREGISTERSID"/>
 			<A id="BENEFITSTYPENAMEDIRID"/>
-			<GA id="FileInformation"/>
+			
+			<GA id="FILEINFORMATION" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
+				<A id="FILELINKSID" name="Описание файла"/>
+				<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+				<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+				<A id="DOCDATEVIRT" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+			</GA>
+			<A id="WRONGLOADING" name="Ошибки при загрузке" caption="Ошибки при загрузке" type="text" nulls="true" visible="form" readonly="true" local="true"/>
 		</TABLE>
-		<TABLE id="WRONGLOADING" name="Ошибки при загрузке">
-			<A id="BENEFICIARIESREGISTERSID" parentkey="cascade"/>
-			<A id="WRONG" name="Ошибка" caption="Ошибка" type="text" nulls="true" local="true"/>
-			<A id="BENEFITSTYPENAMEDIRID"/>
 		
-		</TABLE>
+	
 		<TABLE id="BENEFIT01" name="Пособие по уходу за ребенком">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -1274,6 +1289,14 @@
 		<ACTION id="ParseReestr" name="Отработать реестр" type="procedure" procedure="p_reestr_parse"/>
 		<ACTION id="loadReestr" name="Загрузить реестр" type="script" actionlist="uploadFilelinks;FilelinksToFilebuffer;ParseReestr"/>
 		<ACTION id="exportReestr" name="Выгрузить реестр" type="script" actionlist="loadFilelinks"/>
+		
+	<!-- РПП -->
+	<!-- По нажатии меню "Утвердить" блокировака на редактирование и загрузку пакетов "Сообщение: Загрузка рееста не возможна, обратитесь к куратору в Феедеральную службу по труду и занятости"-->
+		<ACTION id="Ratify" name="Утвердить" type="procedure" procedure="p_packets_ratify"/>
+	<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
+		<ACTION id="Noratify" name="Снять утверждение" type="procedure" procedure="p_packets_noratify"/>
+	
+		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
@@ -1299,80 +1322,101 @@
 				</TABS>
 			</FORM>
 		</REPORT>
+		
+		
+		
+		<!-- Отчеты -->
+		<REPORT id="Summreport_Reg" name="Сводный отчет по гражданам, имеющим детей" procedure="" template="Summreport_Reg.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
 		<REPORT id="Areport_benefit01" name="Отчет по уходу за ребенком" procedure="" template="Areport_benefit01.xls">
 			<FORM>
-				<GA id="FIO"/>
+				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Areport_benefit02" name="Отчет по рождении ребенка" procedure="" template="Areport_benefit02.xls">
+		
+		<REPORT id="Areport_benefit02" name="Отчет по беременности и родам" procedure="" template="Areport_benefit02.xls">
 			<FORM>
-				<GA id="FIO"/>
+				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="Areport_benefit03" name="Отчет по ранним срокам беременности" procedure="" template="Areport_benefit03.xls">
 			<FORM>
-				<GA id="FIO"/>
+				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="Areport_benefit04" name="Отчет по рождении ребенка" procedure="" template="Areport_benefit04.xls">
 			<FORM>
-				<GA id="FIO"/>
+				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
-			<REPORT id="Areport_benefit05" name="Отчет по ребенку военнослужащего" procedure="" template="Areport_benefit05.xls">
+		
+		<REPORT id="Areport_benefit05" name="Отчет по ребенку военнослужащего" procedure="" template="Areport_benefit05.xls">
 			<FORM>
-				<GA id="FIO"/>
+				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="Areport_benefit06" name="Отчет по беременной жене военнослужащего" procedure="" template="Areport_benefit06.xls">
 			<FORM>
-				<A id="SUBJECTSDIRID" caption="Субъект" labelwidth="120" nulls="false"/>
-				<GA caption="Отчетный период">
-					<A id="REPYEAR" name="Год" caption="Год" labelwidth="40" width="50" type="string" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
-					<A id="REPMONTH" caption="Месяц" labelwidth="50" width="50" nulls="false"/>
-				</GA>
+				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="Areport_benefit07" name="Отчет по рождению (усыновлению)" procedure="" template="Areport_benefit07.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Areport_SummAppPay" name="Сводный отчет о назначении и выплате пособий" procedure="" template="Areport_SummAppPay.xls">
+		
+		<REPORT id="Sreport_AppPay" name="Сводный отчет о назначении и выплате пособий" procedure="" template="Sreport_AppPay.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Areport_SummTotalAppPay" name="Сводный отчет (накопленным итогом)" procedure="" template="Areport_SummTotalAppPay.xls">
+		
+		<REPORT id="Sreport_AppPay_Total" name="Сводный отчет (накопленным итогом)" procedure="" template="Sreport_AppPay_Total.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Areport_SummBenefitsRegion" name="Сводный отчет по гражданам, имеющим детей (региональный)" procedure="" template="Areport_SummBenefitsRegion.xls">
+		
+		<!-- Аналитика -->
+		<REPORT id="PersonalFile" name="Личное дело получателя пособий" procedure="" template="PersonalFile.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
-		</REPORT>
+		</REPORT>		
+				
 		<REPORT id="Unlawfulsurcharge" name="Поиск неправомерных доплат для ежемесячных пособий по уходу за ребенком" procedure="" template="Unlawfulsurcharge.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
+				
 		<REPORT id="Multiplepayments" name="Поиск случаев многократных выплат пособия в разных регионах" reportlist="Multiplepayments.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Multipledocumentchange" name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange.xls">
+				
+				<REPORT id="Multipledocumentchange" name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
+				
 		<REPORT id="Notsend" name="Регионы, не отправившие пакеты в текущем месяце" reportlist="Notsend.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
+		
 	</REPORTS>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Users" name="Пользователи">
@@ -1443,13 +1487,19 @@
 			<GRID id="ConceptDocs" name="Источники данных" table="CONCEPTDOCS"/>
 		</FORM>
 		<FORM id="BenefitsPackets" name="Пакеты реестров">
-			<GRID id="BENEFITSPACKETS" name="Пакеты реестров" table="BENEFITSPACKETS"/>
-			<GRID id="BENEFICIARIESREGISTERS" name="Реестры получателей" table="BENEFICIARIESREGISTERS" actionlist="loadReestr;exportReestr" readonly="true">
+			<GRID id="BENEFITSPACKETS" name="Пакеты реестров" table="BENEFITSPACKETS" readonly="true">
 				<MENU>
-					<MI actionlist="Delete;ConfigTables"/>
+					<MI actionlist="Insert;Update;Delete"/>
+					<MI actionlist="Ratify;Noratify"/>
+					<MI actionlist="ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="WRONGLOADING" name="Ошибки при загрузке" table="WRONGLOADING"/>
+			<GRID id="BENEFICIARIESREGISTERS" name="Реестры получателей" table="BENEFICIARIESREGISTERS" readonly="true">
+				<MENU>
+					<MI actionlist="loadReestr;exportReestr"/>
+					<MI actionlist="Update;Delete;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
 		
 		<FORM id="Benefit01" name="Пособие по уходу за ребенком">
@@ -1614,19 +1664,17 @@
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="Dupl_benefitschildcare" name="Поиск дублей пособий по уходу за ребенком">
-			<GRID id="DUPL_BENEFITSCHILDCARE" name="Поиск дублей пособий по уходу за ребенком" table="DUPL_BENEFITSCHILDCARE"/>
-		</FORM>
+		
+		
+		<!-- <FORM id="Dupl_benefitschildcare" name="Поиск дублей пособий по уходу за ребенком"> -->
+			<!-- <GRID id="DUPL_BENEFITSCHILDCARE" name="Поиск дублей пособий по уходу за ребенком" table="DUPL_BENEFITSCHILDCARE"/> -->
+		<!-- </FORM> -->
 		<FORM id="Benefitsrecipients" name="Получатели пособий">
-		
-		
 			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS">
 				<MENU>
 					<MI name="Личное дело" actionlist="Update"/>
 				</MENU>
 			</GRID>	
-
-			
 			<TABS>
 				<TAB name="Сведения о ребенке получателя пособия">
 					<GRID id="BENEFITCHILD" name="Сведения о ребенке получателя пособия" table="BENEFITCHILD"/>
