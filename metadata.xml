@@ -74,7 +74,6 @@
 				</MENU>
 				<MENU name="Сводные отчеты">
 					<MI name="Сводный отчет о назначении и выплате пособий" reportlist="Sreport_AppPay"/>
-					<MI name="Сводный отчет (накопленным итогом)" reportlist="Sreport_AppPay_Total"/> <!--(то же что Sreport_AppPay, только с начала текущего года)-->
 				</MENU>
 			</MENU>
 			<MENU name="Аналитика">
@@ -853,11 +852,6 @@
 			<A id="SUBJECTSDIRID"/>
 			<GA id="REPORTING" name="Отчетный период"/>
 			
-			<!-- Если Количество получателей < 1 НЕ ГРУЗИТЬ -->
-			<!-- Если файл не соответствует схеме НЕ ГРУЗИТЬ -->
-			<!-- Если период в файле не соответствует указанному НЕ ГРУЗИТЬ -->
-			<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
-			
 			<!-- Заполняется авто ДА, если строка в главной таблице или хотя бы один реестр в спецификации добавлен после 10 числа до конца текущего месяца -->
 			<A id="TERMSVIOLATION" name="Нарушение сроков загрузки" caption="Нарушение сроков загрузки" type="boolean" nulls="true" visible="grid" value="false" local="true"/>
 			<A id="STATUSPACK" name="Статус" caption="Статус" type="list" nulls="true" value="02" local="true">
@@ -872,14 +866,6 @@
 			</A>
 		</TABLE>
 		
-	<!-- Техниxческая таблица -->
-		<TABLE id="STATUSTECH" name="История статусов">
-		<A id="IDTABLE" name="ID таблицы" type="string" nulls="true" readonly="true" local="true"/>
-		<A id="NAMETABLE" name="Имя таблицы" type="string" nulls="true" readonly="true" local="true"/>
-		<A id="HISTORYSTATUS" name="Статус" type="string" nulls="true" readonly="true" local="true"/>
-		</TABLE>
-
-		
 		<TABLE id="BENEFICIARIESREGISTERS" name="Реестры получателей">
 			<A id="BENEFITSPACKETSID" parentkey="cascade"/>
 			<A id="DATEFORM" name="Дата формирования" type="date" nulls="true" local="true"/>
@@ -892,13 +878,22 @@
 			<A id="BENEFITSTYPENAMEDIRID"/>
 			
 			<GA id="FILEINFORMATION" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
-				<A id="FILELINKSID" name="Описание файла"/>
+				<!-- <A id="FILELINKSID" name="Описание файла"/> -->
 				<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
 				<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-				<A id="DOCDATEVIRT" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+				<!-- <A id="DOCDATEVIRT" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/> -->
 			</GA>
 			<A id="WRONGLOADING" name="Ошибки при загрузке" caption="Ошибки при загрузке" type="text" nulls="true" visible="form" readonly="true" local="true"/>
+				<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
 		</TABLE>
+		
+		<!-- Техниxческая таблица -->
+		<TABLE id="STATUSTECH" name="История статусов">
+			<A id="IDTABLE" name="ID таблицы" type="string" nulls="true" readonly="true" local="true"/>
+			<A id="NAMETABLE" name="Имя таблицы" type="string" nulls="true" readonly="true" local="true"/>
+			<A id="HISTORYSTATUS" name="Статус" type="string" nulls="true" readonly="true" local="true"/>
+		</TABLE>
+		
 		
 	
 		<TABLE id="BENEFIT01" name="Пособие по уходу за ребенком">
@@ -1383,12 +1378,6 @@
 		</REPORT>
 		
 		<REPORT id="Sreport_AppPay" name="Сводный отчет о назначении и выплате пособий" procedure="" template="Sreport_AppPay.xls">
-			<FORM>
-				<GA id="FIO"/>
-			</FORM>
-		</REPORT>
-		
-		<REPORT id="Sreport_AppPay_Total" name="Сводный отчет (накопленным итогом)" procedure="" template="Sreport_AppPay_Total.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
