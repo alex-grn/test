@@ -264,7 +264,8 @@
 		<A id="CONCEPTDOCSID" name="Источник данных" caption="Источник данных" labelwidth="150" type="ref" table="CONCEPTDOCS" ret="NAME" form="ConceptDocs" nulls="false"/>
 		
 		<!-- АГС -->
-		<A id="ORGANIZATIONID" name="Организации" caption="Организации" type="ref" table="ORGANIZATION" ret="INN" form="Organization" nulls="false"/>
+		<A id="ORGANIZATIONID" name="Организация" caption="Организация" type="ref" table="ORGANIZATION" ret="INN" form="Organization" nulls="false"/>
+		<A id="VACANCYORGID" name="Вакансия" caption="Вакансия" type="ref" table="VACANCYORG" pid="ORGANIZATIONID" ret="PROFESSIONDIRID_ret" nulls="false"/>
 		<A id="CITIZENRYID" name="Граждане" caption="Граждане" type="ref" table="CITIZENRY" ret="LASTNAME" form="Citizenry" nulls="true"/>
 		<A id="NATIVEPEOPLEDIRID" type="ref" table="NATIVEPEOPLEDIR" ret="NAME" form="Nativepeopledir" nulls="true"/>
 		<A id="DEPARTMENTDIRID" name="Ведомство" caption="Ведомство" type="ref" table="DEPARTMENTDIR" ret="NAME" form="Departmentdir" nulls="true"/>
@@ -278,7 +279,8 @@
 		<A id="FOREIGNLANGUAGESDIRID" name="Иностранные языки" caption="Иностранные языки" type="ref" table="FOREIGNLANGUAGESDIR" ret="NAME" form="ForeignLanguagesdir" nulls="true"/>
 		<A id="TYPEOFLEAVEDIRID" name="Виды отпуска" caption="Виды отпуска" type="ref" table="TYPEOFLEAVEDIR" ret="NAME" form="TypeOfLeaveDir" nulls="true"/>
 		<A id="CALLUPPERIODDIRID" name="Период призыва" caption="Период призыва" type="ref" table="CALLUPPERIODDIR" ret="name" form="Callupperioddir" nulls="true"/>
-		
+    	<A id="PLANSID" name="Планы направления" caption="Планы направления" type="ref" table="PLANS" ret="NAMEPLAN" form="Plans" nulls="true"  />
+			
 		
 		<A id="STATUSORG" name="Статус" caption="Статус" type="list" nulls="true" value="1" labelwidth="620" local="true">
 			<AI id="1" name="Проект"/>
@@ -884,6 +886,9 @@
 		</TABLE>
 		<TABLE id="DIRECTIONCIT" name="Направления">
 			<A id="CITIZENRYID" parentkey="cascade"/>
+
+
+
 		</TABLE>
 		<TABLE id="PASSAGEAGSCIT" name="Прохождение АГС">
 			<A id="CITIZENRYID" parentkey="cascade"/>
@@ -912,10 +917,8 @@
 				</TAB>
 				<TAB name="Отпуск">
 					<GA name="Отпуск" caption="Отпуск">
-						<!-- <A id="ORGANIZATIONPOSITION" name="Организация, должность" caption="Организация, должность" type="list" labelwidth="150" nulls="true" visible="form" local="true"/> -->
 						<A id="ORGANIZTION1" name="Организация" caption="Организация" type="string" nulls="true" visible="form" local="true" labelwidth="150"/>
 						<A id="PROFESSIONDIRID" caption="Должности" labelwidth="150" visible="form" nulls="true"/>
-						<!-- <A id="POSITION1" name="Должность" caption="Должность" type="string" nulls="true" visible="form" local="true" labelwidth="150"/> -->
 						<A id="PERIODOFWORKS" name="Период работы с" caption="Период работы с" type="date" nulls="true" visible="form" labelwidth="150" width="50" local="true"/>
 						<A id="PERIODOFWORKPO" name="По" caption="По" type="date" nulls="true" visible="form" labelwidth="50" width="50" local="true"/>
 						<A id="TYPEOFLEAVEDIRID" name="Вид отпуска" caption="Вид отпуска" labelwidth="150" visible="form"/>
@@ -933,9 +936,7 @@
 				</TAB>
 				<TAB name="Периоды, не вошедшие в АГС">
 					<GA name="Периоды, не вошедшие в АГС" caption="Периоды, не вошедшие в АГС">
-						<!-- <A id="ORGANIZATIONPOSITION2" name="Организация, должность" caption="Организация, должность" type="list" labelwidth="200" nulls="true" visible="form" local="true"/> -->
 						<A id="ORGANIZTION2" name="Организация" caption="Организация" type="string" nulls="true" visible="form" local="true" labelwidth="200"/>
-						<!-- <A id="PROFESSIONDIR2ID" caption="Должности" labelwidth="200" visible="form" nulls="true"/> -->
 						<A id="POSITION2" name="Должность" caption="Должность" type="string" nulls="true" visible="form" local="true" labelwidth="200"/>
 						<A id="UNPAIDPERIODS" name="Незасчитываемый период с" caption="Незасчитываемый период с" type="date" nulls="true" visible="form" labelwidth="200" width="50" local="true"/>
 						<A id="UNPAIDPERIODPO" name="По" caption="По" type="date" nulls="true" visible="form" labelwidth="50" width="50" local="true"/>
@@ -989,8 +990,13 @@
 			</GA>
 			
 			<GA name="Вакансия" caption="Вакансии">
-				<A id="POSITION3" name="Должность" caption="Должность" labelwidth="150" type="string" nulls="true"  visible="true" local="true"/>
-				<A id="ORGANIZATION3" name="Организация" caption="Организация" labelwidth="150" type="string" nulls="true" visible="true" local="true"/>
+				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
+				<A id="VACANCYORGID" name="Должность"  caption="Должность"/>
+				<!-- <A id="REGIONVIRT" caption="Регион" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select o.regiondirid from organization a where o.id = @REGIONDIRID ::bigint"/> -->
+				
+				
+				
+				<!-- <A id="VIRT" caption="Код режима труда" type="string" nulls="true" visible="form" labelwidth="180" readonly="true" virtual="true" formula="select m.codework from modeworkdir m where m.id = @MODEWORKDIRID ::bigint" local="true"/> -->
 				<A id="REGION1" name="Регион" caption="Регион" labelwidth="150" type="string" nulls="true" visible="true" local="true"/>
 				<A id="HOUSING1" name="Жилье" caption="Жилье" labelwidth="150" type="string" visible="true" nulls="false" local="true"/>
 			</GA>
@@ -1003,7 +1009,7 @@
 					<AI id="1" name="Утверждено"/>
 					<AI id="2" name="Не утверждено"/>
 				</A>
-				<A id="TESTPLANNAPRAVLINEYA" name="План направления" caption="План направления" type="list" labelwidth="150" nulls="true" local="true"/>
+				<A id="PLANSID" labelwidth="150"/>
 			</GA>
 		</TABLE>
 
@@ -1015,7 +1021,7 @@
 					<AI id="2" name="Отклонен"/>
 					<AI id="3" name="Утвержден"/>
 				</A>	
-				<A id="NAMEPLAN" name="Название" caption="Название" type="string" nulls="false" visible="true" local="true" labelwidth="150"/>
+				<A id="NAMEPLAN" name="Название" caption="Название" type="string" nulls="false" visible="true" labelwidth="150" local="true"/>
 				<A id="APPROVALDATE" name="Дата утверждения" caption="Дата утверждения" type="date" nulls="false" visible="true" labelwidth="550"/>
 				<A id="CALLUPPERIODDIRID" nulls="false" visible="true" labelwidth="150"/>
 				<A id="COMMENT3" name="Примечание" caption="Примечание" type="text" nulls="true" visible="true" local="true" labelwidth="150"/>
@@ -1304,7 +1310,7 @@
 		</FORM>	
 		
 		<FORM id="Specialtyeducationdir" name="Специальности по образованию">
-			<GRID id="Specialtyeducationdir" name="Специальности по образованию" table="SPECIALTYEDUCATIONDIR"/>
+			<GRID id="Specialtyeducationdir" name="Профессии/Должности" table="SPECIALTYEDUCATIONDIR"/>
 		</FORM>		
 		
 		<FORM id="ForeignLanguagesdir" name="Иностранные языки">
