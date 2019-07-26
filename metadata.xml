@@ -427,10 +427,10 @@
 			<A id="CODE" name="Код" caption="Код" labelwidth="540" type="int" len="2" nulls="false" local="true"/>
 		</GA>
 		<GA id="REPORTING" name="Отчетный период">
-			<A id="REPYEAR" name="Год" caption="Год" labelwidth="20" width="10" type="int" nulls="false" visible="grid"
+			<A id="REPYEAR" name="Год" caption="Год" labelwidth="20" width="10" type="int" nulls="false"
 				formula="select  case (to_char( now() - interval '1 month','MM')) when '01' then to_char( now()- interval '1 year','YYYY') else to_char(now(),'YYYY') end" local="true"/>
-			<A id="REPMONTH" name="Месяц" caption="Месяц" labelwidth="35" width="10" type="string" nulls="false" visible="grid"
-				formula="select case (to_char(now()- interval '1 month','MM'))
+			<A id="REPMONTH" name="Месяц" caption="Месяц" labelwidth="35" width="10" type="string" nulls="false" 
+			   formula="select case (to_char(now()- interval '1 month','MM'))
 			    when '01' then 'Январь'   
 			    when '02' then 'Февраль'   
 			    when '03' then 'Март'   
@@ -472,7 +472,7 @@
 		<GA id="HEADER">
 			<A id="BENEFITSPACKETSID" nulls="true"/>
 			<A id="BENEFITSTYPEDIRID" parentkey="cascade" nulls="true"/>
-			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true"
+			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true" labelwidth="160"
 			   formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
 			  
 			<GA id="REPPERIOD"/>
@@ -851,10 +851,9 @@
 		<TABLE id="BENEFITSPACKETS" name="Пакеты реестров">
 			<A id="SUBJECTSDIRID"/>
 			<GA id="REPORTING" name="Отчетный период"/>
-			
 			<!-- Заполняется авто ДА, если строка в главной таблице или хотя бы один реестр в спецификации добавлен после 10 числа до конца текущего месяца -->
 			<A id="TERMSVIOLATION" name="Нарушение сроков загрузки" caption="Нарушение сроков загрузки" type="boolean" nulls="true" visible="grid" value="false" local="true"/>
-			<A id="STATUSPACK" name="Статус" caption="Статус" type="list" nulls="true" value="02" local="true">
+			<A id="STATUSPACK" name="Статус" caption="Статус" type="list" nulls="true" value="02" labelwidth="150" visible="false" local="true">
 				<!-- По нажатии меню "Утвердить" блокировака на редактирование и загрузку пакетов "Сообщение: Загрузка рееста не возможна, обратитесь к своему куратору в Федеральную службу по труду и занятости"-->
 				<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
 				<AI id="01" name="Утверждено"/>
@@ -866,35 +865,34 @@
 			</A>
 		</TABLE>
 		
+		<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
 		<TABLE id="BENEFICIARIESREGISTERS" name="Реестры получателей">
 			<A id="BENEFITSPACKETSID" parentkey="cascade"/>
-			<A id="DATEFORM" name="Дата формирования" type="date" nulls="true" local="true"/>
-			<A id="STATUS" name="Результат" caption="Результат" type="list" nulls="true" visible="grid" value="02" local="true">
+			<A id="FILELINKSID" name="Описание файла" visible="false"/>
+			
+			<A id="BENEFITSTYPENAMEDIRID" visible="grid"/>
+			
+			
+			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="620" visible="grid"/>
+			<A id="DATEFORM" name="Дата формирования" caption="Дата формирования" type="date" nulls="true" labelwidth="620" visible="grid" local="true"/>
+			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="620" visible="form" />
+			<A id="STATUS" name="Результат" caption="Результат" type="list" nulls="true" labelwidth="620" value="02" local="true">
 				<!-- Автоматом если  нет ошибок -->
 				<AI id="01" name="Проверен"/> 
 				<AI id="02" name="Не проверен"/>
 				<AI id="03" name="Ошибка"/>
 			</A>
-			<A id="BENEFITSTYPENAMEDIRID"/>
 			
-			<GA id="FILEINFORMATION" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
-				<!-- <A id="FILELINKSID" name="Описание файла"/> -->
-				<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-				<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-				<!-- <A id="DOCDATEVIRT" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/> -->
-			</GA>
+			
+			
 			<A id="WRONGLOADING" name="Ошибки при загрузке" caption="Ошибки при загрузке" type="text" nulls="true" visible="form" readonly="true" local="true"/>
-				<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
 		</TABLE>
-		
 		<!-- Техниxческая таблица -->
 		<TABLE id="STATUSTECH" name="История статусов">
 			<A id="IDTABLE" name="ID таблицы" type="string" nulls="true" readonly="true" local="true"/>
 			<A id="NAMETABLE" name="Имя таблицы" type="string" nulls="true" readonly="true" local="true"/>
 			<A id="HISTORYSTATUS" name="Статус" type="string" nulls="true" readonly="true" local="true"/>
 		</TABLE>
-		
-		
 	
 		<TABLE id="BENEFIT01" name="Пособие по уходу за ребенком">
 			<GA id="HEADER"/>
