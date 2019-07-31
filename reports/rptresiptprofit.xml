@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="rptresiptprofit.xlsx" documentPath="rptresiptprofit.xlsx" outputType="xlsx" outputNamePattern="rptresiptprofit.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							 select ${date_to} ::date as date_to
+						</script>
+                    </query>
+                </queries>			
+			</band>
+ 		   <band name="Title1" orientation="H">
+<!--                 <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+							 select ${year_prev} ::char as year_prev
+						</script>
+                    </query>
+                </queries>		 -->	
+			</band>
+ 		   <band name="Title1_1" orientation="H">
+			</band>
+            <band name="Title2" orientation="H">
+			</band>
+            <band name="Spec2" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                        <script>
+                             SELECT sum(t.val3) val3sum, 
+									sum(t.val4) val4sum, 
+									sum(t.val5) val5sum, 
+									cast((SUM(t.val5) / SUM(t.val3)) *100 as NUMERIC(17,2)) val6sum
+							   from resipprofitbuf t where t.ident = pg_backend_pid() 
+                         </script>
+                    </query>
+                </queries>
+            </band>			
+		
+            <band name="Spec1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                         <script>
+							select "row_number"() OVER (
+									ORDER BY p_get_kbk_code(t.kbkinid)
+							) val1,
+								p_get_kbk_code(t.kbkinid) ||' '|| p_get_kbk_name(t.kbkinid) as kbkname, 
+								t.val3 val3, 
+								t.val4 val4, 
+								t.val5 val5, 
+								t.val6 val6 
+						   from resipprofitbuf t where t.ident = pg_backend_pid() 
+ 					</script>
+                    </query>
+                </queries>
+            </band>
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>
