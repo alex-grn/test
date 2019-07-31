@@ -44,19 +44,19 @@
 			<MENU name="Граждане">
 				<MI name="Граждане" formlist="Citizenry"/>
 			</MENU>
-			<MENU name="Планы Направлений">
-				<MI name="Планы Направлений" formlist="Plans"/>
-			</MENU>
 			<MENU name="Направления">
 				<MI name="Направления" formlist="Direction"/>
+			</MENU>
+			<MENU name="Планы Направлений">
+				<MI name="Планы Направлений" formlist="Plans"/>
 			</MENU>
 			<MENU name="Статистика">
 				<MI name="Профессии" reportlist="PROFESSIONREPORT"/>
 				<MI name="Прохождение АГС" reportlist="PASSAGEOFAGS"/>
 				<MI name="Граждане" reportlist="CITIZENREPORT"/>
-				<!-- <MI name="Увольнение граждан" reportlist=""/> -->
-				<!-- <MI name="Направление на АГС" reportlist=""/> -->
-				<!-- <MI name="Вакансии" reportlist=""/> -->
+				<MI name="Увольнение граждан" reportlist="DISMISSALCITYZENREPORT"/>
+				<MI name="Направление на АГС" reportlist="DIRECTIONAGSREPORT"/>
+				<MI name="Вакансии" reportlist="VACANCYREPORT"/>
 				<!-- <MI name="Организации" reportlist=""/> -->
 			</MENU>
 			<MENU name="Справочники">
@@ -287,7 +287,6 @@
 		<A id="TYPEOFLEAVEDIRID" name="Виды отпуска" caption="Виды отпуска" type="ref" table="TYPEOFLEAVEDIR" ret="NAME" form="TypeOfLeaveDir" nulls="true"/>
     	<A id="PLANSID" name="Планы направления" caption="Планы направления" type="ref" table="PLANS" ret="NAMEPLAN" form="Plans" nulls="true"/>
 		
-		
 		<A id="STATUSORG" name="Статус" caption="Статус" type="list" nulls="true" value="1" labelwidth="620" local="true">
 			<AI id="1" name="Проект"/>
 			<AI id="2" name="Отклонена"/>
@@ -509,6 +508,7 @@
 		
 		
 	</GROUPS_ATTRIBUTES>
+	
 	<TABLES name="Таблицы">
 		<TABLE id="LEVACCESS" name="Уровни доступа" hid="NAME">
 			<A id="NAME" nulls="false"/>
@@ -764,6 +764,340 @@
 			<A id="STRVALUE" name="Значение" caption="Значение"/>
 		</TABLE>
 		
+		<!-- АГС -->
+		<!-- Раздел "Организации" -->
+		<TABLE id="ORGANIZATION" name="Организации">
+			<A id="VACANCIESYEAR" name="Год" caption="Год" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" labelwidth="620" local="true"/>
+			<A id="INN" name="ИНН" caption="ИНН" type="number" len="12" nulls="false" visible="form" labelwidth="620" local="true"/>
+			<A id="Name" name="Наименование" caption="Наименование" type="string" nulls="false" labelwidth="120" local="true"/>
+			<A id="DEPARTMENTDIRID" labelwidth="120"/>
+			<GA id="UA" name="ЮА" caption="Юридический адрес"/>
+			<GA id="FA" name="ФА" caption="Фактический адрес"/>
+			<TI unique="INN"/>
+			<A id="STATUSORG"/>
+		</TABLE>
+		<TABLE id="VACANCYORG" name="Вакансии">
+			<A id="ORGANIZATIONID" parentkey="cascade"/>
+			<GA id="INFORMVACANCY" caption="Информация о вакансии">
+				<A id="PROFESSIONDIRID" labelwidth="190"/>
+				<A id="OKPDTR" caption="Код по ОКПДТР" type="string" nulls="true" visible="form" labelwidth="190" local="true"/>
+				<A id="CODEPROFVIRT" caption="Код по ОКПДТР" type="string" nulls="true" visible="form" labelwidth="190" readonly="true" virtual="true" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true"/>
+				<A id="QUALIFICATION" caption="Класс (категория) квалификации" type="list" nulls="true" visible="form" labelwidth="190" local="true">
+					<AI id="1" name="1 разряд"/>
+					<AI id="2" name="2 разряд"/>
+					<AI id="3" name="3 разряд"/>
+					<AI id="4" name="4 разряд"/>
+					<AI id="5" name="5 разряд"/>
+					<AI id="6" name="6 разряд"/>
+					<AI id="7" name="7 разряд"/>
+					<AI id="8" name="8 разряд"/>
+					<AI id="9" name="9 разряд"/>
+					<AI id="10" name="10 разряд"/>
+				</A>	
+				<A id="LEVELEDUCATION" labelwidth="190"/>
+				<A id="TRAINING" labelwidth="190"/>
+				<A id="EXPERIENCE" caption="Опыт работы, мес." type="int" nulls="true" visible="form" labelwidth="560" local="true"/>
+				<GA id="PLACEOFWORKDATA" caption="Данные о месте работы">
+					<A id="WORKINGCONDITIONS" labelwidth="180"/>
+					<A id="MODEWORKDIRID" visible="form" labelwidth="180"/>
+					<A id="CODEWORKVIRT" caption="Код режима труда" type="string" nulls="true" visible="form" labelwidth="180" readonly="true" virtual="true" formula="select m.codework from modeworkdir m where m.id = @MODEWORKDIRID ::bigint" local="true"/>
+					<A id="MAINFUNCTION" caption="Описание основных функций" type="text" nulls="true" labelwidth="180" visible="form" local="true"/>
+					<A id="TARIFFRATE" caption="Размер тарифной ставки, руб." type="number" len="17.2" nulls="false" visible="form" labelwidth="550" local="true"/>
+				</GA>
+				<GA id="NUMBEROFVACANCIES" caption="Количество вакантных мест">
+					<GA id="SPRING" name="Весна" caption="Весенний призыв" width="50">
+						<A id="JUSTSPRING" name="всего" caption="всего" type="int" nulls="false" labelwidth="32" width="10" local="true"/>
+						<A id="FREESPRING" name="свободно" caption="свободно" type="int" nulls="true" labelwidth="54" width="10" readonly="true" local="true"/>
+					</GA>
+					<GA id="AUTUMN" name="Осень" caption="Осенний призыв" width="50">
+						<A id="JUSTAUTUMN" name="всего" caption="всего" type="int" nulls="false" labelwidth="32" width="10" local="true"/>
+						<A id="FREEAUTUMN" name="свободно" caption="свободно" type="int" nulls="true" labelwidth="54" width="10" readonly="true" local="true"/>
+					</GA>
+				</GA>
+				<GA id="HOUSINGVACANCY" caption="Обеспеченность жильем">
+					<A id="HOUSING" caption="Тип жилья" type="list" nulls="false" visible="form" labelwidth="550" local="true">
+						<AI id="1" name="Не предосталяется"/>
+						<AI id="2" name="Предосталяется"/>
+					</A>	
+					<GA id="JUSTSPRINGVACANCY" caption="Весенний призыв" width="20">
+						<A id="JUSTSPRING2" caption="Количество мест" type="int" nulls="false" visible="form" labelwidth="110" local="true"/>
+					</GA>
+					<GA id="JUSTAUTUMNVACANCY" caption="Осенний призыв" width="20">
+						<A id="JUSTAUTUMN2" caption="Количество мест" type="int" nulls="false" visible="form" labelwidth="110" local="true"/>
+					</GA>
+				</GA>	
+			<A id="STATUSORG" labelwidth="560"/>
+			</GA>
+		</TABLE>
+		<TABLE id="CITIZENRYORG" name="Граждане">
+			<A id="ORGANIZATIONID" parentkey="cascade"/>
+			<A id="CITIZENRYID" labelwidth="180" visible="form"/>
+			<A id="CITIZENVIRT" name="Ф.И.О." caption="Ф.И.О." labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
+			<A id="DATEARRIVAL" name="Дата прибытия" caption="Дата прибытия" labelwidth="620" type="date" nulls="false" local="true"/>
+			<A id="NAMECODE" name="Наименование и код" caption="Наименование и код" labelwidth="180" type="string" nulls="false" local="true"/>
+			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
+			<A id="WORK" name="Режим труда" caption="Режим труда" labelwidth="180" type="string" nulls="true" local="true"/>
+			<A id="WORKINGCONDITIONS" name="Условия труда" caption="Условия труда" labelwidth="180" type="list" nulls="true" local="true"/>
+			<A id="HOUSING" name="Жилье" caption="Жилье" labelwidth="180" type="string" nulls="false" local="true"/>
+			<A id="STATUSCITIZEN"/>
+		</TABLE>
+		
+		<!-- Раздел "Граждане" -->
+		<TABLE id="CITIZENRY" name="Граждане">
+			<GA id="INFORMCITYZEN" name="Информация о гражданине" caption="Информация о гражданине">
+				<A id="LASTNAME" name="Фамилия" caption="Фамилия" type="string" nulls="false" labelwidth="130" width="33" local="true"/>
+				<A id="FIRSTNAME" name="Имя" caption="Имя" type="string" nulls="false" labelwidth="40" width="33" local="true"/>
+				<A id="PATRONYMIC" name="Отчество" caption="Отчество" type="string" nulls="true" labelwidth="60" width="33" local="true"/>
+				<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" type="date" nulls="false" visible="form" labelwidth="600" local="true"/>
+				<GA id="PASSPORT" name="Паспорт" caption="Паспорт">
+					<A id="SERIESP" name="Серия" caption="Серия" type="int" nulls="true" visible="form" labelwidth="120" width="35" local="true"/>
+					<A id="NUMBERP" name="Номер" caption="Номер" type="int" nulls="true" visible="form" labelwidth="55" width="35" local="true"/>
+					<A id="DATEISSUEP" name="Дата выдачи" caption="Дата выдачи" type="date" nulls="true" visible="form" labelwidth="590" local="true"/>
+					<A id="ISSUED" name="Кем выдан" caption="Кем выдан" type="string" nulls="true" visible="form" labelwidth="120"/>
+					<A id="PLACEBIRTH" name="Место рождения" caption="Место рождения" type="string" nulls="true" visible="form" labelwidth="120"/>
+				</GA>
+				<A id="SNILS" caption="СНИЛС" type="string" nulls="true" visible="form" labelwidth="130" width="30" local="true"/>
+				<A id="SOMS" caption="СОМС" type="string" nulls="true" visible="form" labelwidth="40" width="30" local="true"/>
+				<A id="DATEREG" caption="Дата регистрации по месту жительства" type="date" nulls="true" visible="form" labelwidth="600" local="true"/>
+				<A id="ENLISTMENT" caption="Военкомат" type="string" nulls="true" visible="form" labelwidth="130" width="80" local="true"/>
+				<A id="NUMBERS" caption="Номер удостоверения" type="string" nulls="true" visible="form" labelwidth="130" width="33" local="true"/>
+				<A id="NUMBERC" caption="Номер учетной карты" type="string" nulls="true" visible="form" labelwidth="130" width="33" local="true"/>
+				<A id="DATEACCDOC" caption="Дата выдачи учетных документов" type="date" nulls="true" visible="form" labelwidth="600" local="true"/>
+				<A id="FILLDATE" caption="Дата заполнения" type="date" nulls="true" visible="form" labelwidth="600" formula="now()" local="true"/>
+				<A id="STATUSCITIZEN" labelwidth="600"/>
+			</GA>
+		</TABLE>
+		<!-- Вкладка "Основные данные" -->
+		<TABLE id="MASTERDATACIT" name="Основные данные">
+			<A id="CITIZENRYID" parentkey="cascade"/>
+			<GA id="FL" name="ФЛ" caption="Адресные данные"/>
+			<A id="SUITABILITY" labelwidth="160" width="30"/>
+			<A id="CONSCRIPTION" caption="Период призыва" width="35" />
+			<A id="YEARCONSCRIPTIO" caption="Год" type="int" len="4" nulls="false" local="true" labelwidth="40" formula="to_char(now(),'YYYY')" width="22"/>
+			<GA>
+				<A id="FAMILYSTATUS"/>
+				<A id="CHILDREN" caption="Дети" type="int" nulls="true" visible="form" labelwidth="40" width="10" local="true"/>
+			</GA>
+			<GA id="ADDITIONALLYCITYZEN" name="Дополнительно" caption="Дополнительно">
+				<A id="BELIEFS"/>
+				<GA>
+					<A id="SPECIALFAMILYSTATUS" caption="Особое семейное положение" type="boolean" nulls="true" visible="form" width="27" local="true"/>
+					<A id="SPECIALFAMILYSTATUS2" width="73"/>
+				</GA>
+				<GA>
+					<A id="NATIVEPEOPLE" caption="Коренные народы" type="boolean" nulls="true" visible="form" width="28" local="true"/>
+					<A id="NATIVEPEOPLEDIRID" width="72"/>
+				</GA>
+				<A id="EXCLUDEARMEDFORCES" caption="Исключить вакансии в ВС, другие войска и организации оборонной промышленности" type="boolean" nulls="true" visible="form" local="true"/>
+			</GA>
+			<A id="COMMENT" caption="Комментарий" type="text" nulls="true" visible="form" local="true"/>
+		</TABLE>
+		<!-- Вкладка "Образование и опыт" -->
+		<TABLE id="EDUCATIONCIT" name="Образование и опыт">
+			<A id="CITIZENRYID" parentkey="cascade"/>
+			<GA id="EDUCATIONCITYZEN" name="Образование" caption="Образование">
+				<A id="LEVELEDUCATION" caption="Уровень образования" labelwidth="150"/>
+				<A id="SPECIALTYEDUCATIONDIRID" caption="Специальность" nulls="true" labelwidth="150"/>
+				<A id="EDUCATIONALINSTITUTION" name="Учебное заведение" caption="Учебное заведение" type="string" nulls="true" visible="form" local="true" labelwidth="150"/>
+				<A id="COMMENT" caption="Комментарий" type="text" nulls="true" visible="form" local="true" labelwidth="150"/>
+			</GA>
+			<GA id="EXPERIENCECITYZEN" name="Опыт работы" caption="Опыт работы">
+				<A id="PROFESSIONDIRID" caption="Должность" nulls="true" labelwidth="150"/>
+				<A id="QUALIFICATION" caption="Класс (категория) квалификации" type="list" nulls="true" visible="form" labelwidth="150" local="true">
+					<AI id="1" name="1 разряд"/>
+					<AI id="2" name="2 разряд"/>
+					<AI id="3" name="3 разряд"/>
+					<AI id="4" name="4 разряд"/>
+					<AI id="5" name="5 разряд"/>
+					<AI id="6" name="6 разряд"/>
+					<AI id="7" name="7 разряд"/>
+					<AI id="8" name="8 разряд"/>
+					<AI id="9" name="9 разряд"/>
+					<AI id="10" name="10 разряд"/>
+				</A>
+				<A id="SPECIALTYEDUCATIONDIR2ID" caption="Специальность" nulls="true" labelwidth="150" visible="form"/>
+				<A id="WORKPLACE" caption="Место работы" type="string" nulls="true" visible="form" local="true" labelwidth="150"/>
+				<A id="DURATIONWORK" caption="Продолжительность работы, мес." type="int" nulls="true" visible="form" labelwidth="560" local="true"/>
+				<A id="COMMENT2" caption="Комментарий" type="text" nulls="true" visible="form" local="true" labelwidth="150"/>
+			</GA>
+			<GA id="KNOWLANGUAGECITYZEN" name="Знание языков" caption="Знание языков">
+				<A id="FOREIGNLANGUAGESDIRID" name=" Иностранные языки" labelwidth="150"/>
+				<A id="KNOW" caption="Степень знания" labelwidth="150" type="list" nulls="true" visible="form" local="true">
+					<AI id="1" name="Владеет свободно"/>
+					<AI id="2" name="Читает и может объясняться"/>
+					<AI id="3" name="Читает и переводит со словарем"/>
+				</A>
+			</GA>
+		</TABLE>
+		<!-- Вкладка "Направления" -->
+		<TABLE id="DIRECTIONCIT" name="Направления">
+			<A id="CITIZENRYID" parentkey="cascade"/>
+		</TABLE>
+		<!-- Вкладка "Прохождение АГС" -->
+		<TABLE id="PASSAGEAGSCIT" name="Прохождение АГС">
+			<TABS>
+				<!-- Вложение "Прибытие и убытие" -->
+				<TAB name = "Прибытие и Убытие">
+			<A id="CITIZENRYID" parentkey="cascade"/>
+					<GA id="ARRIVALCITIZEN" name="Прибытие" caption="Прибытие">
+						<A id="ARRIVALDATEPLANNED" name="Дата прибытия, планируемая" caption="Дата прибытия, планируемая" type="date" labelwidth="150" nulls="true" visible="true" local="true"/>
+						<A id="ARRIVALDATEACTUAL" name="Дата прибытия, фактическая" caption="Дата прибытия, фактическая" type="date" labelwidth="150" nulls="true" visible="true" local="true"/>
+						<A id="ORGANIZATIONNAP1" name="Организация" caption="Организация" type="string" readonly="true" labelwidth="150" nulls="true" visible="true"/>
+					</GA>
+					<GA id="DEPARTURECITIZEN" name="Убытие" caption="Убытие">
+						<A id="DATEOFDEPARTURE" name="Дата убытия" caption="Дата убытия" type="date" labelwidth="150" nulls="true" visible="true" local="true"/>
+						<A id="BASIS" name="Основание" caption="Основание" labelwidth="150" type="list" nulls="true" visible="true" local="true">
+							<AI id="1" name="Иные случаи (по решению Министерства здравоохранения и социального развития Российской Федерации)"/>
+							<AI id="2" name="Ликвидация организации"/>
+							<AI id="3" name="Наличие подтвержденных медицинским заключением противопоказаний для выполнения работы, предусмотренной трудовым договором, и невозможностью перевода на другую работу в этой организации"/>
+							<AI id="4" name="Наличие подтвержденных медицинским заключением противопоказаний для проживания в местности, где проходит альтернативная гражданская служба"/>
+							<AI id="5" name="Производственная необходимость"/>
+							<AI id="6" name="Сокращение штатной численности организации"/>
+						</A>
+						<A id="REGULATION" name="Предписание" caption="Предписание" labelwidth="150" type="string" nulls="true" visible="true" local="true"/>
+						<A id="ISSUED" name="Кем выдано" caption="Кем выдано" labelwidth="150" type="string" nulls="true" visible="true" local="true"/>
+						<A id="COTD" name="Стоимость проездных документов" caption="Стоимость проездных документов" labelwidth="150" type="int" nulls="true" visible="form" local="true"/>
+						<A id="COTD2" name="Комментарий к проездным документам" caption="Комментарий к проездным документам" labelwidth="150" type="text" nulls="true" visible="form" local="true"/>
+					</GA>
+				</TAB>
+				<!-- Вложение "Отпуск" -->
+				<TAB name="Отпуск">
+					<GA id="VACATIONCITIZEN" name="Отпуск" caption="Отпуск">
+						<A id="ORGANIZTIONNAP2" name="Организация" caption="Организация" readonly="true" type="string" nulls="true" visible="form" local="true" labelwidth="150"/>
+						<A id="PROFESSIONDIRID" caption="Должности" readonly="true" labelwidth="150" visible="form" nulls="true"/>
+						<A id="PERIODOFWORKS" name="Период работы с" caption="Период работы с" type="date" nulls="true" visible="form" labelwidth="150" width="50" local="true"/>
+						<A id="PERIODOFWORKPO" name="По" caption="По" type="date" nulls="true" visible="form" labelwidth="50" width="50" local="true"/>
+						<A id="TYPEOFLEAVEDIRID" name="Вид отпуска" caption="Вид отпуска" labelwidth="150" visible="form"/>
+						<A id="VACATIONS" name="Отпуск с" caption="Отпуск с" type="date" nulls="true" visible="form" labelwidth="150" width="50" local="true"/>
+						<A id="VACATIONPO" name="По" caption="По" type="date" nulls="true" visible="form" labelwidth="50" width="50" local="true"/>
+						<A id="NUMBEROFDAYS" name="Количество дней" caption="Количество дней" type="int" nulls="true" visible="form" labelwidth="150" local="true"/>
+						<A id="BASIS2" name="Основание" caption="Основание" labelwidth="150" type="list" nulls="true" visible="form" local="true">
+							<AI id="1" name="Дополнительный за особый характер работы"/>
+							<AI id="2" name="Дополнительный по семейным обстоятельствам"/>
+							<AI id="3" name="Дополнительный, обучающимся в учебных заведениях"/>
+							<AI id="4" name="Ежегодный"/>
+						</A>
+						<A id="DATEOFACTUALARRIVAL1" name="Дата фактического прибытия" caption="Дата фактического прибытия" type="date" labelwidth="470" nulls="true" visible="form" local="true"/>
+					</GA>
+				</TAB>
+				<!-- Вложение "Периоды, не вошедшие в АГС" -->
+				<TAB name="Периоды, не вошедшие в АГС">
+					<GA id="PERIODNOTINCLUDEDCITIZEN" name="Периоды, не вошедшие в АГС" caption="Периоды, не вошедшие в АГС">
+						<A id="ORGANIZTIONNAP3" name="Организация" caption="Организация" readonly="true" type="string" nulls="true" visible="form" local="true" labelwidth="200"/>
+						<A id="PROFESSIONDIR2ID" caption="Должность" nulls="true" readonly="true" visible="form" labelwidth="200"/>
+						<A id="UNPAIDPERIODS" name="Незасчитываемый период с" caption="Незасчитываемый период с" type="date" nulls="true" visible="form" labelwidth="200" width="50" local="true"/>
+						<A id="UNPAIDPERIODPO" name="По" caption="По" type="date" nulls="true" visible="form" labelwidth="50" width="50" local="true"/>
+						<A id="BASIS3" name="Основание" caption="Основание" labelwidth="200" type="list" nulls="true" visible="form" local="true">
+							<AI id="1" name="Время нахождения в дополнительных отпусках, предостовляемых работодателем гражданам, обучающимся в образовательных учреждениях"/>
+							<AI id="2" name="Время нахождения в отпусках без сохранения заработной платы"/>
+							<AI id="3" name="Время отбывания уголовного или административного наказания в качестве ареста"/>
+							<AI id="4" name="Время отстранения от работы по причине алкогольного, наркотического или иного токсичного опьянения"/>
+							<AI id="5" name="Прогулы (отсутствие на рабочем месте без уважительных причин более четырех часов подряд в течении рабочего дня)"/>
+						</A>	
+						<A id="CONFIRMINGTHEPERIOD" name="Подтверждающий документ" caption="Подтверждающий документ" type="string" labelwidth="200" nulls="true" visible="form" local="true"/>
+					</GA>
+				</TAB>
+				<!-- Вложение "Увольнение со службы" -->
+				<TAB name="Увольнение со службы">
+					<GA id="DISMISSALCITYZEN" name="Увольнение со службы" caption="Увольнение со службы">
+						<A id="DATEOFDISMISSLA" name="Дата увольнения" caption="Дата увольнения" type="date" labelwidth="200" nulls="true" visible="form" local="true"/>
+						<A id="BASIS4" name="Основание" caption="Основание" type="list" labelwidth="200" nulls="true" visible="form" local="true">
+							<AI id="1" name="По истечению срока альтернативной гражданской службы"/>
+							<AI id="2" name="В связи с признанием военно-врачебной комиссией не годным к военной службе или ограниченно годным к военной службе"/>
+							<AI id="3" name="В связи с осуществлением им полномочий члена Совета Федерации РФ или в связи с избранием его депутатом Государственной Думы РФ"/>
+							<AI id="4" name="В связи наказания в виде лишения свободы"/>
+						</A>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		
+		<!-- Раздел Направления -->
+		<TABLE id="DIRECTION" name="Направления">
+			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
+				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" visible="true"/>
+				<A id="REGIONDIRID" nulls="true" visible="true" labelwidth="150" width="50"/>
+				<!-- <A id="DEPARTMENTDIRID" visible="form" labelwidth="150" width="50"/> -->
+				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="true" visible="form" labelwidth="150" width="50" local="true"/>
+				<A id="PROFESSIONDIRID" caption="Профессии" labelwidth="150" visible="form"/>
+				<A id="LEVELEDUCATION" name="Образование" caption="Образование" type="list" labelwidth="150" visible="form" nulls="true" local="true">
+					<AI id="1" name="Дошкольное образование"/>
+					<AI id="2" name="Начальное общее образование"/>
+					<AI id="3" name="Основное общее образование"/>
+					<AI id="4" name="Среднее (полное) общее образование"/>
+					<AI id="5" name="Начальное профессиональное образование"/>
+					<AI id="6" name="Среднее профессиональное образование"/>
+					<AI id="7" name="Неполное высшее образование"/>
+					<AI id="8" name="Высшее образование"/>
+					<AI id="9" name="Послевузовское образование"/>
+				</A>
+				<A id="SUITABILITY" caption="Годность к военной службе" type="list" labelwidth="150" nulls="true" visible="form" local="true">
+					<AI id="1" name="А"/>
+					<AI id="2" name="Б"/>
+					<AI id="3" name="В"/>
+					<AI id="4" name="Г"/>
+					<AI id="5" name="Д"/>
+				</A>
+				<A id="SPECIALFAMILYSTATUS" caption="Особое семейное положение" type="boolean" nulls="true" visible="form" local="true"/>
+				<A id="EXCLUDEARMEDFORCES" caption="Исключить вакансии в ВС, другие войска и организации оборонной промышленности" type="boolean" nulls="true" visible="form" local="true"/>
+				<A id="NATIVEPEOPLE" caption="Коренные народы" type="boolean" nulls="true" visible="form" local="true"/>
+			</GA>
+			<GA id="VACANCYDIRECTION" name="Вакансия" caption="Вакансии">
+				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
+				<A id="VACANCYORGID" name="Должность" labelwidth="150" caption="Должность"/>
+				<A id="REGIONVIRT" name="Регион" caption="Регион" type="string" nulls="true" visible="true" readonly="true" virtual="true" labelwidth="150" formula="select r.name from organization s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONID ::bigint"/>
+				<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" type="list" nulls="false" visible="true" labelwidth="150" virtual="true" formula="select m.housing from vacancyorg m where m.id = @VACANCYORGID ::bigint"  local="true">
+					<AI id="1" name="Не предосталяется"/>
+					<AI id="2" name="Предосталяется"/>
+				</A>	
+			</GA>
+			<GA id="STATUSDIRECTION" name="" caption="Статус">
+				<A id="FIRSTRET" name="Перв./Повт." caption="Перв./Повт."  labelwidth="150" type="list" nulls="false" visible="true" local="true">
+					<AI id="1" name="Первичное"/>
+					<AI id="2" name="Повторное"/>
+				</A>
+				<A id="STATUS" name="Статус" caption="Статус" type="list" labelwidth="150" value="1" visible="true" nulls="false" local="true">
+					<AI id="1" name="Проект"/>
+					<AI id="2" name="Подтверждено"/>
+					<AI id="3" name="Отклонено"/>
+					<AI id="4" name="Утверждено"/>
+				</A>
+				<A id="PLANSID" labelwidth="150"/>
+			</GA>
+		</TABLE>
+		
+		<!-- Раздел План Направлений -->
+		<TABLE id="PLANS" name="Планы направлений">
+			<GA id="PLANSDIRECTION" name="Планы направлений" caption="Планы направлений">
+				<A id="STATUS2" name="Статус" caption="Статус" type="list" nulls="false" value="1" visible="true" labelwidth="550" local="true">
+					<AI id="1" name="Проект"/>
+					<AI id="2" name="Утвержден"/>
+				</A>	
+				<A id="NAMEPLAN" name="Название" caption="Название" type="string" nulls="false" visible="true" labelwidth="150" local="true"/>
+				<A id="APPROVALDATE" name="Дата утверждения" caption="Дата утверждения" type="date" nulls="false" visible="true" labelwidth="550"/>
+				<A id="CONSCRIPTION" name="Период призыва" caption="Период призыва" type="list" nulls="false" visible="true" labelwidth="150" local="true">	
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+				</A>
+				<A id="YEARCONSCRIPTIO" name="Год призыва" caption="Год призыва" type="int" len="4" nulls="false" local="true" labelwidth="150" formula="to_char(now(),'YYYY')"/>
+				<A id="COMMENT3" name="Примечание" caption="Примечание" type="text" nulls="true" visible="true" local="true" labelwidth="150"/>
+			</GA>
+		</TABLE>
+		
+		<!-- Справочники -->
+		<!-- Ведомства -->
+		<TABLE id="DEPARTMENTDIR" name="Ведомство">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+			<A id="ТDEPARTMENTTYPE" name="Тип ведомства" caption="Тип ведомства" type="list" nulls="false" local="true">
+				<AI id="1" name="Военное"/>
+				<AI id="2" name="Гражданское"/>
+			</A>
+			<A id="LEVELSIGNIFICANCE" name="Уровень значимости" caption="Уровень значимости" type="list" nulls="false" local="true">
+				<AI id="1" name="Федеральный орган исполнительной власти"/>
+				<AI id="2" name="Орган исполнительной власти субъектов Российской Федерации"/>
+			</A>
+		</TABLE>
+		
 		<!-- Коренные народы -->
 		<TABLE id="NATIVEPEOPLEDIR" name="Коренные народы">
 			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
@@ -991,9 +1325,9 @@
 					</A>
 				</GA>
 				<GA name="Регион" caption="Регион">
-					<A id="REGIONDIRID" labelwidth="200"/>
-					<A id="REGIONDIR2ID" labelwidth="200"/>
-					<A id="CONSCRIPTION" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="200" local="true">	
+					<A id="REGIONDIRID" caption="Регион призыва" labelwidth="200"/>
+					<A id="REGIONDIR2ID" caption="Регион направления" labelwidth="200"/>
+					<A id="CONSCRIPTION2" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="200" local="true">	
 						<AI id="1" name="Весна"/>
 						<AI id="2" name="Осень"/>
 					</A>
@@ -1006,6 +1340,102 @@
 						<AI id="6" name="2025"/>
 						<AI id="7" name="2026"/>
 					</A>
+				</GA>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="DISMISSALCITYZENREPORT" name="Увольнение граждан" procedure="" template="dismissal_citizen_report.xls">
+			<FORM>
+				<GA name="Увольнение граждан" caption="Увольнение граждан">
+					<A id="YEAROFCONSCRIPTION3" name="Год призыва" caption="Год призыва" labelwidth="150" type="list" nulls="true" local="true">
+						<AI id="1" name="2020"/>
+						<AI id="2" name="2021"/>
+						<AI id="3" name="2022"/>
+						<AI id="4" name="2023"/>
+						<AI id="5" name="2024"/>
+						<AI id="6" name="2025"/>
+						<AI id="7" name="2026"/>
+					</A>
+					<A id="CONSCRIPTION3" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="150" local="true">	
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+					</A>
+					<A id="ZAPERIODS3" name="За период с" caption="За период с" labelwidth="150" width="50" type="date" nulls="true" local="true"/>
+					<A id="ZAPERIODPO3" name="По" caption="По" labelwidth="50" width="50" type="date" nulls="true" local="true"/>
+					<A id="ENLISTMENT" caption="Военкомат" type="string" nulls="true" labelwidth="150" local="true"/>
+				</GA>
+				<GA name="Основание" caption="Основание">
+					<A id="BASIS" name="Основание" caption="Основание" labelwidth="200" type="list" nulls="true" visible="true" local="true">
+						<AI id="1" name="Иные случаи (по решению Министерства здравоохранения и социального развития Российской Федерации)"/>
+						<AI id="2" name="Ликвидация организации"/>
+						<AI id="3" name="Наличие подтвержденных медицинским заключением противопоказаний для выполнения работы, предусмотренной трудовым договором, и невозможностью перевода на другую работу в этой организации"/>
+						<AI id="4" name="Наличие подтвержденных медицинским заключением противопоказаний для проживания в местности, где проходит альтернативная гражданская служба"/>
+						<AI id="5" name="Производственная необходимость"/>
+						<AI id="6" name="Сокращение штатной численности организации"/>
+					</A>
+					<A id="REGIONDIRID" caption="Регион призыва" labelwidth="200"/>
+					<A id="REGIONDIR2ID" caption="Регион прохождения АГС" labelwidth="200"/>
+				</GA>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="DIRECTIONAGSREPORT" name="Направление на АГС" procedure="" template="direction_ags_report.xls">
+			<FORM>
+				<GA name="Направление на АГС" caption="Направление на АГС">
+					<A id="STATUSCITIZEN" name="Статус" caption="Статус" type="list" nulls="true" labelwidth="150" local="true">
+						<AI id="1" name="Зарегистрирован"/>
+						<AI id="2" name="Утвержден"/>
+						<AI id="3" name="Отказ"/>
+						<AI id="4" name="Отсрочка"/>
+						<AI id="5" name="Повторное распределение"/>
+						<AI id="6" name="Направлен на АГС"/>
+						<AI id="7" name="Проходит АГС"/>
+						<AI id="8" name="Уволен со службы"/>
+					</A>
+					<A id="YEAROFCONSCRIPTION" name="Год призыва" caption="Год призыва" labelwidth="150" type="list" nulls="true" local="true">
+						<AI id="1" name="2020"/>
+						<AI id="2" name="2021"/>
+						<AI id="3" name="2022"/>
+						<AI id="4" name="2023"/>
+						<AI id="5" name="2024"/>
+						<AI id="6" name="2025"/>
+						<AI id="7" name="2026"/>
+					</A>
+					<A id="CONSCRIPTION" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="150" local="true">	
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+					</A>
+					<A id="REGIONDIRID" caption="Регион" labelwidth="150"/>
+					<A id="ENLISTMENT" caption="Военкомат" type="string" nulls="true" labelwidth="150" local="true"/>
+				</GA>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="VACANCYREPORT" name="Вакансии" procedure="" template="vacancy_report.xls">
+			<FORM>
+				<GA name="Вакансии" caption="Вакансии">
+					<A id="STATUSORG" name="Статус" caption="Статус" type="list" nulls="true" value="1" labelwidth="620" local="true">
+						<AI id="1" name="Проект"/>
+						<AI id="2" name="Отклонена"/>
+						<AI id="3" name="Утверждена"/>
+						<AI id="4" name="Заблокирована"/>
+					</A>
+					<A id="YEAROFCONSCRIPTION3" name="Год призыва" caption="Год призыва" labelwidth="150" type="list" nulls="true" local="true">
+						<AI id="1" name="2020"/>
+						<AI id="2" name="2021"/>
+						<AI id="3" name="2022"/>
+						<AI id="4" name="2023"/>
+						<AI id="5" name="2024"/>
+						<AI id="6" name="2025"/>
+						<AI id="7" name="2026"/>
+					</A>
+					<A id="CONSCRIPTION3" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="150" local="true">	
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+					</A>
+					<A id="DEPARTMENTDIRID" caption="Ведомство" labelwidth="150"/>
+					<A id="REGIONDIRID" caption="Регион" labelwidth="150"/>
+					<A id="PROFESSIONDIRID" caption="Профессии/Должности" labelwidth="150"/>
 				</GA>
 			</FORM>
 		</REPORT>
