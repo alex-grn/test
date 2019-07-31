@@ -1,6 +1,7 @@
-﻿<SYSTEM name="Система">
+<SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
+		<MODULE id="CalcPayCM" name="Расчет оплаты труда членам ИК в период проведения выборов" menu="CalcPayCM"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="Administrator" name="Меню модуля Администратор">
@@ -22,7 +23,7 @@
 				<MENU name="Конвертер">
 					<MI name="Форматы обмена данными" formlist="Concepts"/>
 					<MI name="Алгоритмы загрузки" formlist="Conv"/>
-					<MI name="Процессы загрузки" formlist="ConvLoads"/>
+					<MI name="Источники данных" formlist="ConceptDocs"/>
 				</MENU>
 			</MENU>
 			<MENU name="Справочники">
@@ -34,9 +35,41 @@
 				<MI name="Содержание" actionlist="Help"/>
 			</MENU>
 		</MENU>
+		<MENU id="CalcPayCM" name="Меню модуля Расчет оплаты труда членам ИК в период проведения выборов">
+			<MENU name="Файл">
+				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Избирательные комиссии и их состав">
+				<MI name="Избирательные комиссии и их состав" formlist="ElCommFRM"/>
+			</MENU>
+			<MENU name="Избирательные кампании">
+				<MI name="Избирательные кампании" formlist="ElCampFRM"/>
+			</MENU>
+			<MENU name="Расчетные ведомости и сведения о ФОВ">
+				<MI name="Расчетные ведомости и сведения о ФОВ" formlist="RegisterFRM"/>
+			</MENU>
+			<MENU name="Справочники">
+				<MI name="Должности" formlist="PostsFRM"/>
+				<MENU name="Учет рабочего времени">
+					<MI name="Типы дней" formlist="TypedayFRM"/>
+					<MI name="Праздничные дни" formlist="HolidayFRM"/>
+					<MI name="Рабочие календаря" formlist="WorkCalendarFRM"/>
+				</MENU>
+				<MENU name="Контрагенты">
+					<MI name="Физические лица" formlist="FormPerson"/>
+					<MI name="Юридические лица" formlist="FormAgent"/>
+					<MI name="Банковские учреждения" formlist="FormAgentBanks"/>
+				</MENU>
+				<MI name="Нормы оплаты труда при проведении федеральных выборов" formlist="NormsFECFRM"/>
+			</MENU>
+			<MENU name="Справка">
+				<MI name="Содержание" actionlist="Help"/>
+			</MENU>
+		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
-		<A id="CODE" name="Код" caption="Код" type="string" nulls="false"/>
+		<A id="CODE" name="Код" caption="Мнемокод" type="string" nulls="false"/>
 		<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="true"/>
 		<A id="NOTE" name="Примечание" caption="Примечание" type="text" nulls="true"/>
 		<A id="DESCRIPTION" name="Описание" caption="Описание" type="text" nulls="true"/>
@@ -112,6 +145,7 @@
 			<AI id="ext" name="Расширение файла"/>
 			<AI id="href" name="Гиперссылка"/>
 			<AI id="before" name="Действие до"/>
+			<AI id="childrenrefresh" name="Обновить подчиненные таблицы при любых действиях с записью (наличие триггеров)"/>
 			<AI id="unique" name="Уникальный индекс"/>
 			<AI id="index" name="Индекс"/>
 			<AI id="check" name="Проверка"/>
@@ -224,12 +258,107 @@
 		<A id="VISIBLE" name="Видимость" caption="Видимость" type="boolean" nulls="false"/>
 		<A id="CONCEPTID" name="Формат" caption="Формат" type="ref" table="CONCEPTS" ret="NAME" form="Concepts" nulls="false"/>
 		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="false"/>
-		<A id="CONVID" name="Алгоритм" caption="Алгоритм" type="ref" table="CONV" ret="NAME" form="Conv" nulls="false"/>
-		<A id="CONVACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVUNIT_ret" form="ConvActs" nulls="false"/>
-		<A id="CONVACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVACTSID" table="CONVACTPARAMS" ret="CODE" nulls="false"/>
-		<A id="CONVLOADSID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
-		<A id="CONVLOADACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" table="CONVLOADACTS" ret="CONVACTSID_ret" nulls="false"/>
-		<A id="CONVLOADACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMSID_ret" nulls="false"/>
+		<A id="CONVID" name="Алгоритм загрузки" caption="Алгоритм загрузки" labelwidth="150" type="ref" table="CONV" ret="NAME" form="Conv" nulls="false"/>
+		<A id="CONVACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVACTION_ret" nulls="false"/>
+		<A id="CONVACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVACTPARAMS" ret="CODE" form="Conv" nulls="false"/>
+		<A id="CONCEPTDOCSID" name="Источник данных" caption="Источник данных" labelwidth="150" type="ref" table="CONCEPTDOCS" ret="NAME" form="ConceptDocs" nulls=""/>
+		<A id="LEVELELCOMMITTEE" name="Уровень избирательной комиссии" caption="Уровень ИК" type="list" nulls="false">
+			<AI id="central" name="ЦИК России"/>
+			<AI id="region" name="ИКСРФ"/>
+			<AI id="territory" name="ТИК"/>
+			<AI id="district" name="УИК"/>
+		</A>
+		<A id="INDICATIONCIRCUIT" name="Признак ОИК" caption="Признак ОИК" type="boolean" nulls="false"/>
+		<A id="INDICATIONSHIP" name="Признак Судна" caption="Признак Судна" type="boolean" nulls="false"/>
+		<A id="POSTPRINT" name="Наименование должности при печати" caption="Наименование должности при печати" labelwidth="220" type="string" nulls="false"/>
+		<A id="QUANTITYELECTORMIN" name="Численность избирателей от" caption="Численность избирателей от" type="number" len="17" nulls="true"/>
+		<A id="QUANTITYELECTORMAX" name="Численность избирателей до" caption="Численность избирателей до" type="number" len="17" nulls="true"/>
+		<A id="TYPEDAYID" name="Тип дня" caption="Тип дня" type="ref" table="TYPEDAYS" ret="CODE" form="TypedayFRM" nulls="true"/>
+		<A id="MONTH" name="Месяц" caption="Месяц" type="list" nulls="false">
+			<AI id="december" name="декабрь"/>
+			<AI id="november" name="ноябрь"/>
+			<AI id="october" name="октябрь"/>
+			<AI id="september" name="сентябрь"/>
+			<AI id="august" name="август"/>
+			<AI id="june" name="июнь"/>
+			<AI id="jule" name="июль"/>
+			<AI id="may" name="май"/>
+			<AI id="april" name="апрель"/>
+			<AI id="march" name="март"/>
+			<AI id="march" name="март"/>
+			<AI id="fabruary" name="февраль"/>
+			<AI id="january" name="январь"/>
+		</A>
+		<A id="YEAR" name="Год" caption="Год" type="number" len="4" nulls="false"/>
+		<A id="WORKCALENDARSID" name="Рабочий календарь" caption="Рабочий календарь" type="ref" table="WORKCALENDARS" ret="CODE" form="WorkCalendarFRM" nulls="true"/>
+		<A id="UNITTIME" name="Единица времени" caption="Единица времени" type="list" nulls="false">
+			<AI id="mounth" name="месяц"/>
+			<AI id="day" name="день"/>
+			<AI id="hour" name="час"/>
+		</A>
+		<A id="FEDELECCAMPID" name="Федеральные избирательные кампании" caption="Федеральные избирательные кампании" type="ref" table="FEDELECCAMP" ret="CODE" form="NormsFECFRM" nulls="false"/>
+		<A id="NAMENORMS" name="Наименование нормы" caption="Наименование нормы" type="list" nulls="false">
+			<AI id="limitcomp" name="Предельный размер компенсации за полный месяц работы для региона"/>
+			<AI id="reward" name="Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00"/>
+			<AI id="distcoeff" name="Районный коэффициент"/>
+			<AI id="depcoeffmax" name="Предельный размер ведомственного коэффициента"/>
+		</A>
+		<A id="POSTSID" name="Должность" caption="Должность" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true"/>
+		<A id="ELCOMMITTEE" name="Избирательная комиссия" caption="Избирательная комиссия" type="text" nulls="true"/>
+		<A id="PERSONID" name="Физическое лицо" caption="Физическое лицо" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
+		<A id="INN" name="Идентификационный номер налогоплательщика" caption="ИНН" type="string" len="12" nulls="true"/>
+		<A id="OKPO" name="Общественный классификатор предприятий и организаций " caption="ОКПО" type="string" len="14" nulls="true"/>
+		<A id="KPP" name="Код причины постановки на учет" caption="КПП" type="string" len="9" nulls="true"/>
+		<A id="OGRN" name="Основной государственный регистрационный номер" caption="ОГРН" type="string" len="15" nulls="true"/>
+		<A id="OKATO" name="Общероссийский классификатор административно-территориального деления объектов" caption="ОКАТО" type="string" len="11" nulls="true"/>
+		<A id="OKOPF" name="Общероссийский классификатор организационно-правовых форм" caption="ОКОПФ" type="string" len="20" nulls="true"/>
+		<A id="OKFS" name="Общероссийский классификатор форм собственности" caption="ОКФС" type="string" len="20" nulls="true"/>
+		<A id="OKTMO" name="Общероссийский классификатор территорий муниципальных образований" caption="ОКТМО" type="string" len="20" nulls="true"/>
+		<A id="SURNAME" name="Фамилия" caption="Фамилия" type="string" len="250" nulls="true"/>
+		<A id="FIRSTNAME" name="Имя" caption="Имя" type="string" len="250" nulls="true"/>
+		<A id="MIDDLENAME" name="Отчество" caption="Отчество" type="string" len="250" nulls="true"/>
+		<A id="SEX" name="Пол" caption="Пол" type="list" nulls="false">
+			<AI id="0" name="не задан "/>
+			<AI id="1" name="мужской"/>
+			<AI id="2" name="женский"/>
+		</A>
+		<A id="TYPEPERS" name="Тип физического лица" caption="Тип физического лица" type="list" nulls="false">
+			<AI id="0" name="не задан "/>
+			<AI id="1" name="Член ИК"/>
+			<AI id="2" name="Работник ИК"/>
+		</A>
+		<A id="BEGINDATE" name="Дата с" caption="Дата с" type="date" nulls="true"/>
+		<A id="ENDDATE" name="Дата по" caption="Дата по" type="date" nulls="true"/>
+		<A id="DOCSERIES" name="Серия документа" caption="Серия" type="string" nulls="true"/>
+		<A id="DOCOUTAGENT" name="Орган, выдавший документ" caption="рган, выдавший документ" type="string" nulls="true"/>
+		<A id="DOCOUTDATE" name="Дата выдачи документа" caption="Дата выдачи документа" type="date" nulls="true"/>
+		<A id="BANKACC" name="Номер счета" caption="Номер счета" type="string" len="20" nulls="true"/>
+		<A id="CORRACC" name="Номер корреспондентского счета" caption="Номер корреспондентского счета" labelwidth="200" type="string" len="20" nulls="false"/>
+		<A id="AGENTID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="150" type="ref" table="AGENT" ret="CODE" form="FormAgent" nulls="false"/>
+		<A id="AGENTBANKSID" name="Банковские учреждения" caption="Банковские учреждения" labelwidth="150" type="ref" table="AGENTBANKS" ret="CODE" form="FormAgentBanks" nulls="false"/>
+		<A id="BIC" name="БИК" caption="БИК" type="string" len="9" nulls="true"/>
+		<A id="OFFICIALNAME" name="Официальное наименование" caption="Официальное наименование" type="text" nulls="true"/>
+		<A id="ELECDISTNUMB" name="Номер избирательного участка" caption="Номер избирательного участка" labelwidth="200" type="string" len="10" nulls="true"/>
+		<A id="ELECTCOMMITTEEID" name="Избирательные комиссии" caption="Избирательные комиссии" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
+		<A id="COMPNUMB" name="Номер состава" caption="Номер состава" type="number" len="3" nulls="true"/>
+		<A id="LEVELELCAMPAIGN" name="Уровень избирательной кампании" caption="Уровень избирательной кампании" type="list" nulls="false">
+			<AI id="territory" name="Муниципальные"/>
+			<AI id="region" name="Региональные"/>
+			<AI id="central" name="Федеральные"/>
+		</A>
+		<A id="CHOICESDATE" name="Дата выборов" caption="Дата выборов" type="date" nulls="false"/>
+		<A id="ELECTCAMPAIGNID" name="Избирательные кампании" caption="Избирательные кампании" labelwidth="150" type="ref" table="ELECTCAMPAIGN" ret="CODE" form="ElCampFRM" nulls="false"/>
+		<A id="ELECTCOMMITTEECODE" name="Код избирательной комиссии" caption="Наименование избирательной комиссии" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
+		<A id="ADDRESS" name="Адрес" caption="Адрес" type="text" nulls="true"/>
+		<A id="PHONENUMBER1" name="Номер телефона 1" caption="Номер телефона 1" labelwidth="200" type="string" len="20" nulls="true"/>
+		<A id="PHONENUMBER2" name="Номер телефона 2" caption="Номер телефона 2" labelwidth="200" type="string" len="20" nulls="true"/>
+		<A id="EMAIL" name="Адрес электронной почты" caption="Адрес электронной почты" labelwidth="200" type="text" nulls="true"/>
+		<A id="OTHERINFO" name="Допопительная информация" caption="Допопительная информация" labelwidth="200" type="text" nulls="true"/>
+		<A id="ELECTCOMMINCAMPID" name="Избирательные комиссии в кампаниях" caption="Избирательные комиссии в кампаниях" labelwidth="200" type="ref" table="ELECTCOMMINCAMP" ret="CODE" form="ElCampFRM" nulls="false"/>
+		<A id="COMMITTEEMANID" name="Член избирательной комиссий" caption="Член избирательной комиссий" labelwidth="200" type="ref" table="COMMITTEEMAN" ret="CODE" form="CommitteeManFRM" nulls="false"/>
+		<A id="REGISTERID" name="Расчетные ведомости" caption="Расчетные ведомости" labelwidth="200" type="ref" table="REGISTER" ret="CODE" form="RegisterFRM" nulls="false"/>
+		<A id="MIDDLESALARY" name="Средная заработная плата согласно Справки с места работы" caption="Заработная плата по Справке" type="number" len="6.2" nulls="false"/>
+		<A id="DEPCOEFF" name="Размер ведомственного коэффициента для члена ИК" caption="Размер ведомственного коэффициента" type="number" len="1.2" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -251,12 +380,13 @@
 			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
 			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and docpref = @DOCPREF and cid=0"/>
 			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
+			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="FileInformation" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
 			<A id="FILELINKSID" name="Описание файла"/>
 			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
 			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-			<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+			<A id="DOCDATEVIRT" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
 		</GA>
 		<GA id="RecordInfo" name="Сведения о записи" caption="Сведения о записи">
 			<A id="UID" name="Автор записи" caption="Автор" labelwidth="50" width="40" type="ref" table="USERS" ret="NAME" form="Users" nulls="true" visible="form" readonly="true" local="true"/>
@@ -318,6 +448,27 @@
 				</GA>
 			</GA>
 		</GA>
+		<GA id="PERIOD" name="Период действия" caption="Период действия">
+			<A id="BEGINDATE" caption="Дата начала действия"/>
+			<A id="ENDDATE" caption="Дата окончания действия"/>
+		</GA>
+		<GA id="PERSDOCUMENT" name="Персональный документ" caption="Персональный документ">
+			<A id="DOCTYPEID" caption="Документ"/>
+			<A id="DOCSERIES" caption="Серия"/>
+			<A id="DOCNUMB" caption="Номер"/>
+			<A id="DOCOUTDATE" caption="Дата выдачи документа"/>
+			<A id="DOCOUTAGENT" caption="Кем выдан"/>
+		</GA>
+		<GA id="AgentParam" name="Атрибуты субьекта" caption="Атрибуты субьекта">
+			<A id="INN" labelwidth="35" width="12"/>
+			<A id="OKPO" labelwidth="35" width="14"/>
+			<A id="KPP" labelwidth="35" width="9"/>
+			<A id="OGRN" labelwidth="35" width="15"/>
+			<A id="OKATO" labelwidth="35" width="11"/>
+			<A id="OKOPF" labelwidth="35" width="20"/>
+			<A id="OKFS" labelwidth="35" width="20"/>
+			<A id="OKTMO" labelwidth="35" width="20"/>
+		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
 		<TABLE id="LEVACCESS" name="Уровни доступа" hid="NAME">
@@ -369,7 +520,7 @@
 			<TI unique="HID,CLASSNODE,CODE"/>
 		</TABLE>
 		<TABLE id="ROLES" name="Роли">
-			<A id="NAME" nulls="false"/>
+			<A id="NAME"/>
 			<A id="LEVACCESSID"/>
 			<A id="DISABLED"/>
 			<TI unique="NAME"/>
@@ -404,7 +555,7 @@
 			<A id="DESCRIPTION" name="Описание файла" nulls="true"/>
 			<A id="FILENAME" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" readonly="true" local="true"/>
 			<A id="SIZE" name="Размер файла" caption="Размер файла (МБ)" labelwidth="300" type="int" nulls="true" readonly="true" value="0" local="true"/>
-			<A id="DOCDATE" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" local="true"/>
+			<A id="DOCDATE" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" nulls="true" readonly="true"/>
 		</TABLE>
 		<TABLE id="CONFIGTABLESBUFF" name="Настройки интерфейса таблиц (буфер)">
 			<A id="USERID" visible="false"/>
@@ -436,7 +587,7 @@
 					<AI id="txtsep" name="Текстовый файл с разделителями"/>
 					<AI id="txtfix" name="Текстовый файл с полями фиксированной длины"/>
 				</A>
-				<A id="CODEPAGE" name="Кодовая страница" caption="Кодовая страница" labelwidth="120" width="30" type="list" nulls="false" value="UTF-8" local="true">
+				<A id="CODEPAGE" name="Кодовая страница" caption="Кодовая страница" labelwidth="120" width="30" type="list" nulls="false" value="UTF-8">
 					<AI id="UTF-8" name="UTF-8"/>
 					<AI id="WIN-1251" name="WIN-1251"/>
 					<AI id="WIN-866" name="WIN-866"/>
@@ -460,7 +611,7 @@
 					<AI id="txtrow" name="Строка текстового файла"/>
 					<AI id="txtcol" name="Поле текстового файла"/>
 				</A>
-				<A id="ATTR" name="Подтип" caption="Подтип" width="10" type="boolean" nulls="false" value="false" local="true"/>
+				<A id="ATTR" name="Подтип" caption="Подтип" labelwidth="50" width="10" type="boolean" nulls="false" value="false" local="true"/>
 			</GA>
 			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, HID, CODE, ITEM_TYPE"/>
 		</TABLE>
@@ -469,8 +620,8 @@
 			<A id="CONCEPTID"/>
 			<TI id="CONV_NAME_UK" unique="NAME"/>
 		</TABLE>
-		<TABLE id="CONVACTS" name="Конвертер: Алгоритмы загрузки (действия)">
-			<A id="CONVID" parentkey="cascade"/>
+		<TABLE id="CONVACTS" name="Конвертер: Алгоритмы загрузки (действия)" childrenrefresh="true">
+			<A id="CONVID" parentkey="true"/>
 			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID::bigint"/>
 			<GA>
 				<A id="POSITION" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
@@ -485,29 +636,27 @@
 			</GA>
 			<GA>
 				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
-				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
+				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true"/>
 			</GA>
 			<A id="CONDITION" name="Условие выполнения" caption="Условие выполнения" labelwidth="80" type="text" nulls="true" local="true"/>
 			<A id="NOTE" labelwidth="80"/>
 		</TABLE>
 		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
-			<A id="CONVACTSID" parentkey="cascade"/>
-			<A id="CONVID" visible="false"/>
+			<A id="CONVACTSID" parentkey="true"/>
 			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTSID ::bigint and a.convid=n.id"/>
-			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTSID ::bigint" local="true"/>
 			<GA name="Параметр" caption="Параметр">
 				<A id="POSITION" readonly="true"/>
 				<A id="CODE" readonly="true"/>
 				<A id="NAME" type="string" readonly="true"/>
 				<GA>
-					<A id="PARAMTYPE" name="Тип" caption="Тип" width="44" type="list" readonly="true" local="true">
+					<A id="PARAMTYPE" name="Тип" caption="Тип" width="44" type="list" readonly="true">
 						<AI id="field" name="Поле"/>
-						<AI id="virtual" name="Виртуальное поле"/>
+						<AI id="virtual" name="Логическое поле"/>
 						<AI id="in" name="Входной"/>
 						<AI id="out" name="Выходной"/>
 						<AI id="inout" name="Входной/выходной"/>
 					</A>
-					<A id="DATATYPE" name="Тип данных" caption="Тип данных" labelwidth="80" width="44" type="list" readonly="true" local="true">
+					<A id="DATATYPE" name="Тип данных" caption="Тип данных" labelwidth="80" width="44" type="list" readonly="true">
 						<AI id="varchar" name="Строка"/>
 						<AI id="int" name="Целое число"/>
 						<AI id="numeric" name="Действительное число"/>
@@ -516,62 +665,227 @@
 						<AI id="boolean" name="Логическое"/>
 						<AI id="bigint" name="Ссылка"/>
 						<AI id="bigserial" name="Первичный ключ"/>
-						<AI id="xml" name="Формат XML"/>
-						<AI id="json" name="Формат JSON"/>
+						<AI id="ret" name="Возвращаемое значение"/>
 						<AI id="bytea" name="Бинарный файл"/>
 					</A>
-					<A id="DATANOTNULL" name="Обязательное" caption="Обязательное" labelwidth="93" width="6" type="list" readonly="true" local="true">
+					<A id="DATANOTNULL" name="Обязательное" caption="Обязательное" labelwidth="93" width="6" type="list" readonly="true">
 						<AI id="no" name="Нет"/>
 						<AI id="yes" name="Да"/>
 					</A>
-					<A id="DATAARRAY" name="Массив" caption="Массив" labelwidth="50" width="6" type="list" readonly="true" local="true">
+					<A id="DATAARRAY" name="Массив" caption="Массив" labelwidth="50" width="6" type="list" readonly="true">
 						<AI id="no" name="Нет"/>
 						<AI id="yes" name="Да"/>
 					</A>
 				</GA>
 			</GA>
 			<GA name="Источник значения" caption="Источник значения">
-				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
-				<A id="VALUE_PARAM" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVID" table="CONVACTPARAMS" ret="CODEVIRT" form="ConvActs" nulls="true" local="true"/>
-				<A id="VALUE_DEFAULT" name="Значение по умолчанию" caption="Значение по умолчанию" labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true"/>
+				<A id="VALUE_PARAM" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVACTPARAMS" ret="CODE" form="Conv" nulls="true"/>
+				<A id="VALUE_DEFAULT" name="Значение по умолчанию" caption="Значение по умолчанию" labelwidth="150" type="string" nulls="true"/>
 			</GA>
 			<GA name="Обработка значения" caption="Формула">
-				<A id="VALUE_FORMULA" name="Формула" caption="" width="100" type="text" nulls="true" local="true"/>
-				<A id="VALUE_TRIM" name="Удалить пробелы" caption="Удалить крайние пробелы" width="30" type="boolean" local="true"/>
-				<A id="VALUE_UNIQUE" name="Обеспечить уникальность" caption="Обеспечить уникальность" width="70" type="boolean" local="true"/>
+				<A id="VALUE_FORMULA" name="Формула" caption="" width="100" type="text" nulls="true"/>
+				<A id="VALUE_TRIM" name="Удалить пробелы" caption="Удалить крайние пробелы" width="30" type="boolean"/>
+				<A id="VALUE_UNIQUE" name="Обеспечить уникальность" caption="Обеспечить уникальность" width="70" type="boolean"/>
 			</GA>
 			<GA caption="Ключи поиска записи">
-				<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="boolean" array="true" local="true"/>
+				<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="boolean" array="true"/>
 			</GA>
 		</TABLE>
-		<TABLE id="CONVLOADS" name="Конвертер: Процессы загрузки">
-			<GA name="Процесс" caption="Процесс">
-				<A id="CONVID" width="40"/>
-				<A id="NUMB" name="Идентификатор" caption="Идентификатор" width="60" type="int" formula="select coalesce(max(numb)+1,1)::int from convloads where convid=@CONVID ::bigint and cid=0" local="true"/>
+		<TABLE id="CONCEPTDOCS" name="Конвертер: Источники данных">
+			<GA name="Документ" caption="Документ">
+				<A id="CONCEPTID" caption="Документ" width="40"/>
+				<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from conceptdocs where conceptid=@CONCEPTID ::bigint and cid=0"/>
+				<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
 			</GA>
-			<GA name="Состояние" caption="Состояние">
-				<A id="STATUS" name="Статус" caption="Статус" width="46" type="list" nulls="false" value="0" local="true">
-					<AI id="0" name="Новый"/>
-					<AI id="1" name="Подготовлен"/>
-					<AI id="2" name="Выполнен" readonly="true"/>
-				</A>
-				<A id="LOADDATE" name="Дата и время выполнения" caption="Дата и время выполнения" labelwidth="160" width="54" type="datetime" nulls="true" readonly="true" local="true"/>
-			</GA>
+			<A id="NAME"/>
 			<GA id="FileInformation"/>
-			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
+			<TI id="CONCEPTDOCS_NUMB_UK" unique="CONCEPTID,DOCNUMB,DOCDATE"/>
 		</TABLE>
-		<TABLE id="CONVLOADACTS" name="Конвертер: Процессы загрузки (действия)" hid="CONVACTSID_ret">
-			<A id="CONVLOADSID" parentkey="cascade"/>
-			<A id="POSITION"/>
-			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADSID ::bigint"/>
-			<A id="CONVACTSID" labelwidth="100"/>
+		<TABLE id="POSTS" name="Должности">
+			<GA id="Dictionary"/>
+			<A id="LEVELELCOMMITTEE"/>
+			<A id="POSTPRINT"/>
+			<A id="QUANTITYELECTORMIN"/>
+			<A id="QUANTITYELECTORMAX"/>
+			<A id="INDICATIONCIRCUIT"/>
+			<A id="INDICATIONSHIP"/>
+			<TI unique="CODE"/>
 		</TABLE>
-		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Процессы загрузки (параметры)">
-			<A id="CONVLOADACTSID" parentkey="cascade"/>
-			<A id="CONVACTSID" visible="false" virtual="true" formula="select convactsid from convloadacts where id=@CONVLOADACTSID ::bigint"/>
-			<A id="CONVACTPARAMSID" name="Код" caption="Код" labelwidth="100"/>
-			<A id="CONVACTPARAMSNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMSID ::bigint" local="true"/>
-			<A id="STRVALUE" name="Значение" caption="Значение"/>
+		<TABLE id="TYPEDAYS" name="Типы дней">
+			<GA id="Dictionary"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="HOLIDAYS" name="Праздничные дни">
+			<A id="DATEHD" name="Дата праздничного дня" caption="Дата" type="date" nulls="false"/>
+			<GA id="Dictionary"/>
+			<TI unique="DATEHD"/>
+		</TABLE>
+		<TABLE id="WORKCALENDARS" name="Рабочие календари">
+			<A id="CODE"/>
+			<A id="MONTH"/>
+			<A id="YEAR"/>
+			<A id="COUNTWD" name="Количество рабочих дней" caption="Количество рабочих дней" type="number" len="2" nulls="true"/>
+			<TI unique="MONTH,YEAR"/>
+		</TABLE>
+		<TABLE id="DAYSWORKCALENDARS" name="Состав рабочего календаря">
+			<A id="DATEWC" name="Дата рабочего календаря" caption="Дата" type="date" nulls="false"/>
+			<A id="WORKCALENDARSID" parentkey="cascade"/>
+			<A id="TYPEDAYID"/>
+			<TI unique="DATEWC"/>
+		</TABLE>
+		<TABLE id="FEDELECCAMP" name="Федеральные избирательные кампании">
+			<GA id="Dictionary"/>
+			<A id="BEGINDATE" caption="Дата начала действия норм" labelwidth="200" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окончания действия норм" labelwidth="200" nulls="true"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="NORMSFEDEC" name="Нормы оплаты труда при проведении федеральных выборов">
+			<A id="FEDELECCAMPID" parentkey="cascade"/>
+			<A id="NAMENORMS"/>
+			<A id="UNITTIME"/>
+			<A id="SUMM"/>
+			<A id="POSTSID" nulls="true"/>
+			<A id="ELECTCOMMITTEEID" nulls="true"/>
+			<TI unique="NAMENORMS, POSTSID, ELECTCOMMITTEEID"/>
+		</TABLE>
+		<TABLE id="PERSON" name="Физические лица">
+			<GA id="Dictionary"/>
+			<A id="SURNAME" labelwidth="50" nulls="true"/>
+			<A id="FIRSTNAME" labelwidth="50" nulls="true"/>
+			<A id="MIDDLENAME" labelwidth="50" nulls="true"/>
+			<A id="SEX" labelwidth="50" nulls="true"/>
+			<A id="INN" labelwidth="50" nulls="true"/>
+			<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" type="date" nulls="false"/>
+			<A id="TYPEPERS"/>
+			<TI id="PERSONUK" unique="CODE, BIRTHDATE"/>
+			<TI id="PERSONNAMEIND" index="NAME"/>
+		</TABLE>
+		<TABLE id="PERSDOCS" name="Документы физического лица">
+			<A id="PERSONID" parentkey="cascade"/>
+			<GA id="PERSDOCUMENT"/>
+			<GA id="PERIOD"/>
+		</TABLE>
+		<TABLE id="AGENTACC" name="Лицевые счета физических лиц">
+			<A id="PERSONID" parentkey="cascade"/>
+			<A id="BANKACC" caption="Лицевой счет"/>
+			<A id="AGENTBANKSID" name="Банковское учреждение"/>
+			<A id="BIC" name="Код банка (БИК)"/>
+			<A id="BEGINDATE" caption="Дата открытия"/>
+			<A id="ENDDATE" caption="Дата закрытия"/>
+			<TI id="AGENTACCUK" unique="PERSONID"/>
+		</TABLE>
+		<TABLE id="AGENT" name="Юридические лица">
+			<GA id="Dictionary"/>
+			<GA id="AgentParam"/>
+			<TI id="AGENTUK" unique="CODE"/>
+			<TI id="AGENTNAMEIND" index="NAME"/>
+		</TABLE>
+		<TABLE id="AGENTBANKS" name="Банковские учреждения">
+			<GA id="Dictionary"/>
+			<A id="AGENTID" name="Юридическое лицо"/>
+			<A id="BIC"/>
+			<A id="CORRACC"/>
+			<TI id="AGENTBANKSUK" unique="AGENTID,BIC,BANKACC"/>
+			<TI id="AGENTBANKSAGENTIDIND" index="AGENTID"/>
+			<TI id="AGENTBANKSBICIND" index="BIC"/>
+			<TI id="AGENTBANKSACCIND" index="BANKACC"/>
+		</TABLE>
+		<TABLE id="ELECTCOMMITTEE" name="Избирательные комиссии" hid="CODE">
+			<GA id="Dictionary"/>
+			<A id="OFFICIALNAME"/>
+			<A id="ELECDISTNUMB"/>
+			<A id="LEVELELCOMMITTEE"/>
+			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окоанчания действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="INDICATIONCIRCUIT"/>
+			<A id="INDICATIONSHIP"/>
+			<A id="INN" caption="ИНН"/>
+			<A id="KPP" caption="КПП"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="COMMITTEEMAN" name="Члены избирательных комиссий">
+			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
+			<A id="CODE"/>
+			<A id="PERSONID"/>
+			<A id="SURNAME" labelwidth="50" nulls="true"/>
+			<A id="FIRSTNAME" labelwidth="50" nulls="true"/>
+			<A id="MIDDLENAME" labelwidth="50" nulls="true"/>
+			<A id="POSTSID" nulls="false"/>
+			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="COMPNUMB" caption="Номер состава" labelwidth="200" nulls="true"/>
+			<TI unique="ELECTCOMMITTEEID,PERSONID, POSTSID, BEGINDATE"/>
+		</TABLE>
+		<TABLE id="CONTACTINFOEC" name="Контактная информция по избирательной комиссии">
+			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
+			<A id="ADDRESS"/>
+			<A id="PHONENUMBER1"/>
+			<A id="PHONENUMBER2"/>
+			<A id="EMAIL"/>
+			<A id="OTHERINFO"/>
+		</TABLE>
+		<TABLE id="RESPONSPERS" name="Отвественные лица избирательной комиссии">
+			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
+			<A id="POSTSID"/>
+			<A id="PERSONID"/>
+			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="OTHERINFO" caption="Допопительная информация"/>
+		</TABLE>
+		<TABLE id="ELECTCAMPAIGN" name="Избирательные кампании">
+			<GA id="Dictionary"/>
+			<A id="OFFICIALNAME"/>
+			<A id="CHOICESDATE"/>
+			<A id="BEGINDATE" caption="Дата начала избирательной кампании" labelwidth="300" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окончания избирательной кампании" labelwidth="300" nulls="false"/>
+			<A id="LEVELELCAMPAIGN" labelwidth="300"/>
+			<A id="ELECTCOMMITTEEID" caption="Избирательная комиссия верхнего уровня" labelwidth="300" nulls="true"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="ELECTCOMMINCAMP" name="Избирательные комиссии, участвующие в кампании" hid="ELECTCOMMITTEEID_ret">
+			<A id="ELECTCAMPAIGNID" parentkey="cascade"/>
+			<A id="CODE"/>
+			<A id="ELECTCOMMITTEEID"/>
+			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="true"/>
+			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="true"/>
+			<A id="INDICATIONCIRCUIT"/>
+			<A id="INDICATIONSHIP"/>
+			<TI unique="ELECTCOMMITTEEID"/>
+		</TABLE>
+		<TABLE id="NORMSEC" name="Нормы оплаты труда при проведении выборов">
+			<A id="ELECTCOMMINCAMPID" parentkey="cascade"/>
+			<A id="NAMENORMS"/>
+			<A id="UNITTIME"/>
+			<A id="SUMM"/>
+			<A id="POSTSID" nulls="true"/>
+			<TI unique="NAMENORMS, POSTSID"/>
+		</TABLE>
+		<TABLE id="REGISTER" name="Расчетные ведомости и сведения о ФОВ">
+			<A id="CODE"/>
+			<A id="ELECTCAMPAIGNID"/>
+			<A id="CHOICESDATE"/>
+			<A id="BEGINDATE" caption="Дата начала избирательной кампании" labelwidth="300" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окончания избирательной кампании" labelwidth="300" nulls="false"/>
+			<A id="ELECTCOMMITTEEID"/>
+			<A id="ELECDISTNUMB"/>
+			<A id="LEVELELCOMMITTEE"/>
+			<A id="INDICATIONCIRCUIT"/>
+			<A id="INDICATIONSHIP"/>
+			<TI unique="ELECTCAMPAIGNID, ELECTCOMMITTEEID"/>
+		</TABLE>
+		<TABLE id="REGISTERLIST" name="Члены избирательной комиссии по ведомости">
+			<A id="REGISTERID" parentkey="cascade"/>
+			<A id="COMMITTEEMANID"/>
+			<A id="SURNAME" labelwidth="50" nulls="true"/>
+			<A id="FIRSTNAME" labelwidth="50" nulls="true"/>
+			<A id="MIDDLENAME" labelwidth="50" nulls="true"/>
+			<A id="POSTSID" nulls="false"/>
+			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="false"/>
+			<A id="MIDDLESALARY"/>
+			<A id="DEPCOEFF"/>
+			<TI unique="REGISTERID, COMMITTEEMANID, BEGINDATE, ENDDATE"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -586,11 +900,6 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="Update" name="Исправить" type="java">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		<ACTION id="View" name="Посмотреть" type="java">
 			<FORM>
 				<RECORD/>
 			</FORM>
@@ -624,11 +933,6 @@
 				<A id="BFILE"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="addFilelinks" name="Добавить файл" type="java">
-			<FORM>
-				<A id="BFILE"/>
-			</FORM>
-		</ACTION>
 		<ACTION id="loadFilelinks" name="Выгрузить файл" type="java"/>
 		<ACTION id="allFilelinks" name="Загрузить и показать файл" actionlist="uploadFilelinks;loadFilelinks"/>
 		<ACTION id="FilelinksToFilebuffer" name="Загрузить файл в таблицу" type="java"/>
@@ -653,12 +957,7 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="convactparams_fill" name="Обновить список параметров" type="procedure" procedure="p_system_convactparams_fill"/>
-		<ACTION id="ConvStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_conv_start">
-			<FORM>
-				<A id="CONVID"/>
-			</FORM>
-		</ACTION>
-		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="script" actionlist="FilelinksToFilebuffer;ConvStart"/>
+		<ACTION id="FormDaysWorkCalendars" name="Процедура формирования рабочих календарей" type="procedure"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
@@ -672,7 +971,7 @@
 			<GRID id="LevAccess" name="Уровни доступа" table="LEVACCESS"/>
 		</FORM>
 		<FORM id="MetaClass" name="Классы метаданных">
-			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="View;ConfigLoad;ConfigTables" reportlist="MetaClassReport">
+			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad;ConfigTables" reportlist="MetaClassReport">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update">
 						<FORM>
@@ -689,7 +988,7 @@
 		<FORM id="Roles" name="Роли">
 			<GRID id="Roles" name="Роли" table="ROLES" readonly="true">
 				<MENU>
-					<MI actionlist="Insert;Update;View;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID id="RoleProvs" name="Права доступа" table="ROLEPRIVS" readonly="true">
@@ -710,12 +1009,12 @@
 		<FORM id="ConfigTables" name="Настройки интерфейсов">
 			<GRID name="Таблицы" table="CONFIGTABLES" readonly="true">
 				<MENU>
-					<MI actionlist="Copy;Update;View;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID name="Колонки" table="CONFIGCOLUMNS" readonly="true">
 				<MENU>
-					<MI actionlist="Update;View;ConfigTables"/>
+					<MI actionlist="Update;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -726,20 +1025,166 @@
 		<FORM id="Conv" name="Алгоритмы загрузки">
 			<GRID id="Conv" name="Алгоритмы загрузки" table="CONV"/>
 			<GRID id="ConvActs" name="Алгоритмы загрузки (действия)" table="CONVACTS" actionlist="convactparams_fill"/>
-			<GRID id="ConvActParams" name="Алгоритмы загрузки (параметры)" table="CONVACTPARAMS" readonly="true">
+			<GRID id="ConvActParams" name="Алгоритмы загрузки (параметры)" table="CONVACTPARAMS"/>
+		</FORM>
+		<FORM id="ConceptDocs" name="Источники данных">
+			<GRID id="ConceptDocs" name="Источники данных" table="CONCEPTDOCS"/>
+		</FORM>
+		<FORM id="PostsFRM" name="Должности">
+			<GRID id="PostsGR" name="Должности" table="POSTS">
 				<MENU>
-					<MI actionlist="Update;View;MoveFolder;ConfigTables"/>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
-		<FORM id="ConvActs" name="Алгоритмы загрузки (действия)">
-			<GRID id="ConvActs" name="Алгоритмы загрузки (действия)" table="CONVACTS" readonly="true"/>
-			<GRID id="ConvActParams" name="Алгоритмы загрузки (параметры)" table="CONVACTPARAMS" readonly="true"/>
+		<FORM id="TypedayFRM" name="Типы дней">
+			<GRID id="TypedayGR" name="Типы дней" table="TYPEDAYS">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
-		<FORM id="ConvLoads" name="Процессы загрузки">
-			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="uploadFilelinks;ConvLoadsStart"/>
-			<GRID id="ConvLoadActs" name="Процессы загрузки (действия)" table="CONVLOADACTS"/>
-			<GRID id="ConvLoadActParams" name="Процессы загрузки (параметры)" table="CONVLOADACTPARAMS"/>
+		<FORM id="HolidayFRM" name="Праздничные дни">
+			<GRID id="HolidayGR" name="Праздничные дни" table="HOLIDAYS">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="WorkCalendarFRM" name="Рабочие календари">
+			<GRID id="WorkCalendarGR" name="Рабочие календари" table="WORKCALENDARS">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables;FormDaysWorkCalendars"/>
+				</MENU>
+			</GRID>
+			<GRID id="DaysWorkCalendarGR" name="Состав рабочего календаря" table="DAYSWORKCALENDARS">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="NormsFECFRM" name="Нормы оплаты труда при проведении федеральных выборов">
+			<GRID id="FedECGR" name="Федеральные избирательные кампании" table="FEDELECCAMP">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="NormsFedECGR" name="Нормы оплаты труда" table="NORMSFEDEC">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="FormPerson" name="Физические лица">
+			<GRID id="GridPerson" name="Физические лица" table="PERSON">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<TABS>
+				<TAB name="Персональные документы">
+					<GRID id="PersDocGR" name="Документы физического лица" table="PERSDOCS">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Лицевые счета, открытые в кредитных организациях">
+					<GRID id="AgentAccGR" name="Лицевые счета, открытые в кредитных организациях" table="AGENTACC">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="FormAgent" name="Юридические лица">
+			<GRID id="GridAgent" name="Юридические лица" table="AGENT">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="FormAgentBanks" name="Банковские учреждения">
+			<GRID id="GridAgentBanks" name="Банковские учреждения" table="AGENTBANKS">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ElCommFRM" name="Избирательные комиссии и их состав">
+			<GRID id="ElCommGR" name="Избирательные комиссии" table="ELECTCOMMITTEE">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<TABS>
+				<TAB name="Члены избирательной комиссии">
+					<GRID id="CommitteeManGR" name="Члены избирательной комиссии" table="COMMITTEEMAN">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Контактная информация">
+					<GRID id="ContactInfoECGR" name="Контактная информация" table="CONTACTINFOEC">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Отвественные лица избирательной комиссии">
+					<GRID id="ResponsPersGR" name="Отвественные лица избирательной комиссии" table="RESPONSPERS">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="CommitteeManFRM" name="Члены избирательных комиссий">
+			<GRID id="ElCommGR" name="Члены избирательных комиссий" table="COMMITTEEMAN"/>
+		</FORM>
+		<FORM id="ElCampFRM" name="Избирательные кампании">
+			<GRID id="ElCampGR" name="Избирательные кампании" table="ELECTCAMPAIGN">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<TABS>
+				<TAB name="Избирательные комиссии, участвующие в выборах">
+					<GRID id="ElectСommInCampGR" name="Избирательные комиссии, участвующие в выборах" table="ELECTCOMMINCAMP">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+			<TABS>
+				<TAB name="Нормы оплаты труда при проведении выборов">
+					<GRID id="NormsECGR" name="Нормы оплаты труда при проведении выборов" table="NORMSEC">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="RegisterFRM" name="Расчетные ведомости и сведения о ФОВ">
+			<GRID id="RegisterGR" name="Расчетные ведомости и сведения о ФОВ" table="REGISTER">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<TABS>
+				<TAB name="Члены избирательных комиссий по ведомости">
+					<GRID id="RegisterlistGR" name="Члены избирательных комиссий по ведомости" table="REGISTERLIST">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
 		</FORM>
 	</FORMS>
 </SYSTEM>
