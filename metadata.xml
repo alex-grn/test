@@ -1,6 +1,7 @@
 ﻿<SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
+		<MODULE id="BeneficiarsReg" name="Реестры получателей пособий" menu="BeneficiarsReg"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="Administrator" name="Меню модуля Администратор">
@@ -32,6 +33,74 @@
 			</MENU>
 			<MENU name="Справка">
 				<MI name="Содержание" actionlist="Help"/>
+			</MENU>
+		</MENU>
+		
+		
+		
+		<MENU id="BeneficiarsReg" name="Реестры получателей пособий">
+			<MENU name="Сервис">
+			<!-- ВРЕМЕННО -->
+			<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+			
+				<MI name="Выход" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Реестры">
+				<MI name="Загрузка реестров" formlist="BenefitsPackets"/>
+				<MENU name="Реестры">
+					<MENU name="Единовременные пособия">
+						<MI name="Пособие по беременности и родам" formlist="Benefit02"/>
+						<MI name="Пособие ранние сроки беременности" formlist="Benefit03"/>
+						<MI name="Пособие при рождении ребенка" formlist="Benefit04"/>
+						<MI name="Пособие беременной жене военнослужащего" formlist="Benefit06"/>
+					</MENU>
+					<MENU name="Ежемесячные пособия">
+						<MI name="Пособие по уходу за ребенком" formlist="Benefit01"/>
+						<MI name="Пособие на ребенка военнослужащего" formlist="Benefit05"/>
+						<MI name="Пособие в связи с рождением (усыновлением)" formlist="Benefit07"/>
+					</MENU>
+				</MENU>
+			</MENU>
+			<MENU name="Отчеты">
+				<MI name="Сводный отчет по гражданам, имеющим детей" reportlist="Summreport_Reg"/>
+				<MENU name="Первичные отчеты">
+					<MI name="Отчет по уходу за ребенком" reportlist="Areport_benefit01"/>
+					<MI name="Отчет по беременности и родам" reportlist="Areport_benefit02"/>
+					<MI name="Отчет по ранним срокам беременности" reportlist="Areport_benefit03"/>
+					<MI name="Отчет по рождении ребенка" reportlist="Areport_benefit04"/>
+					<MI name="Отчет по ребенку военнослужащего" reportlist="Areport_benefit05"/>
+					<MI name="Отчет по беременной жене военнослужащего" reportlist="Areport_benefit06"/>
+					<MI name="Отчет по рождению (усыновлению)" reportlist="Areport_benefit07"/>
+				</MENU>
+				<MENU name="Сводные отчеты">
+					<MI name="Сводный отчет о назначении и выплате пособий" reportlist="Sreport_AppPay"/>
+				</MENU>
+			</MENU>
+			<MENU name="Аналитика">
+				<MI name="Личное дело получателя пособий" reportlist="PersonalFile"/>
+				<MI name="Поиск неправомерных доплат для ежемесячных пособий по уходу за ребенком" reportlist="Unlawfulsurcharge"/>
+				<MI name="Поиск случаев многократных выплат пособия в разных регионах" reportlist="Multiplepayments"/>
+				<MI name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange"/>
+				<MI name="Регионы, не отправившие пакеты в текущем месяце" reportlist="Notsend"/>
+			</MENU>
+			<MENU name="Участники процесса">
+				<MI name="Отправители пакетов" formlist="Senders"/>
+				<MI name="Получатели пособий" formlist="Benefitsrecipients"/>
+			</MENU>
+			<MENU name="Справочники">
+				<MENU name="Документы">
+					<MI name="Документ, удостоверяющий личность" formlist="Persondocumentdir"/>
+					<MI name="Документ, подтверждающий факт рождения ребенка" formlist="CertificateBirthdir"/>
+				</MENU>
+				<MI name="Категории получателей" formlist="RecipientsCategoriesdir"/>
+				<MI name="Организации" formlist="Companydir"/>
+				<MENU name="Пособия">
+					<MI name="Пособия"/>
+					<!-- <MI name="Виды выплат" formlist="PaymentsTypesdir"/> -->
+					<MI name="Виды пособий" formlist="BenefitsTypedir"/>
+					<MI name="Индексация пособий" formlist="BenefitsIndexdir"/>
+				</MENU>
+				<MI name="Субъекты" formlist="Subjectsdir"/>
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
@@ -230,6 +299,42 @@
 		<A id="CONVLOADSID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
 		<A id="CONVLOADACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" table="CONVLOADACTS" ret="CONVACTSID_ret" nulls="false"/>
 		<A id="CONVLOADACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMSID_ret" nulls="false"/>
+		<A id="COMPANYNAMEID" name="Организация" caption="Организация" labelwidth="150" type="ref" table="COMPANYDIR" ret="COMPANYNAME" nulls="false"/>
+		<A id="SUBJECTSDIRID" name="Отправитель (регион)" caption="Отправитель (регион)" labelwidth="150" type="ref" table="SUBJECTSDIR" ret="NAME" nulls="false"/>
+		<A id="BENEFITSTYPENAMEDIRID" name="Тип реестра" caption="Тип реестра" type="ref" table="BENEFITSTYPEDIR" ret="NAME" nulls="false"/>
+		<A id="BENEFITSPACKETSID" name="Регион" caption="Регион" labelwidth="120" type="ref" table="BENEFITSPACKETS" ret="SUBJECTSDIRID_ret" form="BenefitsPackets" nulls="false"/>
+		<A id="BENEFITSTYPEDIRID" name="Тип реестра" caption="Тип реестра" labelwidth="120" type="ref" pid="BENEFITSPACKETSID" table="BENEFICIARIESREGISTERS" ret="BENEFITSTYPENAMEDIRID_ret" nulls="false" visible="form"/>
+		<A id="BENEFITSRECIPIENTSID" name="Получатель пособия" caption="Получатель пособия" type="ref" table="BENEFITSRECIPIENTS" ret="LASTNAME" form="Benefitsrecipients" nulls="false"/>
+		<A id="REMARKID" name="Примечание" caption="Примечание" type="ref" pid="BENEFITSRECIPIENTSID" table="REMARK" ret="NOTE" nulls="true"/>
+		<A id="DOCBIRTHCHILDTYPEID" name="Вид" caption="Вид" type="ref" table="CERTIFICATEBIRTHDIR" ret="NAME" nulls="false"/>
+		<A id="PERSONDOCUMENTTYPEID" name="Вид" caption="Вид" labelwidth="140" type="ref" table="PERSONDOCUMENTDIR" ret="NAME" nulls="false"/>
+		<A id="RECIPIENTSCATEGORIESDIRID" name="Категория получателя" caption="Категория получателя" labelwidth="150" type="ref" table="RECIPIENTSCATEGORIESDIR" ret="NAME" nulls="false"/>
+		<A id="BENEFIT01ID" name="Пособие по уходу за ребенком" caption="Пособие по уходу за ребенком" type="ref" table="BENEFIT01" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFIT02ID" name="Пособие по беременности и родам" caption="Пособие по беременности и родам" type="ref" table="BENEFIT02" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFIT03ID" name="Пособие ранние сроки беременности" caption="Пособие ранние сроки беременности" type="ref" table="BENEFIT03" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFIT04ID" name="Пособие при рождении ребенка" caption="Пособие при рождении ребенка" type="ref" table="BENEFIT04" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFIT05ID" name="Пособие на ребенка военнослужащего" caption="Пособие на ребенка военнослужащего" type="ref" table="BENEFIT05" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFIT06ID" name="Пособие беременной жене военнослужащего" caption="Пособие беременной жене военнослужащего" type="ref" table="BENEFIT06" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFIT07ID" name="Пособие в связи с рождением (усыновлением)" caption="Пособие в связи с рождением (усыновлением)" type="ref" table="BENEFIT07" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		<A id="BENEFITCHILDID" caption="Ребенок" type="ref" pid="BENEFITSRECIPIENTSID" table="BENEFITCHILD" ret="LASTNAME" nulls="false" visible="form"/>
+		<A id="REPORTINGDATE" name="Отчетный период" caption="Отчетный период" type="date"/>
+		<A id="REPMONTH" name="Месяц" caption="Месяц" type="list" len="8" nulls="false">
+			<AI id="1" name="Январь"/>
+			<AI id="2" name="Февраль"/>
+			<AI id="3" name="Март"/>
+			<AI id="4" name="Апрель"/>
+			<AI id="5" name="Май"/>
+			<AI id="6" name="Июнь"/>
+			<AI id="7" name="Июль"/>
+			<AI id="8" name="Август"/>
+			<AI id="9" name="Сентябрь"/>
+			<AI id="10" name="Октябрь"/>
+			<AI id="11" name="Ноябрь"/>
+			<AI id="12" name="Декабрь"/>
+		</A>
+		<A id="REGISTEREDDATE" name="Дата приема заявления на пособие" caption="Дата приема заявления на пособие" labelwidth="460" type="date" nulls="false" local="true"/>
+		<A id="REGISTEREDDATE07" name="Дата обращения" caption="Дата обращения" labelwidth="460" type="date" nulls="false" local="true"/>
+		<A id="BENEFITTOTALSUM" name="Общая сумма в отчетном месяце" caption="Общая сумма в отчетном месяце" labelwidth="225" type="number" len="18.2" nulls="true" local="true"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -315,6 +420,197 @@
 					<A id="FONTCOLOR" name="шрифт" caption="шрифт" labelwidth="43" width="50"/>
 					<A id="BGCOLOR" name="фон" caption="фон" labelwidth="30" width="50"/>
 					<A id="INROW" name="применить к строке" caption="применить к строке" width="100" type="boolean" nulls="false" local="true"/>
+				</GA>
+			</GA>
+		</GA>
+		<GA id="REFERENCE" name="Справочно">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+			<A id="CODE" name="Код" caption="Код" labelwidth="540" type="int" len="2" nulls="false" local="true"/>
+		</GA>
+		<GA id="REPORTING" name="Отчетный период">
+			<A id="REPYEAR" name="Год" caption="Год" labelwidth="20" width="10" type="int" nulls="false"
+				formula="select  case (to_char( now() - interval '1 month','MM')) when '01' then to_char( now()- interval '1 year','YYYY') else to_char(now(),'YYYY') end" local="true"/>
+			<A id="REPMONTH" name="Месяц" caption="Месяц" labelwidth="35" width="10" type="string" nulls="false" 
+			   formula="select case (to_char(now()- interval '1 month','MM'))
+			    when '01' then 'Январь'   
+			    when '02' then 'Февраль'   
+			    when '03' then 'Март'   
+			    when '04' then 'Апрель'   
+			    when '05' then 'Май'  
+			    when '06' then 'Июнь'   
+			    when '07' then 'Июль'   
+			    when '08' then 'Август'   
+			    when '09' then 'Сентябрь'   
+			    when '10' then 'Октябрь'   
+			    when '11' then 'Ноябрь'   
+			    when '12' then 'Декабрь' end" local="true"/>
+		</GA>
+		<GA id="DATEREPORT" caption="Период отчета">
+			<A id="REPSTART" name="Дата с" caption="Дата с" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+			<A id="REPEXPIRY" name="Дата по" caption="Дата по" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+		</GA>
+		<GA id="REPPERIOD" name="Отчетный период">
+			<A id="REPYEARVIRT" name="Год" caption="Год" labelwidth="30" width="10" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.repyear from benefitspackets b where b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
+			<A id="REPMONTHVIRT" name="Месяц" caption="Месяц" labelwidth="45" width="10" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.repmonth from benefitspackets b where b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
+		</GA>
+		<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность" caption="Документ, удостоверяющий личность">
+			<A id="PERSONDOCUMENTTYPEID"/>
+			<A id="PERSONDOCUMENTSERIES" name="Cерия" caption="Cерия" labelwidth="140" type="string" len="20" nulls="false" local="true"/>
+			<A id="PERSONDOCUMENTNUMBER" name="Номер" caption="Номер" labelwidth="140" type="string" len="20" local="true"/>
+			<A id="PERSONDOCUMENTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="false" local="true"/>
+		</GA>
+		<GA id="FIO" name="Ф.И.О.">
+			<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="150" type="string" len="100" nulls="false" local="true"/>
+			<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="150" type="string" len="100" nulls="false" local="true"/>
+			<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="150" type="string" len="100" nulls="true" local="true"/>
+		</GA>
+		<GA id="SENDERSGROUP" name="Отправитель" caption="Отправитель">
+			<A id="REGVIRT" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true" visible="grid"
+			   formula="select d.name from companydir b, subjectsdir d where b.subjectsdirid = d.id and b.id= @COMPANYNAMEID ::bigint" local="true"/>
+			<A id="COMPANYNAMEID" name="Наименование организации"/>
+		</GA>
+		
+		<GA id="HEADER">
+			<A id="BENEFITSPACKETSID" nulls="true"/>
+			<A id="BENEFITSTYPEDIRID" parentkey="cascade" nulls="true"/>
+			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true" labelwidth="160"
+			   formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
+			  
+			<GA id="REPPERIOD"/>
+			<A id="BENEFITSRECIPIENTSID" labelwidth="120" nulls="true"/>
+			<A id="LASTNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.lastname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<A id="PATRONYMICVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.patronymic from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<A id="REMARKID" visible="false"/>
+			<A id="REMARKVIRT" name="Примечание" caption="Примечание" labelwidth="120" type="text" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.note from remark r where r.id=@REMARKID ::bigint" local="true"/>
+		</GA>
+		<GA id="CHILD">
+			<A id="BENEFITCHILDID"/>
+			<GA caption="Сведения о ребенке получателя пособия">
+				<GA name="Ф.И.О.">
+					<A id="LASTNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="135" type="string" nulls="true" readonly="true" virtual="true" formula="select b.lastname from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+					<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="135" type="string" nulls="true" readonly="true" virtual="true" formula="select b.firstname from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+					<A id="PATRONYMICVIRT" name="Отчество" caption="Отчество" labelwidth="135" type="string" nulls="true" readonly="true" virtual="true" formula="select b.patronymic from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				</GA>
+				<A id="BIRTHDATEVIRT" name="Дата рождения (усыновления)" caption="Дата рождения (усыновления)" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.benefitchilddatebirth from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="CHILDUMBERVIRT" name="Очередность рождения (усыновления)" caption="Очередность рождения (усыновления)" labelwidth="450" type="int" nulls="true" readonly="true" virtual="true" formula="select b.benefitchildumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			</GA>
+			<GA name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
+				<A id="TYPEVIRT" name="Вид" caption="Вид" type="string" nulls="true" readonly="true" virtual="true" formula="select d.name from benefitchild b, CERTIFICATEBIRTHDIR d where b.id=@BENEFITCHILDID ::bigint and b.docbirthchildtypeid=d.id" local="true"/>
+				<A id="SERIALVIRT" name="Серия" caption="Серия" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildserial from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="NUMBERVIRT" name="Номер" caption="Номер" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildnumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="DATEVIRT" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchilddate from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			</GA>
+		</GA>
+		<GA id="CHILD2">
+			<A id="BENEFITCHILDID"/>
+			<GA caption="Сведения о ребенке получателя пособия">
+				<GA name="Ф.И.О.">
+					<A id="LASTNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="135" type="string" nulls="true" readonly="true" virtual="true" formula="select b.lastname from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+					<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="135" type="string" nulls="true" readonly="true" virtual="true" formula="select b.firstname from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+					<A id="PATRONYMICVIRT" name="Отчество" caption="Отчество" labelwidth="135" type="string" nulls="true" readonly="true" virtual="true" formula="select b.patronymic from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				</GA>
+				<A id="BIRTHDATEVIRT" name="Дата рождения" caption="Дата рождения" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.benefitchilddatebirth from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			</GA>
+			<GA name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
+				<A id="TYPEVIRT" name="Вид" caption="Вид" type="string" nulls="true" readonly="true" virtual="true" formula="select d.name from benefitchild b, CERTIFICATEBIRTHDIR d where b.id=@BENEFITCHILDID ::bigint and b.docbirthchildtypeid=d.id" local="true"/>
+				<A id="SERIALVIRT" name="Серия" caption="Серия" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildserial from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="NUMBERVIRT" name="Номер" caption="Номер" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildnumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="DATEVIRT" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchilddate from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			</GA>
+		</GA>
+		<GA id="DISMISSAL" name="Сведения об увольнении" caption="Сведения об увольнении">
+			<A id="DISMISSALNUMBER" name="Номер приказа об увольнении" caption="Номер приказа" type="string" len="20" nulls="true" local="true"/>
+			<A id="DISMISSALDATE" name="Дата приказа об увольнении" caption="Дата приказа" labelwidth="450" type="date" nulls="true" local="true"/>
+		</GA>
+		<GA id="DETAILSCERT">
+			<A id="DETAILSCERTMEDICALORG" name="Мед.организация" caption="Мед.организация" type="text" len="250" nulls="true" local="true"/>
+			<A id="DETAILSCERTNUM" name="Номер" caption="Номер" type="string" len="20" nulls="false" local="true"/>
+			<A id="DETAILSCERTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="false" local="true"/>
+		</GA>
+		<GA id="MILITARYUNITCERT" name="Справка из в/ч" caption="Реквизиты справки из в/ч">
+			<A id="MILITARYNUMBER" name="Номер и наименование в/ч" caption="Номер и наименование в/ч" labelwidth="105" type="text" len="250" nulls="true" local="true"/>
+			<A id="DETAILSCERTNUM" name="Номер справки" caption="Номер справки" labelwidth="105" type="string" len="20" nulls="true" local="true"/>
+			<A id="DETAILSCERTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" local="true"/>
+		</GA>
+		<GA id="PERIODMILITARY" name="Период прохождения службы по призыву" caption="Период прохождения службы по призыву">
+			<A id="MILITARYSTART" name="Дата начала" caption="Дата начала" labelwidth="450" type="date" nulls="true" local="true"/>
+			<A id="MILITARYEXPIRY" name="Дата окончания" caption="Дата окончания" labelwidth="450" type="date" nulls="true" local="true"/>
+		</GA>
+		<GA id="BENEFITPURPOSEDECISION" name="Решение о назначении пособия" caption="Решение о назначении пособия">
+			<A id="BENEFITPURPOSENUMBER" name="Номер" caption="Номер" labelwidth="40" type="string" len="20" nulls="true" local="true"/>
+			<A id="BENEFITPURPOSEDATE" name="Дата" caption="Дата" labelwidth="450" type="date" nulls="true" local="true"/>
+		</GA>
+		<GA id="BENEFITPURPOSEDECISION07" name="Решение о назначении пособия" caption="Решение о назначении пособия">
+			<A id="BENEFITPURPOSENUMBER" name="Номер" caption="Номер" labelwidth="40" type="string" len="20" nulls="true" local="true"/>
+			<A id="BENEFITPURPOSEDATE" name="Дата" caption="Дата" labelwidth="450" type="date" nulls="true" local="true"/>
+			<A id="BENEFITSUBSISTENCEWORKING" name="Прожиточный минимум (2 квартал)" caption="Прожиточный минимум (2 квартал)" labelwidth="450" type="number" len="18.2" nulls="true" local="true"/>
+		</GA>
+		<GA id="REGIONALCOEFFICIENT">
+			<A id="COEFFICIENT" name="Районный коэффициент" caption="Районный коэффициент" labelwidth="225" type="number" len="4.2" nulls="false" local="true"/>
+			<A id="BENEFITFORCOEFFICIENT" name="Пособие с учетом к-та" caption="Пособие с учетом коэффициента (руб.)" labelwidth="225" type="number" len="18.2" nulls="false" local="true"/>
+		</GA>
+		<GA id="BENEFITPERIODPAY">
+			<A id="BENEFITTOTALSUM"/>
+			<GA id="AMONGTHEM" caption="в том числе:">
+				<GA id="PAY" name="Выплата" caption="Выплата">
+					<A id="PAYDATE" name="Период" caption="Период выплаты" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="PAYSUM" name="Сумма" caption="Сумма выплаты" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+				<GA id="EXTRA" name="Доплата" caption="Доплата">
+					<A id="EXTRADATE" name="Период" caption="Период доплаты" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="EXTRASUM" name="Сумма" caption="Сумма доплаты" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+				<GA id="RETURN" name="Возврат" caption="Возврат">
+					<A id="RETURNDATE" name="Период" caption="Период возврата" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="RETURNSUM" name="Сумма" caption="Сумма возврата" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+				<GA id="RETENTION" name="Удержание" caption="Удержание">
+					<A id="RETENTIONDATE" name="Период" caption="Период удержания" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="RETENTIONSUM" name="Сумма" caption="Сумма удержания" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+			</GA>
+		</GA>
+		<GA id="AMONGTHEM07" caption="в том числе:">
+			<GA id="PAY07" name="Выплата" caption="Выплата">
+				<A id="PAYDATEFROM" name="Дата с" caption="Дата с" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="PAYDATETO" name="Дата по" caption="Дата по" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="PAYSUM" name="Сумма" caption="Сумма выплаты" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+			</GA>
+			<GA id="SURCHARGE" name="Доплата" caption="Доплата">
+				<A id="SURCHARGEDATEFROM" name="Дата с" caption="Дата с" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="SURCHARGEDATETO" name="Дата по" caption="Дата по" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="SURCHARGESUM" name="Сумма" caption="Сумма доплаты" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+			</GA>
+			<GA id="REFUND" name="Возврат" caption="Возврат">
+				<A id="REFUNDDATEFROM" name="Дата с" caption="Дата с" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="REFUNDDATETO" name="Дата по" caption="Дата по" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="REFUNDSUM" name="Сумма" caption="Сумма возврата" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+			</GA>
+			<GA id="HOLDDATE" name="Удержание" caption="Удержание">
+				<A id="HOLDDATEFROM" name="Дата с" caption="Дата с" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="HOLDDATETO" name="Дата по" caption="Дата по" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+				<A id="HOLDSUM" name="Сумма" caption="Сумма удержания" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+			</GA>
+		</GA>
+		<GA id="BENEFITDATEPAY">
+			<A id="BENEFITTOTALSUM"/>
+			<GA id="AMONGTHEM" caption="в том числе:">
+				<GA id="PAY" name="Выплата" caption="Выплата">
+					<A id="PAYDATE" name="Дата" caption="Дата" labelwidth="450" type="date" nulls="true" local="true"/>
+					<A id="PAYSUM" name="Сумма" caption="Сумма выплаты" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+				<GA id="EXTRA" name="Доплата" caption="Доплата">
+					<A id="EXTRADATE" name="Период" caption="Период доплаты" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="EXTRASUM" name="Сумма" caption="Сумма доплаты" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+				<GA id="RETURN" name="Возврат" caption="Возврат">
+					<A id="RETURNDATE" name="Период" caption="Период возврата" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="RETURNSUM" name="Сумма" caption="Сумма возврата" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+				</GA>
+				<GA id="RETENTION" name="Удержание" caption="Удержание">
+					<A id="RETENTIONDATE" name="Период" caption="Период удержания" labelwidth="110" type="string" len="30" nulls="true" local="true"/>
+					<A id="RETENTIONSUM" name="Сумма" caption="Сумма удержания" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 		</GA>
@@ -573,6 +869,377 @@
 			<A id="CONVACTPARAMSNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMSID ::bigint" local="true"/>
 			<A id="STRVALUE" name="Значение" caption="Значение"/>
 		</TABLE>
+		
+		
+		<TABLE id="BENEFITSPACKETS" name="Пакеты реестров">
+			<A id="SUBJECTSDIRID"/>
+			<GA id="REPORTING" name="Отчетный период"/>
+			<!-- Заполняется авто ДА, если строка в главной таблице или хотя бы один реестр в спецификации добавлен после 10 числа до конца текущего месяца -->
+			<A id="TERMSVIOLATION" name="Нарушение сроков загрузки" caption="Нарушение сроков загрузки" type="boolean" nulls="true" visible="grid" value="false" local="true"/>
+			<A id="STATUSPACK" name="Статус" caption="Статус" type="list" nulls="true" value="02" labelwidth="150" visible="false" local="true">
+				<!-- По нажатии меню "Утвердить" блокировака на редактирование и загрузку пакетов "Сообщение: Загрузка рееста не возможна, обратитесь к своему куратору в Федеральную службу по труду и занятости"-->
+				<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
+				<AI id="01" name="Утверждено"/>
+				<!-- По умолчанию -->
+				<AI id="02" name="Не утверждено"/>
+				<!-- Если хоть в одном реестре имеется ошибка -->
+				<AI id="03" name="Ошибка"/>
+			<TI unique="SUBJECTSDIRID,REPYEAR,REPMONTH"/>
+			</A>
+		</TABLE>
+		
+		<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
+		<TABLE id="BENEFICIARIESREGISTERS" name="Реестры получателей">
+			<A id="BENEFITSPACKETSID" parentkey="cascade"/>
+			<A id="FILELINKSID" name="Описание файла" visible="false"/>
+			
+			<A id="BENEFITSTYPENAMEDIRID" visible="grid"/>
+			
+			
+			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="620" visible="grid"/>
+			<A id="DATEFORM" name="Дата формирования" caption="Дата формирования" type="date" nulls="true" labelwidth="620" visible="grid" local="true"/>
+			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="620" visible="form" />
+			<A id="STATUS" name="Результат" caption="Результат" type="list" nulls="true" labelwidth="620" value="02" local="true">
+				<!-- Автоматом если  нет ошибок -->
+				<AI id="01" name="Проверен"/> 
+				<AI id="02" name="Не проверен"/>
+				<AI id="03" name="Ошибка"/>
+			</A>
+			
+			
+			
+			<A id="WRONGLOADING" name="Ошибки при загрузке" caption="Ошибки при загрузке" type="text" nulls="true" visible="form" readonly="true" local="true"/>
+		</TABLE>
+		<!-- Техниxческая таблица -->
+		<TABLE id="STATUSTECH" name="История статусов">
+			<A id="IDTABLE" name="ID таблицы" type="string" nulls="true" readonly="true" local="true"/>
+			<A id="NAMETABLE" name="Имя таблицы" type="string" nulls="true" readonly="true" local="true"/>
+			<A id="HISTORYSTATUS" name="Статус" type="string" nulls="true" readonly="true" local="true"/>
+		</TABLE>
+	
+		<TABLE id="BENEFIT01" name="Пособие по уходу за ребенком">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="CHILD" name="Сведения о ребенке">
+			<A id="BENEFIT01ID" parentkey="cascade"/>
+			<A id="BENEFITSRECIPIENTSID" type="string" visible="false" virtual="true" formula="select h.benefitsrecipientsid from benefit01 h where h.ID= @BENEFIT01ID ::bigint"/>
+			<GA id="CHILD"/>
+		</TABLE>
+		<TABLE id="BENEFIT01BASIS" name="Основание получения">
+			<A id="BENEFIT01ID" parentkey="cascade"/>
+			<GA id="BENEFIT01BASIS">
+				<GA caption="Реквизиты справки ФСС об отсутствии регистрации">
+					<A id="DOCFSSREG" name="Справка ФСС об отсутствии регистрации" labelwidth="125" type="text" len="250" nulls="true" local="true"/>
+				</GA>
+				<GA caption="Реквизиты документа о совместном проживании ребенка">
+					<A id="DOCCHILDCOHABITATION" name="Документ о совместном проживании ребенка" labelwidth="125" type="text" len="250" nulls="true" local="true"/>
+				</GA>
+				<GA id="DISMISSAL" name="Сведения об увольнении"/>
+			</GA>
+			<A id="REGISTEREDDATE" name="Дата приема заявления на пособие"/>
+		</TABLE>
+		<TABLE id="BENEFIT01PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT01ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT01PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT01ID" parentkey="cascade"/>
+			<GA id="REGIONALCOEFFICIENT"/>
+			<GA id="BENEFITPERIODPAY"/>
+		</TABLE>
+		<TABLE id="BENEFIT02" name="Пособие по беременности и родам">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="BENEFIT02BASIS" name="Основание получения">
+			<A id="BENEFIT02ID" parentkey="cascade"/>
+			<GA caption="Реквизиты справки ОГСЗН о признании безработными">
+				<A id="DOCSZNREG" name="Справка из ОГСЗН о признании безработными" labelwidth="110" type="text" len="250" nulls="true" local="true"/>
+			</GA>
+			<GA id="DETAILSCERT" name="Листок нетрудоспособности" caption="Листок нетрудоспособности"/>
+			<GA id="DISMISSAL"/>
+			<A id="REGISTEREDDATE" name="Дата приема заявления на пособие"/>
+		</TABLE>
+		<TABLE id="BENEFIT02PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT02ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT02PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT02ID" parentkey="cascade"/>
+			<GA id="REGIONALCOEFFICIENT"/>
+			<A id="BENEFIT02DATE" name="Дата выплаты" caption="Дата выплаты пособия" labelwidth="450" type="date" nulls="false" local="true"/>
+			<GA id="BENEFITPERIODPAY"/>
+		</TABLE>
+		<TABLE id="BENEFIT03" name="Пособие ранние сроки беременности">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="BENEFIT03BASIS" name="Основание получения">
+			<A id="BENEFIT03ID" parentkey="cascade"/>
+			<GA id="DETAILSCERT" name="Справка о постановке на учет в ранние сроки беременности" caption="Справка о постановке на учет в ранние сроки беременности"/>
+			<GA id="DISMISSAL"/>
+			<A id="REGISTEREDDATE" name="Дата приема заявления на пособие"/>
+		</TABLE>
+		<TABLE id="BENEFIT03PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT03ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT03PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT03ID" parentkey="cascade"/>
+			<GA id="REGIONALCOEFFICIENT"/>
+			<GA id="BENEFITDATEPAY"/>
+		</TABLE>
+		<TABLE id="BENEFIT04" name="Пособие при рождении ребенка">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="CHILD04" name="Сведения о ребенке">
+			<A id="BENEFIT04ID" parentkey="cascade"/>
+			<A id="BENEFITSRECIPIENTSID" type="string" visible="false" virtual="true" formula="select h.benefitsrecipientsid from benefit04 h where h.ID= @BENEFIT04ID ::bigint"/>
+			<GA id="CHILD2"/>
+		</TABLE>
+		<TABLE id="BENEFIT04BASIS" name="Основание получения">
+			<A id="BENEFIT04ID" parentkey="cascade"/>
+			<GA id="BENEFIT04BASIS" caption="Реквизиты документа, подтверждающего временную нетрудоспособность">
+				<A id="TEMPORARYDISABILITYDOC" name="Документ, подтверждающий временную нетрудоспособность" type="text" len="250" nulls="true" local="true"/>
+			</GA>
+			<A id="REGISTEREDDATE" name="Дата приема заявления на пособие"/>
+		</TABLE>
+		<TABLE id="BENEFIT04PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT04ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT04PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT04ID" parentkey="cascade"/>
+			<GA id="REGIONALCOEFFICIENT"/>
+			<GA id="BENEFITDATEPAY"/>
+		</TABLE>
+		<TABLE id="BENEFIT05" name="Пособие на ребенка военнослужащего">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="CHILD05" name="Сведения о ребенке">
+			<A id="BENEFIT05ID" parentkey="cascade"/>
+			<A id="BENEFITSRECIPIENTSID" type="string" visible="false" virtual="true" formula="select h.benefitsrecipientsid from benefit05 h where h.ID= @BENEFIT05ID ::bigint"/>
+			<GA id="CHILD2"/>
+		</TABLE>
+		<TABLE id="BENEFIT05BASIS" name="Основание получения">
+			<A id="BENEFIT05ID" parentkey="cascade"/>
+			<GA id="MILITARYUNITCERT"/>
+			<GA id="PERIODMILITARY"/>
+			<A id="REGISTEREDDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT05PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT05ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT05PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT05ID" parentkey="cascade"/>
+			<GA id="REGIONALCOEFFICIENT"/>
+			<GA id="BENEFITPERIODPAY"/>
+		</TABLE>
+		<TABLE id="BENEFIT06" name="Пособие беременной жене военнослужащего">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="BENEFIT06BASIS" name="Основание получения">
+			<A id="BENEFIT06ID" parentkey="cascade"/>
+			<GA id="BENEFIT06BASIS" caption="Реквизиты справки из мед.организации о сроке беременности от 180 дней и более">
+				<A id="TEMPORARYDISABILITYDOC" name="Справка о сроке беременности" type="text" len="250" nulls="true" local="true"/>
+			</GA>
+			<GA id="MILITARYUNITCERT"/>
+			<GA id="PERIODMILITARY"/>
+			<GA id="MARRIAGECERT" name="Свидетельство о браке" caption="Реквизиты свидетельства о браке">
+				<A id="MARRIAGECERTSERIES" name="Cерия" caption="Cерия" labelwidth="140" type="string" len="20" nulls="false" local="true"/>
+				<A id="MARRIAGECERTNUMBER" name="Номер" caption="Номер" labelwidth="140" type="string" len="20" local="true"/>
+				<A id="MARRIAGECERTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="false" local="true"/>
+				<A id="MARRIAGEACTDATE" name="Дата акта" caption="Дата акта о заключении брака" labelwidth="450" type="date" nulls="false" local="true"/>
+			</GA>
+			<A id="REGISTEREDDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT06PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT06ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT06PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT06ID" parentkey="cascade"/>
+			<GA id="REGIONALCOEFFICIENT"/>
+			<GA id="BENEFITDATEPAY"/>
+		</TABLE>
+		
+		
+		<TABLE id="BENEFIT07" name="Пособие в связи с рождением (усыновлением)">
+			<GA id="HEADER"/>
+		</TABLE>
+		<TABLE id="CHILD07" name="Сведения о ребенке">
+			<A id="BENEFIT07ID" parentkey="cascade"/>
+			<A id="BENEFITSRECIPIENTSID" type="string" visible="false" virtual="true" formula="select h.benefitsrecipientsid from benefit07 h where h.ID= @BENEFIT07ID ::bigint"/>
+			<A id="BENEFITCHILDID"/>
+			<GA caption="Сведения о ребенке получателя пособия">
+				<GA name="Ф.И.О."/>
+			</GA>
+			<A id="BIRTHDATEVIRT"/>
+			<GA name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
+				<A id="TYPEVIRT" name="Вид" caption="Вид" type="string" nulls="true" readonly="true" virtual="true" formula="select d.name from benefitchild b, CERTIFICATEBIRTHDIR d where b.id=@BENEFITCHILDID ::bigint and b.docbirthchildtypeid=d.id" local="true"/>
+				<A id="SERIALVIRT" name="Серия" caption="Серия" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildserial from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="NUMBERVIRT" name="Номер" caption="Номер" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildnumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+				<A id="DATEVIRT" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchilddate from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="FAMILYMEMBERS" name="Состав семьи">
+			<A id="BENEFIT07ID" parentkey="cascade"/>
+			<A id="FAMILYMEMBERCOUNT" name="Кол-во членов семьи" caption="Кол-во членов семьи" labelwidth="150" type="int" len="2" nulls="true" local="true"/>
+			<A id="TOTALINCOME" name="Совокупный доход" caption="Совокупный доход" labelwidth="150" type="number" len="18.2" nulls="true" local="true"/>
+			<A id="AVERAGEINCOME" name="Среднедушевой доход" caption="Среднедушевой доход" labelwidth="150" type="number" len="18.2" nulls="true" local="true"/>
+			<GA name="Сведения о справке о доходах" caption="Сведения о справке о доходах">
+				<A id="FIO" name="Представивший справку" caption="Представивший справку" labelwidth="140" type="string" len="100" nulls="true" local="true"/>
+				<A id="INCOMECERTIFICATENUMBER" name="Номер" caption="Номер" labelwidth="140" type="string" len="20" nulls="true" local="true"/>
+				<A id="INCOMECERTIFICATEDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" local="true"/>
+			</GA>
+			<A id="REGISTEREDDATE07"/>
+		</TABLE>
+		<TABLE id="BENEFIT07PURPOSE" name="Назначение пособия">
+			<A id="BENEFIT07ID" parentkey="cascade"/>
+			<GA id="BENEFITPURPOSEDECISION07"/>
+			<TI unique="BENEFITPURPOSENUMBER,BENEFITPURPOSEDATE"/>
+		</TABLE>
+		<TABLE id="BENEFIT07PAYMENT" name="Выплата пособия">
+			<A id="BENEFIT07ID" parentkey="cascade"/>
+			<A id="SUBSISTENCECHILD" name="Прожиточный минимум для детей (2 квартал)" caption="Прожиточный минимум для детей (2 квартал)" labelwidth="225" type="number" len="18.2" nulls="true" local="true"/>
+			<GA id="AMONGTHEM07"/>
+		</TABLE>
+		<TABLE id="BENEFITSRECIPIENTS" name="Получатели пособий">
+			<GA id="FIO"/>
+			<A id="CITIZENSHIP" name="Гражданство" caption="Гражданство" labelwidth="150" type="list" nulls="true" value="1" local="true">
+				<AI id="1" name="Российская Федерация"/>
+				<AI id="2" name="Иное"/>
+			</A>
+			<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="150" type="string" len="14" nulls="true" local="true"/>
+			<A id="RECIPIENTSDATEBIRTH" name="Дата рождения" caption="Дата рождения" labelwidth="460" type="date" nulls="true" local="true"/>
+			<A id="RECIPIENTSCATEGORIESDIRID"/>
+			<A id="RECIPIENTADDRESS" name="Адрес получателя" caption="Адрес получателя" labelwidth="150" type="text" len="250" nulls="false" visible="form" local="true"/>
+			<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность получателя пособия"/>
+			<TI unique="PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER"/>
+		</TABLE>
+		<TABLE id="BENEFITCHILD" name="Сведения о ребенке получателя пособия">
+			<A id="BENEFITSRECIPIENTSID" parentkey="cascade"/>
+			<GA id="FIO"/>
+			<A id="BENEFITCHILDUMBER" name="Очередность рождения (усыновления)" caption="Очередность рождения (усыновления)" labelwidth="450" type="int" len="2" nulls="false" local="true"/>
+			<A id="BENEFITCHILDDATEBIRTH" name="Дата рождения (усыновления)" caption="Дата рождения (усыновления)" labelwidth="450" type="date" nulls="false" local="true"/>
+			<GA id="DOCBIRTHCHILD" name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
+				<A id="DOCBIRTHCHILDTYPEID"/>
+				<A id="DOCBIRTHCHILDSERIAL" name="Серия" caption="Серия" type="string" nulls="true" local="true"/>
+				<A id="DOCBIRTHCHILDNUMBER" name="Номер" caption="Номер" type="string" nulls="false" local="true"/>
+				<A id="DOCBIRTHCHILDDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="440" type="date" nulls="true" local="true"/>
+			</GA>
+			<TI unique="DOCBIRTHCHILDTYPEID,DOCBIRTHCHILDNUMBER"/>
+		</TABLE>
+		<TABLE id="REMARK" name="Примечания">
+			<A id="BENEFITSRECIPIENTSID" parentkey="cascade"/>
+			<GA id="REPPERIOD"/>
+			<A id="BENEFITSPACKETSID" labelwidth="75"/>
+			<A id="BENEFITSTYPEDIRID" labelwidth="75" parentkey="cascade" visible="true"/>
+			<A id="NOTE" labelwidth="75"/>
+		</TABLE>
+		
+		
+		<TABLE id="SENDERS" name="Отправители пакетов">
+			<GA id="SENDERSGROUP" name="Отправитель" caption="Отправитель"/>
+			<GA id="CONTACTPERSON" name="Контактное лицо" caption="Контактное лицо">
+				<A id="POSTPERSVIRT" name="Должность" caption="Должность" labelwidth="150" type="string" nulls="true" readonly="true" virtual="true"
+				   formula="select b.postpers from companydir b where b.id= @COMPANYNAMEID ::bigint" local="true"/>
+				<A id="LASTNAMEPERSVIRT" name="Фамилия" caption="Фамилия" labelwidth="150" type="string" nulls="true" readonly="true" virtual="true"
+				   formula="select b.lastnamepers from companydir b where b.id= @COMPANYNAMEID ::bigint" local="true"/>
+				<A id="FIRSTNAMEPERSVIRT" name="Имя" caption="Имя" labelwidth="150" type="string" nulls="true" readonly="true" virtual="true" 
+				   formula="select b.firstnamepers from companydir b where b.id= @COMPANYNAMEID ::bigint" local="true"/>
+				<A id="PATRONYMICPERSVIRT" name="Отчество" caption="Отчество" labelwidth="150" type="string" nulls="true" readonly="true" virtual="true"
+				   formula="select b.patronymicpers from companydir b where b.id= @COMPANYNAMEID ::bigint" local="true"/>
+				<A id="PHONEPERSVIRT" name="Телефон" caption="Телефон" labelwidth="150" type="string" nulls="true" readonly="true" virtual="true"
+				   formula="select b.phonepers from companydir b where b.id= @COMPANYNAMEID ::bigint" local="true"/>
+				<A id="EMAILPERSVIRT" name="email" caption="email" labelwidth="150" type="string" nulls="true" readonly="true" virtual="true"
+				   formula="select b.emailpers from companydir b where b.id= @COMPANYNAMEID ::bigint" local="true"/>
+			</GA>
+			<A id="USERID" name="Пользователь" caption="Пользователь АИС РПП" labelwidth="160" type="ref" table="USERS" ret="LOGIN" form="Users" nulls="false" visible="form" local="true"/>
+			<GA id="RESTRICTION" name="Ограничения" caption="Ограничения">
+				<A id="BANCHILD4" name="Запрет загрузки, если ребенок старше 4х лет" caption="Запрет загрузки, если ребенок старше 4х лет" type="boolean" visible="form" value="true" local="true"/>
+				<A id="BANLOAD" name="Запрет загрузки, начиная c 11 числа до конца месяца" caption="Запрет загрузки, c 11 числа до конца месяца" type="boolean" visible="form" value="true" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PERSONDOCUMENTDIR" name="Документ, удостоверяющий личность">
+			<GA id="REFERENCE"/>
+			<TI id="PERSONDOCUMENTDIR_UK1" unique="NAME"/>
+			<TI id="PERSONDOCUMENTDIR_UK2" unique="CODE"/>
+		</TABLE>
+		<TABLE id="CERTIFICATEBIRTHDIR" name="Документ, подтверждающий факт рождения ребенка">
+			<GA id="REFERENCE"/>
+			<TI id="CERTIFICATEBIRTHDIR_UK1" unique="NAME"/>
+			<TI id="CERTIFICATEBIRTHDIR_UK2" unique="CODE"/>
+		</TABLE>
+		<TABLE id="RECIPIENTSCATEGORIESDIR" name="Категории получателей">
+			<GA id="REFERENCE"/>
+			<TI id="RECIPIENTSCATEGORIESDIR_UK1" unique="NAME"/>
+			<TI id="RECIPIENTSCATEGORIESDIR_UK2" unique="CODE"/>
+		</TABLE>
+		<TABLE id="COMPANYDIR" name="Организации">
+			<A id="SUBJECTSDIRID" labelwidth="140"/>
+			<A id="COMPANYNAME" name="Организации" caption="Наименование" labelwidth="140" type="string" nulls="false" local="true"/>
+			<GA id="HEAD" name="Руководитель" caption="Руководитель">
+				<A id="POST" name="Должность" caption="Должность" labelwidth="130" type="string" local="true"/>
+				<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="130" type="string" len="100" nulls="false" local="true"/>
+				<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="130" type="string" len="100" nulls="false" local="true"/>
+				<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="130" type="string" len="100" nulls="true" local="true"/>
+				<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="130" type="string" local="true"/>
+				<A id="EMAIL" name="email" caption="email" labelwidth="130" type="string" local="true"/>
+			</GA>
+			<GA id="CONTACTPERSONPERS" name="Контактное лицо" caption="Контактное лицо">
+				<A id="POSTPERS" name="Должность" caption="Должность" labelwidth="130" type="string" local="true"/>
+				<A id="LASTNAMEPERS" name="Фамилия" caption="Фамилия" labelwidth="130" type="string" len="100" nulls="false" local="true"/>
+				<A id="FIRSTNAMEPERS" name="Имя" caption="Имя" labelwidth="130" type="string" len="100" nulls="false" local="true"/>
+				<A id="PATRONYMICPERS" name="Отчество" caption="Отчество" labelwidth="130" type="string" len="100" nulls="true" local="true"/>
+				<A id="PHONEPERS" name="Телефон" caption="Телефон" labelwidth="130" type="string" local="true"/>
+				<A id="EMAILPERS" name="email" caption="email" labelwidth="130" type="string" local="true"/>
+			</GA>
+		</TABLE>
+		<!-- <TABLE id="PAYMENTSTYPESDIR" name="Виды выплат"> -->
+			<!-- <A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/> -->
+			<!-- <A id="PAYMENTSSORTS" name="Тип" caption="Тип" type="list" nulls="false" local="true"> -->
+				<!-- <AI id="PAY" name="Выплата"/> -->
+				<!-- <AI id="RET" name="Возврат"/> -->
+			<!-- </A> -->
+			<!-- <A id="CODE" name="Код" caption="Код" labelwidth="540" type="int" len="2" nulls="false" local="true"/> -->
+			<!-- <TI id="PAYMENTSTYPESDIR_UK1" unique="NAME"/> -->
+			<!-- <TI id="PAYMENTSTYPESDIR_UK2" unique="CODE"/> -->
+		<!-- </TABLE> -->
+		<TABLE id="BENEFITSTYPEDIR" name="Виды пособий">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+			<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" type="text" nulls="true" visible="form" local="true"/>
+			<A id="ROSTERNUMBER" name="Номер реестра" caption="Номер реестра" labelwidth="540" type="int" len="2" nulls="false" local="true"/>
+			<A id="ONCE" name="Единовременное" caption="Единовременное" labelwidth="90" type="boolean" nulls="true" local="true"/>
+			<TI id="BENEFITSTYPEDIR_UK1" unique="NAME"/>
+			<TI id="BENEFITSTYPEDIR_UK2" unique="ROSTERNUMBER"/>
+		</TABLE>
+		<TABLE id="BENEFITSINDEXDIR" name="Индексация пособий">
+			<A id="RELEVANCE" name="Актуальность" caption="Актуальность" type="boolean" nulls="true" value="true" local="true"/>
+			<A id="RELEVANCEYEAR" name="Год" caption="Год" labelwidth="110" type="int" len="4" nulls="false" local="true"/>
+			<A id="BENEFITSTYPENAMEDIRID" labelwidth="110"/>
+			<GA id="BENEFITINDEXFACTOR" name="Размер пособия" caption="Размер пособия">
+				<A id="MIN" name="Минимум" caption="Минимум" type="number" len="17.2" nulls="true" local="true"/>
+				<A id="MAX" name="Максимум" caption="Максимум" type="number" len="17.2" nulls="true" local="true"/>
+				<A id="CHILD1ST" name="1-й ребенок" caption="1-й ребенок" type="number" len="17.2" nulls="true" local="true"/>
+				<A id="CHILD2NDSUB" name="2-й и...ребенок" caption="2-й и...ребенок" type="number" len="17.2" nulls="true" local="true"/>
+			</GA>
+			<TI unique="RELEVANCEYEAR,BENEFITSTYPENAMEDIRID"/>
+		</TABLE>
+		
+		<TABLE id="SUBJECTSDIR" name="Субъекты">
+			<A id="CODE" name="Код" caption="Код" labelwidth="700" type="int" len="2" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/>
+			<A id="FEDREG" name="Федеральный округ" caption="Федеральный округ" labelwidth="150" type="string" nulls="true" local="true"/>
+			<A id="FEDREGCENTER" name="Центр федерального округа" caption="Центр ФО" labelwidth="150" type="string" nulls="true" local="true"/>
+			<TI id="SUBJECTSDIR_UK1" unique="NAME"/>
+			<TI id="SUBJECTSDIR_UK2" unique="CODE"/>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="Insert" name="Добавить" type="java">
@@ -659,9 +1326,131 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="script" actionlist="FilelinksToFilebuffer;ConvStart"/>
+		<ACTION id="ParseReestr" name="Отработать реестр" type="procedure" procedure="p_reestr_parse"/>
+		<ACTION id="loadReestr" name="Загрузить реестр" type="script" actionlist="uploadFilelinks;FilelinksToFilebuffer;ParseReestr"/>
+		<ACTION id="exportReestr" name="Выгрузить реестр" type="script" actionlist="loadFilelinks"/>
+		
+	<!-- РПП -->
+	<!-- По нажатии меню "Утвердить" блокировака на редактирование и загрузку пакетов "Сообщение: Загрузка рееста не возможна, обратитесь к куратору в Феедеральную службу по труду и занятости"-->
+		<ACTION id="Ratify" name="Утвердить" type="procedure" procedure="p_packets_ratify"/>
+	<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
+		<ACTION id="Noratify" name="Снять утверждение" type="procedure" procedure="p_packets_noratify"/>
+	
+		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
+		
+		<REPORT id="Areport_PersonalFile" name="Личное дело получателя пособий" procedure="" template="Areport_PersonalFile.xls">
+			<FORM>
+				<TABS>
+					<TAB name="География">
+						<A id="FEDERALREGIONDIRID" nulls="true"/>
+						<A id="SUBJECTSDIRID" caption="Субъект" labelwidth="120" nulls="true"/>
+					</TAB>
+					<TAB name="Получатель пособия">
+						<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="90" type="string" len="100" nulls="true" local="true"/>
+						<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="90" type="string" len="100" nulls="true" local="true"/>
+						<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="90" type="string" len="100" nulls="true" local="true"/>
+						<GA caption="Документ, удостоверяющий личность">
+							<A id="PERSONDOCUMENTTYPEID" labelwidth="80" nulls="true"/>
+							<A id="PERSONDOCUMENTSERIES" name="Cерия" caption="Cерия" labelwidth="80" type="string" len="20" nulls="true" local="true"/>
+							<A id="PERSONDOCUMENTNUMBER" name="Номер" caption="Номер" labelwidth="80" type="string" len="20" nulls="true" local="true"/>
+							<A id="PERSONDOCUMENTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" local="true"/>
+						</GA>
+					</TAB>
+				</TABS>
+			</FORM>
+		</REPORT>
+		
+		
+		
+		<!-- Отчеты -->
+		<REPORT id="Summreport_Reg" name="Сводный отчет по гражданам, имеющим детей" procedure="" template="Summreport_Reg.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit01" name="Отчет по уходу за ребенком" procedure="" template="Areport_benefit01.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit02" name="Отчет по беременности и родам" procedure="" template="Areport_benefit02.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit03" name="Отчет по ранним срокам беременности" procedure="" template="Areport_benefit03.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit04" name="Отчет по рождении ребенка" procedure="" template="Areport_benefit04.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit05" name="Отчет по ребенку военнослужащего" procedure="" template="Areport_benefit05.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit06" name="Отчет по беременной жене военнослужащего" procedure="" template="Areport_benefit06.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Areport_benefit07" name="Отчет по рождению (усыновлению)" procedure="" template="Areport_benefit07.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="Sreport_AppPay" name="Сводный отчет о назначении и выплате пособий" procedure="" template="Sreport_AppPay.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>
+		
+		<!-- Аналитика -->
+		<REPORT id="PersonalFile" name="Личное дело получателя пособий" procedure="" template="PersonalFile.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>		
+				
+		<REPORT id="Unlawfulsurcharge" name="Поиск неправомерных доплат для ежемесячных пособий по уходу за ребенком" procedure="" template="Unlawfulsurcharge.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>
+				
+		<REPORT id="Multiplepayments" name="Поиск случаев многократных выплат пособия в разных регионах" reportlist="Multiplepayments.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>
+				
+				<REPORT id="Multipledocumentchange" name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>
+				
+		<REPORT id="Notsend" name="Регионы, не отправившие пакеты в текущем месяце" reportlist="Notsend.xls">
+			<FORM>
+				<GA id="FIO"/>
+			</FORM>
+		</REPORT>
+		
 	</REPORTS>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Users" name="Пользователи">
@@ -740,6 +1529,216 @@
 			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="uploadFilelinks;ConvLoadsStart"/>
 			<GRID id="ConvLoadActs" name="Процессы загрузки (действия)" table="CONVLOADACTS"/>
 			<GRID id="ConvLoadActParams" name="Процессы загрузки (параметры)" table="CONVLOADACTPARAMS"/>
+		</FORM>
+		
+		<FORM id="Benefit01" name="Пособие по уходу за ребенком">
+			<GRID id="BENEFIT01" name="Пособие по уходу за ребенком" table="BENEFIT01" readonly="true">
+			
+			
+				<MENU>
+					<MI name="Просмотр" actionlist="Update"/>
+					<MI actionlist="MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>	
+			
+			<TABS>
+				<TAB name="Сведения о ребенке">
+					<GRID id="CHILD" name="Сведения о ребенке" table="CHILD"/>
+				</TAB>
+				<TAB name="Основание получения">
+					<GRID id="BENEFIT01BASIS" name="Основание получения" table="BENEFIT01BASIS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT01PURPOSE" name="Назначение пособия" table="BENEFIT01PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT01PAYMENT" name="Выплата пособия" table="BENEFIT01PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Benefit02" name="Пособие по беременности и родам">
+			<GRID id="BENEFIT02" name="Пособие по беременности и родам" table="BENEFIT02" readonly="true">
+			
+			
+				<MENU>
+					<MI name="Просмотр" actionlist="Update"/>
+					<MI actionlist="MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>	
+				
+			<TABS>
+				<TAB name="Основание получения">
+					<GRID id="BENEFIT02BASIS" name="Основание получения" table="BENEFIT02BASIS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT02PURPOSE" name="Назначение пособия" table="BENEFIT02PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT02PAYMENT" name="Выплата пособия" table="BENEFIT02PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Benefit03" name="Пособие ранние сроки беременности">
+			<GRID id="BENEFIT03" name="Пособие ранние сроки беременности" table="BENEFIT03" readonly="true">
+			
+			
+				<MENU>
+					<MI name="Просмотр" actionlist="Update"/>
+					<MI actionlist="MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>	
+			<TABS>
+				<TAB name="Основание получения">
+					<GRID id="BENEFIT03BASIS" name="Основание получения" table="BENEFIT03BASIS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT03PURPOSE" name="Назначение пособия" table="BENEFIT03PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT03PAYMENT" name="Выплата пособия" table="BENEFIT03PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Benefit04" name="Пособие при рождении ребенка">
+			<GRID id="BENEFIT04" name="Пособие при рождении ребенка" table="BENEFIT04" readonly="true">
+			
+			
+				<MENU>
+					<MI name="Просмотр" actionlist="Update"/>
+					<MI actionlist="MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>	
+			<TABS>
+				<TAB name="Сведения о ребенке">
+					<GRID id="CHILD04" name="Сведения о ребенке" table="CHILD04"/>
+				</TAB>
+				<TAB name="Основание получения">
+					<GRID id="BENEFIT04BASIS" name="Основание получения" table="BENEFIT04BASIS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT04PURPOSE" name="Назначение пособия" table="BENEFIT04PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT04PAYMENT" name="Выплата пособия" table="BENEFIT04PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Benefit05" name="Пособие на ребенка военнослужащего">
+			<GRID id="BENEFIT05" name="Пособие на ребенка военнослужащего" table="BENEFIT05" readonly="true">
+			
+			
+				<MENU>
+					<MI name="Просмотр" actionlist="Update"/>
+					<MI actionlist="MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>	
+			<TABS>
+				<TAB name="Сведения о ребенке">
+					<GRID id="CHILD05" name="Сведения о ребенке" table="CHILD05"/>
+				</TAB>
+				<TAB name="Основание получения">
+					<GRID id="BENEFIT05BASIS" name="Основание получения" table="BENEFIT05BASIS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT05PURPOSE" name="Назначение пособия" table="BENEFIT05PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT05PAYMENT" name="Выплата пособия" table="BENEFIT05PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Benefit06" name="Пособие беременной жене военнослужащего">
+			<GRID id="BENEFIT06" name="Пособие беременной жене военнослужащего" table="BENEFIT06" readonly="true">
+			
+			
+				<MENU>
+					<MI name="Просмотр" actionlist="Update"/>
+					<MI actionlist="MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>	
+			<TABS>
+				<TAB name="Основание получения">
+					<GRID id="BENEFIT06BASIS" name="Основание получения" table="BENEFIT06BASIS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT06PURPOSE" name="Назначение пособия" table="BENEFIT06PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT06PAYMENT" name="Выплата пособия" table="BENEFIT06PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Benefit07" name="Пособие в связи с рождением (усыновлением)">
+			<GRID id="BENEFIT07" name="Пособие в связи с рождением (усыновлением)" table="BENEFIT07"/>
+			<!-- readonly="true"> -->
+			
+			
+				<!-- <MENU> -->
+					<!-- <MI name="Просмотр" actionlist="Update"/> -->
+					<!-- <MI actionlist="MoveFolder;ConfigTables"/> -->
+				<!-- </MENU> -->
+			<!-- </GRID>	 -->
+			<TABS>
+				<TAB name="Сведения о ребенке">
+					<GRID id="CHILD07" name="Сведения о ребенке" table="CHILD07"/>
+				</TAB>
+				<TAB name="Состав семьи">
+					<GRID id="FAMILYMEMBERS" name="Состав семьи" table="FAMILYMEMBERS"/>
+				</TAB>
+				<TAB name="Назначение пособия">
+					<GRID id="BENEFIT07PURPOSE" name="Назначение пособия" table="BENEFIT07PURPOSE"/>
+				</TAB>
+				<TAB name="Выплата пособия">
+					<GRID id="BENEFIT07PAYMENT" name="Выплата пособия" table="BENEFIT07PAYMENT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		
+		
+		<!-- <FORM id="Dupl_benefitschildcare" name="Поиск дублей пособий по уходу за ребенком"> -->
+			<!-- <GRID id="DUPL_BENEFITSCHILDCARE" name="Поиск дублей пособий по уходу за ребенком" table="DUPL_BENEFITSCHILDCARE"/> -->
+		<!-- </FORM> -->
+		<FORM id="Benefitsrecipients" name="Получатели пособий">
+			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS">
+				<MENU>
+					<MI name="Личное дело" actionlist="Update"/>
+				</MENU>
+			</GRID>	
+			<TABS>
+				<TAB name="Сведения о ребенке получателя пособия">
+					<GRID id="BENEFITCHILD" name="Сведения о ребенке получателя пособия" table="BENEFITCHILD"/>
+				</TAB>
+				<TAB name="Примечания">
+					<GRID id="REMARK" name="Примечания" table="REMARK"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Senders" name="Отправители пакетов">
+			<GRID id="SENDERS" name="Отправители пакетов" table="SENDERS"/>
+		</FORM>
+		<FORM id="Subjectsdir" name="Субъекты">
+			<GRID id="SUBJECTSDIR" name="Субъекты" table="SUBJECTSDIR"/>
+		</FORM>
+		<FORM id="Persondocumentdir" name="Документ, удостоверяющий личность">
+			<GRID id="PERSONDOCUMENTDIR" name="Документ, удостоверяющий личность" table="PERSONDOCUMENTDIR"/>
+		</FORM>
+		<FORM id="CertificateBirthdir" name="Документ, подтверждающий факт рождения ребенка">
+			<GRID id="CERTIFICATEBIRTHDIR" name="Документ, подтверждающий факт рождения ребенка" table="CERTIFICATEBIRTHDIR"/>
+		</FORM>
+		<FORM id="RecipientsCategoriesdir" name="Категории получателей">
+			<GRID id="RECIPIENTSCATEGORIESDIR" name="Категории получателей" table="RECIPIENTSCATEGORIESDIR"/>
+		</FORM>
+		<FORM id="Companydir" name="Организации">
+			<GRID id="COMPANYDIR" name="Организации" table="COMPANYDIR"/>
+		</FORM>
+		<FORM id="BenefitsTypedir" name="Виды пособий">
+			<GRID id="BENEFITSTYPEDIR" name="Вид пособия" table="BENEFITSTYPEDIR"/>
+		</FORM>
+		<!-- <FORM id="PaymentsTypesdir" name="Виды выплат"> -->
+			<!-- <GRID id="PAYMENTSTYPESDIR" name="Виды выплат" table="PAYMENTSTYPESDIR"/> -->
+		<!-- </FORM> -->
+		<FORM id="BenefitsIndexdir" name="Индексация пособий">
+			<GRID id="BENEFITSINDEXDIR" name="Индексация пособий" table="BENEFITSINDEXDIR"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
