@@ -1,6 +1,7 @@
 ﻿<SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
+		<MODULE id="Alternative" name="Альтернативная гражданская служба" menu="Alternative"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="Administrator" name="Меню модуля Администратор">
@@ -32,6 +33,44 @@
 			</MENU>
 			<MENU name="Справка">
 				<MI name="Содержание" actionlist="Help"/>
+			</MENU>
+		</MENU>
+		<!-- АГС -->
+		<MENU id="Alternative" name="Меню модуля АГС">
+			<MENU name="Организации"> 
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Организации" formlist="Organization"/>
+			</MENU>
+			<MENU name="Граждане">
+				<MI name="Граждане" formlist="Citizenry"/>
+			</MENU>
+			<MENU name="Планы Направлений">
+				<MI name="Планы Направлений" formlist="Plans"/>
+			</MENU>
+			<MENU name="Направления">
+				<MI name="Направления" formlist="Direction"/>
+			</MENU>
+			<MENU name="Статистика">
+				<MI name="Профессии" reportlist="PROFESSIONREPORT"/>
+				<MI name="Прохождение АГС" reportlist="PASSAGEOFAGS"/>
+				<MI name="Граждане" reportlist="CITIZENREPORT"/>
+				<!-- <MI name="Увольнение граждан" reportlist=""/> -->
+				<!-- <MI name="Направление на АГС" reportlist=""/> -->
+				<!-- <MI name="Вакансии" reportlist=""/> -->
+				<!-- <MI name="Организации" reportlist=""/> -->
+			</MENU>
+			<MENU name="Справочники">
+				<MI name="Ведомство" formlist="Departmentdir"/>
+				<MI name="Коренные народы" formlist="Nativepeopledir"/>
+				<MI name="Профессии/Должности" formlist="Professiondir"/>
+				<MI name="Специальности по образованию"  formlist="Specialtyeducationdir"/>
+				<MI name="Регион" formlist="Regiondir"/>
+				<MI name="Режим труда" formlist="Modeworkdir"/>
+				<MI name="Иностранные языки" formlist="ForeignLanguagesdir"/>
+				<MI name="Виды отпуска" formlist="TypeOfLeaveDir"/>
+			</MENU>
+			<MENU name="Помощь">
+				<MI name="Помощь" formlist="Help"/>
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
@@ -230,6 +269,114 @@
 		<A id="CONVLOADSID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
 		<A id="CONVLOADACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" table="CONVLOADACTS" ret="CONVACTSID_ret" nulls="false"/>
 		<A id="CONVLOADACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMSID_ret" nulls="false"/>
+		
+		<!-- АГС -->
+		<A id="ORGANIZATIONID" name="Организация" caption="Организация" type="ref" table="ORGANIZATION" ret="INN" form="Organization" nulls="false"/>
+		<A id="VACANCYORGID" name="Вакансия" caption="Вакансия" type="ref" table="VACANCYORG" pid="ORGANIZATIONID" ret="PROFESSIONDIRID_ret" nulls="false"/>
+		<A id="CITIZENRYID" name="Граждане" caption="Граждане" type="ref" table="CITIZENRY" ret="LASTNAME" form="Citizenry" nulls="true"/>
+		<A id="NATIVEPEOPLEDIRID" type="ref" table="NATIVEPEOPLEDIR" ret="NAME" form="Nativepeopledir" nulls="true"/>
+		<A id="DEPARTMENTDIRID" name="Ведомство" caption="Ведомство" type="ref" table="DEPARTMENTDIR" ret="NAME" form="Departmentdir" nulls="true"/>
+		<A id="REGIONDIRID" name="Регион" caption="Регион" type="ref" table="REGIONDIR" ret="NAME" form="Regiondir" nulls="true"/>
+		<A id="REGIONDIR2ID" name="Регион" caption="Регион" type="ref" table="REGIONDIR" ret="NAME" form="Regiondir" nulls="true"/>
+		<A id="MODEWORKDIRID" name="Режим труда" caption="Режим труда" type="ref" table="MODEWORKDIR" ret="SHORTAME" form="Modeworkdir" nulls="true"/>
+		<A id="PROFESSIONDIRID" name="Профессии/Должности" caption="Профессии/Должности" type="ref" table="PROFESSIONDIR" ret="NAME" form="Professiondir" nulls="true"/>
+		<A id="PROFESSIONDIR2ID" name="Профессии/Должности" caption="Профессии/Должности" type="ref" table="PROFESSIONDIR" ret="NAME" form="Professiondir" nulls="true"/>
+		<A id="SPECIALTYEDUCATIONDIRID" name="Специальности по образованию" caption="Специальности по образованию" type="ref" table="SPECIALTYEDUCATIONDIR" ret="NAMESPEC" form="Specialtyeducationdir" nulls="true"/>
+		<A id="SPECIALTYEDUCATIONDIR2ID" name="Специальности по образованию" caption="Специальности по образованию" type="ref" table="SPECIALTYEDUCATIONDIR" ret="NAMESPEC" form="Specialtyeducationdir" nulls="true"/>
+		<A id="FOREIGNLANGUAGESDIRID" name="Иностранные языки" caption="Иностранные языки" type="ref" table="FOREIGNLANGUAGESDIR" ret="NAME" form="ForeignLanguagesdir" nulls="true"/>
+		<A id="TYPEOFLEAVEDIRID" name="Виды отпуска" caption="Виды отпуска" type="ref" table="TYPEOFLEAVEDIR" ret="NAME" form="TypeOfLeaveDir" nulls="true"/>
+    	<A id="PLANSID" name="Планы направления" caption="Планы направления" type="ref" table="PLANS" ret="NAMEPLAN" form="Plans" nulls="true"/>
+		
+		
+		<A id="STATUSORG" name="Статус" caption="Статус" type="list" nulls="true" value="1" labelwidth="620" local="true">
+			<AI id="1" name="Проект"/>
+			<AI id="2" name="Отклонена"/>
+			<AI id="3" name="Утверждена"/>
+			<AI id="4" name="Заблокирована"/>
+		</A>	
+		<A id="STATUSCITIZEN" name="Статус" caption="Статус" type="list" nulls="true" value="1" labelwidth="620" local="true">
+			<AI id="1" name="Зарегистрирован"/>
+			<AI id="2" name="Утвержден"/>
+			<AI id="3" name="Отказ"/>
+			<AI id="4" name="Отсрочка"/>
+			<AI id="5" name="Повторное распределение"/>
+			<AI id="6" name="Направлен на АГС"/>
+			<AI id="7" name="Проходит АГС"/>
+			<AI id="8" name="Уволен со службы"/>
+		</A>
+		<A id="FAMILYSTATUS" caption="Семейное положение" type="list" nulls="true" visible="form" labelwidth="160" width="50" local="true">
+			<AI id="1" name="Вдовец"/>
+			<AI id="2" name="Разведен"/>
+			<AI id="3" name="Никогда не состоял в браке"/>
+			<AI id="4" name="Состоит в зарегистрированном браке"/>
+		</A>		
+		<A id="SPECIALFAMILYSTATUS2" type="list" nulls="true" visible="form" local="true">
+			<AI id="1" name="Мать (отец) имеет 2 и более детей до 8 лет, воспитываемых без мужа (жены)"/>
+			<AI id="2" name="Ближайшие родственники или усыновитель - инвалид 1 или 2 группы"/>
+			<AI id="3" name="Ближайшие родственники или усыновитель старше 55 лет - женщины, 60 лет - мужчины"/>
+			<AI id="4" name="Ближайшие родственники младше 18 лет"/>
+			<AI id="5" name="Наличие ребенка, воспитываемого без матери"/>
+			<AI id="6" name="Постоянный уход за ближайшими родственниками или усыновителем"/>
+		</A>	
+		<A id="BELIEFS" caption="Убеждения/вероисповедания" type="list" nulls="true" visible="form" labelwidth="550" local="true">
+			<AI id="1" name="Адвентист 7 дня"/>
+			<AI id="2" name="Баптист"/>
+			<AI id="3" name="Ислам"/>
+			<AI id="4" name="Пацифист"/>
+			<AI id="5" name="Пятидесятник"/>
+			<AI id="6" name="Свидетели Иеговы"/>
+			<AI id="7" name="Старовер"/>
+			<AI id="8" name="Другое"/>
+		</A>
+		<A id="SUITABILITY" caption="Годность к военной службе" type="list" nulls="true" visible="form" local="true">
+			<AI id="1" name="А"/>
+			<AI id="2" name="Б"/>
+			<AI id="3" name="В"/>
+			<AI id="4" name="Г"/>
+			<AI id="5" name="Д"/>
+		</A>
+		<A id="CONSCRIPTION" name="Период" caption="Период" type="list" nulls="false" local="true">	
+			<AI id="1" name="Весна"/>
+			<AI id="2" name="Осень"/>
+		</A>	
+		<A id="LEVELEDUCATION" name="Уровень образования" caption="Требования к образованию" type="list" nulls="true" local="true">
+			<AI id="1" name="Дошкольное образование"/>
+			<AI id="2" name="Начальное общее образование"/>
+			<AI id="3" name="Основное общее образование"/>
+			<AI id="4" name="Среднее (полное) общее образование"/>
+			<AI id="5" name="Начальное профессиональное образование"/>
+			<AI id="6" name="Среднее профессиональное образование"/>
+			<AI id="7" name="Неполное высшее образование"/>
+			<AI id="8" name="Высшее образование"/>
+			<AI id="9" name="Послевузовское образование"/>
+		</A>
+		<A id="TRAINING" caption="Возможность обучения" type="list" nulls="true" visible="form" local="true">
+			<AI id="1" name="Возможность обучения"/>
+			<AI id="2" name="Обязательно наличие опыта"/>
+		</A>
+		<A id="WORKINGCONDITIONS" caption="Условия труда" type="list" nulls="true" visible="form" local="true">
+			<AI id="1" name="Нормальные"/>
+			<AI id="2" name="Тяжелые и вредные"/>
+			<AI id="3" name="Особо тяжелые и особо вредные"/>
+		</A>
+		<A id="DISTRICTMILITARY" name="Военный округ" caption="Военный округ" type="list" nulls="true" local="true">
+			<AI id="1" name="Центральный военный округ"/>
+			<AI id="2" name="Западный военный округ"/>
+			<AI id="3" name="Южный военный округ"/>
+			<AI id="4" name="Восточный военный округ"/>
+			<AI id="5" name="Северный флот"/>
+		</A>
+		<A id="DISTRICTFEDERAL" name="Федеральный округ" caption="Федеральный округ" type="list" nulls="true" local="true">
+			<AI id="1" name="Центральный федеральный округ"/>
+			<AI id="2" name="Северо-Западный федеральный округ"/>
+			<AI id="3" name="Южный федеральный округ"/>
+			<AI id="4" name="Северо-Кавказский федеральный округ"/>
+			<AI id="5" name="Приволжский федеральный округ"/>
+			<AI id="6" name="Уральский федеральный округ"/>
+			<AI id="7" name="Сибирский федеральный округ"/>
+			<AI id="8" name="Дальневосточный федеральный округ"/>
+		</A>	
+		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -318,6 +465,49 @@
 				</GA>
 			</GA>
 		</GA>
+		
+		<!-- АГС -->
+		<GA id="UA" name="ЮА">
+			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" type="int" len="6" nulls="false" visible="form" labelwidth="610" local="true"/>
+			<A id="REGIONDIRID" nulls="false" visible="form" labelwidth="110"/>
+			<A id="SETTLEMENT" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="false" visible="form" labelwidth="110" local="true"/>
+			<A id="STREET" name="Улица" caption="Улица" type="string" nulls="true" visible="form" labelwidth="110" local="true"/>
+			<A id="HOUSE" name="Дом" caption="Дом" type="string" nulls="true" visible="form" labelwidth="110" width="20" local="true"/>
+			<A id="HOUSING" name="Корпус" caption="Корпус" type="string" nulls="true" visible="form" labelwidth="50" width="20" local="true"/>
+			<A id="BUILDING" name="Строение" caption="Строение" type="string" nulls="true" visible="form" labelwidth="65" width="20" local="true"/>
+		</GA>
+		<GA id="FA" name="ФА">
+			<A id="COINCIDENCE" caption="Фактический адрес совпадает с юридическим" type="boolean" nulls="true" visible="form" local="true"/>
+			<A id="POSTCODE2" name="Почтовый индекс" caption="Почтовый индекс" type="int" len="6" nulls="false" visible="form" labelwidth="610" local="true"/>
+			<A id="REGIONDIR2ID" nulls="false" visible="form" labelwidth="110"/>
+			<A id="SETTLEMENT2" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="false" visible="form" labelwidth="110" local="true"/>
+			<A id="STREET2" name="Улица" caption="Улица" type="string" nulls="true" visible="form" labelwidth="110" local="true"/>
+			<A id="HOUSE2" name="Дом" caption="Дом" type="string" nulls="true" visible="form" labelwidth="110" width="20" local="true"/>
+			<A id="HOUSING2" name="Корпус" caption="Корпус" type="string" nulls="true" visible="form" labelwidth="50" width="20" local="true"/>
+			<A id="BUILDING2" name="Строение" caption="Строение" type="string" nulls="true" visible="form" labelwidth="65" width="20" local="true"/>
+		</GA>
+		<GA id="FL"  name="ФЛ" caption="ФЛ">
+			<A id="PHONE" name="Телефон" caption="Телефон" type="string" nulls="true" visible="form" labelwidth="610" local="true"/>
+			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" type="int" len="6" nulls="false" visible="form" labelwidth="610" local="true"/>
+			<A id="REGIONDIRID" nulls="false" labelwidth="120"/>
+			<A id="SETTLEMENT" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="false" visible="form" labelwidth="120" local="true"/>
+			<A id="STREET" name="Улица" caption="Улица" type="string" nulls="false" visible="form" labelwidth="120" local="true"/>	
+			<A id="HOUSE" name="Дом" caption="Дом" type="string" nulls="true" visible="form" labelwidth="120" width="25" local="true"/>	
+			<A id="HOUSING" name="Корпус" caption="Корпус" type="string" nulls="true" visible="form" labelwidth="60" width="25" local="true"/>
+			<A id="BUILDING" name="Строение" caption="Строение" type="string" nulls="true" visible="form" labelwidth="60" width="25" local="true"/>	
+			<A id="FLAT" name="Квартира" caption="Квартира" type="int" nulls="true" visible="form" labelwidth="60" width="25" local="true"/>
+		</GA>
+		<GA id="F.I.O." name="Ф.И.О.">
+			<A id="LASTNAME" name="Фамилия" caption="Фамилия" type="string" len="100" nulls="false" labelwidth="150" local="true"/> 
+			<A id="FIRSTNAME" name="Имя" caption="Имя" type="string" len="100" nulls="false" labelwidth="150" local="true"/>
+			<A id="PATRONYMIC" name="Отчество" caption="Отчество" type="string" len="100" nulls="true" labelwidth="150" local="true"/>
+		</GA>
+		<GA id="DATEREPORT" name="Год отчета">
+			<A id="DRS" name="Дата с" caption="Дата с" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+			<A id="DRP" name="Дата по" caption="Дата по" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+		</GA>
+		
+		
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
 		<TABLE id="LEVACCESS" name="Уровни доступа" hid="NAME">
@@ -554,7 +744,7 @@
 					<AI id="0" name="Новый"/>
 					<AI id="1" name="Подготовлен"/>
 					<AI id="2" name="Выполнен" readonly="true"/>
-				</A>
+				</A>	
 				<A id="LOADDATE" name="Дата и время выполнения" caption="Дата и время выполнения" labelwidth="160" width="54" type="datetime" nulls="true" readonly="true" local="true"/>
 			</GA>
 			<GA id="FileInformation"/>
@@ -573,6 +763,63 @@
 			<A id="CONVACTPARAMSNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMSID ::bigint" local="true"/>
 			<A id="STRVALUE" name="Значение" caption="Значение"/>
 		</TABLE>
+		
+		<!-- Коренные народы -->
+		<TABLE id="NATIVEPEOPLEDIR" name="Коренные народы">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+		</TABLE>
+		
+		<!-- Регион -->
+		<TABLE id="REGIONDIR" name="Регион">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+			<A id="DISTRICTMILITARY"/>
+			<A id="DISTRICTFEDERAL"/>
+		</TABLE>
+		
+		<!-- Режим труда  -->
+		<TABLE id="MODEWORKDIR" name="Режим труда">
+			<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="false" labelwidth="130" local="true"/>
+			<A id="CODEWORK" name="Код" caption="Код" type="string" nulls="false" labelwidth="130" local="true"/>
+			<A id="SHORTAME" name="Краткое наименование" caption="Краткое наименование" type="string" nulls="false" labelwidth="130" local="true"/>
+		</TABLE>
+		
+		<!--Иностранные языки -->
+		<TABLE id="FOREIGNLANGUAGESDIR" name="Иностранные языки">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" labelwidth="130" local="true"/>
+		</TABLE>
+		
+		<!--Виды отпуска-->
+		<TABLE id="TYPEOFLEAVEDIR" name="Виды отпуска">
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" labelwidth="130" local="true"/>
+		</TABLE>
+
+		<!-- ОБЩЕРОССИЙСКИЙ КЛАССИФИКАТОР ПРОФЕССИЙ РАБОЧИХ,ДОЛЖНОСТЕЙ СЛУЖАЩИХ И ТАРИФНЫХ РАЗРЯДОВ -->
+		<TABLE id="PROFESSIONDIR" name="ОКПДТР (ОК 016-94)">
+			<A id="SECTIONPROF" name="Раздел" caption="Раздел" type="list" nulls="false" local="true">
+				<AI id="1" name="Профессии рабочих"/>
+				<AI id="2" name="Должности служащих"/>
+			</A>
+			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+			<A id="CODEPROF" name="Код" caption="Код" type="int" nulls="false" local="true"/>
+		</TABLE>
+		
+		<!-- ОБЩЕРОССИЙСКИЙ КЛАССИФИКАТОР СПЕЦИАЛЬНОСТЕЙ ПО ОБРАЗОВАНИЮ -->
+		<TABLE id="SPECIALTYEDUCATIONDIR" name="ОКСО (ОК 009-2016)">
+			<A id="SECTIONSPE" name="Раздел" caption="Раздел" type="list" nulls="false" local="true">
+				<AI id="1" name="Среднее профессиональное образование - профессии"/>
+				<AI id="2" name="Среднее профессиональное образование - специальности"/>
+				<AI id="3" name="Высшее образование - бакалавриат"/>
+				<AI id="4" name="Высшее образование - магистратура"/>
+				<AI id="5" name="Высшее образование - специалитет"/>
+				<AI id="6" name="Высшее образование - аспирантура"/>
+				<AI id="7" name="Высшее образование - адъюнктура"/>
+				<AI id="8" name="Высшее образование - ординатура"/>
+				<AI id="9" name="Высшее образование - ассистентура-стажировка"/>
+			</A>	
+			<A id="CODESPE" name="Код" caption="Код" type="text" nulls="false" local="true"/>
+			<A id="NAMESPEC" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
+		</TABLE>
+		
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="Insert" name="Добавить" type="java">
@@ -660,9 +907,112 @@
 		</ACTION>
 		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="script" actionlist="FilelinksToFilebuffer;ConvStart"/>
 	</ACTIONS>
+	
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
+		
+		<REPORT id="PROFESSIONREPORT" name="Профессии" procedure="" template="profession_report.xls">
+			<FORM>
+				<GA id="DATEREPORT"/>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="PASSAGEOFAGS" name="Прохождение АГС" procedure="" template="passage_of_ags_report.xls">
+			<FORM>
+				<GA name="Наличие отпуска" caption="Наличие отпуска">
+					<A id="TYPEOFLEAVEDIRID" labelwidth="150"/>
+					<A id="BASIS2" name="Основание" caption="Основание" labelwidth="150" type="list" nulls="true" visible="form" local="true">
+						<AI id="1" name="Дополнительный за особый характер работы"/>
+						<AI id="2" name="Дополнительный по семейным обстоятельствам"/>
+						<AI id="3" name="Дополнительный, обучающимся в учебных заведениях"/>
+						<AI id="4" name="Ежегодный"/>
+					</A>
+				</GA>
+				<GA name="Призыв" caption="Призыв">
+					<A id="YEAROFCONSCRIPTION" name="Год призыва" caption="Год призыва" labelwidth="150" type="list" nulls="true" local="true">
+						<AI id="1" name="2020"/>
+						<AI id="2" name="2021"/>
+						<AI id="3" name="2022"/>
+						<AI id="4" name="2023"/>
+						<AI id="5" name="2024"/>
+						<AI id="6" name="2025"/>
+						<AI id="7" name="2026"/>
+					</A>
+					<A id="CONSCRIPTION" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="150" local="true">	
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+					</A>
+					<A id="ZAPERIODS" name="За период с" caption="За период с" labelwidth="150" width="50" type="date" nulls="true" local="true"/>
+					<A id="ZAPERIODPO" name="По" caption="По" labelwidth="50" width="50" type="date" nulls="true" local="true"/>
+				</GA>
+				<GA name="Периоды не вошедшие в АГС" caption="Периоды не вошедшие в АГС">
+					<A id="BASIS3" name="Основание" caption="Основание" labelwidth="150" type="list" nulls="true" visible="form" local="true">
+						<AI id="1" name="Время нахождения в дополнительных отпусках, предостовляемых работодателем гражданам, обучающимся в образовательных учреждениях"/>
+						<AI id="2" name="Время нахождения в отпусках без сохранения заработной платы"/>
+						<AI id="3" name="Время отбывания уголовного или административного наказания в качестве ареста"/>
+						<AI id="4" name="Время отстранения от работы по причине алкогольного, наркотического или иного токсичного опьянения"/>
+						<AI id="5" name="Прогулы (отсутствие на рабочем месте без уважительных причин более четырех часов подряд в течении рабочего дня)"/>
+					</A>
+				</GA>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="CITIZENREPORT" name="Граждане" procedure="" template="citizen_report.xls">
+			<FORM>
+				<GA name="Гражданин" caption="Граждане">
+					<A id="DEPARTMENTDIRID" labelwidth="200"/>
+					<A id="SUITABILITY" caption="Годность к военной службе" type="list" nulls="true" labelwidth="200" local="true">
+						<AI id="1" name="А"/>
+						<AI id="2" name="Б"/>
+						<AI id="3" name="В"/>
+						<AI id="4" name="Г"/>
+						<AI id="5" name="Д"/>
+					</A>
+					<A id="STATUSCITIZEN" name="Статус" caption="Статус" type="list" nulls="true" labelwidth="200" local="true">
+						<AI id="1" name="Зарегистрирован"/>
+						<AI id="2" name="Утвержден"/>
+						<AI id="3" name="Отказ"/>
+						<AI id="4" name="Отсрочка"/>
+						<AI id="5" name="Повторное распределение"/>
+						<AI id="6" name="Направлен на АГС"/>
+						<AI id="7" name="Проходит АГС"/>
+						<AI id="8" name="Уволен со службы"/>
+					</A>
+					<A id="PROFESSIONDIRID" labelwidth="200"/>
+					<A id="BELIEFS" caption="Убеждения/вероисповедания" type="list" nulls="true" labelwidth="200" local="true">
+						<AI id="1" name="Адвентист 7 дня"/>
+						<AI id="2" name="Баптист"/>
+						<AI id="3" name="Ислам"/>
+						<AI id="4" name="Пацифист"/>
+						<AI id="5" name="Пятидесятник"/>
+						<AI id="6" name="Свидетели Иеговы"/>
+						<AI id="7" name="Старовер"/>
+						<AI id="8" name="Другое"/>
+					</A>
+				</GA>
+				<GA name="Регион" caption="Регион">
+					<A id="REGIONDIRID" labelwidth="200"/>
+					<A id="REGIONDIR2ID" labelwidth="200"/>
+					<A id="CONSCRIPTION" name="Период призыва" caption="Период призыва" type="list" nulls="false" labelwidth="200" local="true">	
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+					</A>
+					<A id="YEAROFCONSCRIPTION2" name="Год призыва" caption="Год призыва" labelwidth="200" type="list" nulls="true" local="true">
+						<AI id="1" name="2020"/>
+						<AI id="2" name="2021"/>
+						<AI id="3" name="2022"/>
+						<AI id="4" name="2023"/>
+						<AI id="5" name="2024"/>
+						<AI id="6" name="2025"/>
+						<AI id="7" name="2026"/>
+					</A>
+				</GA>
+			</FORM>
+		</REPORT>
+		
 	</REPORTS>
+
+	
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Users" name="Пользователи">
 			<GRID id="Users" name="Пользователи" table="USERS"/>
@@ -741,5 +1091,84 @@
 			<GRID id="ConvLoadActs" name="Процессы загрузки (действия)" table="CONVLOADACTS"/>
 			<GRID id="ConvLoadActParams" name="Процессы загрузки (параметры)" table="CONVLOADACTPARAMS"/>
 		</FORM>
+
+		<!-- АГС -->
+		<FORM id="Organization" name="Организации">
+			<GRID id="ORGANIZATION" name="Организации" table="ORGANIZATION"/>
+				<TABS>
+					<TAB name="Вакансии">
+						<GRID id="VACANCYORG" name="Вакансии" table="VACANCYORG"/>
+					</TAB>
+					<TAB name="Граждане">
+						<GRID id="CITIZENRYORG" name="Граждане" table="CITIZENRYORG"/>
+					</TAB>
+				</TABS>
+		</FORM>
+		
+		<FORM id="Citizenry" name="Граждане">
+			<GRID id="CITIZENRY" name="Граждане" table="CITIZENRY"/>
+				<TABS>
+					<TAB name="Основные данные">
+						<GRID id="MASTERDATACIT" name="Основные данные" table="MASTERDATACIT"/>
+					</TAB>
+					<TAB name="Образование и опыт">
+						<GRID id="EDUCATIONCIT" name="Образование и опыт" table="EDUCATIONCIT"/>
+					</TAB>
+					<TAB name="Направления">
+						<GRID id="DIRECTIONCIT" name="Направления" table="DIRECTIONCIT"/>
+					</TAB>
+					<TAB name="Прохождение АГС">
+						<GRID id="PASSAGEAGSCIT" name="Прохождение АГС" table="PASSAGEAGSCIT"/>
+					</TAB>
+				</TABS>
+		</FORM>	
+		
+		<FORM id="Plans" name="Планы Направлений">
+			<GRID id="Plans" name="Планы Направлений" table="PLANS"/>
+		</FORM>	
+		
+		<FORM id="Direction" name="Направления">
+			<GRID id="Direction" name="Направления" table="DIRECTION"/>
+		</FORM>	
+		
+		<FORM id="Statistics" name="Статистика">
+			<GRID id="Statistics" name="Статистика" table="STATISTICS"/>
+		</FORM>	
+		
+		<FORM id="Departmentdir" name="Ведомство">
+			<GRID id="Departmentdir" name="Ведомство" table="DEPARTMENTDIR"/>
+		</FORM>	
+		
+		<FORM id="Nativepeopledir" name="Коренные народы">
+			<GRID id="Nativepeopledir" name="Коренные народы" table="NATIVEPEOPLEDIR"/>
+		</FORM>	
+
+		<FORM id="Regiondir" name="Регион">	
+			<GRID id="Regiondir" name="Регион" table="REGIONDIR"/>
+		</FORM>	
+		
+		<FORM id="Modeworkdir" name="Режим труда">	
+			<GRID id="Modeworkdir" name="Режим труда" table="MODEWORKDIR"/>
+		</FORM>	
+		
+		<FORM id="Professiondir" name="Профессии/Должности">	
+			<GRID id="Professiondir" name="Профессии/Должности" table="PROFESSIONDIR"/>
+		</FORM>	
+		
+		<FORM id="Specialtyeducationdir" name="Специальности по образованию">
+			<GRID id="Specialtyeducationdir" name="Профессии/Должности" table="SPECIALTYEDUCATIONDIR"/>
+		</FORM>		
+		
+		<FORM id="ForeignLanguagesdir" name="Иностранные языки">
+			<GRID id="ForeignLanguagesdir" name="Иностранные языки" table="FOREIGNLANGUAGESDIR"/>
+		</FORM>
+		
+		<FORM id="TypeOfLeaveDir" name="Виды отпуска">
+			<GRID id="TypeOfLeaveDir" name="Виды отпуска" table="TYPEOFLEAVEDIR"/>
+		</FORM>
+		
+		<FORM id="Help" name="Помощь">
+			<GRID id="Help" name="Помощь" table="HELP"/>
+		</FORM>	
 	</FORMS>
 </SYSTEM>
