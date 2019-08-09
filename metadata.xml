@@ -274,6 +274,11 @@
 		<!-- АГС -->
 		<A id="ORGANIZATIONID" name="Организация" caption="Организация" type="ref" table="ORGANIZATION" ret="INN" form="Organization" nulls="false"/>
 		<A id="VACANCYORGID" name="Вакансия" caption="Вакансия" type="ref" table="VACANCYORG" pid="ORGANIZATIONID" ret="PROFESSIONDIRID_ret" nulls="false"/>
+
+<!-- 		<A id="DIRECTIONID" name="Направление" caption="Направление" type="ref" table="DIRECTION" pid="DIRECTIONCIT" ret="REGIONDIRID_ret, CITIZENRYID_ret"/>
+ -->		
+        <A id="DIRECTIONID" name="Направление" caption="Направление" type="ref" table="DIRECTION" pid="CITIZENRYID" ret="CITIZENRYID_ret"/>
+
 		<A id="CITIZENRYID" name="Граждане" caption="Граждане" type="ref" table="CITIZENRY" ret="LASTNAME" form="Citizenry" nulls="true"/>
 		<A id="NATIVEPEOPLEDIRID" type="ref" table="NATIVEPEOPLEDIR" ret="NAME" form="Nativepeopledir" nulls="true"/>
 		<A id="DEPARTMENTDIRID" name="Ведомство" caption="Ведомство" type="ref" table="DEPARTMENTDIR" ret="NAME" form="Departmentdir" nulls="true"/>
@@ -830,7 +835,7 @@
 			<A id="STATUSORG" labelwidth="560"/>
 			</GA>
 		</TABLE>
-		<TABLE id="CITIZENRYORG" name="Граждане">
+		<TABLE id="CITIZENRYORG" name="Организации гражданина">
 			<A id="ORGANIZATIONID" parentkey="cascade"/>
 			<A id="CITIZENRYID" labelwidth="180" visible="form"/>
 			<A id="CITIZENVIRT" name="Ф.И.О." caption="Ф.И.О." labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
@@ -931,15 +936,29 @@
 			</GA>
 		</TABLE>
 		<!-- Вкладка "Направления" -->
-		<TABLE id="DIRECTIONCIT" name="Направления">
-			<A id="CITIZENRYID" parentkey="cascade"/>
+		<TABLE id="DIRECTIONCIT"  name="назначения гражданам"  caption="назначения гражданам"  virtual="true" query="select HUMANSETTLEMENT a, SPECIALFAMILYSTATUS b, VACANCYDIRECTION y from  DIRECTION ">
+			<!-- <A id="CITIZENRYID" parentkey="cascade"/> -->
+			
+ 				<A id="a" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="true" labelwidth="150" width="50" local="true"/>
+				<A id="b" name="Особое семейное положение" caption="Особое семейное положение" type="boolean" labelwidth="150" nulls="true" local="true"/>
+				
+				<GA id="y" name="Вакансия" caption="Вакансии">
+				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
+				<A id="VACANCYORGID" name="Должность" labelwidth="150" caption="Должность"/>
+				<A id="REGIONVIRT" name="Регион" caption="Регион" type="string" nulls="true" visible="true" readonly="true" virtual="true" labelwidth="150" formula="select r.name from organization s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONID ::bigint"/>
+				<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" type="list" nulls="false" visible="true" labelwidth="150" virtual="true" formula="select m.housing from vacancyorg m where m.id = @VACANCYORGID ::bigint"  local="true">
+					<AI id="1" name="Не предосталяется"/>
+					<AI id="2" name="Предосталяется"/>
+				</A>	
+				</GA>
+				
 		</TABLE>
 		<!-- Вкладка "Прохождение АГС" -->
 		<TABLE id="PASSAGEAGSCIT" name="Прохождение АГС">
 			<TABS>
 				<!-- Вложение "Прибытие и убытие" -->
 				<TAB name = "Прибытие и Убытие">
-			<A id="CITIZENRYID" parentkey="cascade"/>
+					<A id="CITIZENRYID" parentkey="cascade"/>
 					<GA id="ARRIVALCITIZEN" name="Прибытие" caption="Прибытие">
 						<A id="ARRIVALDATEPLANNED" name="Дата прибытия, планируемая" caption="Дата прибытия, планируемая" type="date" labelwidth="150" nulls="true" visible="true" local="true"/>
 						<A id="ARRIVALDATEACTUAL" name="Дата прибытия, фактическая" caption="Дата прибытия, фактическая" type="date" labelwidth="150" nulls="true" visible="true" local="true"/>
@@ -1012,13 +1031,12 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		
+		 
 		<!-- Раздел Направления -->
 		<TABLE id="DIRECTION" name="Направления">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
 				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" visible="true"/>
 				<A id="REGIONDIRID" nulls="true" visible="true" labelwidth="150" width="50"/>
-				<!-- <A id="DEPARTMENTDIRID" visible="form" labelwidth="150" width="50"/> -->
 				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="true" visible="form" labelwidth="150" width="50" local="true"/>
 				<A id="PROFESSIONDIRID" caption="Профессии" labelwidth="150" visible="form"/>
 				<A id="LEVELEDUCATION" name="Образование" caption="Образование" type="list" labelwidth="150" visible="form" nulls="true" local="true">
@@ -1536,7 +1554,7 @@
 						<GRID id="EDUCATIONCIT" name="Образование и опыт" table="EDUCATIONCIT"/>
 					</TAB>
 					<TAB name="Направления">
-						<GRID id="DIRECTIONCIT" name="Направления" table="DIRECTIONCIT"/>
+						<GRID id="GridDIRECTIONCIT" name="Направления" table="DIRECTIONCIT"/>
 					</TAB>
 					<TAB name="Прохождение АГС">
 						<GRID id="PASSAGEAGSCIT" name="Прохождение АГС" table="PASSAGEAGSCIT"/>
