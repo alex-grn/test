@@ -275,9 +275,8 @@
 		<A id="ORGANIZATIONID" name="Организация" caption="Организация" type="ref" table="ORGANIZATION" ret="INN" form="Organization" nulls="false"/>
 		<A id="VACANCYORGID" name="Вакансия" caption="Вакансия" type="ref" table="VACANCYORG" pid="ORGANIZATIONID" ret="PROFESSIONDIRID_ret" nulls="false"/>
 
-<!-- 		<A id="DIRECTIONID" name="Направление" caption="Направление" type="ref" table="DIRECTION" pid="DIRECTIONCIT" ret="REGIONDIRID_ret, CITIZENRYID_ret"/>
- -->		
-        <A id="DIRECTIONID" name="Направление" caption="Направление" type="ref" table="DIRECTION" pid="CITIZENRYID" ret="CITIZENRYID_ret"/>
+ 		<A id="DIRECTIONID" name="Направление" caption="Направление" type="ref" table="DIRECTION" pid="DIRECTIONCIT" ret="REGIONDIRID_ret, CITIZENRYID_ret"/>		
+        <!-- <A id="DIRECTIONID" name="Направление" caption="Направление" type="ref" table="DIRECTION" pid="CITIZENRYID" ret="CITIZENRYID_ret"/> -->
 
 		<A id="CITIZENRYID" name="Граждане" caption="Граждане" type="ref" table="CITIZENRY" ret="LASTNAME" form="Citizenry" nulls="true"/>
 		<A id="NATIVEPEOPLEDIRID" type="ref" table="NATIVEPEOPLEDIR" ret="NAME" form="Nativepeopledir" nulls="true"/>
@@ -935,24 +934,41 @@
 				</A>
 			</GA>
 		</TABLE>
+		
 		<!-- Вкладка "Направления" -->
-		<TABLE id="DIRECTIONCIT"  name="назначения гражданам"  caption="назначения гражданам"  virtual="true" query="select HUMANSETTLEMENT a, SPECIALFAMILYSTATUS b, VACANCYDIRECTION y from  DIRECTION ">
+		<!-- <TABLE id="DIRECTIONCIT"  name="Направления"  caption="Направления"  virtual="true" query="select HUMANSETTLEMENT a, SPECIALFAMILYSTATUS b, VACANCYDIRECTION y from  DIRECTION "> -->
 			<!-- <A id="CITIZENRYID" parentkey="cascade"/> -->
 			
- 				<A id="a" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="true" labelwidth="150" width="50" local="true"/>
-				<A id="b" name="Особое семейное положение" caption="Особое семейное положение" type="boolean" labelwidth="150" nulls="true" local="true"/>
-				
-				<GA id="y" name="Вакансия" caption="Вакансии">
-				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
-				<A id="VACANCYORGID" name="Должность" labelwidth="150" caption="Должность"/>
-				<A id="REGIONVIRT" name="Регион" caption="Регион" type="string" nulls="true" visible="true" readonly="true" virtual="true" labelwidth="150" formula="select r.name from organization s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONID ::bigint"/>
-				<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" type="list" nulls="false" visible="true" labelwidth="150" virtual="true" formula="select m.housing from vacancyorg m where m.id = @VACANCYORGID ::bigint"  local="true">
-					<AI id="1" name="Не предосталяется"/>
-					<AI id="2" name="Предосталяется"/>
-				</A>	
-				</GA>
-				
-		</TABLE>
+ 				<!-- <A id="a" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="true" labelwidth="150" width="50" local="true"/> -->
+				<!-- <A id="b" name="Особое семейное положение" caption="Особое семейное положение" type="boolean" labelwidth="150" nulls="true" local="true"/> -->
+				<!-- <GA id="a" name="Данные о Гражданине" caption="Данные о Гражданине"> -->
+					<!-- <A id="CITIZENRYID" visible="true" caption="Гражданин" labelwidth="150"/> -->
+					<!-- <A id="REGIONDIRID" visible="true" labelwidth="150" width="50"/> -->
+				<!-- </GA> -->
+				<!-- <GA id="b" name="Вакансия" caption="Вакансии"> -->
+					<!-- <A id="ORGANIZATIONID" labelwidth="150" ret="Name"/> -->
+					<!-- <A id="VACANCYORGID" name="Должность" labelwidth="150" caption="Должность"/> -->
+					<!-- <A id="REGIONVIRT" name="Регион" caption="Регион" type="string" nulls="true" visible="true" readonly="true" virtual="true" labelwidth="150" formula="select r.name from organization s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONID ::bigint"/> -->
+					<!-- <A id="HOUSINGVIRT" name="Жилье" caption="Жилье" type="list" nulls="false" visible="true" labelwidth="150" virtual="true" formula="select m.housing from vacancyorg m where m.id = @VACANCYORGID ::bigint"  local="true"> -->
+						<!-- <AI id="1" name="Не предосталяется"/> -->
+						<!-- <AI id="2" name="Предосталяется"/> -->
+					<!-- </A>	 -->
+				<!-- </GA> -->
+				<!-- <GA id="y" name="" caption="Статус"> -->
+					<!-- <A id="FIRSTRET" name="Перв./Повт." caption="Перв./Повт."  labelwidth="150" type="list" nulls="false" visible="true" local="true"> -->
+						<!-- <AI id="1" name="Первичное"/> -->
+						<!-- <AI id="2" name="Повторное"/> -->
+					<!-- </A> -->
+					<!-- <A id="STATUS" name="Статус" caption="Статус" type="list" labelwidth="150" value="1" visible="true" nulls="false" local="true"> -->
+						<!-- <AI id="1" name="Проект"/> -->
+						<!-- <AI id="2" name="Подтверждено"/> -->
+						<!-- <AI id="3" name="Отклонено"/> -->
+						<!-- <AI id="4" name="Утверждено"/> -->
+					<!-- </A> -->
+					<!-- <A id="PLANSID" labelwidth="150"/> -->
+				<!-- </GA> -->
+		<!-- </TABLE> -->
+		
 		<!-- Вкладка "Прохождение АГС" -->
 		<TABLE id="PASSAGEAGSCIT" name="Прохождение АГС">
 			<TABS>
@@ -1035,7 +1051,7 @@
 		<!-- Раздел Направления -->
 		<TABLE id="DIRECTION" name="Направления">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
-				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" visible="true"/>
+				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" visible="true" parentkey="nocascade"/>
 				<A id="REGIONDIRID" nulls="true" visible="true" labelwidth="150" width="50"/>
 				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" type="string" nulls="true" visible="form" labelwidth="150" width="50" local="true"/>
 				<A id="PROFESSIONDIRID" caption="Профессии" labelwidth="150" visible="form"/>
@@ -1554,7 +1570,7 @@
 						<GRID id="EDUCATIONCIT" name="Образование и опыт" table="EDUCATIONCIT"/>
 					</TAB>
 					<TAB name="Направления">
-						<GRID id="GridDIRECTIONCIT" name="Направления" table="DIRECTIONCIT"/>
+						<GRID id="DIRECTION" name="Направления" table="DIRECTION"/>
 					</TAB>
 					<TAB name="Прохождение АГС">
 						<GRID id="PASSAGEAGSCIT" name="Прохождение АГС" table="PASSAGEAGSCIT"/>
