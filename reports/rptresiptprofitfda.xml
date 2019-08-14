@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="rptresiptprofitfda.xlsx" documentPath="rptresiptprofitfda.xlsx" outputType="xlsx" outputNamePattern="rptresiptprofitfda.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <!-- ${KBKINCODEVIRT}||' '||${KBKIN}) ::text as kbkname, -->
+						<script>
+								select ( ${kbkincodevirt}||' '||p_get_kbkin_name( ${kbkin} ::bigint ) )  as kbkname, ${date_to_fda} as date_to_fda
+						</script>
+                    </query>
+                </queries>			
+			</band>
+ 		   <band name="Title1" orientation="H"></band>
+           <band name="Spec2" orientation="H">
+   			  <queries>
+                    <query name="myQuery" type="sql">
+	                       <script>
+						     SELECT r.val3   as val3sum, 
+									r.val4   as val4sum, 
+									r.val5   as val5sum, 
+									r.val6   as val6sum,
+								    r.val8   as val8sum, 
+									r.val9   as val9sum, 
+									r.val10  as val10sum,
+								    r.val11  as val11sum, 
+									r.val12  as val12sum,  
+									r.val13  as val13sum									
+							   from resipprofitfdabuf r 
+							  where r.ident = pg_backend_pid() 
+							    and r.kbkinid is null
+								and r.agentid is null
+                         </script>
+                    </query>
+                </queries>
+            </band>			
+           <band name="Spec1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                         <script>
+							select "row_number"() OVER (
+									ORDER BY p_get_kbkin_code(r.kbkinid)
+							) as val1,
+								p_get_kbkin_code(r.kbkinid) ||' '|| p_get_kbkin_name(r.kbkinid) as kbkname, 
+								a.code as agent,
+								r.val3 as val3, 
+								r.val4 as val4, 
+								r.val5 as val5, 
+								r.val6 as val6, 
+								r.val3 as val7, 
+								r.val4 as val8, 
+								r.val5 as val9, 
+								r.val6 as val10,
+								r.val3 as val11, 
+								r.val4 as val12, 
+								r.val5 as val13 
+ 	   					from resipprofitfdabuf r ,
+						        agent a
+							where r.agentid=a.id
+							and r.ident = pg_backend_pid() 
+							
+ 					</script>
+                    </query>
+                </queries>
+            </band>
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>

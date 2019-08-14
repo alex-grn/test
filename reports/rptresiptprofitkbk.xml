@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="rptresiptprofitkbk.xlsx" documentPath="rptresiptprofitkbk.xlsx" outputType="xlsx" outputNamePattern="rptresiptprofitkbk.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <!-- ${KBKINCODEVIRT}||' '||${KBKIN}) ${AGENTID_ret}  ::text as kbkname, -->
+						<script>
+								select ${date_to_kbk} as date_to_kbk , (select name from agent where id = ${agentid} ::bigint) as agent 
+						</script>
+                    </query>
+                </queries>			
+			</band>
+ 		   <band name="Title1" orientation="H"></band>
+           <band name="Spec2" orientation="H">
+   			  <queries>
+                    <query name="myQuery" type="sql">
+	                       <script>
+						     SELECT r.val3   as val3sum, 
+									r.val4   as val4sum, 
+									r.val5   as val5sum, 
+									r.val6   as val6sum,
+								    r.val8   as val8sum, 
+									r.val9   as val9sum, 
+									r.val10  as val10sum,
+								    r.val11  as val11sum, 
+									r.val12  as val12sum,  
+									r.val13  as val13sum									
+							   from resipprofitkbkbuf r 
+							  where r.ident = pg_backend_pid() 
+							    and r.kbkinid is null
+								and r.agentid is null
+                         </script>
+                    </query>
+                </queries>
+            </band>			
+           <band name="Spec1" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+                         <script>
+							select "row_number"() OVER (
+									ORDER BY p_get_kbkin_code(r.kbkinid)
+							) as val1,
+								p_get_kbkin_code(r.kbkinid) as kbkname, 
+								a.code as agent,
+								r.val3 as val3, 
+								r.val4 as val4, 
+								r.val5 as val5, 
+								r.val6 as val6, 
+								r.val3 as val7, 
+								r.val4 as val8, 
+								r.val5 as val9, 
+								r.val6 as val10,
+								r.val3 as val11, 
+								r.val4 as val12, 
+								r.val5 as val13 
+ 	   					from resipprofitkbkbuf r 
+						     left join agent a on r.agentid=a.id
+							where r.ident = pg_backend_pid() 
+								and r.kbkinid is not null
+								and r.agentid is not null
+ 					</script>
+                    </query>
+                </queries>
+            </band>
+            <band name="Footer" orientation="H"/>
+        </bands>
+    </rootBand>
+</report>
