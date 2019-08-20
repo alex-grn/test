@@ -281,11 +281,11 @@
 		<A id="CONCEPTID" name="Формат" caption="Формат" type="ref" table="CONCEPTS" ret="NAME" form="Concepts" nulls="false"/>
 		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="false"/>
 		<A id="CONVID" name="Алгоритм" caption="Алгоритм" type="ref" table="CONV" ret="NAME" form="Conv" nulls="false"/>
-		<A id="CONVACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVUNIT_ret" form="ConvActs" nulls="false"/>
-		<A id="CONVACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVACTSID" table="CONVACTPARAMS" ret="CODE" nulls="false"/>
-		<A id="CONVLOADSID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
-		<A id="CONVLOADACTSID" name="Действие" caption="Действие" labelwidth="150" type="ref" table="CONVLOADACTS" ret="CONVACTSID_ret" nulls="false"/>
-		<A id="CONVLOADACTPARAMSID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMSID_ret" nulls="false"/>
+		<A id="CONVACTID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVUNIT_ret" form="ConvActs" nulls="false"/>
+		<A id="CONVACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVACTID" table="CONVACTPARAMS" ret="CODE" nulls="false"/>
+		<A id="CONVLOADID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
+		<A id="CONVLOADACTID" name="Действие" caption="Действие" type="ref" pid="CONVLOADID" table="CONVLOADACTS" ret="CONVACTID_ret" form="ConvLoadActs" nulls="false"/>
+		<A id="CONVLOADACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMID_ret" nulls="false"/>
 		<A id="TYPEDATA" name="Тип данных" caption="Тип данных" labelwidth="180" type="list" nulls="false">
 			<AI id="NUMSPECIFICATION" name="Число"/>
 			<AI id="STRSPECIFICATION" name="Строка"/>
@@ -675,6 +675,9 @@
 		<TABLE id="CONFIGTABLESBUFF" name="Настройки интерфейса таблиц (буфер)">
 			<A id="USERID" visible="false"/>
 			<GA id="ConfigTables"/>
+			<GA caption="Запрос">
+				<A id="GRIDQUERY" name="Запрос" type="text" nulls="true" readonly="true"/>
+			</GA>
 			<TI unique="USERID,TABLEID"/>
 		</TABLE>
 		<TABLE id="CONFIGCOLUMNSBUFF" name="Настройки интерфейса колонок (буфер)">
@@ -751,16 +754,16 @@
 			</GA>
 			<GA>
 				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
-				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true"/>
+				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
 			</GA>
 			<A id="CONDITION" name="Условие выполнения" caption="Условие выполнения" labelwidth="80" type="text" nulls="true" local="true"/>
 			<A id="NOTE" labelwidth="80"/>
 		</TABLE>
 		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
-			<A id="CONVACTSID" parentkey="cascade"/>
-			<A id="CONVID" visible="false"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTSID ::bigint and a.convid=n.id"/>
-			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTSID ::bigint" local="true"/>
+			<A id="CONVACTID" parentkey="cascade"/>
+			<A id="CONVID" visible="false" virtual="true" formula="select a.convid from convacts a where a.id=@CONVACTID ::bigint"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTID ::bigint and a.convid=n.id"/>
+			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTID ::bigint" local="true"/>
 			<GA name="Параметр" caption="Параметр">
 				<A id="POSITION" readonly="true"/>
 				<A id="CODE" readonly="true"/>
@@ -816,27 +819,44 @@
 				<A id="NUMB" name="Идентификатор" caption="Идентификатор" width="60" type="int" formula="select coalesce(max(numb)+1,1)::int from convloads where convid=@CONVID ::bigint and cid=0" local="true"/>
 			</GA>
 			<GA name="Состояние" caption="Состояние">
-				<A id="STATUS" name="Статус" caption="Статус" width="46" type="list" nulls="false" value="0" local="true">
-					<AI id="0" name="Новый"/>
-					<AI id="1" name="Подготовлен"/>
-					<AI id="2" name="Выполнен" readonly="true"/>
+				<A id="STATUS" name="Статус" caption="Статус" width="46" type="list" nulls="false" readonly="true" value="0" local="true">
+					<AI id="0" name="Не выполнялся"/>
+					<AI id="1" name="Выполнен"/>
+					<AI id="2" name="Ошибка"/>
 				</A>
 				<A id="LOADDATE" name="Дата и время выполнения" caption="Дата и время выполнения" labelwidth="160" width="54" type="datetime" nulls="true" readonly="true" local="true"/>
+			</GA>
+			<GA name="Ошибка" caption="Ошибка">
+				<A id="ERRORMSG" name="Сообщение" caption="Сообщение" width="100" type="text" nulls="true" local="true"/>
+				<A id="CONVLOADID" nulls="true" visible="false" virtual="true" formula="select @ID"/>
+				<A id="CONVLOADACTID" nulls="true"/>
 			</GA>
 			<GA id="FileInformation"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
-		<TABLE id="CONVLOADACTS" name="Конвертер: Процессы загрузки (действия)" hid="CONVACTSID_ret">
-			<A id="CONVLOADSID" parentkey="cascade"/>
-			<A id="POSITION"/>
-			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADSID ::bigint"/>
-			<A id="CONVACTSID" labelwidth="100"/>
+		<TABLE id="CONVLOADACTS" name="Конвертер: Буфер выполнения (действия)" hid="CONVACTNAMEVIRT">
+			<A id="CONVLOADID" parentkey="cascade"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select c.conceptid from convloads l, conv c where l.id=@CONVLOADID ::bigint and l.convid = c.id"/>
+			<GA name="Формат" caption="Формат">
+				<A id="CONCEPTITEMID"/>
+				<A id="POSITION" name="Номер экземпляра" caption="Номер экземпляра" labelwidth="120"/>
+			</GA>
+			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADID ::bigint"/>
+			<GA name="Алгоритм" caption="Алгоритм">
+				<A id="CONVACTID" labelwidth="120" width="70"/>
+				<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" nulls="false" readonly="true" value="0" local="true">
+					<AI id="0" name="Не выполнялся"/>
+					<AI id="1" name="Выполнен"/>
+					<AI id="2" name="Ошибка"/>
+				</A>
+			</GA>
+			<A id="CONVACTNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text ,5, ' ') ||'.'|| a.convunit from convacts a where a.id=@CONVACTID ::bigint" local="true"/>
 		</TABLE>
-		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Процессы загрузки (параметры)">
-			<A id="CONVLOADACTSID" parentkey="cascade"/>
-			<A id="CONVACTSID" visible="false" virtual="true" formula="select convactsid from convloadacts where id=@CONVLOADACTSID ::bigint"/>
-			<A id="CONVACTPARAMSID" name="Код" caption="Код" labelwidth="100"/>
-			<A id="CONVACTPARAMSNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMSID ::bigint" local="true"/>
+		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
+			<A id="CONVLOADACTID" parentkey="cascade"/>
+			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID ::bigint"/>
+			<A id="CONVACTPARAMID" name="Код" caption="Код" labelwidth="100"/>
+			<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID ::bigint" local="true"/>
 			<A id="STRVALUE" name="Значение" caption="Значение"/>
 		</TABLE>
 		<TABLE id="OWNER" name="Принадлежность" hid="CODE">
@@ -1500,12 +1520,15 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="convactparams_fill" name="Обновить список параметров" type="procedure" procedure="p_system_convactparams_fill"/>
-		<ACTION id="ConvStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_conv_start">
+		<ACTION id="ConvPrepare" name="Подготовить буфер конвертации" type="procedure" procedure="p_system_convloads_prepare"/>
+		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_convloads_start"/>
+		<ACTION id="ConvLoadsPrepare" name="Подготовить буфер выполнения" type="script" actionlist="FilelinksToFilebuffer;ConvPrepare"/>
+		<ACTION id="ConfigTablesCopy" name="Копирование настроек пользователя" type="procedure" procedure="p_system_configtables_copy">
 			<FORM>
-				<A id="CONVID"/>
+				<A id="USERID_FROM" name="Пользователь (от кого)" caption="Пользователь (от кого)" labelwidth="150" type="ref" table="USERS" ret="LOGIN" form="Users" nulls="false" local="true"/>
+				<A id="USERID_TO" name="Пользователь (кому)" caption="Пользователь (кому)" labelwidth="150" type="ref" table="USERS" ret="LOGIN" form="Users" array="true" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="script" actionlist="FilelinksToFilebuffer;ConvStart"/>
 		<ACTION id="Approve" name="Утвердить" type="procedure" procedure="p_statusepf_set_1"/>
 		<ACTION id="Reject" name="Отклонить" type="procedure" procedure="p_statusepf_set_2"/>
 		<ACTION id="Return" name="Откатить смену статуса" type="procedure" procedure="p_statusepf_set_0"/>
@@ -1597,7 +1620,7 @@
 			<GRID id="LevAccess" name="Уровни доступа" table="LEVACCESS"/>
 		</FORM>
 		<FORM id="MetaClass" name="Классы метаданных">
-			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="View;ConfigLoad;ConfigTables" reportlist="MetaClassReport">
+			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad" reportlist="MetaClassReport">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update">
 						<FORM>
@@ -1609,7 +1632,11 @@
 			</GRID>
 		</FORM>
 		<FORM id="Units" name="Объекты доступа">
-			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_clean" readonly="true"/>
+			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_clean" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
 		<FORM id="Roles" name="Роли">
 			<GRID id="Roles" name="Роли" table="ROLES" readonly="true">
@@ -1633,14 +1660,14 @@
 			<GRID id="DocTypes" name="Типы документов" table="DOCTYPES"/>
 		</FORM>
 		<FORM id="ConfigTables" name="Настройки интерфейсов">
-			<GRID name="Таблицы" table="CONFIGTABLES" readonly="true">
+			<GRID name="Таблицы" table="CONFIGTABLES" actionlist="ConfigTablesCopy" readonly="true">
 				<MENU>
-					<MI actionlist="Copy;Update;View;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="View;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID name="Колонки" table="CONFIGCOLUMNS" readonly="true">
 				<MENU>
-					<MI actionlist="Update;View;ConfigTables"/>
+					<MI actionlist="View;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -1658,13 +1685,41 @@
 			</GRID>
 		</FORM>
 		<FORM id="ConvActs" name="Алгоритмы загрузки (действия)">
-			<GRID id="ConvActs" name="Алгоритмы загрузки (действия)" table="CONVACTS" readonly="true"/>
-			<GRID id="ConvActParams" name="Алгоритмы загрузки (параметры)" table="CONVACTPARAMS" readonly="true"/>
+			<GRID id="ConvActs" name="Алгоритмы загрузки (действия)" table="CONVACTS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="ConvActParams" name="Алгоритмы загрузки (параметры)" table="CONVACTPARAMS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
 		<FORM id="ConvLoads" name="Процессы загрузки">
-			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="uploadFilelinks;ConvLoadsStart"/>
-			<GRID id="ConvLoadActs" name="Процессы загрузки (действия)" table="CONVLOADACTS"/>
-			<GRID id="ConvLoadActParams" name="Процессы загрузки (параметры)" table="CONVLOADACTPARAMS"/>
+			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="uploadFilelinks;ConvLoadsPrepare;ConvLoadsStart"/>
+			<GRID id="ConvLoadActs" name="Буфер выполнения (действия)" table="CONVLOADACTS" readonly="true">
+				<MENU>
+					<MI actionlist="View;Delete;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="ConvLoadActParams" name="Буфер выполнения (параметры)" table="CONVLOADACTPARAMS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ConvLoadActs" name="Буфер выполнения (действия)">
+			<GRID id="ConvLoadActs" name="Буфер выполнения (действия)" table="CONVLOADACTS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="ConvLoadActParams" name="Буфер выполнения (параметры)" table="CONVLOADACTPARAMS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
 		<FORM id="KEYS" name="Внешние ключи">
 			<GRID id="KEYS" name="Внешние ключи" table="KEYS"/>
