@@ -46,22 +46,30 @@
 			<MENU name="Избирательные кампании">
 				<MI name="Избирательные кампании" formlist="ElCampFRM"/>
 			</MENU>
-			<MENU name="Расчетные ведомости и сведения о ФОВ">
-				<MI name="Расчетные ведомости и сведения о ФОВ" formlist="RegisterFRM"/>
+			<MENU name="Cведения о ФОВ и расчетные ведомости">
+				<MI name="Cведения о ФОВ и расчетные ведомости" formlist="RegisterFRM"/>
 			</MENU>
 			<MENU name="Справочники">
-				<MI name="Должности" formlist="PostsFRM"/>
+				<MENU name="Общие понятия">
+					<MI name="Типы документов" formlist="DocTypes"/>
+					<MI name="Должности" formlist="PostsFRM"/>
+					<MI name="Субъекты РФ" formlist="RegionsRFFRM"/>
+					<MI name="Параметры оплаты труда при проведении федеральных выборов" formlist="NormsFECFRM"/>
+				</MENU>
 				<MENU name="Учет рабочего времени">
 					<MI name="Типы дней" formlist="TypedayFRM"/>
 					<MI name="Праздничные дни" formlist="HolidayFRM"/>
 					<MI name="Рабочие календаря" formlist="WorkCalendarFRM"/>
+				</MENU>
+				<MENU name="Расчет выплат">
+					<MI name="Алгоритмы выплат" formlist="DescriptionFRM"/>
+					<MI name="Выплаты" formlist="PaymentFRM"/>
 				</MENU>
 				<MENU name="Контрагенты">
 					<MI name="Физические лица" formlist="FormPerson"/>
 					<MI name="Юридические лица" formlist="FormAgent"/>
 					<MI name="Банковские учреждения" formlist="FormAgentBanks"/>
 				</MENU>
-				<MI name="Нормы оплаты труда при проведении федеральных выборов" formlist="NormsFECFRM"/>
 			</MENU>
 			<MENU name="Справка">
 				<MI name="Содержание" actionlist="Help"/>
@@ -271,7 +279,13 @@
 		</A>
 		<A id="INDICATIONCIRCUIT" name="Признак ОИК" caption="Признак ОИК" type="boolean" nulls="false"/>
 		<A id="INDICATIONSHIP" name="Признак Судна" caption="Признак Судна" type="boolean" nulls="false"/>
-		<A id="POSTPRINT" name="Наименование должности при печати" caption="Наименование должности при печати" labelwidth="220" type="string" nulls="false"/>
+		<A id="POSTPRINT" name="Наименование должности при печати" caption="Наименование должности при печати" labelwidth="220" type="list" nulls="false">
+			<AI id="CHAIRMAN" name="Председатель избирательной комиссии"/>
+			<AI id="DEPCHAIRMAN" name="Заместитель председателя избирательной комиссии"/>
+			<AI id="SECRETARY" name="Секретарь избирательной комиссии"/>
+			<AI id="OTHERCM" name="Иной член избирательной комиссии"/>
+			<AI id="COMMANREG" name="Член избирательной комиссии субъекты Российской Федерации"/>
+		</A>
 		<A id="QUANTITYELECTORMIN" name="Численность избирателей от" caption="Численность избирателей от" type="number" len="17" nulls="true"/>
 		<A id="QUANTITYELECTORMAX" name="Численность избирателей до" caption="Численность избирателей до" type="number" len="17" nulls="true"/>
 		<A id="TYPEDAYID" name="Тип дня" caption="Тип дня" type="ref" table="TYPEDAYS" ret="CODE" form="TypedayFRM" nulls="true"/>
@@ -292,13 +306,14 @@
 		</A>
 		<A id="YEAR" name="Год" caption="Год" type="number" len="4" nulls="false"/>
 		<A id="WORKCALENDARSID" name="Рабочий календарь" caption="Рабочий календарь" type="ref" table="WORKCALENDARS" ret="CODE" form="WorkCalendarFRM" nulls="true"/>
-		<A id="UNITTIME" name="Единица времени" caption="Единица времени" type="list" nulls="false">
+		<A id="UNITTIME" name="Единица времени" caption="Единица времени" labelwidth="200" type="list" nulls="false">
 			<AI id="mounth" name="месяц"/>
 			<AI id="day" name="день"/>
 			<AI id="hour" name="час"/>
+			<AI id="notset" name="не задан"/>
 		</A>
-		<A id="FEDELECCAMPID" name="Федеральные избирательные кампании" caption="Федеральные избирательные кампании" type="ref" table="FEDELECCAMP" ret="CODE" form="NormsFECFRM" nulls="false"/>
-		<A id="NAMENORMS" name="Наименование нормы" caption="Наименование нормы" type="list" nulls="false">
+		<A id="FEDELECCAMPID" name="Федеральная избирательная кампания" caption="Федеральная избирательная кампания" labelwidth="300" type="ref" table="FEDELECCAMP" ret="CODE" form="NormsFECFRM" nulls="false"/>
+		<A id="NAMENORMS" name="Наименование параметра" caption="Наименование параметра" labelwidth="200" type="list" nulls="false">
 			<AI id="limitcomp" name="Предельный размер компенсации за полный месяц работы для региона"/>
 			<AI id="reward" name="Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00"/>
 			<AI id="distcoeff" name="Районный коэффициент"/>
@@ -307,14 +322,14 @@
 		<A id="POSTSID" name="Должность" caption="Должность" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true"/>
 		<A id="ELCOMMITTEE" name="Избирательная комиссия" caption="Избирательная комиссия" type="text" nulls="true"/>
 		<A id="PERSONID" name="Физическое лицо" caption="Физическое лицо" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
-		<A id="INN" name="Идентификационный номер налогоплательщика" caption="ИНН" type="string" len="12" nulls="true"/>
-		<A id="OKPO" name="Общественный классификатор предприятий и организаций " caption="ОКПО" type="string" len="14" nulls="true"/>
-		<A id="KPP" name="Код причины постановки на учет" caption="КПП" type="string" len="9" nulls="true"/>
-		<A id="OGRN" name="Основной государственный регистрационный номер" caption="ОГРН" type="string" len="15" nulls="true"/>
-		<A id="OKATO" name="Общероссийский классификатор административно-территориального деления объектов" caption="ОКАТО" type="string" len="11" nulls="true"/>
-		<A id="OKOPF" name="Общероссийский классификатор организационно-правовых форм" caption="ОКОПФ" type="string" len="20" nulls="true"/>
-		<A id="OKFS" name="Общероссийский классификатор форм собственности" caption="ОКФС" type="string" len="20" nulls="true"/>
-		<A id="OKTMO" name="Общероссийский классификатор территорий муниципальных образований" caption="ОКТМО" type="string" len="20" nulls="true"/>
+		<A id="INN" name="ИНН" caption="ИНН" type="string" len="12" nulls="true"/>
+		<A id="OKPO" name="ОКПО" caption="ОКПО" type="string" len="14" nulls="true"/>
+		<A id="KPP" name="КПП" caption="КПП" type="string" len="9" nulls="true"/>
+		<A id="OGRN" name="ОГРН" caption="ОГРН" type="string" len="15" nulls="true"/>
+		<A id="OKATO" name="ОКАТО" caption="ОКАТО" type="string" len="11" nulls="true"/>
+		<A id="OKOPF" name="ОКОПФ" caption="ОКОПФ" type="string" len="20" nulls="true"/>
+		<A id="OKFS" name="ОКФС" caption="ОКФС" type="string" len="20" nulls="true"/>
+		<A id="OKTMO" name="ОКТМО" caption="ОКТМО" type="string" len="20" nulls="true"/>
 		<A id="SURNAME" name="Фамилия" caption="Фамилия" type="string" len="250" nulls="true"/>
 		<A id="FIRSTNAME" name="Имя" caption="Имя" type="string" len="250" nulls="true"/>
 		<A id="MIDDLENAME" name="Отчество" caption="Отчество" type="string" len="250" nulls="true"/>
@@ -336,19 +351,19 @@
 		<A id="BANKACC" name="Номер счета" caption="Номер счета" type="string" len="20" nulls="true"/>
 		<A id="CORRACC" name="Номер корреспондентского счета" caption="Номер корреспондентского счета" labelwidth="200" type="string" len="20" nulls="false"/>
 		<A id="AGENTID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="150" type="ref" table="AGENT" ret="CODE" form="FormAgent" nulls="false"/>
-		<A id="AGENTBANKSID" name="Банковские учреждения" caption="Банковские учреждения" labelwidth="150" type="ref" table="AGENTBANKS" ret="CODE" form="FormAgentBanks" nulls="false"/>
+		<A id="AGENTBANKSID" name="Банковское учреждение" caption="Банковское учреждение" labelwidth="150" type="ref" table="AGENTBANKS" ret="CODE" form="FormAgentBanks" nulls="false"/>
 		<A id="BIC" name="БИК" caption="БИК" type="string" len="9" nulls="true"/>
 		<A id="OFFICIALNAME" name="Официальное наименование" caption="Официальное наименование" type="text" nulls="true"/>
 		<A id="ELECDISTNUMB" name="Номер избирательного участка" caption="Номер избирательного участка" labelwidth="200" type="string" len="10" nulls="true"/>
-		<A id="ELECTCOMMITTEEID" name="Избирательные комиссии" caption="Избирательные комиссии" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
+		<A id="ELECTCOMMITTEEID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
 		<A id="COMPNUMB" name="Номер состава" caption="Номер состава" type="number" len="3" nulls="true"/>
 		<A id="LEVELELCAMPAIGN" name="Уровень избирательной кампании" caption="Уровень избирательной кампании" type="list" nulls="false">
-			<AI id="territory" name="Муниципальные"/>
-			<AI id="region" name="Региональные"/>
-			<AI id="central" name="Федеральные"/>
+			<AI id="territory" name="Муниципальная избирательная кампания"/>
+			<AI id="region" name="Региональная избирательная кампания"/>
+			<AI id="central" name="Федеральная избирательная кампания"/>
 		</A>
 		<A id="CHOICESDATE" name="Дата выборов" caption="Дата выборов" type="date" nulls="false"/>
-		<A id="ELECTCAMPAIGNID" name="Избирательные кампании" caption="Избирательные кампании" labelwidth="150" type="ref" table="ELECTCAMPAIGN" ret="CODE" form="ElCampFRM" nulls="false"/>
+		<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" type="ref" table="ELECTCAMPAIGN" ret="CODE" form="ElCampFRM" nulls="false"/>
 		<A id="ELECTCOMMITTEECODE" name="Код избирательной комиссии" caption="Наименование избирательной комиссии" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
 		<A id="ADDRESS" name="Адрес" caption="Адрес" type="text" nulls="true"/>
 		<A id="PHONENUMBER1" name="Номер телефона 1" caption="Номер телефона 1" labelwidth="200" type="string" len="20" nulls="true"/>
@@ -358,8 +373,32 @@
 		<A id="ELECTCOMMINCAMPID" name="Избирательные комиссии в кампаниях" caption="Избирательные комиссии в кампаниях" labelwidth="200" type="ref" table="ELECTCOMMINCAMP" ret="CODE" form="ElCampFRM" nulls="false"/>
 		<A id="COMMITTEEMANID" name="Член избирательной комиссий" caption="Член избирательной комиссий" labelwidth="200" type="ref" table="COMMITTEEMAN" ret="CODE" form="CommitteeManFRM" nulls="false"/>
 		<A id="REGISTERID" name="Расчетные ведомости" caption="Расчетные ведомости" labelwidth="200" type="ref" table="REGISTER" ret="CODE" form="RegisterFRM" nulls="false"/>
-		<A id="MIDDLESALARY" name="Средная заработная плата согласно Справки с места работы" caption="Заработная плата по Справке" type="number" len="6.2" nulls="false"/>
-		<A id="DEPCOEFF" name="Размер ведомственного коэффициента для члена ИК" caption="Размер ведомственного коэффициента" type="number" len="1.2" nulls="false"/>
+		<A id="MIDDLESALARY" name="Средняя зарплата по Справке" caption="Средная заработная плата согласно Справки с места работы" type="number" len="8.2" nulls="true"/>
+		<A id="DEPCOEFF" name="Ведомственный коэффициент" caption="Размер ведомственного коэффициента" type="number" len="3.2" nulls="true"/>
+		<A id="RESPONSPERSID" name="Загрузил" caption="Ответственное лицо избирательной комиссии, загрузившее документ" labelwidth="400" type="ref" table="RESPONSPERS" ret="CODE" form="ResponsPersFRM" nulls="false"/>
+		<A id="WHCOMP1M" name="Отработано К в 1 мес(Ч)" caption="Отработано в 1 месяце для выплаты компенсации" type="number" len="4.2" nulls="true"/>
+		<A id="WHCOMP2M" name="Отработано К во 2 мес(Ч)" caption="Отработано часов во 2 месяце для выплаты компенсации" type="number" len="4.2" nulls="true"/>
+		<A id="WHEXTRAFULL" name="ВСЕГО ДОТ (Ч)" caption="ВСЕГО Отработано часов ДОТ(В)" type="number" len="4.2" nulls="true"/>
+		<A id="WHEXTRANIGHT" name="ДОТ в НОЧНОЕ время (Ч)" caption="Отработано часов ДОТ(В) в НОЧНОЕ время" type="number" len="4.2" nulls="true"/>
+		<A id="WHEXTRAHOL" name="ДОТ в ВЫХОДНЫЕ и ПРАЗДНИЧНЫЕ дни (Ч)" caption="Отработано часов ДОТ(В) в ВЫХОДНЫЕ и ПРАЗДНИЧНЫЕ дни" type="number" len="4.2" nulls="true"/>
+		<A id="WHEXTRAWORKDAY" name="ДОТ в БУДНИЕ дни (Ч)" caption="Отработано часов ДОТ(В) в БУДНИЕ дни с 06.00 до 22.00" type="number" len="4.2" nulls="true"/>
+		<A id="REGISTERLISTID" name="Член ИК" caption="Член ИК" labelwidth="200" type="ref" table="REGISTERLIST" ret="CODE" form="RegisterFRM" nulls="false"/>
+		<A id="TYPEPAY" name="Порядок оплаты" caption="Порядок оплаты" labelwidth="400" type="list" nulls="false">
+			<AI id="K" name="Компенсация"/>
+			<AI id="D" name="Дополнительная оплата труда (вознаграждение)"/>
+		</A>
+		<A id="DESCRIPTIONID" name="Алгоритм выплаты" caption="Алгоритм выплаты" labelwidth="200" type="ref" table="DESCRIPTION" ret="CODE" form="DescriptionFRM" nulls="false"/>
+		<A id="PAYMENTSID" name="Выплата" caption="Выплата" labelwidth="200" type="ref" table="PAYMENTS" ret="CODE" form="PaymentFRM" nulls="false"/>
+		<A id="REGIONSRFID" name="Субъект РФ" caption="Субъект РФ" labelwidth="200" type="ref" table="REGIONSRF" ret="CODE" form="RegionsRFFRM" nulls="false"/>
+		<A id="SINGOFFIN" name="Порядок финансирования" caption="Порядок финансирования" labelwidth="200" type="list" nulls="false">
+			<AI id="1" name="участник зарплатного проекта"/>
+			<AI id="2" name="не участник зарплатного проекта"/>
+			<AI id="3" name="участник зарплатного проекта и подотчетное лицо"/>
+		</A>
+		<A id="LEVELDCCHAIRMAN" name="Уровень комиссии, определяющей ведомственный коэффициент Председателю ИК" caption="Уровень комиссии, определяющей ведомственный коэффициент Председателю ИК" labelwidth="400" type="list" nulls="false">
+			<AI id="territory" name="ТИК"/>
+			<AI id="district" name="УИК"/>
+		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -452,13 +491,6 @@
 			<A id="BEGINDATE" caption="Дата начала действия"/>
 			<A id="ENDDATE" caption="Дата окончания действия"/>
 		</GA>
-		<GA id="PERSDOCUMENT" name="Персональный документ" caption="Персональный документ">
-			<A id="DOCTYPEID" caption="Документ"/>
-			<A id="DOCSERIES" caption="Серия"/>
-			<A id="DOCNUMB" caption="Номер"/>
-			<A id="DOCOUTDATE" caption="Дата выдачи документа"/>
-			<A id="DOCOUTAGENT" caption="Кем выдан"/>
-		</GA>
 		<GA id="AgentParam" name="Атрибуты субьекта" caption="Атрибуты субьекта">
 			<A id="INN" labelwidth="35" width="12"/>
 			<A id="OKPO" labelwidth="35" width="14"/>
@@ -468,6 +500,16 @@
 			<A id="OKOPF" labelwidth="35" width="20"/>
 			<A id="OKFS" labelwidth="35" width="20"/>
 			<A id="OKTMO" labelwidth="35" width="20"/>
+		</GA>
+		<GA id="WHCOMP" name="Отработано часов для выплаты компенсации" caption="Отработано часов для выплаты компенсации">
+			<A id="WHCOMP1M" caption="В 1 месяце избирательной кампании" labelwidth="180" width="12" readonly="true"/>
+			<A id="WHCOMP2M" caption="Во 2 месяце избирательной кампании" labelwidth="180" width="12" readonly="true"/>
+		</GA>
+		<GA id="WHEXTRA" name="Отработано часов дополнительной оплаты труда (вознаграждения)" caption="Отработано часов дополнительной оплаты труда (вознаграждения)">
+			<A id="WHEXTRAFULL" caption="ВСЕГО" labelwidth="60" width="12" readonly="true"/>
+			<A id="WHEXTRANIGHT" caption="в ночное время" labelwidth="60" width="12" readonly="true"/>
+			<A id="WHEXTRAHOL" caption="в выходные и нерабочие праздничные дни" labelwidth="180" width="12" readonly="true"/>
+			<A id="WHEXTRAWORKDAY" caption="в будние дни с 06.00 до 22.00" labelwidth="120" width="12" readonly="true"/>
 		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
@@ -724,6 +766,16 @@
 			<A id="CONVACTPARAMSNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMSID ::bigint" local="true"/>
 			<A id="STRVALUE" name="Значение" caption="Значение"/>
 		</TABLE>
+		<TABLE id="POSTS" name="Должности">
+			<GA id="Dictionary"/>
+			<A id="LEVELELCOMMITTEE"/>
+			<A id="POSTPRINT"/>
+			<A id="QUANTITYELECTORMIN"/>
+			<A id="QUANTITYELECTORMAX"/>
+			<A id="INDICATIONCIRCUIT"/>
+			<A id="INDICATIONSHIP"/>
+			<TI unique="CODE"/>
+		</TABLE>
 		<TABLE id="TYPEDAYS" name="Типы дней">
 			<GA id="Dictionary"/>
 			<TI unique="CODE"/>
@@ -746,20 +798,22 @@
 			<A id="TYPEDAYID"/>
 			<TI unique="DATEWC"/>
 		</TABLE>
-		<TABLE id="FEDELECCAMP" name="Федеральные избирательные кампании">
+		<TABLE id="FEDELECCAMP" name="Параметры оплаты труда при проведении федеральных выборов">
 			<GA id="Dictionary"/>
-			<A id="BEGINDATE" caption="Дата начала действия норм" labelwidth="200" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окончания действия норм" labelwidth="200" nulls="true"/>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" nulls="false"/>
+				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" nulls="true"/>
+			</GA>
 			<TI unique="CODE"/>
 		</TABLE>
-		<TABLE id="NORMSFEDEC" name="Нормы оплаты труда при проведении федеральных выборов">
+		<TABLE id="NORMSFEDEC" name="Размеры оплаты труда при проведении федеральных выборов">
 			<A id="FEDELECCAMPID" parentkey="cascade"/>
 			<A id="NAMENORMS"/>
 			<A id="UNITTIME"/>
-			<A id="SUMM"/>
+			<A id="VALUE" name="Значение (Сумма/размер коэффициента)" caption="Значение (Сумма/размер коэффициента)" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
 			<A id="POSTSID" nulls="true"/>
-			<A id="ELECTCOMMITTEEID" nulls="true"/>
-			<TI unique="NAMENORMS, POSTSID, ELECTCOMMITTEEID"/>
+			<A id="REGIONSRFID" nulls="true"/>
+			<TI unique="NAMENORMS, POSTSID, REGIONSRFID"/>
 		</TABLE>
 		<TABLE id="PERSON" name="Физические лица">
 			<GA id="Dictionary"/>
@@ -775,16 +829,29 @@
 		</TABLE>
 		<TABLE id="PERSDOCS" name="Документы физического лица">
 			<A id="PERSONID" parentkey="cascade"/>
-			<GA id="PERSDOCUMENT"/>
-			<GA id="PERIOD"/>
+			<GA id="PERSDOCUMENT" name="Персональный документ" caption="Персональный документ">
+				<A id="DOCTYPEID" caption="Документ"/>
+				<A id="DOCTYPESNAME" name="Наименование документа" caption="Наименование документа" labelwidth="200" type="text" nulls="false" visible="form" readonly="true" virtual="true" formula="select D.NAME from DOCTYPES D where D.ID = @DOCTYPEID::BIGINT" local="true"/>
+				<A id="DOCSERIES" caption="Серия"/>
+				<A id="DOCNUMB" caption="Номер"/>
+				<A id="DOCOUTDATE" caption="Дата выдачи документа"/>
+				<A id="DOCOUTAGENT" caption="Кем выдан"/>
+			</GA>
+			<GA name="Период действия документа" caption="Период действия документа">
+				<A id="BEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" type="date" nulls="false"/>
+				<A id="ENDDATE" name="Дата по" caption="Дата по" labelwidth="200" type="date" nulls="false"/>
+			</GA>
 		</TABLE>
 		<TABLE id="AGENTACC" name="Лицевые счета физических лиц">
 			<A id="PERSONID" parentkey="cascade"/>
 			<A id="BANKACC" caption="Лицевой счет"/>
 			<A id="AGENTBANKSID" name="Банковское учреждение"/>
-			<A id="BIC" name="Код банка (БИК)"/>
-			<A id="BEGINDATE" caption="Дата открытия"/>
-			<A id="ENDDATE" caption="Дата закрытия"/>
+			<A id="BIC" name="Код банка (БИК)" visible="form" readonly="true" virtual="true" formula="select B.BIC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
+			<A id="CORRACC" visible="form" readonly="true" virtual="true" formula="select B.CORRACC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" caption="Дата открытия"/>
+				<A id="ENDDATE" caption="Дата закрытия"/>
+			</GA>
 			<TI id="AGENTACCUK" unique="PERSONID"/>
 		</TABLE>
 		<TABLE id="AGENT" name="Юридические лица">
@@ -794,8 +861,9 @@
 			<TI id="AGENTNAMEIND" index="NAME"/>
 		</TABLE>
 		<TABLE id="AGENTBANKS" name="Банковские учреждения">
-			<GA id="Dictionary"/>
 			<A id="AGENTID" name="Юридическое лицо"/>
+			<A id="CODE" visible="form" readonly="true" virtual="true" formula="select UL.CODE from AGENT UL where UL.ID = @AGENTID::BIGINT"/>
+			<A id="NAME" visible="form" readonly="true" virtual="true" formula="select UL.NAME from AGENT UL where UL.ID = @AGENTID::BIGINT"/>
 			<A id="BIC"/>
 			<A id="CORRACC"/>
 			<TI id="AGENTBANKSUK" unique="AGENTID,BIC,BANKACC"/>
@@ -803,13 +871,20 @@
 			<TI id="AGENTBANKSBICIND" index="BIC"/>
 			<TI id="AGENTBANKSACCIND" index="BANKACC"/>
 		</TABLE>
+		<TABLE id="REGIONSRF" name="Субъекты Российской Федерации">
+			<GA id="Dictionary"/>
+			<TI unique="CODE"/>
+		</TABLE>
 		<TABLE id="ELECTCOMMITTEE" name="Избирательные комиссии" hid="CODE">
 			<GA id="Dictionary"/>
 			<A id="OFFICIALNAME"/>
+			<A id="REGIONSRFID"/>
 			<A id="ELECDISTNUMB"/>
 			<A id="LEVELELCOMMITTEE"/>
-			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окоанчания действия полномочий" labelwidth="200" nulls="false"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" type="date" nulls="false"/>
+			</GA>
 			<A id="INDICATIONCIRCUIT"/>
 			<A id="INDICATIONSHIP"/>
 			<A id="INN" caption="ИНН"/>
@@ -820,14 +895,16 @@
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
 			<A id="CODE"/>
 			<A id="PERSONID"/>
-			<A id="SURNAME" labelwidth="50" nulls="true"/>
-			<A id="FIRSTNAME" labelwidth="50" nulls="true"/>
-			<A id="MIDDLENAME" labelwidth="50" nulls="true"/>
+			<A id="SURNAME" labelwidth="50" nulls="true" visible="form" readonly="true" virtual="true" formula="select P.SURNAME from PERSON P where P.ID = @PERSONID::BIGINT"/>
+			<A id="FIRSTNAME" labelwidth="50" nulls="true" visible="form" readonly="true" virtual="true" formula="select P.FIRSTNAME from PERSON P where P.ID = @PERSONID::BIGINT"/>
+			<A id="MIDDLENAME" labelwidth="50" nulls="true" visible="form" readonly="true" virtual="true" formula="select P.MIDDLENAME from PERSON P where P.ID = @PERSONID::BIGINT"/>
 			<A id="POSTSID" nulls="false"/>
-			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="false"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" type="date" nulls="false"/>
+			</GA>
 			<A id="COMPNUMB" caption="Номер состава" labelwidth="200" nulls="true"/>
-			<TI unique="ELECTCOMMITTEEID,PERSONID, POSTSID, BEGINDATE"/>
+			<TI unique="ELECTCOMMITTEEID,PERSONID, POSTSID, POSTBEGINDATE"/>
 		</TABLE>
 		<TABLE id="CONTACTINFOEC" name="Контактная информция по избирательной комиссии">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -837,67 +914,139 @@
 			<A id="EMAIL"/>
 			<A id="OTHERINFO"/>
 		</TABLE>
+		<TABLE id="SINGOFFIN" name="Порядок финансирования">
+			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
+			<A id="CODE"/>
+			<A id="SINGOFFIN"/>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" labelwidth="300" nulls="false"/>
+				<A id="ENDDATE" labelwidth="300" nulls="true"/>
+			</GA>
+			<TI unique="CODE, BEGINDATE"/>
+		</TABLE>
 		<TABLE id="RESPONSPERS" name="Отвественные лица избирательной комиссии">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
+			<A id="CODE"/>
 			<A id="POSTSID"/>
 			<A id="PERSONID"/>
-			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="false"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" type="date" nulls="false"/>
+			</GA>
 			<A id="OTHERINFO" caption="Допопительная информация"/>
+			<TI unique="ELECTCOMMITTEEID,PERSONID, POSTSID, POSTBEGINDATE"/>
 		</TABLE>
-		<TABLE id="ELECTCAMPAIGN" name="Избирательные кампании">
+		<TABLE id="ELECTCAMPAIGN" name="Избирательные кампании" hid="LEVELELCAMPAIGN">
 			<GA id="Dictionary"/>
 			<A id="OFFICIALNAME"/>
 			<A id="CHOICESDATE"/>
-			<A id="BEGINDATE" caption="Дата начала избирательной кампании" labelwidth="300" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окончания избирательной кампании" labelwidth="300" nulls="false"/>
+			<GA name="Период проведения избрательной кампании" caption="Период проведения избрательной кампании">
+				<A id="BEGINDATE" caption="Дата с" labelwidth="300" nulls="false"/>
+				<A id="ENDDATE" caption="Дата по" labelwidth="300" nulls="false"/>
+			</GA>
 			<A id="LEVELELCAMPAIGN" labelwidth="300"/>
 			<A id="ELECTCOMMITTEEID" caption="Избирательная комиссия верхнего уровня" labelwidth="300" nulls="true"/>
 			<TI unique="CODE"/>
 		</TABLE>
-		<TABLE id="ELECTCOMMINCAMP" name="Избирательные комиссии, участвующие в кампании" hid="ELECTCOMMITTEEID_ret">
+		<TABLE id="ELECTCOMMINCAMP" name="Избирательные комиссии, участвующие в кампании">
 			<A id="ELECTCAMPAIGNID" parentkey="cascade"/>
 			<A id="CODE"/>
 			<A id="ELECTCOMMITTEEID"/>
-			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="true"/>
-			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="true"/>
-			<A id="INDICATIONCIRCUIT"/>
-			<A id="INDICATIONSHIP"/>
-			<TI unique="ELECTCOMMITTEEID"/>
+			<A id="LEVELELCOMMITTEE" nulls="false" visible="form" readonly="true" virtual="true" formula="select IK.LEVELELCOMMITTEE from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			<A id="REGIONSRFVIRT" name="Субъект РФ" caption="Субъект РФ" labelwidth="200" type="string" nulls="false" visible="form" readonly="true" virtual="true" formula="select R.NAME from ELECTCOMMITTEE IK, REGIONSRF R where IK.ID = @ELECTCOMMITTEEID::BIGINT AND R.ID = IK.REGIONSRFID"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" type="date" nulls="false" visible="form" readonly="true" virtual="true" formula="select IK.POSTBEGINDATE from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" type="date" nulls="false" visible="form" readonly="true" virtual="true" formula="select IK.POSTENDDATE from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			</GA>
+			<GA name="Сведения о финансировании" caption="Сведения о финансировании">
+				<A id="SUMFINCOMP" name="Доведено на выплату компенсации" caption="Доведено на выплату компенсации" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
+				<A id="SUMFINEXTRA" name="Доведено на выплату компенсации" caption="Доведено на выплату компенсации" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
+			</GA>
+			<A id="INDICATIONCIRCUIT" nulls="false" visible="form" readonly="true" virtual="true" formula="select IK.INDICATIONCIRCUIT from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			<A id="INDICATIONSHIP" nulls="false" visible="form" readonly="true" virtual="true" formula="select IK.INDICATIONSHIP from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			<A id="REGISTERID" name="Код комплекта расчетных форм" caption="Код комплекта расчетных форм" labelwidth="200" nulls="true"/>
+			<TI unique="ELECTCAMPAIGNID,ELECTCOMMITTEEID"/>
 		</TABLE>
-		<TABLE id="NORMSEC" name="Нормы оплаты труда при проведении выборов">
+		<TABLE id="NORMSEC" name="Параметры оплаты труда при проведении выборов">
 			<A id="ELECTCOMMINCAMPID" parentkey="cascade"/>
 			<A id="NAMENORMS"/>
 			<A id="UNITTIME"/>
-			<A id="SUMM"/>
+			<A id="VALUE" name="Значение (Сумма/размер коэффициента)" caption="Значение (Сумма/размер коэффициента)" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
 			<A id="POSTSID" nulls="true"/>
 			<TI unique="NAMENORMS, POSTSID"/>
 		</TABLE>
-		<TABLE id="REGISTER" name="Расчетные ведомости и сведения о ФОВ">
+		<TABLE id="REGISTER" name="Cведения о ФОВ и расчетные ведомости">
 			<A id="CODE"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false">
+				<AI id="1" name="сформирован комплект расчетных форм"/>
+				<AI id="2" name="загужен комплект расчетных форм"/>
+				<AI id="3" name="расчитаны выплаты"/>
+				<AI id="4" name="сформирован реестр перечислений"/>
+			</A>
 			<A id="ELECTCAMPAIGNID"/>
-			<A id="CHOICESDATE"/>
-			<A id="BEGINDATE" caption="Дата начала избирательной кампании" labelwidth="300" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окончания избирательной кампании" labelwidth="300" nulls="false"/>
-			<A id="ELECTCOMMITTEEID"/>
-			<A id="ELECDISTNUMB"/>
-			<A id="LEVELELCOMMITTEE"/>
-			<A id="INDICATIONCIRCUIT"/>
-			<A id="INDICATIONSHIP"/>
+			<A id="CHOICESDATE" nulls="false" readonly="true" virtual="true" formula="select IK.CHOICESDATE from ELECTCAMPAIGN IK where IK.ID = @ELECTCAMPAIGNID::BIGINT"/>
+			<GA name="Период работы избрательной комиссии" caption="Период работы избрательной комиссии">
+				<A id="BEGINDATE" caption="Дата начала работы избрательной комиссии" labelwidth="300" nulls="true"/>
+				<A id="ENDDATE" caption="Дата окончания работы избрательной комиссии" labelwidth="300" nulls="true"/>
+			</GA>
+			<A id="ELECTCOMMITTEEID" caption="Избирательная комиссия"/>
+			<A id="ELECDISTNUMB" nulls="false" readonly="true" virtual="true" formula="select IK.ELECDISTNUMB from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			<A id="DATELOADTBL" name="Дата загрузки Сведений о ФОВ" caption="Дата загрузки Сведений о ФОВ" labelwidth="200" type="date" nulls="true" readonly="true"/>
+			<A id="RESPONSPERSID" caption="Ответственный за загрузку табеля" labelwidth="200" nulls="true" readonly="true"/>
+			<A id="LEVELELCOMMITTEE" nulls="false" readonly="true" virtual="true" formula="select IK.LEVELELCOMMITTEE from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			<A id="INDICATIONCIRCUIT" nulls="false" readonly="true" virtual="true" formula="select IK.INDICATIONCIRCUIT from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
+			<A id="INDICATIONSHIP" nulls="false" readonly="true" virtual="true" formula="select IK.INDICATIONSHIP from ELECTCOMMITTEE IK where IK.ID = @ELECTCOMMITTEEID::BIGINT"/>
 			<TI unique="ELECTCAMPAIGNID, ELECTCOMMITTEEID"/>
 		</TABLE>
 		<TABLE id="REGISTERLIST" name="Члены избирательной комиссии по ведомости">
 			<A id="REGISTERID" parentkey="cascade"/>
+			<A id="CODE"/>
 			<A id="COMMITTEEMANID"/>
-			<A id="SURNAME" labelwidth="50" nulls="true"/>
-			<A id="FIRSTNAME" labelwidth="50" nulls="true"/>
-			<A id="MIDDLENAME" labelwidth="50" nulls="true"/>
-			<A id="POSTSID" nulls="false"/>
-			<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="200" nulls="false"/>
-			<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="200" nulls="false"/>
-			<A id="MIDDLESALARY"/>
-			<A id="DEPCOEFF"/>
+			<A id="POSTSID" name="Должность" caption="Должность" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select D.CODE from COMMITTEEMAN IK, POSTS D where IK.ID = @COMMITTEEMANID::BIGINT AND D.ID = IK.POSTSID"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="BEGINDATE" caption="Дата начала действия полномочий" labelwidth="300" nulls="true" visible="form" readonly="true" virtual="true" formula="select IK.POSTBEGINDATE from COMMITTEEMAN IK where IK.ID = @COMMITTEEMANID::BIGINT"/>
+				<A id="ENDDATE" caption="Дата окончания действия полномочий" labelwidth="300" nulls="true" visible="form" readonly="true" virtual="true" formula="select IK.POSTENDDATE from COMMITTEEMAN IK where IK.ID = @COMMITTEEMANID::BIGINT"/>
+			</GA>
+			<A id="MIDDLESALARY" labelwidth="400"/>
+			<A id="DEPCOEFF" labelwidth="400"/>
+			<A id="LEVELDCCHAIRMAN"/>
+			<GA id="WHCOMP"/>
+			<GA id="WHEXTRA"/>
 			<TI unique="REGISTERID, COMMITTEEMANID, BEGINDATE, ENDDATE"/>
+		</TABLE>
+		<TABLE id="WORKTBL" name="Сведения о фактически отработанном времени">
+			<A id="REGISTERLISTID" parentkey="cascade"/>
+			<GA name="Дата календаря избирательной кампании" caption="Дата календаря избирательной кампании">
+				<A id="DATETBL" name="Дата по календарю избирательной кампании" caption="Дата" labelwidth="500" type="date" nulls="false"/>
+				<A id="TYPEDAYID" labelwidth="500"/>
+			</GA>
+			<A id="TIMEBEGINTBL" name="Время начала работы" caption="Время начала работы" labelwidth="200" type="time" nulls="true" local="true"/>
+			<A id="TIMEENDTBL" name="Время окончания работы" caption="Время окончания работы" labelwidth="200" type="time" nulls="true" local="true"/>
+			<A id="TYPEPAY" nulls="true"/>
+			<GA id="WHCOMP"/>
+			<GA id="WHEXTRA"/>
+			<TI unique="REGISTERLISTID, DATETBL, TIMEBEGINTBL"/>
+		</TABLE>
+		<TABLE id="PAYS" name="Расчеты">
+			<A id="REGISTERLISTID" parentkey="cascade"/>
+			<A id="PAYMENTSID" labelwidth="400"/>
+			<A id="WORKCALENDARSID" labelwidth="400"/>
+			<A id="NORM" name="Размер оплаты труда в ед.вр." caption="Размер оплаты труда в ед.вр." labelwidth="400" type="number" len="8.2" nulls="false" local="true"/>
+			<A id="WORKHOURS" name="Отработано" caption="Отработано" labelwidth="400" type="number" len="4.2" nulls="false" local="true"/>
+			<A id="SUMPAY" name="Сумма" caption="Сумма" labelwidth="400" type="number" len="8.2" nulls="false" local="true"/>
+			<A id="PROPPAYS" name="Параметры расчета" caption="Параметры расчета" labelwidth="400" type="text" nulls="true"/>
+			<A id="LOADSUMPAY" name="Загружено из комплекта расчетных форм: Сумма" caption="Загружено из комплекта расчетных форм: Сумма" labelwidth="400" type="number" len="8.2" nulls="false" readonly="true" local="true"/>
+			<A id="ERRORSUMPAY" name="Ошибка расчета комплекта расчетных форм" caption="Ошибка расчета комплекта расчетных форм" labelwidth="400" type="text" nulls="false" visible="form" readonly="true" virtual="true" formula="select case when COALESCE (p.sumpay,0) - COALESCE (p.loadsumpay,0) != 0 then 'Разница рассчитанной и загруженных сумм выплат = '||(abs(COALESCE (p.sumpay,0) - COALESCE (p.loadsumpay,0)))::TEXT else '' end as name from PAYS p where P.ID = @ID::bigint" local="true"/>
+			<TI unique="REGISTERLISTID, PAYMENTSID, WORKCALENDARSID"/>
+		</TABLE>
+		<TABLE id="DESCRIPTION" name="Алгориты расчета">
+			<GA id="Dictionary"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="PAYMENTS" name="Выплаты">
+			<GA id="Dictionary"/>
+			<A id="DESCRIPTIONID"/>
+			<TI unique="CODE"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -985,7 +1134,70 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="script" actionlist="FilelinksToFilebuffer;ConvStart"/>
-		<ACTION id="FormDaysWorkCalendars" name="Процедура формирования рабочих календарей" type="procedure"/>
+		<ACTION id="SetSINGOFFIN" name="Заполнить порядок финансирования УИК" type="procedure">
+			<FORM name="Параметры">
+				<A id="SINGOFFIN" local="true"/>
+				<A id="BEGINDATE" name="Дата начала действия" caption="Дата начала действия" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="SetNORMS" name="Установить параметры расчета оплаты труда" type="procedure">
+			<FORM name="Параметры">
+				<GA name="Параметры расчета компенсации" caption="Параметры расчета компенсации">
+					<A id="LIMITCOMP" caption="Предельный размер компенсации за полный месяц работы для региона" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+				</GA>
+				<GA name="Размеры доп. оплаты труда за 1 час работы в будние дни с 6.00 до 22.00" caption="Размеры доп. оплаты труда за 1 час работы в будние дни с 6.00 до 22.00">
+					<A id="RWCHAIRMAN" caption="Председатель избирательной комиссии" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+					<A id="RWDEPCHAIRMAN" caption="Заместитель председателя избирательной комиссии" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+					<A id="RWSECR" caption="Секретарь избирательной комиссии" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+					<A id="RWOTHERCM" caption="Иной член избирательной комиссии" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+				</GA>
+				<GA name="Коэффициенты расчета дополнительной оплаты труда (вознаграждения)" caption="Коэффициенты расчета дополнительной оплаты труда (вознаграждения)">
+					<A id="DISTCOEFF" caption="Районный коэффициент" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+					<A id="LIMITCOMP" caption="Предельный размер ведомственного коэффициента" labelwidth="400" type="number" len="8.2" nulls="false" value="0"/>
+				</GA>
+			</FORM>
+		</ACTION>
+		<ACTION id="ExportRegExcel" name="Сформировать комплекты расчетных форм" type="procedure">
+			<FORM name="Параметры">
+				<GA name="Уровень избирательных комиссий" caption="Уровень избирательных комиссий">
+					<A id="LEVELELCOMMITTEE" name="Уровень избирательной комиссии, для которых формируются комплекты расчётных форм" caption="Уровень избирательной комиссии, для которых формируются комплекты расчётных форм"/>
+				</GA>
+				<GA name="Период работы избирательных комиссий" caption="Период работы избирательных комиссий">
+					<A id="BEGINDATE" name="Дата начала работы" caption="Дата начала работы" local="true"/>
+					<A id="ENDDATE" name="Дата окончания работы" caption="Дата окончания работы" local="true"/>
+				</GA>
+				<GA name="Дополнительные параметры" caption="Дополнительные параметры">
+					<A id="LEVELDCCHAIRMAN" name="Уровень комиссии, чьи решением устанавливается ведомственный коэффициент для выплаты дополнительной оплаты труда (вознаграждения) за активную работу председателю ИК" caption="Уровень комиссии" labelwidth="400"/>
+					<A id="SHOWREPORT" name="Отображать ОТЧЕТ?" caption="Отображать лист ОТЧЕТ О ПОСТУПЛЕНИИ И РАСХОДОВАНИИ СРЕДСТВ БЮДЖЕТА НА ПОДГОТОВКУ И ПРОВЕДЕНИЕ ВЫБОРОВ?" labelwidth="400" type="boolean" nulls="false"/>
+				</GA>
+			</FORM>
+		</ACTION>
+		<ACTION id="SetNORMSFC" name="Заполнить параметры расчета оплаты труда для федеральных выборов" type="procedure">
+			<FORM name="Федеральная избирательная кампания">
+				<A id="FEDELECCAMPID"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="CalcPayment" name="Рассчитать выплаты" type="procedure">
+			<FORM name="Параметры">
+				<A id="PAYMENTSID" caption="Код выплаты (список)" labelwidth="400" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="ImportRegExcel" name="Загрузить комплект расчетных форм" type="procedure">
+			<FORM>
+				<A id="CFILE" ext="xls" nulls="false"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="FormDaysWorkCalendars" name="Сформировать рабочие календари" type="procedure">
+			<FORM name="Параметры">
+				<GA name="Сформировать за период" caption="Период работы избирательных комиссий">
+					<A id="BEGINDATE" local="true"/>
+					<A id="ENDDATE" local="true"/>
+				</GA>
+				<GA name="Дополнительные параметры" caption="Дополнительные параметры">
+					<A id="UPDATEWC" name="Переформировать существующие календари" caption="Переформировать существующие календари" labelwidth="400" type="boolean" nulls="false"/>
+				</GA>
+			</FORM>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
@@ -1090,7 +1302,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="WorkCalendarFRM" name="Рабочие календари">
-			<GRID id="WorkCalendarGR" name="Рабочие календари" table="WORKCALENDARS">
+			<GRID id="WorkCalendarGR" name="Рабочие календари" table="WORKCALENDARS" readonly="true">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables;FormDaysWorkCalendars"/>
 				</MENU>
@@ -1101,13 +1313,13 @@
 				</MENU>
 			</GRID>
 		</FORM>
-		<FORM id="NormsFECFRM" name="Нормы оплаты труда при проведении федеральных выборов">
-			<GRID id="FedECGR" name="Федеральные избирательные кампании" table="FEDELECCAMP">
+		<FORM id="NormsFECFRM" name="Параметры оплаты труда при проведении федеральных выборов">
+			<GRID id="FedECGR" name="Параметры оплаты труда при проведении федеральных выборов" table="FEDELECCAMP">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="NormsFedECGR" name="Нормы оплаты труда" table="NORMSFEDEC">
+			<GRID id="NormsFedECGR" name="Размеры оплаты труда" table="NORMSFEDEC">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
@@ -1150,15 +1362,29 @@
 				</MENU>
 			</GRID>
 		</FORM>
+		<FORM id="RegionsRFFRM" name="Субъекты Российской Федерации">
+			<GRID id="RegionsRFGR" name="Субъекты Российской Федерации" table="REGIONSRF">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
 		<FORM id="ElCommFRM" name="Избирательные комиссии и их состав">
 			<GRID id="ElCommGR" name="Избирательные комиссии" table="ELECTCOMMITTEE">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables;SetSINGOFFIN"/>
 				</MENU>
 			</GRID>
 			<TABS>
 				<TAB name="Члены избирательной комиссии">
 					<GRID id="CommitteeManGR" name="Члены избирательной комиссии" table="COMMITTEEMAN">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Порядок финасирования">
+					<GRID id="SingoffinGR" name="Порядок финасирования" table="SINGOFFIN">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
@@ -1184,46 +1410,55 @@
 			<GRID id="ElCommGR" name="Члены избирательных комиссий" table="COMMITTEEMAN"/>
 		</FORM>
 		<FORM id="ElCampFRM" name="Избирательные кампании">
-			<GRID id="ElCampGR" name="Избирательные кампании" table="ELECTCAMPAIGN">
+			<GRID id="ElCampGR" name="Избирательные кампании" table="ELECTCAMPAIGN" readonly="true">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="SetNORMSFC;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="ElectСommInCampGR" name="Избирательные комиссии, участвующие в выборах" table="ELECTCOMMINCAMP" readonly="true">
+				<MENU>
+					<MI actionlist="SetNORMS;ExportRegExcel;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="NormsECGR" name="Параметры оплаты труда при проведении выборов" table="NORMSEC">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegisterFRM" name="Cведения о ФОВ и расчетные ведомости">
+			<GRID id="RegisterGR" name="Cведения о ФОВ и расчетные ведомости" table="REGISTER">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ImportRegExcel;CalcPayment;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="RegisterlistGR" name="Члены избирательных комиссий по ведомости" table="REGISTERLIST">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<TABS>
-				<TAB name="Избирательные комиссии, участвующие в выборах">
-					<GRID id="ElectСommInCampGR" name="Избирательные комиссии, участвующие в выборах" table="ELECTCOMMINCAMP">
+				<TAB name="Сведения о фактически отработанном времени">
+					<GRID id="WorkTBLGR" name="Сведения о фактически отработанном времени" table="WORKTBL">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
-			</TABS>
-			<TABS>
-				<TAB name="Нормы оплаты труда при проведении выборов">
-					<GRID id="NormsECGR" name="Нормы оплаты труда при проведении выборов" table="NORMSEC">
+				<TAB name="Расчет оплаты труда члену ИК">
+					<GRID id="PaysGR" name="Расчет" table="PAYS" readonly="true">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="View;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="RegisterFRM" name="Расчетные ведомости и сведения о ФОВ">
-			<GRID id="RegisterGR" name="Расчетные ведомости и сведения о ФОВ" table="REGISTER">
-				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
-				</MENU>
-			</GRID>
-			<TABS>
-				<TAB name="Члены избирательных комиссий по ведомости">
-					<GRID id="RegisterlistGR" name="Члены избирательных комиссий по ведомости" table="REGISTERLIST">
-						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
-						</MENU>
-					</GRID>
-				</TAB>
-			</TABS>
+		<FORM id="DescriptionFRM" name="Алгоритмы выплат">
+			<GRID id="DescriptionGR" name="Алгоритмы выплат" table="DESCRIPTION"/>
+		</FORM>
+		<FORM id="PaymentFRM" name="Выплаты">
+			<GRID id="PaymentGR" name="Выплаты" table="PAYMENTS"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
-
