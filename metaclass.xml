@@ -1,7 +1,6 @@
 <SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
-		<MODULE id="AdministratorAGS" name="Администратор АГС" menu="AdministratorAGS"/>
 		<MODULE id="Alternative" name="Альтернативная гражданская служба" menu="Alternative"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
@@ -36,21 +35,6 @@
 				<MI name="Содержание" actionlist="Help"/>
 			</MENU>
 		</MENU>
-		
-		<!-- Администратор АГС -->
-		<MENU id="AdministratorAGS" name="Администратор АГС">
-			<MENU name="Файл">
-				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
-				<MI name="Параметры системы" actionlist="Options"/>
-				<MI name="Загруженные файлы" formlist="Filelinks"/>
-				<MI name="Выйти" actionlist="Exit"/>
-			</MENU>
-			<MENU name="Пользователи">
-				<MI name="Пользователи" formlist="Users"/>
-				<MI name="Роли" formlist="Roles"/>
-			</MENU>
-		</MENU>
-
 		<!-- АГС -->
 		<MENU id="Alternative" name="Меню модуля АГС">
 			<MENU name="Организации">
@@ -91,6 +75,7 @@
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
+	
 	<ATTRIBUTES name="Атрибуты">
 		<A id="CODE" name="Код" caption="Код" type="string" nulls="false"/>
 		<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="true"/>
@@ -393,6 +378,7 @@
 			<AI id="8" name="Дальневосточный федеральный округ"/>
 		</A>
 	</ATTRIBUTES>
+	
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
 			<A id="CODE"/>
@@ -522,6 +508,7 @@
 			<A id="DRP" name="Дата по" caption="Дата по" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
 		</GA>
 	</GROUPS_ATTRIBUTES>
+	
 	<TABLES name="Таблицы">
 		<TABLE id="LEVACCESS" name="Уровни доступа" hid="NAME">
 			<A id="NAME" nulls="false"/>
@@ -807,7 +794,6 @@
 		</TABLE>
 		
 		<!-- АГС -->
-		
 		<!-- Раздел "Организации" -->
 		<TABLE id="ORGANIZATION" name="Организации">
 			<A id="VACANCIESYEAR" name="Год" caption="Год" labelwidth="620" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
@@ -819,6 +805,8 @@
 			<TI unique="INN"/>
 			<A id="STATUSORG"/>
 		</TABLE>
+		
+		<!-- Вкладка "Вакансии" -->
 		<TABLE id="VACANCYORG" name="Вакансии">
 			<A id="ORGANIZATIONID" parentkey="cascade"/>
 			<GA id="INFORMVACANCY" caption="Информация о вакансии">
@@ -872,11 +860,13 @@
 				<A id="STATUSORG" labelwidth="560"/>
 			</GA>
 		</TABLE>
+		
+		<!-- Вкладка "Организации гражданина" -->
 		<TABLE id="CITIZENRYORG" name="Организации гражданина">
 			<A id="ORGANIZATIONID" parentkey="cascade"/>
-			<A id="CITIZENRYID" labelwidth="180" visible="form"/>
-			<A id="CITIZENVIRT" name="Ф.И.О." caption="Ф.И.О." labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
-			<A id="DATEARRIVAL" name="Дата прибытия" caption="Дата прибытия" labelwidth="550" type="date" nulls="false" local="true"/>
+			<A id="CITIZENRYID" caption="Гражданин" labelwidth="180" visible="form"/>
+			<A id="CITIZENVIRT" name="Фамилия Имя Отчество" caption="Фамилия Имя Отчество" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
+			<A id="ARRIVALDATEACTUALTEST" name="Дата прибытия" caption="Дата прибытия" type="date" labelwidth="600" virtual="true" formula="select r.ARRIVALDATEACTUAL from PASSAGEAGSCIT r where r.citizenryid = @CITIZENRYID ::bigint"/>
 			<A id="PROFESSIONDIRID" caption="Наименование и код" labelwidth="180" nulls="false"/>
 			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
 			<A id="MODEWORKDIRID" labelwidth="180"/>
@@ -885,12 +875,13 @@
 				<AI id="2" name="Тяжелые и вредные"/>
 				<AI id="3" name="Особо тяжелые и особо вредные"/>
 			</A>
-			<A id="HOUSING" caption="Тип жилья" labelwidth="550" type="list" nulls="false" visible="form" local="true">
+			<A id="HOUSING" caption="Тип жилья" labelwidth="600" type="list" nulls="false" visible="form" local="true">
 				<AI id="1" name="Не предосталяется"/>
 				<AI id="2" name="Предосталяется"/>
 			</A>
-			<A id="STATUSCITIZEN" labelwidth="550"/>
+			<A id="STATUSCITIZEN" labelwidth="600"/>
 		</TABLE>
+		
 		
 		<!-- Раздел "Граждане" -->
 		<TABLE id="CITIZENRY" name="Граждане">
@@ -917,6 +908,7 @@
 				<A id="STATUSCITIZEN" labelwidth="600"/>
 			</GA>
 		</TABLE>
+		
 		<!-- Вкладка "Основные данные" -->
 		<TABLE id="MASTERDATACIT" name="Основные данные">
 			<A id="CITIZENRYID" parentkey="cascade"/>
@@ -942,6 +934,7 @@
 			</GA>
 			<A id="COMMENT" caption="Комментарий" type="text" nulls="true" visible="form" local="true"/>
 		</TABLE>
+		
 		<!-- Вкладка "Образование и опыт" -->
 		<TABLE id="EDUCATIONCIT" name="Образование и опыт">
 			<A id="CITIZENRYID" parentkey="cascade"/>
@@ -979,27 +972,32 @@
 				</A>
 			</GA>
 		</TABLE>
+		
 		<!-- Вкладка "Прохождение АГС" -->
 		<TABLE id="PASSAGEAGSCIT" name="Прохождение АГС">
 			<TABS>
+				<!-- Вложение "Основные сведения гражданина" -->
 				<TAB name="Основные сведения гражданина">
-					<GA id="OSGTEST" name="Основные сведения" caption="Основные сведения">
-						<A id="OSGORGANIZATION" name="Организация" caption="Организация" labelwidth="150" type="string" visible="true" readonly="true" local="true"/>
-						<A id="OSGPOSITION" name="Должность" caption="Должность" labelwidth="150" type="string" visible="true" readonly="true" local="true"/>
-						<A id="OSGQUALIFICATION" name="Класс (Категория) квалификации" caption="Класс (Категория) квалификации" labelwidth="150" type="string" visible="true" readonly="true" local="true"/>
-						<A id="OSGMODEWORK" name="Условия труда" caption="Условия труда" labelwidth="150" type="string" visible="true" readonly="true" local="true"/>
-						<A id="OSGTARIFSTAF" name="Условия тарифной ставки, руб." caption="Условия тарифной ставки, руб." labelwidth="150" type="string" visible="true" readonly="true" local="true"/>
+					<GA id="BASICINFORMATION" name="Основные сведения" caption="Основные сведения">
+						<A id="ORGANIZATIONID" nulls="true" labelwidth="150" ret="Name" virtual="true" formula="select g.ORGANIZATIONID from CITIZENRYORG g where g.CITIZENRYID = @CITIZENRYID ::bigint"/>
+						<A id="PROFESSIONDIRID" name="Должность" caption="Должность" labelwidth="150" virtual="true" formula="select r.PROFESSIONDIRID from CITIZENRYORG r where r.CITIZENRYID = @CITIZENRYID ::bigint"/>
+						<A id="REGIONVIRT" name="Регион" caption="Регион" labelwidth="150" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.name from CITIZENRYORG g, organization s, regiondir r where s.regiondirid = r.id and s.id = g.ORGANIZATIONID and g.CITIZENRYID = @CITIZENRYID ::bigint"/>
+						<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" labelwidth="150" type="list" nulls="true" visible="true" virtual="true" formula="select m.housing from CITIZENRYORG g, vacancyorg m where m.PROFESSIONDIRID = g.PROFESSIONDIRID and g.ORGANIZATIONID = m.ORGANIZATIONID  and g.CITIZENRYID = @CITIZENRYID ::bigint" local="true">
+							<AI id="1" name="Не предосталяется"/>
+							<AI id="2" name="Предосталяется"/>
+						</A>
 					</GA>
 				</TAB>
+				
 				<!-- Вложение "Прибытие и убытие" -->
 				<TAB name="Прибытие и Убытие">
 					<A id="CITIZENRYID" parentkey="cascade"/>
 					<GA id="ARRIVALCITIZEN" name="Прибытие" caption="Прибытие">
-						<A id="ARRIVALDATEPLANNED" name="Дата прибытия, планируемая" caption="Дата прибытия, планируемая" labelwidth="150" type="date" nulls="true" visible="true" local="true"/>
-						<A id="ARRIVALDATEACTUAL" name="Дата прибытия, фактическая" caption="Дата прибытия, фактическая" labelwidth="150" type="date" nulls="true" visible="true" local="true"/>
+						<A id="ARRIVALDATEPLANNED" name="Дата прибытия, планируемая" caption="Дата прибытия, планируемая" labelwidth="600" type="date" nulls="true" visible="true" local="true"/>
+						<A id="ARRIVALDATEACTUAL" name="Дата прибытия, фактическая" caption="Дата прибытия, фактическая" labelwidth="600" type="date" nulls="true" visible="true"/>
 					</GA>
 					<GA id="DEPARTURECITIZEN" name="Убытие" caption="Убытие">
-						<A id="DATEOFDEPARTURE" name="Дата убытия" caption="Дата убытия" labelwidth="150" type="date" nulls="true" visible="true" local="true"/>
+						<A id="DATEOFDEPARTURE" name="Дата убытия" caption="Дата убытия" labelwidth="600" type="date" nulls="true" visible="true" local="true"/>
 						<A id="BASIS" name="Основание" caption="Основание" labelwidth="150" type="list" nulls="true" visible="true" local="true">
 							<AI id="1" name="Иные случаи (по решению Министерства здравоохранения и социального развития Российской Федерации)"/>
 							<AI id="2" name="Ликвидация организации"/>
@@ -1014,6 +1012,7 @@
 						<A id="COTD2" name="Комментарий к проездным документам" caption="Комментарий к проездным документам" labelwidth="150" type="text" nulls="true" visible="form" local="true"/>
 					</GA>
 				</TAB>
+				
 				<!-- Вложение "Отпуск" -->
 				<TAB name="Отпуск">
 					<GA id="VACATIONCITIZEN" name="Отпуск" caption="Отпуск">
@@ -1029,9 +1028,10 @@
 							<AI id="3" name="Дополнительный, обучающимся в учебных заведениях"/>
 							<AI id="4" name="Ежегодный"/>
 						</A>
-						<A id="DATEOFACTUALARRIVAL1" name="Дата фактического прибытия" caption="Дата фактического прибытия" labelwidth="470" type="date" nulls="true" visible="form" local="true"/>
+						<A id="DATEOFACTUALARRIVAL1" name="Дата фактического прибытия" caption="Дата фактического прибытия" labelwidth="600" type="date" nulls="true" visible="form" local="true"/>
 					</GA>
 				</TAB>
+				
 				<!-- Вложение "Периоды, не вошедшие в АГС" -->
 				<TAB name="Периоды, не вошедшие в АГС">
 					<GA id="PERIODNOTINCLUDEDCITIZEN" name="Периоды, не вошедшие в АГС" caption="Периоды, не вошедшие в АГС">
@@ -1047,10 +1047,11 @@
 						<A id="CONFIRMINGTHEPERIOD" name="Подтверждающий документ" caption="Подтверждающий документ" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
 					</GA>
 				</TAB>
+				
 				<!-- Вложение "Увольнение со службы" -->
 				<TAB name="Увольнение со службы">
 					<GA id="DISMISSALCITYZEN" name="Увольнение со службы" caption="Увольнение со службы">
-						<A id="DATEOFDISMISSLA" name="Дата увольнения" caption="Дата увольнения" labelwidth="200" type="date" nulls="true" visible="form" local="true"/>
+						<A id="DATEOFDISMISSLA" name="Дата увольнения" caption="Дата увольнения" labelwidth="600" type="date" nulls="true" visible="form" local="true"/>
 						<A id="BASIS4" name="Основание" caption="Основание" labelwidth="200" type="list" nulls="true" visible="form" local="true">
 							<AI id="1" name="По истечению срока альтернативной гражданской службы"/>
 							<AI id="2" name="В связи с признанием военно-врачебной комиссией не годным к военной службе или ограниченно годным к военной службе"/>
@@ -1061,7 +1062,8 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		 
+		
+		
 		<!-- Раздел Направления -->
 		<TABLE id="DIRECTION" name="Направления">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
@@ -1115,6 +1117,7 @@
 			</GA>
 		</TABLE>
 		
+		
 		<!-- Раздел План Направлений -->
 		<TABLE id="PLANS" name="Планы направлений">
 			<GA id="PLANSDIRECTION" name="Планы направлений" caption="Планы направлений">
@@ -1133,8 +1136,9 @@
 			</GA>
 		</TABLE>
 		
-		<!-- Справочники -->
 		
+		
+		<!-- Справочники АГС -->
 		<!-- Ведомства -->
 		<TABLE id="DEPARTMENTDIR" name="Ведомство">
 			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
@@ -1204,6 +1208,7 @@
 			<A id="NAMESPEC" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
 		</TABLE>
 	</TABLES>
+	
 	<ACTIONS name="Действия">
 		<ACTION id="Insert" name="Добавить" type="java">
 			<FORM>
@@ -1293,6 +1298,7 @@
 			</FORM>
 		</ACTION>
 	</ACTIONS>
+	
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
 		<REPORT id="PROFESSIONREPORT" name="Профессии" procedure="" template="profession_report.xls">
@@ -1473,6 +1479,7 @@
 			</FORM>
 		</REPORT>
 	</REPORTS>
+	
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Users" name="Пользователи">
 			<GRID id="Users" name="Пользователи" table="USERS"/>
@@ -1606,7 +1613,11 @@
 					<GRID id="EDUCATIONCIT" name="Образование и опыт" table="EDUCATIONCIT"/>
 				</TAB>
 				<TAB name="Направления">
-					<GRID id="DIRECTION" name="Направления" table="DIRECTION"/>
+					<GRID id="DIRECTION" name="Направления" table="DIRECTION" readonly="true">
+						<MENU>
+							<MI actionlist="View;ConfigTables"/>
+						</MENU>
+					</GRID>
 				</TAB>
 				<TAB name="Прохождение АГС">
 					<GRID id="PASSAGEAGSCIT" name="Прохождение АГС" table="PASSAGEAGSCIT"/>
