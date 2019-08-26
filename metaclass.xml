@@ -443,8 +443,22 @@
 			    when '12' then 'Декабрь' end" local="true"/>
 		</GA>
 		<GA id="DATEREPORT" caption="Период отчета">
-			<A id="REPSTART" name="Дата с" caption="Дата с" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
-			<A id="REPEXPIRY" name="Дата по" caption="Дата по" labelwidth="50" width="20" type="date" nulls="false" local="true"/>
+			<A id="REPYEAR" name="Год" caption="Год" labelwidth="30" width="20"/>
+			<A id="REPMONTH" name="Месяц с" caption="Месяц с" labelwidth="50" width="20"/>
+			<A id="REPMONTHBY" name="Месяц по" caption="Месяц по" type="list" nulls="false" labelwidth="60" width="20">
+				<AI id="1" name="Январь"/>
+				<AI id="2" name="Февраль"/>
+				<AI id="3" name="Март"/>
+				<AI id="4" name="Апрель"/>
+				<AI id="5" name="Май"/>
+				<AI id="6" name="Июнь"/>
+				<AI id="7" name="Июль"/>
+				<AI id="8" name="Август"/>
+				<AI id="9" name="Сентябрь"/>
+				<AI id="10" name="Октябрь"/>
+				<AI id="11" name="Ноябрь"/>
+				<AI id="12" name="Декабрь"/>
+			</A>
 		</GA>
 		<GA id="REPPERIOD" name="Отчетный период">
 			<A id="REPYEARVIRT" name="Год" caption="Год" labelwidth="30" width="10" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.repyear from benefitspackets b where b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
@@ -467,16 +481,18 @@
 			<A id="COMPANYNAMEID" name="Наименование организации"/>
 		</GA>
 		<GA id="HEADER">
-			<A id="BENEFITSPACKETSID" nulls="true"/>
-			<A id="BENEFITSTYPEDIRID" parentkey="cascade" nulls="true"/>
-			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true" labelwidth="160"
+			<A id="BENEFITSPACKETSID" visible="false" nulls="true" readonly="true"/>
+			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true" labelwidth="120"
 			   formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
 			  
 			<GA id="REPPERIOD"/>
-			<A id="BENEFITSRECIPIENTSID" labelwidth="120" nulls="true"/>
+			<A id="BENEFITSRECIPIENTSID" labelwidth="120" nulls="true" visible="false"/>
 			<A id="LASTNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.lastname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
 			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
 			<A id="PATRONYMICVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.patronymic from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<A id="BENEFITSRECIPIENTFULL" name="Получатель пособия" caption="Получатель пособия" labelwidth="120" type="string" nulls="true" visible="form" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID::bigint" local="true"/>
+			
 			<A id="REMARKID" visible="false"/>
 			<A id="REMARKVIRT" name="Примечание" caption="Примечание" labelwidth="120" type="text" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.note from remark r where r.id=@REMARKID ::bigint" local="true"/>
 		</GA>
@@ -913,6 +929,8 @@
 			<A id="STATUS" name="Результат" caption="Результат" labelwidth="620" type="list" nulls="true" value="02" local="true">
 				<!-- Автоматом если  нет ошибок -->
 				<AI id="01" name="Проверен"/>
+				
+				<!-- Наверно не нужно -->
 				<AI id="02" name="Не проверен"/>
 				<AI id="03" name="Ошибка"/>
 			</A>
