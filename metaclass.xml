@@ -299,6 +299,7 @@
 		<A id="COMPANYNAMEID" name="Организация" caption="Организация" labelwidth="150" type="ref" table="COMPANYDIR" ret="COMPANYNAME" nulls="false"/>
 		<A id="SUBJECTSDIRID" name="Отправитель (регион)" caption="Отправитель (регион)" labelwidth="150" type="ref" table="SUBJECTSDIR" ret="NAME" nulls="false"/>
 		<A id="BENEFITSTYPENAMEDIRID" name="Тип реестра" caption="Тип реестра" type="ref" table="BENEFITSTYPEDIR" ret="NAME" nulls="false"/>
+		<A id="BENEFITSINDEXDIRID" name="Индексация пособий" caption="Индексация пособий" type="ref" table="BENEFITSINDEXDIR" ret="BENEFITSTYPENAMEDIRID_ret" nulls="false"/>
 		<A id="BENEFITSPACKETSID" name="Регион" caption="Регион" labelwidth="120" type="ref" table="BENEFITSPACKETS" ret="SUBJECTSDIRID_ret" form="BenefitsPackets" nulls="false"/>
 		<A id="BENEFITSTYPEDIRID" name="Тип реестра" caption="Тип реестра" labelwidth="120" type="ref" pid="BENEFITSPACKETSID" table="BENEFICIARIESREGISTERS" ret="BENEFITSTYPENAMEDIRID_ret" nulls="false" visible="form"/>
 		<A id="BENEFITSRECIPIENTSID" name="Получатель пособия" caption="Получатель пособия" type="ref" table="BENEFITSRECIPIENTS" ret="LASTNAME" form="Benefitsrecipients" nulls="false"/>
@@ -1236,17 +1237,23 @@
 			<TI id="BENEFITSTYPEDIR_UK2" unique="ROSTERNUMBER"/>
 		</TABLE>
 		<TABLE id="BENEFITSINDEXDIR" name="Индексация пособий">
-			<A id="RELEVANCE" name="Актуальность" caption="Актуальность" type="boolean" nulls="true" value="true" local="true"/>
-			<A id="RELEVANCEYEAR" name="Год" caption="Год" labelwidth="110" type="int" len="4" nulls="false" local="true"/>
 			<A id="BENEFITSTYPENAMEDIRID" labelwidth="110"/>
+			<TI unique="BENEFITSTYPENAMEDIRID"/>
+		</TABLE>
+		<TABLE id="BENEFITSINDEXDIRHISTORY" name="История">
+			<A id="BENEFITSINDEXDIRID" parentkey="cascade"/>
+			<A id="PAYDATEFROM"/>
+			<A id="PAYDATETO"/>
+			<A id="RELEVANCE" name="Актуальность" caption="Актуальность" type="boolean" nulls="true" value="true" local="true"/>
 			<GA id="BENEFITINDEXFACTOR" name="Размер пособия" caption="Размер пособия">
 				<A id="MIN" name="Минимум" caption="Минимум" type="number" len="17.2" nulls="true" local="true"/>
 				<A id="MAX" name="Максимум" caption="Максимум" type="number" len="17.2" nulls="true" local="true"/>
 				<A id="CHILD1ST" name="1-й ребенок" caption="1-й ребенок" type="number" len="17.2" nulls="true" local="true"/>
 				<A id="CHILD2NDSUB" name="2-й и...ребенок" caption="2-й и...ребенок" type="number" len="17.2" nulls="true" local="true"/>
 			</GA>
-			<TI unique="RELEVANCEYEAR,BENEFITSTYPENAMEDIRID"/>
+			<TI unique="PAYDATEFROM"/>
 		</TABLE>
+		
 		<TABLE id="SUBJECTSDIR" name="Субъекты">
 			<A id="CODE" name="Код" caption="Код" labelwidth="700" type="int" len="2" nulls="false" local="true"/>
 			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/>
@@ -1773,6 +1780,13 @@
 		<!-- </FORM> -->
 		<FORM id="BenefitsIndexdir" name="Индексация пособий">
 			<GRID id="BENEFITSINDEXDIR" name="Индексация пособий" table="BENEFITSINDEXDIR"/>
+			<TABS>
+				<TAB name="История">
+					<GRID id="BENEFITSINDEXDIRHISTORY" name="История" table="BENEFITSINDEXDIRHISTORY"/>
+				</TAB>
+			</TABS>
 		</FORM>
+		
+		
 	</FORMS>
 </SYSTEM>
