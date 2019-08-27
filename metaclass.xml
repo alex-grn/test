@@ -66,11 +66,10 @@
 					<MI name="Отчет по рождении ребенка" reportlist="Areport_benefit04"/>
 					<MI name="Отчет по ребенку военнослужащего" reportlist="Areport_benefit05"/>
 					<MI name="Отчет по беременной жене военнослужащего" reportlist="Areport_benefit06"/>
-					<MI name="Отчет по рождению (усыновлению)" reportlist="Areport_benefit07"/>
 				</MENU>
 				<MENU name="Сводные отчеты">
 					<MI name="Сводный отчет о назначении и выплате пособий" reportlist="Sreport_AppPay"/>
-					<MI name="Сводный отчет по гражданам, имеющим детей" reportlist="Sreport_Reg"/>
+					<MI name="Сводный отчет по гражданам, имеющим детей (регионы)" reportlist="Sreport_Reg"/>
 				</MENU>
 			</MENU>
 			<MENU name="Аналитика">
@@ -1218,16 +1217,6 @@
 				<A id="EMAILPERS" name="email" caption="email" labelwidth="130" type="string" local="true"/>
 			</GA>
 		</TABLE>
-		<!-- <TABLE id="PAYMENTSTYPESDIR" name="Виды выплат"> -->
-			<!-- <A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/> -->
-			<!-- <A id="PAYMENTSSORTS" name="Тип" caption="Тип" type="list" nulls="false" local="true"> -->
-				<!-- <AI id="PAY" name="Выплата"/> -->
-				<!-- <AI id="RET" name="Возврат"/> -->
-			<!-- </A> -->
-			<!-- <A id="CODE" name="Код" caption="Код" labelwidth="540" type="int" len="2" nulls="false" local="true"/> -->
-			<!-- <TI id="PAYMENTSTYPESDIR_UK1" unique="NAME"/> -->
-			<!-- <TI id="PAYMENTSTYPESDIR_UK2" unique="CODE"/> -->
-		<!-- </TABLE> -->
 		<TABLE id="BENEFITSTYPEDIR" name="Виды пособий">
 			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
 			<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" type="text" nulls="true" visible="form" local="true"/>
@@ -1238,22 +1227,29 @@
 		</TABLE>
 		<TABLE id="BENEFITSINDEXDIR" name="Индексация пособий">
 			<A id="BENEFITSTYPENAMEDIRID" labelwidth="110"/>
+			<A id="MINVIRT" name="Минимум" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" 
+			   formula="select b.min from benefitsindexdirhistory b where b.BENEFITSINDEXDIRID = @ID ::bigint and b.PAYDATEFROM = (select max(b2.PAYDATEFROM) from benefitsindexdirhistory b2 where b2.BENEFITSINDEXDIRID = @ID ::bigint )" local="true"/>
+			<A id="MAXVIRT" name="Максимум" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" 
+			   formula="select b.max from benefitsindexdirhistory b where b.BENEFITSINDEXDIRID = @ID ::bigint and b.PAYDATEFROM = (select max(b2.PAYDATEFROM) from benefitsindexdirhistory b2 where b2.BENEFITSINDEXDIRID = @ID ::bigint )" local="true"/>
+			<A id="CHILD1STVIRT" name="1-й ребенок" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" 
+			   formula="select b.child1st from benefitsindexdirhistory b where b.BENEFITSINDEXDIRID = @ID ::bigint and b.PAYDATEFROM = (select max(b2.PAYDATEFROM) from benefitsindexdirhistory b2 where b2.BENEFITSINDEXDIRID = @ID ::bigint )" local="true"/>
+			<A id="CHILD2NDSUBVIRT" name="2-й и...ребенок" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" 
+			   formula="select b.child2ndsub from benefitsindexdirhistory b where b.BENEFITSINDEXDIRID = @ID ::bigint and b.PAYDATEFROM = (select max(b2.PAYDATEFROM) from benefitsindexdirhistory b2 where b2.BENEFITSINDEXDIRID = @ID ::bigint )" local="true"/>
 			<TI unique="BENEFITSTYPENAMEDIRID"/>
 		</TABLE>
 		<TABLE id="BENEFITSINDEXDIRHISTORY" name="История">
 			<A id="BENEFITSINDEXDIRID" parentkey="cascade"/>
-			<A id="PAYDATEFROM"/>
-			<A id="PAYDATETO"/>
-			<A id="RELEVANCE" name="Актуальность" caption="Актуальность" type="boolean" nulls="true" value="true" local="true"/>
+			<A id="RELEVANCE" name="Актуально" type="boolean" nulls="true" visible="grid" virtual="true" 
+			   formula= "select coalesce((select true from benefitsindexdirhistory b where @PAYDATEFROM ::date = (select max(b2.PAYDATEFROM) from benefitsindexdirhistory b2 where b2.BENEFITSINDEXDIRID = @BENEFITSINDEXDIRID ::bigint) limit 1), false)"  local="true"/>
+			<A id="PAYDATEFROM" name="Дата индексации" caption="Актуально с" nulls="false" labelwidth="620"/>
 			<GA id="BENEFITINDEXFACTOR" name="Размер пособия" caption="Размер пособия">
 				<A id="MIN" name="Минимум" caption="Минимум" type="number" len="17.2" nulls="true" local="true"/>
 				<A id="MAX" name="Максимум" caption="Максимум" type="number" len="17.2" nulls="true" local="true"/>
 				<A id="CHILD1ST" name="1-й ребенок" caption="1-й ребенок" type="number" len="17.2" nulls="true" local="true"/>
 				<A id="CHILD2NDSUB" name="2-й и...ребенок" caption="2-й и...ребенок" type="number" len="17.2" nulls="true" local="true"/>
 			</GA>
-			<TI unique="PAYDATEFROM"/>
+			<TI unique="BENEFITSINDEXDIRID,PAYDATEFROM"/>
 		</TABLE>
-		
 		<TABLE id="SUBJECTSDIR" name="Субъекты">
 			<A id="CODE" name="Код" caption="Код" labelwidth="700" type="int" len="2" nulls="false" local="true"/>
 			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/>
@@ -1385,8 +1381,6 @@
 			</FORM>
 		</REPORT>
 		
-		
-		
 		<!-- Отчеты -->
 		<REPORT id="Summreport_Reg" name="Сводный отчет по гражданам, имеющим детей" procedure="" template="Summreport_Reg.xls">
 			<FORM>
@@ -1423,11 +1417,6 @@
 				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Areport_benefit07" name="Отчет по рождению (усыновлению)" procedure="" template="Areport_benefit07.xls">
-			<FORM>
-				<GA id="FIO"/>
-			</FORM>
-		</REPORT>
 		<REPORT id="Sreport_AppPay" name="Сводный отчет о назначении и выплате пособий" procedure="" template="Sreport_AppPay.xls">
 			<FORM>
 				<GA id="FIO"/>
@@ -1435,10 +1424,10 @@
 		</REPORT>
 		<REPORT id="Sreport_Reg" name="Сводный отчет по гражданам, имеющим детей" procedure="" template="Sreport_Reg.xls">
 			<FORM>
+				<A 	id="SUBJECTSDIRID" caption="Регион" labelwidth="40"/>
 				<GA id="DATEREPORT"/>
 			</FORM>
 		</REPORT>
-		
 		
 		<!-- Аналитика -->
 		<REPORT id="PersonalFile" name="Личное дело получателя пособий" procedure="" template="PersonalFile.xls">
@@ -1775,9 +1764,6 @@
 		<FORM id="BenefitsTypedir" name="Виды пособий">
 			<GRID id="BENEFITSTYPEDIR" name="Вид пособия" table="BENEFITSTYPEDIR"/>
 		</FORM>
-		<!-- <FORM id="PaymentsTypesdir" name="Виды выплат"> -->
-			<!-- <GRID id="PAYMENTSTYPESDIR" name="Виды выплат" table="PAYMENTSTYPESDIR"/> -->
-		<!-- </FORM> -->
 		<FORM id="BenefitsIndexdir" name="Индексация пособий">
 			<GRID id="BENEFITSINDEXDIR" name="Индексация пособий" table="BENEFITSINDEXDIR"/>
 			<TABS>
