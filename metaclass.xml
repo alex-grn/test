@@ -1,7 +1,6 @@
 <SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
-		<MODULE id="AdministratorAGS" name="Администратор АГС" menu="AdministratorAGS"/>
 		<MODULE id="Alternative" name="Альтернативная гражданская служба" menu="Alternative"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
@@ -36,32 +35,6 @@
 				<MI name="Содержание" actionlist="Help"/>
 			</MENU>
 		</MENU>
-		
-		<!-- Администратор АГС -->
-		<MENU id="AdministratorAGS" name="Меню модуля Администратор АГС">
-			<MENU name="Файл">
-				<MI name="Параметры системы" formlist="Options"/>
-				<MI name="Загруженные файлы" formlist="Filelinks"/>
-				<MI name="Выйти" actionlist="Exit"/>
-			</MENU>
-			<MENU name="Права доступа">
-				<MI name="Пользователи" formlist="Users"/>
-			</MENU>
-			<MENU name="Сервисы">
-				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
-				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
-				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
-				<MENU name="Конвертер">
-					<MI name="Форматы обмена данными" formlist="Concepts"/>
-					<MI name="Алгоритмы загрузки" formlist="Conv"/>
-					<MI name="Процессы загрузки" formlist="ConvLoads"/>
-				</MENU>
-			</MENU>
-			<MENU name="Справка">
-				<MI name="Содержание" actionlist="Help"/>
-			</MENU>
-		</MENU>
-		
 		
 		<!-- АГС -->
 		<MENU id="Alternative" name="Меню модуля АГС">
@@ -325,13 +298,13 @@
 		</A>
 		<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="620" type="list" nulls="true" value="1" local="true">
 			<AI id="1" name="Зарегистрирован"/>
-			<AI id="2" name="Утвержден"/>
-			<AI id="3" name="Отказ"/>
+			<AI id="2" name="Отказ" readonly="true"/>
+			<AI id="3" name="Утвержден" readonly="true"/>
 			<AI id="4" name="Отсрочка"/>
 			<AI id="5" name="Повторное распределение"/>
 			<AI id="6" name="Направлен на АГС"/>
 			<AI id="7" name="Проходит АГС"/>
-			<AI id="8" name="Уволен со службы"/>
+			<AI id="8" name="Уволен со службы" readonly="true"/>
 		</A>
 		<A id="FAMILYSTATUS" caption="Семейное положение" labelwidth="160" width="50" type="list" nulls="true" visible="form" local="true">
 			<AI id="1" name="Вдовец"/>
@@ -506,7 +479,9 @@
 			<A id="BUILDING" name="Строение" caption="Строение" labelwidth="65" width="20" type="string" nulls="true" visible="form" local="true"/>
 		</GA>
 		<GA id="FA" name="ФА">
-			<A id="COINCIDENCE" caption="Фактический адрес совпадает с юридическим" type="boolean" nulls="true" visible="form" local="true"/>
+			<A id="COINCIDENCE" caption="Фактический адрес совпадает с юридическим" type="boolean" nulls="true" visible="form" local="true">
+				<AI id="true" readonly="POSTCODE2;REGIONDIR2ID;SETTLEMENT2;STREET2;HOUSE2;HOUSING2;BUILDING2"/>
+			</A>
 			<A id="POSTCODE2" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="610" type="int" len="6" nulls="true" visible="form" local="true"/>
 			<A id="REGIONDIR2ID" labelwidth="110" nulls="true" visible="form"/>
 			<A id="SETTLEMENT2" name="Населенный пункт" caption="Населенный пункт" labelwidth="110" type="string" nulls="true" visible="form" local="true"/>
@@ -820,28 +795,7 @@
 			<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID ::bigint" local="true"/>
 			<A id="STRVALUE" name="Значение" caption="Значение"/>
 		</TABLE>
-		
-		
-		<!-- Администратор АГС -->
-		<TABLE id="USERSAGS" name="Пользователи">
-			<A id="LOGIN" labelwidth="120"/>
-			<A id="PASSWORD" labelwidth="120"/>
-			<GA id="F.I.O." name="Ф.И.О.">
-				<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" len="100" nulls="false" local="true"/>
-				<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="120" type="string" len="100" nulls="false" local="true"/>
-				<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="120" type="string" len="100" nulls="true" local="true"/>
-			</GA>
-			<A id="REGIONDIRID" labelwidth="120" visible="true"/>
-			<A id="POSITIONAGS" name="Должность" caption="Должность" labelwidth="120" type="string" nulls="false" visible="true" local="true"/>
-			<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="120" type="string" nulls="true" visible="form" local="true"/>
-			<A id="email" name="E-Mail" caption="E-Mail" labelwidth="120" type="string" nulls="true" visible="form" local="true"/>
-			<A id="NAME" labelwidth="120" nulls="false" visible="form"/>
-			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="200" visible="form"/>
-			<A id="DISABLED"/>
-			<TI id="USERS_LOGIN_UK_AGS" unique="LOGIN"/>
-			<TI id="USERS_NAME_UK_AGS" unique="NAME"/>
-		</TABLE>
-		
+
 		<!-- АГС -->
 		<!-- Раздел "Организации" -->
 		<TABLE id="ORGANIZATION" name="Организации">
@@ -915,7 +869,8 @@
 			<A id="CITIZENRYID" caption="Гражданин" labelwidth="180" visible="form"/>
 			<A id="CITIZENVIRT" name="Фамилия Имя Отчество" caption="Фамилия Имя Отчество" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
 			<A id="ARRIVALDATEACTUALTEST" name="Дата прибытия" caption="Дата прибытия" type="date" labelwidth="600" virtual="true" formula="select r.ARRIVALDATEACTUAL from PASSAGEAGSCIT r where r.citizenryid = @CITIZENRYID ::bigint"/>
-			<A id="PROFESSIONDIRID" caption="Наименование и код" labelwidth="180" nulls="false"/>
+			<A id="PROFESSIONDIRID" caption="Наименование должности" labelwidth="180" nulls="false"/>
+			<A id="CODEPROFVIRT" caption="Код по ОКПДТР" labelwidth="180" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true"/>
 			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
 			<A id="MODEWORKDIRID" labelwidth="180"/>
 			<A id="WORKINGCONDITIONS" caption="Условия труда" labelwidth="180" type="list" nulls="true" visible="form" local="true">
@@ -934,7 +889,6 @@
 		<!-- Раздел "Граждане" -->
 		<TABLE id="CITIZENRY" name="Граждане">
 			<TABS>
-			
 			<!-- Под-вкладка Основные данные -->
 				<TAB name="Основные данные">
 					<GA id="INFORMCITYZEN" name="Основные данные" caption="Основные данные">
@@ -975,11 +929,15 @@
 						<GA id="ADDITIONALLYCITYZEN" name="Дополнительно" caption="Дополнительно">
 								<A id="BELIEFS" nulls="false"/>
 							<GA>
-								<A id="SPECIALFAMILYSTATUS" caption="Особое семейное положение:" width="32" type="boolean" nulls="true" visible="form" local="true"/>
+								<A id="SPECIALFAMILYSTATUS" caption="Особое семейное положение:" width="32" type="boolean" nulls="true" visible="form" local="true">
+									<AI id="false" readonly="SPECIALFAMILYSTATUS2"/>
+								</A>
 								<A id="SPECIALFAMILYSTATUS2" width="68"/>
 							</GA>
 							<GA>
-								<A id="NATIVEPEOPLE" caption="Коренные народы:" width="33" type="boolean" nulls="false" visible="form" local="true"/>
+								<A id="NATIVEPEOPLE" caption="Коренные народы:" width="33" type="boolean" nulls="false" visible="form" local="true">
+									<AI id="false" readonly="NATIVEPEOPLEDIRID"/>
+								</A>
 								<A id="NATIVEPEOPLEDIRID" visible="form" width="67"/>
 							</GA>
 							<A id="EXCLUDEARMEDFORCES" caption="Исключить вакансии в ВС, другие войска и организации оборонной промышленности" type="boolean" nulls="true" visible="form" local="true"/>
@@ -1379,79 +1337,60 @@
 		
 		<!-- АГС -->
 		<!-- Раздел Организации -->
-		<ACTION id="Approve" name="Утвердить" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
-		<ACTION id="CancelApprove" name="Отменить утвердить" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
-		<ACTION id="Reject" name="Отклонить" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
-		<ACTION id="CancelReject" name="Отменить отклонение" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
-		<ACTION id="Block" name="Заблокировать" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
-		<ACTION id="Unlock" name="Разблокировать" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-
-		<ACTION id="CelebrateArrival" name="Отметить прибытие" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
-		<ACTION id="DesmissService" name="Уволить со службы" type="procedure" procedure="">
-			<FORM>
-				<RECORD/>
-			</FORM>
-		</ACTION>
-		
+		<ACTION id="Approve" name="Утвердить" type="procedure" procedure="p_action_org_approve"/>
+		<ACTION id="CancelApprove" name="Отменить утвердить" type="procedure" procedure="p_action_org_cancelapprove"/>
+		<ACTION id="Reject" name="Отклонить" type="procedure" procedure="p_action_org_reject"/>
+		<ACTION id="CancelReject" name="Отменить отклонение" type="procedure" procedure="p_action_org_cancelreject"/>
+		<ACTION id="Block" name="Заблокировать" type="procedure" procedure="p_action_org_block"/>
+		<ACTION id="Unlock" name="Разблокировать" type="procedure" procedure="p_action_org_unlock"/>
+		<ACTION id="CelebrateArrival" name="Отметить прибытие" type="procedure" procedure="p_action_cit_celebratearrival"/>
+		<ACTION id="DesmissService" name="Уволить со службы" type="procedure" procedure="p_action_cit_desmissservice"/>
 		<ACTION id="PrintCard" name="Печать карточки" type="procedure" procedure="">
 			<FORM>
 				<RECORD/>
 			</FORM>
 		</ACTION>
-		<ACTION id="Unpin" name="Открепить" type="procedure" procedure="">
+		<ACTION id="Unpin" name="Открепить" type="procedure" procedure="p_action_dir_unpin"/>
+		<ACTION id="Confirm" name="Подтвердить" type="procedure" procedure="p_action_dir_confirm"/>
+		
+		
+		<ACTION id="PrintCardCitizen" name="Печать карточки гражданина" type="procedure" procedure="">
+			<FORM>
+				<RECORD/>
+			</FORM>
+		</ACTION>
+		<ACTION id="PrintCardDirection" name="Печать карточки направления" type="procedure" procedure="">
+			<FORM>
+				<RECORD/>
+			</FORM>
+		</ACTION>
+		<ACTION id="PrintCardPlan" name="Печать карточки плана направления" type="procedure" procedure="">
 			<FORM>
 				<RECORD/>
 			</FORM>
 		</ACTION>
 		
-		<ACTION id="Confirm" name="Подтвердить" type="procedure" procedure="">
+		<ACTION id="LoadCitizen" name="Загрузить граждан" type="procedure" procedure="">
 			<FORM>
 				<RECORD/>
 			</FORM>
 		</ACTION>
 	</ACTIONS>
 	
+	
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
+		
+		<!-- Отчеты АГС -->
 		<REPORT id="PROFESSIONREPORT" name="Профессии" procedure="" template="profession_report.xls">
 			<FORM>
-				<GA id="DATEREPORT"/>
+				<A id="SECTIONPROF" name="Раздел" caption="Раздел" type="list" nulls="false" local="true">
+					<AI id="1" name="Профессии рабочих"/>
+					<AI id="2" name="Должности служащих"/>
+				</A>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="PASSAGEOFAGS" name="Прохождение АГС" procedure="" template="passage_of_ags_report.xls">
 			<FORM>
 				<GA name="Наличие отпуска" caption="Наличие отпуска">
@@ -1483,6 +1422,7 @@
 				</GA>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="CITIZENREPORT" name="Граждане" procedure="" template="citizen_report.xls">
 			<FORM>
 				<GA name="Гражданин" caption="Граждане">
@@ -1527,6 +1467,7 @@
 				</GA>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="DISMISSALCITYZENREPORT" name="Увольнение граждан" procedure="" template="dismissal_citizen_report.xls">
 			<FORM>
 				<GA name="Увольнение граждан" caption="Увольнение граждан">
@@ -1553,6 +1494,7 @@
 				</GA>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="DIRECTIONAGSREPORT" name="Направление на АГС" procedure="" template="direction_ags_report.xls">
 			<FORM>
 				<GA name="Направление на АГС" caption="Направление на АГС">
@@ -1576,38 +1518,41 @@
 				</GA>
 			</FORM>
 		</REPORT>
-		<!-- <REPORT id="VACANCYREPORT" name="Вакансии" procedure="" template="vacancy_report.xls"> -->
-			<!-- <FORM> -->
-				<!-- <GA name="Вакансии" caption="Вакансии"> -->
-					<!-- <A id="STATUSORG" name="Статус" caption="Статус" labelwidth="620" type="list" nulls="true" value="1" local="true"> -->
-						<!-- <AI id="1" name="Проект"/> -->
-						<!-- <AI id="2" name="Отклонена"/> -->
-						<!-- <AI id="3" name="Утверждена"/> -->
-						<!-- <AI id="4" name="Заблокирована"/> -->
-					<!-- </A> -->
-					<!-- <A id="VACANCIESYEAR" caption="Год призыва" labelwidth="150"/> -->
-					<!-- <A id="CONSCRIPTION3" name="Период призыва" caption="Период призыва" labelwidth="150" type="list" nulls="true" local="true"> -->
-						<!-- <AI id="1" name="Весна"/> -->
-						<!-- <AI id="2" name="Осень"/> -->
-					<!-- </A> -->
-					<!-- <A id="DEPARTMENTDIRID" caption="Ведомство" labelwidth="150"/> -->
-					<!-- <A id="REGIONDIRID" caption="Регион" labelwidth="150"/> -->
-					<!-- <A id="PROFESSIONDIRID" caption="Профессии/Должности" labelwidth="150"/> -->
-				<!-- </GA> -->
-			<!-- </FORM> -->
-		<!-- </REPORT> -->
-		<!-- <REPORT id="ORGANIZATIONREPORT" name="Организации" procedure="" template="organization_report.xls"> -->
-			<!-- <FORM> -->
-				<!-- <GA name="Организации" caption="Организации"> -->
-					<!-- <A id="EXECUTIVE" name="Исполнительный орган" caption="Исполнительный орган" labelwidth="150" type="list" nulls="true" local="true"> -->
-						<!-- <AI id="1" name="Органы исполнительной власти субъектов РФ"/> -->
-						<!-- <AI id="2" name="Федеральные органы исполнительной власти РФ"/> -->
-					<!-- </A> -->
-					<!-- <A id="DEPARTMENTDIRID" caption="Ведомство" labelwidth="150"/> -->
-					<!-- <A id="VACANCIESYEAR" caption="Год" labelwidth="150"/> -->
-				<!-- </GA> -->
-			<!-- </FORM> -->
-		<!-- </REPORT> -->
+		
+		<REPORT id="VACANCYREPORT" name="Вакансии" procedure="" template="vacancy_report.xls">
+			<FORM>
+				<GA name="Вакансии" caption="Вакансии">
+					<A id="STATUSORG" name="Статус" caption="Статус" labelwidth="620" type="list" nulls="true" value="1" local="true">
+						<AI id="1" name="Проект"/>
+						<AI id="2" name="Отклонена"/>
+						<AI id="3" name="Утверждена"/>
+						<AI id="4" name="Заблокирована"/>
+					</A>
+					<A id="VACANCIESYEAR" caption="Год призыва" labelwidth="150"/>
+					<A id="CONSCRIPTION3" name="Период призыва" caption="Период призыва" labelwidth="150" type="list" nulls="true" local="true">
+						<AI id="1" name="Весна"/>
+						<AI id="2" name="Осень"/>
+					</A>
+					<A id="DEPARTMENTDIRID" caption="Ведомство" labelwidth="150"/>
+					<A id="REGIONDIRID" caption="Регион" labelwidth="150"/>
+					<A id="PROFESSIONDIRID" caption="Профессии/Должности" labelwidth="150"/>
+				</GA>
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="ORGANIZATIONREPORT" name="Организации" procedure="" template="organization_report.xls">
+			<FORM>
+				<GA name="Организации" caption="Организации">
+					<A id="EXECUTIVE" name="Исполнительный орган" caption="Исполнительный орган" labelwidth="150" type="list" nulls="true" local="true">
+						<AI id="1" name="Органы исполнительной власти субъектов РФ"/>
+						<AI id="2" name="Федеральные органы исполнительной власти РФ"/>
+					</A>
+					<A id="DEPARTMENTDIRID" caption="Ведомство" labelwidth="150"/>
+					<A id="VACANCIESYEAR" caption="Год" labelwidth="150"/>
+				</GA>
+			</FORM>
+		</REPORT>
+		
 		<REPORT id="ORGVACREPORT" name="Организации и вакансии" procedure="" template="organization_vacancy_report.xls">
 			<FORM>
 				<GA name="Организации и вакансии" caption="Организации и вакансии">
@@ -1750,7 +1695,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Citizenry" name="Граждане">
-			<GRID id="CITIZENRY" name="Граждане" table="CITIZENRY" actionlist="CelebrateArrival;Approve;Reject;CancelReject;DesmissService;PrintCard"/>/>
+			<GRID id="CITIZENRY" name="Граждане" table="CITIZENRY" actionlist="CelebrateArrival;Reject;Approve;CancelReject;DesmissService;PrintCardCitizen;LoadCitizen"/>
 			<TABS>
 				<TAB name="Образование и опыт">
 					<GRID id="EDUCATIONCIT" name="Образование и опыт" table="EDUCATIONCIT"/>
@@ -1768,10 +1713,10 @@
 			</TABS>
 		</FORM>
 		<FORM id="Plans" name="Планы Направлений">
-			<GRID id="Plans" name="Планы Направлений" table="PLANS" actionlist="Approve;CancelApprove"/>
+			<GRID id="Plans" name="Планы Направлений" table="PLANS" actionlist="Approve;CancelApprove;PrintCardDirection;PrintCardPlan"/>
 		</FORM>
 		<FORM id="Direction" name="Направления">
-			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;Confirm"/>
+			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;Confirm;PrintCardDirection"/>
 		</FORM>
 		<FORM id="Statistics" name="Статистика">
 			<GRID id="Statistics" name="Статистика" table="STATISTICS"/>
