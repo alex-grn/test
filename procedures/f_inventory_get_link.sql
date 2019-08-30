@@ -1,5 +1,6 @@
-CREATE OR REPLACE FUNCTION f_inventory_get_link(id bigint) RETURNS boolean AS
-$body$
+CREATE OR REPLACE FUNCTION public.f_inventory_get_link(id bigint)
+  RETURNS boolean AS
+$BODY$
 declare
   /* Фунция проверяет существование ссылок на инвентарную карточку
   */
@@ -14,5 +15,6 @@ begin
 		       or exists(select 1 from COMMUNICATIONS where INVENTORYID = nID limit 1)), false);
 
 end;
-$body$
-language plpgsql volatile;
+$BODY$
+  LANGUAGE plpgsql IMMUTABLE
+  COST 100;
