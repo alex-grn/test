@@ -75,7 +75,9 @@
 			
 			<!-- Аналитика -->
 			<MENU name="Аналитика">
-				<MI name="Случаи многократных выплат" reportlist="Multiplepayments"/>
+				
+				<MI  name="Случаи многократных выплат" formlist="Multiplepayments"/>
+				
 				<MI name="Случаи неправомерных доплат" reportlist="Unlawfulsurcharge"/>
 				<MI name="Регионы, не загрузившие реестры" reportlist="Notsend"/>
 			</MENU>
@@ -96,7 +98,6 @@
 				<MI name="Организации" formlist="Companydir"/>
 				<MENU name="Пособия">
 					<MI name="Пособия"/>
-					<!-- <MI name="Виды выплат" formlist="PaymentsTypesdir"/> -->
 					<MI name="Виды пособий" formlist="BenefitsTypedir"/>
 					<MI name="Индексация пособий" formlist="BenefitsIndexdir"/>
 				</MENU>
@@ -1174,6 +1175,36 @@
 			<GA id="AMONGTHEM07"/>
 		</TABLE>
 		
+		<!-- АНАЛИТИКА -->
+		<!-- Случаи многократных выплат" -->
+		<TABLE id="MULTIPLEPAYMENTS" name="Случаи многократных выплат">
+			<GA id="" name="Получатель пособия">
+				<A id="FIOB" name="ФИО" type="string" nulls="true" local="true"/>
+				<GA id="DOCB" name="Документ, удостоверяющий личность">
+					<A id="DOCTYPB" name="Тип" type="string" nulls="true" local="true"/>
+					<A id="DOCSERIESB" name="Cерия" type="string" nulls="true" local="true"/>
+					<A id="DOCNUMBERB" name="Номер" type="string" nulls="true" local="true"/>
+					<A id="DOCDATEB" name="Дата выдачи" type="date" nulls="true" local="true"/>
+				</GA>
+			</GA>
+			<GA name="Сведения о детях">
+				<A id="FIOC" name="ФИО" type="string" nulls="true" local="true"/>
+				<A id="BIRTHDATEC" name="Дата рождения" type="date" nulls="true" local="true"/>/> 
+				<GA id="DOCC" name="Документ, подтверждающий факт рождения ребенка">
+					<A id="DOCTYPC" name="Тип" type="string" nulls="true" local="true"/>
+					<A id="DOCSERIESC" name="Cерия" type="string" nulls="true" local="true"/>
+					<A id="DOCNUMBERC" name="Номер" type="string" nulls="true" local="true"/>
+					<A id="DOCDATEC" name="Дата выдачи" type="date" nulls="true" local="true"/>
+				</GA>
+			</GA>
+			<GA name="Выплата">
+				<A id="PERIODPAY" name="Период" type="string" nulls="true" local="true"/>
+				<A id="SUMPAY" name="Сумма" type="number" nulls="true" local="true"/>
+			</GA>
+			<A id="REGION" name="Регион" type="string" nulls="true" local="true"/>
+			<A id="BENEFIT" name="Пособие" type="string" nulls="true" local="true"/>
+		</TABLE>
+		
 		<!-- Получатели пособий -->
 		<TABLE id="BENEFITSRECIPIENTS" name="Получатели пособий">
 			<GA id="FIO"/>
@@ -1216,6 +1247,7 @@
 			<A id="BENEFITSTYPEDIRID" labelwidth="75" parentkey="cascade" visible="true"/>
 			<A id="NOTE" labelwidth="75"/>
 		</TABLE>
+		
 		<TABLE id="SENDERS" name="Отправители пакетов">
 			<GA id="SENDERSGROUP" name="Отправитель" caption="Отправитель"/>
 			<GA id="CONTACTPERSON" name="Контактное лицо" caption="Контактное лицо">
@@ -1232,6 +1264,7 @@
 				<A id="BANLOAD" name="Запрет загрузки, начиная c 11 числа до конца месяца" caption="Запрет загрузки, c 11 числа до конца месяца" type="boolean" visible="form" value="true" local="true"/>
 			</GA>
 		</TABLE>
+		
 		<TABLE id="PERSONDOCUMENTDIR" name="Документ, удостоверяющий личность">
 			<GA id="REFERENCE"/>
 			<TI id="PERSONDOCUMENTDIR_UK1" unique="NAME"/>
@@ -1267,6 +1300,7 @@
 				<A id="EMAILPERS" name="email" caption="email" labelwidth="130" type="string" local="true"/>
 			</GA>
 		</TABLE>
+		
 		<TABLE id="BENEFITSTYPEDIR" name="Виды пособий">
 			<A id="NAME" name="Наименование" caption="Наименование" type="string" nulls="false" local="true"/>
 			<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" type="text" nulls="true" visible="form" local="true"/>
@@ -1407,6 +1441,40 @@
 	<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
 		<ACTION id="Noratify" name="Снять утверждение" type="procedure" procedure="p_packets_noratify"/>
 		
+		<ACTION id="MultiplepaymentsA" name="Сформировать" type="procedure" procedure="" >
+			<FORM>
+			<!-- Пособие -->
+				<A id="BENEFITSTYPENAMEDIRID" caption="Пособие" nulls="true" />
+				<A id="REPYEAR" name="Год" caption="Год" nulls="true" labelwidth="500"/>
+				<GA name="Получатель пособия">
+					<A id="LASTNAMEB" caption="Фамилия" labelwidth="150" width="30" type="string" len="100" nulls="true" local="true"/>
+					<A id="FIRSTNAMEB" caption="Имя" labelwidth="150" width="30" type="string" len="100" nulls="true" local="true"/>
+					<A id="PATRONYMICB" caption="Отчество" labelwidth="150" width="30" type="string" len="100" nulls="true" local="true"/>
+					<GA id="DOCB"/>
+				</GA>
+				
+				<GA name="Ребенок получателя пособия">
+					<!-- Фамилия -->
+					<!-- Имя -->
+					<!-- Отчество -->
+					<A id="BIRTHDATEC" name="Дата рождения" type="date" nulls="true" labelwidth="500" local="true"/> 
+					<GA id="DOCC"/>
+				</GA>
+				
+				
+				
+			
+				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
+				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по фамилии и имени за период = Если есть совпадение в отчет -->
+				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
+				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по фамилии и имени пересечение периодов = Если есть совпадение в отчет -->
+				
+				<!-- - Документ, подтверждающий факт рождения ребенка -->
+				<!-- Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
+				<!-- Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
+			</FORM>
+		</ACTION>
+		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
@@ -1492,9 +1560,9 @@
 		<REPORT id="Multiplepayments" name="Случаи многократных выплат" procedure="" template="Multiplepayments.xls">
 			<FORM>
 			<!-- Пособие -->
-			<A id="BENEFITSTYPENAMEDIRID" nulls="true" />
+				<A id="BENEFITSTYPENAMEDIRID" nulls="true" />
 			<!-- Период отчета -->
-				<GA id="DATEREPORT_REG" caption="Период отчета">
+				<GA caption="Период отчета333">
 					<A id="REPYEAR" name="Год" caption="Год" nulls="false" labelwidth="30" width="20"/>
 					<A id="REPMONTHBY" name="Месяц" caption="Месяц" type="list" nulls="true" labelwidth="60" width="20">
 						<AI id="1" name="Январь"/>
@@ -1511,20 +1579,29 @@
 						<AI id="12" name="Декабрь"/>
 					</A>
 				</GA>
+			<!-- - Документ, удостоверяющий личность получателя пособия -->
+				<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность" caption="Документ, удостоверяющий личность">
+					<A id="PERSONDOCUMENTTYPEID" nulls="true"/>
+					<A id="PERSONDOCUMENTSERIES" name="Cерия" caption="Cерия" labelwidth="140" type="string" len="20" nulls="true" local="true"/>
+					<A id="PERSONDOCUMENTNUMBER" name="Номер" caption="Номер" labelwidth="140" type="string" len="20" nulls="true" local="true"/>
+					<A id="PERSONDOCUMENTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" local="true"/>
+				</GA>
 				
-				<!-- <GA -->
-				<!-- - Документ, удостоверяющий личность получателя пособия -->
 				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
 				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по фамилии и имени за период = Если есть совпадение в отчет -->
 				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
 				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по фамилии и имени пересечение периодов = Если есть совпадение в отчет -->
-				<!-- </GA> -->
 				
-				<!-- <GA -->
 				<!-- - Документ, подтверждающий факт рождения ребенка -->
+				<GA id="DOCBIRTHCHILD" name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
+					<A id="DOCBIRTHCHILDTYPEID" nulls="true"/>
+					<A id="DOCBIRTHCHILDSERIAL" name="Серия" caption="Серия" type="string" nulls="true" local="true"/>
+					<A id="DOCBIRTHCHILDNUMBER" name="Номер" caption="Номер" type="string" nulls="true" local="true"/>
+					<A id="DOCBIRTHCHILDDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="440" type="date" nulls="true" local="true"/>
+				</GA>
 				<!-- Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
 				<!-- Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
-				<!-- </GA> -->
+				
 			</FORM>
 		</REPORT>
 		
@@ -1810,6 +1887,11 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		
+		<FORM id="Multiplepayments" name="Случаи многократных выплат">
+			<GRID id="MULTIPLEPAYMENTS" name="Случаи многократных выплат" table="MULTIPLEPAYMENTS" readonly="true" actionlist="MultiplepaymentsA" reportlist="Multiplepayments;PersonalFile"/>
+		</FORM>
+		
 		
 		<FORM id="Benefitsrecipients" name="Получатели пособий">
 			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS" reportlist="PersonalFile"/>
