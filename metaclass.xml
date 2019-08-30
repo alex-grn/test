@@ -38,9 +38,12 @@
 		
 		<!-- АГС -->
 		<MENU id="Alternative" name="Меню модуля АГС">
+			<MENU name="Файл">
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
 			<MENU name="Организации">
 				<MI name="Организации" formlist="Organization"/>
-				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Граждане">
 				<MI name="Граждане" formlist="Citizenry"/>
@@ -290,6 +293,7 @@
 		<A id="FOREIGNLANGUAGESDIRID" name="Иностранные языки" caption="Иностранные языки" type="ref" table="FOREIGNLANGUAGESDIR" ret="NAME" form="ForeignLanguagesdir" nulls="true"/>
 		<A id="TYPEOFLEAVEDIRID" name="Виды отпуска" caption="Виды отпуска" type="ref" table="TYPEOFLEAVEDIR" ret="NAME" form="TypeOfLeaveDir" nulls="true"/>
 		<A id="PLANSID" name="Планы направления" caption="Планы направления" type="ref" table="PLANS" ret="NAMEPLAN" form="Plans" nulls="true"/>
+		<A id="SELECTTEST" name="ST" type="ref" ret="TARIFFRATE" from="VACANCYORG" nulls="true"/>
 		<A id="STATUSORG" name="Статус" caption="Статус" labelwidth="620" type="list" nulls="true" value="1" local="true">
 			<AI id="1" name="Проект"/>
 			<AI id="2" name="Отклонена" readonly="true"/>
@@ -869,20 +873,20 @@
 			<A id="CITIZENRYID" caption="Гражданин" labelwidth="180" visible="form"/>
 			<A id="CITIZENVIRT" name="Фамилия Имя Отчество" caption="Фамилия Имя Отчество" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
 			<A id="ARRIVALDATEACTUALTEST" name="Дата прибытия" caption="Дата прибытия" type="date" labelwidth="600" virtual="true" formula="select r.ARRIVALDATEACTUAL from PASSAGEAGSCIT r where r.citizenryid = @CITIZENRYID ::bigint"/>
-			<A id="PROFESSIONDIRID" caption="Наименование должности" labelwidth="180" nulls="false"/>
-			<A id="CODEPROFVIRT" caption="Код по ОКПДТР" labelwidth="180" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true"/>
-			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
+			<A id="PROFESSIONDIRID" name="Должность" caption="Должность" labelwidth="180" virtual="true" formula="select r.PROFESSIONDIRID from CITIZENRYORG r where r.CITIZENRYID = @CITIZENRYID ::bigint"/>
+			<A id="REGIONVIRT" name="Регион" caption="Регион" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.name from CITIZENRYORG g, organization s, regiondir r where s.regiondirid = r.id and s.id = g.ORGANIZATIONID and g.CITIZENRYID = @CITIZENRYID ::bigint"/>
+			<A id="TARIFFRATEVIRT" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
 			<A id="MODEWORKDIRID" labelwidth="180"/>
 			<A id="WORKINGCONDITIONS" caption="Условия труда" labelwidth="180" type="list" nulls="true" visible="form" local="true">
 				<AI id="1" name="Нормальные"/>
 				<AI id="2" name="Тяжелые и вредные"/>
 				<AI id="3" name="Особо тяжелые и особо вредные"/>
 			</A>
-			<A id="HOUSING" caption="Тип жилья" labelwidth="600" type="list" nulls="false" visible="form" local="true">
+			<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" labelwidth="180" type="list" nulls="true" visible="true" virtual="true" formula="select m.housing from CITIZENRYORG g, vacancyorg m where m.PROFESSIONDIRID = g.PROFESSIONDIRID and g.ORGANIZATIONID = m.ORGANIZATIONID  and g.CITIZENRYID = @CITIZENRYID ::bigint" local="true">
 				<AI id="1" name="Не предосталяется"/>
 				<AI id="2" name="Предосталяется"/>
 			</A>
-			<A id="STATUSCITIZEN" labelwidth="600"/>
+			<A id="STATUSCITIZEN" labelwidth="600"/>	
 		</TABLE>
 		
 		
@@ -1034,7 +1038,7 @@
 						<A id="TYPEOFLEAVEDIRID" name="Вид отпуска" caption="Вид отпуска" labelwidth="150" visible="form"/>
 						<A id="VACATIONS" name="Отпуск с" caption="Отпуск с" labelwidth="150" width="50" type="date" nulls="true" visible="form" local="true"/>
 						<A id="VACATIONPO" name="По" caption="По" labelwidth="50" width="50" type="date" nulls="true" visible="form" local="true"/>
-						<A id="NUMBEROFDAYS" name="Количество дней" caption="Количество дней" labelwidth="150" type="int" nulls="true" visible="form" local="true"/>
+						<A id="NUMBEROFDAYS" name="Количество дней отпуска" caption="Количество дней отпуска" labelwidth="150" type="int" nulls="true" visible="form" virtual="true" formula="select @VACATIONPO ::date - @VACATIONS ::date" local="true"/>
 						<A id="BASIS2" name="Основание" caption="Основание" labelwidth="150" type="list" nulls="true" visible="form" local="true">
 							<AI id="1" name="Дополнительный за особый характер работы"/>
 							<AI id="2" name="Дополнительный по семейным обстоятельствам"/>
@@ -1050,6 +1054,7 @@
 					<GA id="PERIODNOTINCLUDEDCITIZEN" name="Периоды, не вошедшие в АГС" caption="Периоды, не вошедшие в АГС">
 						<A id="UNPAIDPERIODS" name="Незасчитываемый период с" caption="Незасчитываемый период с" labelwidth="200" width="50" type="date" nulls="true" visible="form" local="true"/>
 						<A id="UNPAIDPERIODPO" name="По" caption="По" labelwidth="50" width="50" type="date" nulls="true" visible="form" local="true"/>
+						<A id="NUMBEROFDAYS2" name="Количество не засчитанных дней" caption="Количество не засчитанных дней" labelwidth="200" type="int" nulls="true" visible="form" virtual="true" formula="select @UNPAIDPERIODPO ::date - @UNPAIDPERIODS ::date" local="true"/>
 						<A id="BASIS3" name="Основание" caption="Основание" labelwidth="200" type="list" nulls="true" visible="form" local="true">
 							<AI id="1" name="Время нахождения в дополнительных отпусках, предостовляемых работодателем гражданам, обучающимся в образовательных учреждениях"/>
 							<AI id="2" name="Время нахождения в отпусках без сохранения заработной платы"/>
@@ -1122,9 +1127,9 @@
 				</A>
 				<A id="STATUS" name="Статус" caption="Статус" labelwidth="150" type="list" nulls="false" visible="true" value="1" local="true">
 					<AI id="1" name="Проект"/>
-					<AI id="2" name="Подтверждено"/>
-					<AI id="3" name="Отклонено"/>
-					<AI id="4" name="Утверждено"/>
+					<AI id="2" name="Отклонено"/>
+					<AI id="3" name="Утверждено"/>
+					<!-- <AI id="4" name="Подтверждено"/> -->
 				</A>
 				<A id="PLANSID" labelwidth="150"/>
 			</GA>
@@ -1716,7 +1721,7 @@
 			<GRID id="Plans" name="Планы Направлений" table="PLANS" actionlist="Approve;CancelApprove;PrintCardDirection;PrintCardPlan"/>
 		</FORM>
 		<FORM id="Direction" name="Направления">
-			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;Confirm;PrintCardDirection"/>
+			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;PrintCardDirection"/>
 		</FORM>
 		<FORM id="Statistics" name="Статистика">
 			<GRID id="Statistics" name="Статистика" table="STATISTICS"/>
