@@ -42,22 +42,22 @@
 			
 				<MI name="Выход" actionlist="Exit"/>
 			</MENU>
+			
+			<!-- Реестры -->
 			<MENU name="Реестры">
 				<MI name="Загрузка реестров" formlist="BenefitsPackets"/>
 				<MENU name="Реестры">
-					<MENU name="Единовременные пособия">
-						<MI name="Пособие по беременности и родам" formlist="Benefit02"/>
-						<MI name="Пособие ранние сроки беременности" formlist="Benefit03"/>
-						<MI name="Пособие при рождении ребенка" formlist="Benefit04"/>
-						<MI name="Пособие беременной жене военнослужащего" formlist="Benefit06"/>
-					</MENU>
-					<MENU name="Ежемесячные пособия">
-						<MI name="Пособие по уходу за ребенком" formlist="Benefit01"/>
-						<MI name="Пособие на ребенка военнослужащего" formlist="Benefit05"/>
-						<MI name="Пособие в связи с рождением (усыновлением)" formlist="Benefit07"/>
-					</MENU>
+					<MI name="Пособие по уходу за ребенком" formlist="Benefit01"/>
+					<MI name="Пособие по беременности и родам" formlist="Benefit02"/>
+					<MI name="Пособие ранние сроки беременности" formlist="Benefit03"/>
+					<MI name="Пособие при рождении ребенка" formlist="Benefit04"/>
+					<MI name="Пособие на ребенка военнослужащего" formlist="Benefit05"/>
+					<MI name="Пособие беременной жене военнослужащего" formlist="Benefit06"/>
+					<MI name="Пособие в связи с рождением (усыновлением)" formlist="Benefit07"/>
 				</MENU>
 			</MENU>
+			
+			<!-- Отчеты -->
 			<MENU name="Отчеты">
 				<MENU name="Первичные отчеты">
 					<MI name="Отчет по уходу за ребенком" reportlist="Areport_benefit01"/>
@@ -72,17 +72,21 @@
 					<MI name="Сводный отчет по гражданам, имеющим детей (регионы)" reportlist="Sreport_Reg"/>
 				</MENU>
 			</MENU>
+			
+			<!-- Аналитика -->
 			<MENU name="Аналитика">
-				<MI name="Личное дело получателя пособий" reportlist="PersonalFile"/>
-				<MI name="Поиск неправомерных доплат для ежемесячных пособий по уходу за ребенком" reportlist="Unlawfulsurcharge"/>
-				<MI name="Поиск случаев многократных выплат пособия в разных регионах" reportlist="Multiplepayments"/>
-				<MI name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange"/>
-				<MI name="Регионы, не отправившие пакеты в текущем месяце" reportlist="Notsend"/>
+				<MI name="Случаи многократных выплат" reportlist="Multiplepayments"/>
+				<MI name="Случаи неправомерных доплат" reportlist="Unlawfulsurcharge"/>
+				<MI name="Регионы, не загрузившие реестры" reportlist="Notsend"/>
 			</MENU>
+			
+			<!-- Участники процесса -->
 			<MENU name="Участники процесса">
 				<MI name="Отправители пакетов" formlist="Senders"/>
 				<MI name="Получатели пособий" formlist="Benefitsrecipients"/>
 			</MENU>
+			
+			<!-- Справочники -->
 			<MENU name="Справочники">
 				<MENU name="Документы">
 					<MI name="Документ, удостоверяющий личность" formlist="Persondocumentdir"/>
@@ -332,6 +336,11 @@
 		<A id="REGISTEREDDATE" name="Дата приема заявления на пособие" caption="Дата приема заявления на пособие" labelwidth="460" type="date" nulls="false" local="true"/>
 		<A id="REGISTEREDDATE07" name="Дата обращения" caption="Дата обращения" labelwidth="460" type="date" nulls="false" local="true"/>
 		<A id="BENEFITTOTALSUM" name="Общая сумма в отчетном месяце" caption="Общая сумма в отчетном месяце" labelwidth="225" type="number" len="18.2" nulls="true" local="true"/>
+		<A id="CHILD01ID" caption="Ребенок" type="ref" table="CHILD" pid="BENEFIT01ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
+		<A id="CHILD04ID" caption="Ребенок" type="ref" table="CHILD" pid="BENEFIT04ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
+		<A id="CHILD05ID" caption="Ребенок" type="ref" table="CHILD" pid="BENEFIT05ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
+		<A id="CHILD07ID" caption="Ребенок" type="ref" table="CHILD" pid="BENEFIT05ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
+		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -933,6 +942,7 @@
 				<AI id="03" name="Ошибка"/>
 			</A>
 			<A id="WRONGLOADING" name="Ошибки при загрузке" caption="Ошибки при загрузке" type="text" nulls="true" visible="form" readonly="true" local="true"/>
+			<!-- Вставить ключи или индексы -->
 		</TABLE>
 		
 		<!-- Техниxческая таблица -->
@@ -941,6 +951,8 @@
 			<A id="NAMETABLE" name="Имя таблицы" type="string" nulls="true" readonly="true" local="true"/>
 			<A id="HISTORYSTATUS" name="Статус" type="string" nulls="true" readonly="true" local="true"/>
 		</TABLE>
+		
+		<!-- Пособие по уходу за ребенком -->
 		<TABLE id="BENEFIT01" name="Пособие по уходу за ребенком">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -969,9 +981,14 @@
 		</TABLE>
 		<TABLE id="BENEFIT01PAYMENT" name="Выплата пособия">
 			<A id="BENEFIT01ID" parentkey="cascade"/>
+		    <A id="CHILD01ID"/>
+			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from CHILD d, BENEFITCHILD b where d.id = @CHILD01ID ::bigint and d.BENEFITCHILDID = b.id" local="true"/>
 			<GA id="REGIONALCOEFFICIENT"/>
 			<GA id="BENEFITPERIODPAY"/>
 		</TABLE>
+		
+		<!-- Пособие по беременности и родам -->
 		<TABLE id="BENEFIT02" name="Пособие по беременности и родам">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -995,6 +1012,8 @@
 			<A id="BENEFIT02DATE" name="Дата выплаты" caption="Дата выплаты пособия" labelwidth="450" type="date" nulls="false" local="true"/>
 			<GA id="BENEFITPERIODPAY"/>
 		</TABLE>
+		
+		<!-- Пособие ранние сроки беременности -->
 		<TABLE id="BENEFIT03" name="Пособие ранние сроки беременности">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -1014,6 +1033,8 @@
 			<GA id="REGIONALCOEFFICIENT"/>
 			<GA id="BENEFITDATEPAY"/>
 		</TABLE>
+		
+		<!-- Пособие при рождении ребенка -->
 		<TABLE id="BENEFIT04" name="Пособие при рождении ребенка">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -1036,9 +1057,15 @@
 		</TABLE>
 		<TABLE id="BENEFIT04PAYMENT" name="Выплата пособия">
 			<A id="BENEFIT04ID" parentkey="cascade"/>
+			
+			<A id="CHILD04ID"/>
+			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from CHILD d, BENEFITCHILD b where d.id = @CHILD04ID ::bigint and d.BENEFITCHILDID = b.id" local="true"/>
 			<GA id="REGIONALCOEFFICIENT"/>
 			<GA id="BENEFITDATEPAY"/>
 		</TABLE>
+		
+		<!-- Пособие на ребенка военнослужащего -->
 		<TABLE id="BENEFIT05" name="Пособие на ребенка военнослужащего">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -1060,9 +1087,16 @@
 		</TABLE>
 		<TABLE id="BENEFIT05PAYMENT" name="Выплата пособия">
 			<A id="BENEFIT05ID" parentkey="cascade"/>
+			
+			<A id="CHILD05ID"/>
+			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from CHILD d, BENEFITCHILD b where d.id = @CHILD05ID ::bigint and d.BENEFITCHILDID = b.id" local="true"/>
+			
 			<GA id="REGIONALCOEFFICIENT"/>
 			<GA id="BENEFITPERIODPAY"/>
 		</TABLE>
+		
+		<!-- Пособие беременной жене военнослужащего -->
 		<TABLE id="BENEFIT06" name="Пособие беременной жене военнослужащего">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -1091,6 +1125,8 @@
 			<GA id="REGIONALCOEFFICIENT"/>
 			<GA id="BENEFITDATEPAY"/>
 		</TABLE>
+		
+		<!-- Пособие в связи с рождением (усыновлением) -->
 		<TABLE id="BENEFIT07" name="Пособие в связи с рождением (усыновлением)">
 			<GA id="HEADER"/>
 		</TABLE>
@@ -1128,9 +1164,17 @@
 		</TABLE>
 		<TABLE id="BENEFIT07PAYMENT" name="Выплата пособия">
 			<A id="BENEFIT07ID" parentkey="cascade"/>
+			
+			<A id="CHILD07ID"/>
+			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from CHILD d, BENEFITCHILD b where d.id = @CHILD07ID ::bigint and d.BENEFITCHILDID = b.id" local="true"/>
+			
+			
 			<A id="SUBSISTENCECHILD" name="Прожиточный минимум для детей (2 квартал)" caption="Прожиточный минимум для детей (2 квартал)" labelwidth="225" type="number" len="18.2" nulls="true" local="true"/>
 			<GA id="AMONGTHEM07"/>
 		</TABLE>
+		
+		<!-- Получатели пособий -->
 		<TABLE id="BENEFITSRECIPIENTS" name="Получатели пособий">
 			<GA id="FIO"/>
 			<A id="CITIZENSHIP" name="Гражданство" caption="Гражданство" labelwidth="150" type="list" nulls="true" value="1" local="true">
@@ -1155,7 +1199,15 @@
 				<A id="DOCBIRTHCHILDNUMBER" name="Номер" caption="Номер" type="string" nulls="false" local="true"/>
 				<A id="DOCBIRTHCHILDDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="440" type="date" nulls="true" local="true"/>
 			</GA>
-			<TI unique="DOCBIRTHCHILDTYPEID,DOCBIRTHCHILDNUMBER"/>
+			
+			<TI id="BENEFITCHILD_UK1" unique="BENEFITSRECIPIENTSID,DOCBIRTHCHILDSERIAL,DOCBIRTHCHILDNUMBER"/>
+			<TI id="BENEFITCHILD_UK2" unique="BENEFITSRECIPIENTSID,BENEFITCHILDUMBER"/>
+			
+			<!-- Индексация таблиц если нет ключей для спецификации -->
+			<!-- <TI id="BENEFITCHILD_INDEX" index="BENEFITSRECIPIENTSID"/> -->
+			
+			
+			
 		</TABLE>
 		<TABLE id="REMARK" name="Примечания">
 			<A id="BENEFITSRECIPIENTSID" parentkey="cascade"/>
@@ -1354,37 +1406,12 @@
 		<ACTION id="Ratify" name="Утвердить" type="procedure" procedure="p_packets_ratify"/>
 	<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
 		<ACTION id="Noratify" name="Снять утверждение" type="procedure" procedure="p_packets_noratify"/>
+		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
-		<REPORT id="Areport_PersonalFile" name="Личное дело получателя пособий" procedure="" template="Areport_PersonalFile.xls">
-			<FORM>
-				<TABS>
-					<TAB name="География">
-						<A id="FEDERALREGIONDIRID" nulls="true"/>
-						<A id="SUBJECTSDIRID" caption="Субъект" labelwidth="120" nulls="true"/>
-					</TAB>
-					<TAB name="Получатель пособия">
-						<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="90" type="string" len="100" nulls="true" local="true"/>
-						<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="90" type="string" len="100" nulls="true" local="true"/>
-						<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="90" type="string" len="100" nulls="true" local="true"/>
-						<GA caption="Документ, удостоверяющий личность">
-							<A id="PERSONDOCUMENTTYPEID" labelwidth="80" nulls="true"/>
-							<A id="PERSONDOCUMENTSERIES" name="Cерия" caption="Cерия" labelwidth="80" type="string" len="20" nulls="true" local="true"/>
-							<A id="PERSONDOCUMENTNUMBER" name="Номер" caption="Номер" labelwidth="80" type="string" len="20" nulls="true" local="true"/>
-							<A id="PERSONDOCUMENTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" local="true"/>
-						</GA>
-					</TAB>
-				</TABS>
-			</FORM>
-		</REPORT>
 		
 		<!-- Отчеты -->
-		<REPORT id="Summreport_Reg" name="Сводный отчет по гражданам, имеющим детей" procedure="" template="Summreport_Reg.xls">
-			<FORM>
-				<GA id="DATEREPORT"/>
-			</FORM>
-		</REPORT>
 		<REPORT id="Areport_benefit01" name="Отчет по уходу за ребенком" procedure="" template="Areport_benefit01.xls">
 			<FORM>
 				<GA id="DATEREPORT"/>
@@ -1460,32 +1487,63 @@
 		</REPORT>
 		
 		<!-- Аналитика -->
-		<REPORT id="PersonalFile" name="Личное дело получателя пособий" procedure="" template="PersonalFile.xls">
+		<REPORT id="PersonalFile" name="Личное дело получателя пособий" procedure="" template="PersonalFile.xls"/>
+		
+		<REPORT id="Multiplepayments" name="Случаи многократных выплат" procedure="" template="Multiplepayments.xls">
+			<FORM>
+			<!-- Пособие -->
+			<A id="BENEFITSTYPENAMEDIRID" nulls="true" />
+			<!-- Период отчета -->
+				<GA id="DATEREPORT_REG" caption="Период отчета">
+					<A id="REPYEAR" name="Год" caption="Год" nulls="false" labelwidth="30" width="20"/>
+					<A id="REPMONTHBY" name="Месяц" caption="Месяц" type="list" nulls="true" labelwidth="60" width="20">
+						<AI id="1" name="Январь"/>
+						<AI id="2" name="Февраль"/>
+						<AI id="3" name="Март"/>
+						<AI id="4" name="Апрель"/>
+						<AI id="5" name="Май"/>
+						<AI id="6" name="Июнь"/>
+						<AI id="7" name="Июль"/>
+						<AI id="8" name="Август"/>
+						<AI id="9" name="Сентябрь"/>
+						<AI id="10" name="Октябрь"/>
+						<AI id="11" name="Ноябрь"/>
+						<AI id="12" name="Декабрь"/>
+					</A>
+				</GA>
+				
+				<!-- <GA -->
+				<!-- - Документ, удостоверяющий личность получателя пособия -->
+				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
+				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по фамилии и имени за период = Если есть совпадение в отчет -->
+				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
+				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по фамилии и имени пересечение периодов = Если есть совпадение в отчет -->
+				<!-- </GA> -->
+				
+				<!-- <GA -->
+				<!-- - Документ, подтверждающий факт рождения ребенка -->
+				<!-- Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
+				<!-- Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
+				<!-- </GA> -->
+			</FORM>
+		</REPORT>
+		
+		<REPORT id="MultiplepaymentsProtocol" name="Протокол результата проверки дублирования выплат" procedure="" template=" MultiplepaymentsProtocol.xls"/>
+		
+		
+		<REPORT id="Unlawfulsurcharge" name="Случаи неправомерных доплат" procedure="" template="Unlawfulsurcharge.xls">
 			<FORM>
 				<GA id="FIO"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Unlawfulsurcharge" name="Поиск неправомерных доплат для ежемесячных пособий по уходу за ребенком" procedure="" template="Unlawfulsurcharge.xls">
+		
+		<REPORT id="Notsend" name="Регионы, не загрузившие реестры" procedure="" template="Notsend.xls">
 			<FORM>
-				<GA id="FIO"/>
-			</FORM>
-		</REPORT>
-		<REPORT id="Multiplepayments" name="Поиск случаев многократных выплат пособия в разных регионах" reportlist="Multiplepayments.xls">
-			<FORM>
-				<GA id="FIO"/>
-			</FORM>
-		</REPORT>
-		<REPORT id="Multipledocumentchange" name="Поиск случаев многократных выплат пособия при смене документа, подтверждающего факт рождения ребенка" reportlist="Multipledocumentchange.xls">
-			<FORM>
-				<GA id="FIO"/>
-			</FORM>
-		</REPORT>
-		<REPORT id="Notsend" name="Регионы, не отправившие пакеты в текущем месяце" reportlist="Notsend.xls">
-			<FORM>
-				<GA id="FIO"/>
+				<GA id="DATEREPORT_REG" caption="Период отчета"/>
 			</FORM>
 		</REPORT>
 	</REPORTS>
+	
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Users" name="Пользователи">
 			<GRID id="Users" name="Пользователи" table="USERS"/>
@@ -1607,9 +1665,8 @@
 					<MI actionlist="ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="BENEFICIARIESREGISTERS" name="Реестры получателей" table="BENEFICIARIESREGISTERS" readonly="true">
+			<GRID id="BENEFICIARIESREGISTERS" name="Реестры получателей" table="BENEFICIARIESREGISTERS" readonly="true" actionlist="loadReestr;exportReestr">
 				<MENU>
-					<MI actionlist="loadReestr;exportReestr"/>
 					<MI actionlist="Update;View;Delete;ConfigTables"/>
 				</MENU>
 			</GRID>
@@ -1754,16 +1811,8 @@
 			</TABS>
 		</FORM>
 		
-		
-		<!-- <FORM id="Dupl_benefitschildcare" name="Поиск дублей пособий по уходу за ребенком"> -->
-			<!-- <GRID id="DUPL_BENEFITSCHILDCARE" name="Поиск дублей пособий по уходу за ребенком" table="DUPL_BENEFITSCHILDCARE"/> -->
-		<!-- </FORM> -->
 		<FORM id="Benefitsrecipients" name="Получатели пособий">
-			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS">
-				<MENU>
-					<MI name="Личное дело" actionlist="Update"/>
-				</MENU>
-			</GRID>
+			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS" reportlist="PersonalFile"/>
 			<TABS>
 				<TAB name="Сведения о ребенке получателя пособия">
 					<GRID id="BENEFITCHILD" name="Сведения о ребенке получателя пособия" table="BENEFITCHILD"/>
@@ -1773,6 +1822,11 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		
+		
+		
+		
+		
 		<FORM id="Senders" name="Отправители пакетов">
 			<GRID id="SENDERS" name="Отправители пакетов" table="SENDERS"/>
 		</FORM>
