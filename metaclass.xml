@@ -475,7 +475,7 @@
 		<!-- АГС -->
 		<GA id="UA" name="ЮА">
 			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="610" type="int" len="6" nulls="false" visible="form" local="true"/>
-			<A id="REGIONDIRID" labelwidth="110" nulls="false" visible="form"/>
+			<A id="REGIONDIRID" labelwidth="110" nulls="false" visible="true"/>
 			<A id="SETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="110" type="string" nulls="false" visible="form" local="true"/>
 			<A id="STREET" name="Улица" caption="Улица" labelwidth="110" type="string" nulls="true" visible="form" local="true"/>
 			<A id="HOUSE" name="Дом" caption="Дом" labelwidth="110" width="20" type="string" nulls="true" visible="form" local="true"/>
@@ -844,11 +844,11 @@
 				<GA id="NUMBEROFVACANCIES" caption="Количество вакантных мест">
 					<GA id="SPRING" name="Весна" caption="Весенний призыв" width="50">
 						<A id="JUSTSPRING" name="всего" caption="всего" labelwidth="32" width="10" type="int" nulls="false" local="true"/>
-						<A id="FREESPRING" name="свободно" caption="свободно" labelwidth="54" width="10" type="int" nulls="true" virtual="true" formula="select @JUSTSPRING ::int - count(*) from CITIZENRYORG g, CITIZENRY p where g.CITIZENRYID = p.ID and p.CONSCRIPTION = '1' and g.ORGANIZATIONID = @ORGANIZATIONID ::bigint and g.PROFESSIONDIRID = @PROFESSIONDIRID ::bigint" local="true"/>
+						<A id="FREESPRING" name="свободно" caption="свободно" labelwidth="54" width="10" type="int" nulls="true" virtual="true" formula="select @JUSTSPRING ::int - count(*) from DIRECTION g, CITIZENRY p where g.CITIZENRYID = p.ID and p.CONSCRIPTION = '1' and g.ORGANIZATIONID = @ORGANIZATIONID ::bigint and g.PROFESSIONDIRID = @PROFESSIONDIRID ::bigint" local="true"/>
 					</GA>
 					<GA id="AUTUMN" name="Осень" caption="Осенний призыв" width="50">
 						<A id="JUSTAUTUMN" name="всего" caption="всего" labelwidth="32" width="10" type="int" nulls="false" local="true"/>
-						<A id="FREEAUTUMN" name="свободно" caption="свободно" labelwidth="54" width="10" type="int" nulls="true" virtual="true" formula="select @JUSTAUTUMN ::int - count(*) from CITIZENRYORG g, CITIZENRY p where g.CITIZENRYID = p.ID and p.CONSCRIPTION = '2' and g.ORGANIZATIONID = @ORGANIZATIONID ::bigint and g.PROFESSIONDIRID = @PROFESSIONDIRID ::bigint" local="true"/>
+						<A id="FREEAUTUMN" name="свободно" caption="свободно" labelwidth="54" width="10" type="int" nulls="true" virtual="true" formula="select @JUSTAUTUMN ::int - count(*) from DIRECTION g, CITIZENRY p where g.CITIZENRYID = p.ID and p.CONSCRIPTION = '2' and g.ORGANIZATIONID = @ORGANIZATIONID ::bigint and g.PROFESSIONDIRID = @PROFESSIONDIRID ::bigint" local="true"/>
 					</GA>
 				</GA>
 				<GA id="HOUSINGVACANCY" caption="Обеспеченность жильем">
@@ -873,16 +873,15 @@
 			<A id="CITIZENRYID" caption="Гражданин" labelwidth="180" visible="form"/>
 			<A id="CITIZENVIRT" name="Фамилия Имя Отчество" caption="Фамилия Имя Отчество" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
 			<A id="ARRIVALDATEACTUALTEST" name="Дата прибытия" caption="Дата прибытия" type="date" labelwidth="600" virtual="true" formula="select r.ARRIVALDATEACTUAL from PASSAGEAGSCIT r where r.citizenryid = @CITIZENRYID ::bigint"/>
-			<A id="PROFESSIONDIRID" name="Должность" caption="Должность" labelwidth="180" virtual="true" formula="select r.PROFESSIONDIRID from CITIZENRYORG r where r.CITIZENRYID = @CITIZENRYID ::bigint"/>
-			<A id="REGIONVIRT" name="Регион" caption="Регион" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.name from CITIZENRYORG g, organization s, regiondir r where s.regiondirid = r.id and s.id = g.ORGANIZATIONID and g.CITIZENRYID = @CITIZENRYID ::bigint"/>
-			<A id="TARIFFRATEVIRT" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
+			<A id="PROFESSIONDIRID" name="Должность" caption="Должность" labelwidth="180"/>
+			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
 			<A id="MODEWORKDIRID" labelwidth="180"/>
 			<A id="WORKINGCONDITIONS" caption="Условия труда" labelwidth="180" type="list" nulls="true" visible="form" local="true">
 				<AI id="1" name="Нормальные"/>
 				<AI id="2" name="Тяжелые и вредные"/>
 				<AI id="3" name="Особо тяжелые и особо вредные"/>
 			</A>
-			<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" labelwidth="180" type="list" nulls="true" visible="true" virtual="true" formula="select m.housing from CITIZENRYORG g, vacancyorg m where m.PROFESSIONDIRID = g.PROFESSIONDIRID and g.ORGANIZATIONID = m.ORGANIZATIONID  and g.CITIZENRYID = @CITIZENRYID ::bigint" local="true">
+			<A id="HOUSING" name="Жилье" caption="Жилье" labelwidth="180" type="list" nulls="true" visible="true" local="true">
 				<AI id="1" name="Не предосталяется"/>
 				<AI id="2" name="Предосталяется"/>
 			</A>
@@ -1721,7 +1720,7 @@
 			<GRID id="Plans" name="Планы Направлений" table="PLANS" actionlist="Approve;CancelApprove;PrintCardDirection;PrintCardPlan"/>
 		</FORM>
 		<FORM id="Direction" name="Направления">
-			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;PrintCardDirection"/>
+			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;Confirm;PrintCardDirection"/>
 		</FORM>
 		<FORM id="Statistics" name="Статистика">
 			<GRID id="Statistics" name="Статистика" table="STATISTICS"/>
