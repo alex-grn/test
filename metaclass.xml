@@ -2,6 +2,7 @@
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
 		<MODULE id="IT_Infrastructure" name="Управление ИТ-инфраструктурой" menu="IT_Infrastructure"/>
+		<MODULE id="Admin_Fine" name="Администрирование штрафов" menu="Admin_Fine"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="Administrator" name="Меню модуля Администратор">
@@ -88,6 +89,25 @@
 				<MI name="Статусы" formlist="Statuses"/>
 				<MI name="Технические характеристики" formlist="Specifications"/>
 				<MI name="Типы документов" formlist="DocTypes"/>
+			</MENU>
+		</MENU>
+		<MENU id="Admin_Fine" name="Меню модуля Администрирование штрафов">
+			<MENU name="Файл">
+				<MI name="Параметры" formlist="Options"/>				
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Постановления">
+				<MI name="Файлы загрузки" formlist="Fileloading"/>
+				<MI name="Загрузка постановлений" formlist="Fineloading"/>
+				<MI name="Постановления" formlist="Fine"/>			
+			</MENU>
+			<MENU name="Оплата">
+				<MI name="Выписки" formlist="Payment"/>					
+			</MENU>
+			<MENU name="Справочники">
+				<MI name="Инспектор" formlist="Inspector"/>
+				<MI name="Правонарушитель" formlist="Transgressor"/>
+				<MI name="Законы и иные нормативные правовые акты" formlist="Enactment"/>
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
@@ -399,6 +419,7 @@
 		<A id="DATBREAK" name="Дата поломки" caption="Дата поломки" labelwidth="500" type="date" nulls="true"/>
 		<A id="DATREPAIR" name="Дата ремонта" caption="Дата ремонта" labelwidth="500" type="date" nulls="true"/>
 		<A id="DATSERVICE" name="Дата обслуживания" caption="Дата обслуживания" labelwidth="500" type="date" nulls="true"/>
+		<A id="ENACTMENTID" name="Законы и иные нормативные правовые акты" caption="Законы и иные нормативные правовые акты" labelwidth="300" type="ref" table="ENACTMENT" ret="NAME" form="Enactment" nulls="true"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -1440,6 +1461,18 @@
 			<A id="NOTE" name="Примечание"/>
 			<TI id="SPCOMPONENTSUSED_COMPONENTSID_IND" index="COMPONENTSID"/>
 		</TABLE>
+		<TABLE id="ENACTMENT" name="Законы и иные нормативные правовые акты">
+			<A id="CODE" name="Код" caption="Код" type="string" nulls="false"/>
+			<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="false"/>
+			<A id="DOCDATE" name="Действует с" caption="Действует с" type="date" nulls="false"/>
+		</TABLE>
+		<TABLE id="ENACTMENTARTICLE" name="Статьи">
+			<A id="ENACTMENTID" parentkey="cascade"/>
+			<A id="CODE" name="Часть/Статья" caption="Часть/Статья" type="string" nulls="false"/>
+			<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="false"/>
+			<A id="DATESTART" name="Дата начала действия" caption="Дата начала действия" labelwidth="500" type="date" nulls="true"/>
+			<A id="DATEFINISH" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="500" type="date" nulls="true"/>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="Insert" name="Добавить" type="java">
@@ -1946,6 +1979,10 @@
 		<FORM id="Components" name="Комплектующие и расходные материалы">
 			<GRID id="Components" name="Комплектующие и расходные материалы" table="COMPONENTS" reportlist="CardComponents"/>
 			<GRID id="SpComponentsUsed" name="Расход комплектующих" table="SPCOMPONENTSUSED"/>
+		</FORM>
+		<FORM id="Enactment" name="Законы и иные нормативные правовые акты">
+			<GRID id="Enactment" name="Законы и иные нормативные правовые акты" table="ENACTMENT"/>
+			<GRID id="EnactmentArticle" name="Статьи" table="ENACTMENTARTICLE"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
