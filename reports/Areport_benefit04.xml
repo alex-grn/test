@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="Areport_benefit01.xls" documentPath="Areport_benefit01.xls" outputType="xls" outputNamePattern="Areport_benefit01.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select 'за период с '||
+									case ${repmonth}::integer
+									 when 1 then '€нвар€'
+									 when 2 then 'феврал€'
+									 when 3 then 'марта'
+									 when 4 then 'апрел€'
+									 when 5 then 'ма€'
+									 when 6 then 'июн€'
+									 when 7 then 'июл€'
+									 when 8 then 'августа'
+									 when 9 then 'сент€бр€'
+									 when 10 then 'окт€бр€'
+									 when 11 then 'но€бр€'
+									 when 12 then 'декабр€'
+									 end
+									 ||' по '||
+									 case ${repmonthby}::integer
+									 when 1 then '€нварь'
+									 when 2 then 'февраль'
+									 when 3 then 'март'
+									 when 4 then 'апрель'
+									 when 5 then 'май'
+									 when 6 then 'июнь'
+									 when 7 then 'июль'
+									 when 8 then 'август'
+									 when 9 then 'сент€брь'
+									 when 10 then 'окт€брь'
+									 when 11 then 'но€брь'
+									 when 12 then 'декабрь'
+									 end
+									 ||' '||${repyear}::text||' года'  as DATEREPORT
+						</script>
+                     </query>
+                </queries>
+			</band>		
+			<band name="spec" orientation="H">
+				<queries>
+                    <query name="spec" type="sql">
+                        <script>
+							select 'ќбщий итог:' as FED,sum(fed) as CHISL,sum(rcof) as RASCHET,sum(pay) as POSOB
+							from(select 	 count(b.id) as FED, 
+							 count(b.id)*
+                                max((select COALESCE(st.min,0)
+                                from benefitstypedir p,
+                                	 benefitsindexdir t,
+                                	 benefitsindexdirhistory ST
+                               where p.rosternumber = 4
+                                and t.benefitstypenamedirid = p.id 
+                                and st.benefitsindexdirid = t.id
+                                and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id)))*
+                                max((SELECT COALESCE(P.coefficient,0)
+												FROM  BENEFIT04PAYMENT p 
+											   WHERE B.ID = P.benefit04id)) AS RCOF,
+								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
+												FROM  BENEFIT04PAYMENT p 
+											   WHERE B.ID = P.benefit04id)),0) AS PAY
+						     from BENEFIT04 B
+					   INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID and (SELECT CASE lower(Z.repmonth)
+													WHEN 'февраль' then 2
+                									WHEN 'март' then 3
+                									WHEN 'апрель' then 4
+                									WHEN 'май' then 5
+                									WHEN 'июнь' then 6
+                									WHEN 'июль' then 7
+                									WHEN 'август' then 8
+                									WHEN 'сент€брь' then 9
+                									WHEN 'окт€брь' then 10
+                									WHEN 'но€брь' then 11
+                									WHEN 'декабрь' then 12
+                									end ) between ${repmonth}::integer and ${repmonthby}::integer
+     						and z.repyear = ${repyear}::INTEGER
+					   right JOIN subjectsdir R ON Z.subjectsdirID = R.ID
+					   --входной параметр
+ 					--	GROUP BY R.fedreg;
+                    GROUP BY r.name)  r;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+            <band name="spec1" orientation="H">
+				<bands>
+					<band name="spec2" orientation="H">
+						<queries>
+                            <query name="spec2" type="sql">
+                                <script>
+									select  r.name as FED, 
+										    count(b.id) AS CHISL,
+											max((select COALESCE(st.min,0) as RASCHET
+									  from benefitstypedir p,
+										   benefitsindexdir t,
+										   benefitsindexdirhistory ST
+                                     where p.rosternumber = 4
+                                       and t.benefitstypenamedirid = p.id 
+									   and st.benefitsindexdirid = t.id
+									   and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id))) as NORMA,
+                                         max((SELECT COALESCE(P.coefficient,0) 
+												FROM  BENEFIT04PAYMENT p 
+											   WHERE B.ID = P.benefit04id)) AS RCOF,
+								 coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
+												FROM  BENEFIT04PAYMENT p 
+											   WHERE B.ID = P.benefit04id)),0) AS POSOB
+								     from BENEFIT04 B
+								INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID and
+												(SELECT CASE lower(Z.repmonth)
+													WHEN 'февраль' then 2
+                									WHEN 'март' then 3
+                									WHEN 'апрель' then 4
+                									WHEN 'май' then 5
+                									WHEN 'июнь' then 6
+                									WHEN 'июль' then 7
+                									WHEN 'август' then 8
+                									WHEN 'сент€брь' then 9
+                									WHEN 'окт€брь' then 10
+                									WHEN 'но€брь' then 11
+                									WHEN 'декабрь' then 12
+                									end ) between ${repmonth}::integer and ${repmonthby}::integer
+     									and z.repyear = ${repyear}::INTEGER  --входной параметр
+							    right JOIN subjectsdir R ON Z.subjectsdirID = R.ID
+										where r.fedreg = ${spec1.FED}
+										group by r.name;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="spec1" type="sql">
+                        <script>
+                            			select fedregg as FED, sum(COALESCE(CHISL,0)) as CHISL,sum(COALESCE(RASCHET,0)) as RASCHET,sum(COALESCE(POSOB,0)) as POSOB
+							from(	     select R.fedreg as fedregg,
+             					r.name as namess,
+             					count(b.id) as CHISL, 
+							    count(b.id)*
+                                max((select COALESCE(st.min,0)
+                                from benefitstypedir p,
+                                	 benefitsindexdir t,
+                                	 benefitsindexdirhistory ST
+                               where p.rosternumber = 4
+                                and t.benefitstypenamedirid = p.id 
+                                and st.benefitsindexdirid = t.id
+                                and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id)))*
+                                max((SELECT COALESCE(P.coefficient,0)
+												FROM  BENEFIT04PAYMENT p 
+											   WHERE B.ID = P.benefit04id)) AS RASCHET,
+								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
+												FROM  BENEFIT04PAYMENT p 
+											   WHERE B.ID = P.benefit04id)),0) AS POSOB
+						     from BENEFIT04 B
+					   INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID and (SELECT CASE lower(Z.repmonth)
+													WHEN 'февраль' then 2
+                									WHEN 'март' then 3
+                									WHEN 'апрель' then 4
+                									WHEN 'май' then 5
+                									WHEN 'июнь' then 6
+                									WHEN 'июль' then 7
+                									WHEN 'август' then 8
+                									WHEN 'сент€брь' then 9
+                									WHEN 'окт€брь' then 10
+                									WHEN 'но€брь' then 11
+                									WHEN 'декабрь' then 12
+                									end ) between ${repmonth}::integer and ${repmonthby}::integer
+     						and z.repyear = ${repyear}::INTEGER
+					   right JOIN subjectsdir R ON Z.subjectsdirID = R.ID 
+					   --входной параметр
+ 					--	GROUP BY R.fedreg;
+                    GROUP BY r.name,R.fedreg)  r
+                    group by fedregg;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
