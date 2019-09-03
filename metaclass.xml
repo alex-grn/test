@@ -48,11 +48,11 @@
 			<MENU name="Граждане">
 				<MI name="Граждане" formlist="Citizenry"/>
 			</MENU>
-			<MENU name="Направления">
-				<MI name="Направления" formlist="Direction"/>
-			</MENU>
 			<MENU name="Планы Направлений">
 				<MI name="Планы Направлений" formlist="Plans"/>
+			</MENU>
+			<MENU name="Направления">
+				<MI name="Направления" formlist="Direction"/>
 			</MENU>
 			<MENU name="Статистика">
 				<MI name="Профессии" reportlist="PROFESSIONREPORT"/>
@@ -531,18 +531,18 @@
 			<A id="DATA" name="Данные" caption="Данные" type="text" nulls="true" visible="false" local="true"/>
 		</TABLE>
 		<TABLE id="USERS" name="Пользователи">
-			<A id="LOGIN" labelwidth="120"/>
-			<A id="PASSWORD" labelwidth="120"/>
+			<A id="LOGIN" labelwidth="150"/>
+			<A id="PASSWORD" labelwidth="150"/>
 			<GA id="F.I.O." name="Ф.И.О.">
-				<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" len="100" nulls="false" local="true"/>
-				<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="120" type="string" len="100" nulls="false" local="true"/>
-				<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="120" type="string" len="100" nulls="true" local="true"/>
+				<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="150" type="string" len="100" nulls="false" local="true"/>
+				<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="150" type="string" len="100" nulls="false" local="true"/>
+				<A id="PATRONYMIC" name="Отчество" caption="Отчество" labelwidth="150" type="string" len="100" nulls="true" local="true"/>
 			</GA>
-			<A id="REGIONDIRID" labelwidth="120" visible="true"/>
-			<A id="POSITIONAGS" name="Должность" caption="Должность" labelwidth="120" type="string" nulls="false" visible="true" local="true"/>
-			<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="120" type="string" nulls="true" visible="form" local="true"/>
-			<A id="email" name="E-Mail" caption="E-Mail" labelwidth="120" type="string" nulls="true" visible="form" local="true"/>
-			<A id="NAME" labelwidth="120" nulls="false" visible="form"/>
+			<A id="REGIONDIRID" labelwidth="150" nulls="false" visible="true"/>
+			<A id="POSITIONAGS" name="Занимаемая должность" caption="Занимаемая должность" labelwidth="150" type="string" nulls="false" visible="true" local="true"/>
+			<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="150" type="string" nulls="true" visible="form" local="true"/>
+			<A id="email" name="E-Mail" caption="E-Mail" labelwidth="150" type="string" nulls="true" visible="form" local="true"/>
+			<A id="NAME" labelwidth="150" nulls="false" visible="form"/>
 			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="200" visible="form"/>
 			<A id="DISABLED"/>
 			<TI id="USERS_LOGIN_UK" unique="LOGIN"/>
@@ -810,7 +810,7 @@
 			<GA id="UA" name="ЮА" caption="Юридический адрес"/>
 			<GA id="FA" name="ФА" caption="Фактический адрес"/>
 			<TI unique="INN"/>
-			<A id="STATUSORG"/>
+			<A id="STATUSORG" readonly="true"/>
 		</TABLE>
 		
 		<!-- Вкладка "Вакансии" -->
@@ -863,7 +863,7 @@
 						<A id="JUSTAUTUMN2" caption="Количество мест" labelwidth="110" type="int" nulls="false" visible="form" local="true"/>
 					</GA>
 				</GA>
-				<A id="STATUSORG" labelwidth="560"/>
+				<A id="STATUSORG" readonly="true" labelwidth="560"/>
 			</GA>
 		</TABLE>
 		
@@ -873,7 +873,8 @@
 			<A id="CITIZENRYID" caption="Гражданин" labelwidth="180" visible="form"/>
 			<A id="CITIZENVIRT" name="Фамилия Имя Отчество" caption="Фамилия Имя Отчество" labelwidth="180" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from citizenry x where x.id = @CITIZENRYID::bigint" local="true"/>
 			<A id="ARRIVALDATEACTUALTEST" name="Дата прибытия" caption="Дата прибытия" type="date" labelwidth="600" virtual="true" formula="select r.ARRIVALDATEACTUAL from PASSAGEAGSCIT r where r.citizenryid = @CITIZENRYID ::bigint"/>
-			<A id="PROFESSIONDIRID" name="Должность" caption="Должность" labelwidth="180"/>
+			<A id="PROFESSIONDIRID" name="Наименование должности" caption="Наименование должности" labelwidth="180"/>
+			<A id="CODEPROFVIRT" name="Код по ОКПДТР" caption="Код по ОКПДТР" type="string" labelwidth="180" nulls="true" visible="form" local="true" virtual="true" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint"/>
 			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
 			<A id="MODEWORKDIRID" labelwidth="180"/>
 			<A id="WORKINGCONDITIONS" caption="Условия труда" labelwidth="180" type="list" nulls="true" visible="form" local="true">
@@ -914,7 +915,7 @@
 						<A id="NUMBERC" caption="Номер учетной карты" labelwidth="130" width="33" type="string" nulls="true" visible="form" local="true"/>
 						<A id="DATEACCDOC" caption="Дата выдачи учетных документов" labelwidth="600" type="date" nulls="true" visible="form" local="true"/>
 						<A id="FILLDATE" caption="Дата заполнения" labelwidth="600" type="date" nulls="true" visible="form" formula="now()" local="true"/>
-						<A id="STATUSCITIZEN" name="Статус" caption="Статус" visible="true" labelwidth="600"/>
+						<A id="STATUSCITIZEN" name="Статус" caption="Статус" visible="true" readonly="true" labelwidth="600"/>
 					</GA>
 				</TAB>
 				
@@ -1112,7 +1113,7 @@
 			</GA>
 			<GA id="VACANCYDIRECTION" name="Вакансия" caption="Вакансии">
 				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
-				<A id="VACANCYORGID" name="Должность" caption="Должность" labelwidth="150"/>
+				<A id="VACANCYORGID" name="Вакансия" caption="Вакансия" labelwidth="150"/>
 				<A id="REGIONVIRT" name="Регион" caption="Регион" labelwidth="150" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.name from organization s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONID ::bigint"/>
 				<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" labelwidth="150" type="list" nulls="false" visible="true" virtual="true" formula="select m.housing from vacancyorg m where m.id = @VACANCYORGID ::bigint" local="true">
 					<AI id="1" name="Не предосталяется"/>
@@ -1124,11 +1125,11 @@
 					<AI id="1" name="Первичное"/>
 					<AI id="2" name="Повторное"/>
 				</A>
-				<A id="STATUS" name="Статус" caption="Статус" labelwidth="150" type="list" nulls="false" visible="true" value="1" local="true">
+				<A id="STATUS" name="Статус" caption="Статус" labelwidth="150" type="list" nulls="false" visible="true" readonly="true" value="1" local="true">
 					<AI id="1" name="Проект"/>
-					<AI id="2" name="Отклонено"/>
-					<AI id="3" name="Утверждено"/>
-					<!-- <AI id="4" name="Подтверждено"/> -->
+					<AI id="2" name="Отклонено" readonly="true"/>
+					<AI id="3" name="Утверждено" readonly="true"/>
+					<AI id="4" name="Подтверждено" readonly="true"/>
 				</A>
 				<A id="PLANSID" labelwidth="150"/>
 			</GA>
@@ -1138,10 +1139,6 @@
 		<!-- Раздел План Направлений -->
 		<TABLE id="PLANS" name="Планы направлений">
 			<GA id="PLANSDIRECTION" name="Планы направлений" caption="Планы направлений">
-				<A id="STATUS2" name="Статус" caption="Статус" labelwidth="550" type="list" nulls="false" visible="true" value="1" local="true">
-					<AI id="1" name="Проект"/>
-					<AI id="2" name="Утвержден"/>
-				</A>
 				<A id="NAMEPLAN" name="Название" caption="Название" labelwidth="150" type="string" nulls="false" visible="true" local="true"/>
 				<A id="APPROVALDATE" name="Дата утверждения" caption="Дата утверждения" labelwidth="550" type="date" nulls="false" visible="true"/>
 				<A id="CONSCRIPTION" name="Период призыва" caption="Период призыва" labelwidth="150" type="list" nulls="false" visible="true" local="true">
@@ -1150,6 +1147,10 @@
 				</A>
 				<A id="YEARCONSCRIPTIO" name="Год призыва" caption="Год призыва" labelwidth="150" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 				<A id="COMMENT3" name="Примечание" caption="Примечание" labelwidth="150" type="text" nulls="true" visible="true" local="true"/>
+				<A id="STATUS2" name="Статус" caption="Статус" labelwidth="550" type="list" nulls="false" readonly="true" visible="true" value="1" local="true">
+					<AI id="1" name="Проект"/>
+					<AI id="2" name="Утвержден" readonly="true"/>
+				</A>
 			</GA>
 		</TABLE>
 		
