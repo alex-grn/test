@@ -77,8 +77,7 @@
 			<MENU name="Аналитика">
 				
 				<MI  name="Случаи многократных выплат" formlist="Multiplepayments"/>
-				
-				<MI name="Случаи неправомерных доплат" reportlist="Unlawfulsurcharge"/>
+				<MI name="Случаи неправомерных доплат" formlist="Unlawfulsurcharge"/>
 				<MI name="Регионы, не загрузившие реестры" reportlist="Notsend"/>
 			</MENU>
 			
@@ -437,20 +436,8 @@
 		<GA id="REPORTING" name="Отчетный период">
 			<A id="REPYEAR" name="Год" caption="Год" labelwidth="20" width="10" type="int" nulls="false"
 				formula="select  case (to_char( now() - interval '1 month','MM')) when '01' then to_char( now()- interval '1 year','YYYY') else to_char(now(),'YYYY') end" local="true"/>
-			<A id="REPMONTH" name="Месяц" caption="Месяц" labelwidth="35" width="10" type="string" nulls="false" 
-			   formula="select case (to_char(now()- interval '1 month','MM'))
-			    when '01' then 'Январь'   
-			    when '02' then 'Февраль'   
-			    when '03' then 'Март'   
-			    when '04' then 'Апрель'   
-			    when '05' then 'Май'  
-			    when '06' then 'Июнь'   
-			    when '07' then 'Июль'   
-			    when '08' then 'Август'   
-			    when '09' then 'Сентябрь'   
-			    when '10' then 'Октябрь'   
-			    when '11' then 'Ноябрь'   
-			    when '12' then 'Декабрь' end" local="true"/>
+			<A id="REPMONTH" name="Месяц" caption="Месяц" labelwidth="35" width="10" nulls="false" 
+			   formula="select (to_char(now()- interval '1 month','MM'))::int"/>
 		</GA>
 		<GA id="DATEREPORT" caption="Период отчета">
 			<A id="REPYEAR" name="Год" caption="Год" labelwidth="30" width="20"/>
@@ -925,7 +912,6 @@
 				<TI unique="SUBJECTSDIRID,REPYEAR,REPMONTH"/>
 			</A>
 		</TABLE>
-		
 		<!-- Если пакеты по одному типу реестров за одинаковый период, если такой пакет уже существует НЕ ГРУЗИТЬ -->
 		<TABLE id="BENEFICIARIESREGISTERS" name="Реестры получателей">
 			<A id="BENEFITSPACKETSID" parentkey="cascade"/>
@@ -937,10 +923,7 @@
 			<A id="STATUS" name="Результат" caption="Результат" labelwidth="620" type="list" nulls="true" value="02" local="true">
 				<!-- Автоматом если  нет ошибок -->
 				<AI id="01" name="Проверен"/>
-				
-				<!-- Наверно не нужно -->
-				<AI id="02" name="Не проверен"/>
-				<AI id="03" name="Ошибка"/>
+				<AI id="02" name="Ошибка"/>
 			</A>
 			<A id="WRONGLOADING" name="Ошибки при загрузке" caption="Ошибки при загрузке" type="text" nulls="true" visible="form" readonly="true" local="true"/>
 			<!-- Вставить ключи или индексы -->
@@ -1195,8 +1178,18 @@
 					<A id="DOCNUMBERC" caption="Номер" type="string" visible="form" nulls="true" local="true"/>
 					<A id="DOCDATEC" caption="Дата выдачи" type="date" visible="form" nulls="true" local="true"/>
 				</GA>
-				<A id="PERIODPAY" name="Период" type="string" nulls="true" local="true"/>
-				<A id="SUMPAY" name="Сумма" type="number" nulls="true" local="true"/>
+			<A id="PERIODPAY" name="Период" type="string" nulls="true" local="true"/>
+			<A id="SUMPAY" name="Сумма" type="number" nulls="true" local="true"/>
+		</TABLE>
+		
+		<!-- Случаи неправомерных доплат -->
+		<TABLE id="UNLAWFULSURCHARGE" name="Случаи неправомерных доплат">
+			<A id="FIOB" name="Получатель пособия" type="string" nulls="true" local="true"/>
+			<A id="REGION" name="Регион" type="string" nulls="true" local="true"/>
+			<A id="PERIODEXTRA" name="Период доплаты" type="string" nulls="true" local="true"/>
+			<A id="BENEFIT" name="Пособие" type="string" nulls="true" local="true"/>
+			<A id="RECIPIENTSCAT" name="Категория получателя" type="string" nulls="true" local="true"/>
+			<A id="REMARK" name="Примечание" type="number" nulls="true" local="true"/>
 		</TABLE>
 		
 		<!-- Получатели пособий -->
@@ -1438,7 +1431,6 @@
 		<!-- Случаи многократных выплат -->
 		<ACTION id="MultiplepaymentsA" name="Сформировать" type="procedure" procedure="" >
 			<FORM>
-			<!-- Пособие -->
 				<A id="BENEFITSTYPENAMEDIRID" caption="Пособие" labelwidth="65" nulls="false"/>
 				<A id="REPYEAR" caption="Год" nulls="true" labelwidth="630"/>
 				<GA caption="Получатель пособия">
@@ -1460,24 +1452,30 @@
 						<A id="DOCBIRTHCHILDTYPEID" labelwidth="45" nulls="true"/>
 						<A id="DOCSERIESC" caption="Cерия" labelwidth="45" width="35" type="string" nulls="true" local="true"/>
 						<A id="DOCNUMBERC" caption="Номер" labelwidth="50" width="30" type="string" nulls="true" local="true"/>
-						<A id="DOCDATEC" caption="Дата выдачи" labelwidth="90" width="20" type="date" nulls="true" local="true"/>
 					</GA>
 					<A id="BIRTHDATEC" caption="Дата рождения" type="date" nulls="true" labelwidth="560" local="true"/>
 					 
 				</GA>
-				
-				
-				
-				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
-				<!-- Смотрим получателя пособия по документу во всех регионах за период + Смотрим ребенка получателя пособия по фамилии и имени за период = Если есть совпадение в отчет -->
-				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
-				<!-- Смотрим получателя пособия по документу во всех регионах пересечение периодов + Смотрим ребенка получателя пособия по фамилии и имени пересечение периодов = Если есть совпадение в отчет -->
-				
-				<!-- - Документ, подтверждающий факт рождения ребенка -->
-				<!-- Смотрим ребенка получателя пособия по документу во всех регионах за период = Если есть совпадение в отчет -->
-				<!-- Смотрим ребенка получателя пособия по документу во всех регионах пересечение периодов = Если есть совпадение в отчет -->
 			</FORM>
 		</ACTION>
+		
+		<!-- Случаи неправомерных доплат -->
+		<ACTION id="UnlawfulsurchargeA" name="Сформировать" type="procedure" procedure="">
+			<FORM>
+				<A id="BENEFITSTYPENAMEDIRID" caption="Пособие" labelwidth="65" nulls="false"/>
+				<GA caption="Получатель пособия">
+					<A id="LASTNAMEB" caption="Фамилия" labelwidth="55" width="33" type="string" nulls="true" local="true"/>
+					<A id="FIRSTNAMEB" caption="Имя" labelwidth="57" width="30" type="string" nulls="true" local="true"/>
+					<A id="PATRONYMICB" caption="Отчество" labelwidth="90" width="30" type="string" nulls="true" local="true"/>
+					<GA caption="Документ, удостоверяющий личность">
+						<A id="PERSONDOCUMENTTYPEID" labelwidth="45" nulls="true"/>
+						<A id="DOCSERIESB" caption="Cерия" labelwidth="45" width="35" type="string" nulls="true" local="true"/>
+						<A id="DOCNUMBERB" caption="Номер" labelwidth="50" width="30" type="string" nulls="true" local="true"/>
+					</GA>
+				</GA>	
+			</FORM>
+		</ACTION>
+		
 		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
@@ -1563,14 +1561,11 @@
 		
 		<REPORT id="Multiplepayments" name="Случаи многократных выплат" procedure="" template="Multiplepayments.xls"/>
 		
-		<REPORT id="MultiplepaymentsProtocol" name="Протокол результата проверки дублирования выплат" procedure="" template=" MultiplepaymentsProtocol.xls"/>
+		<REPORT id="MultiplepaymentsProtocol" name="Протокол результата проверки дублирования выплат" procedure="" template="MultiplepaymentsProtocol.xls"/>
 		
+		<REPORT id="ErrorsProtocol" name="Протокол ошибок" procedure="" template="ErrorsProtocol.txt"/>
 		
-		<REPORT id="Unlawfulsurcharge" name="Случаи неправомерных доплат" procedure="" template="Unlawfulsurcharge.xls">
-			<FORM>
-				<GA id="FIO"/>
-			</FORM>
-		</REPORT>
+		<REPORT id="Unlawfulsurcharge" name="Случаи неправомерных доплат" procedure="" template="Unlawfulsurcharge.xls"/>
 		
 		<REPORT id="Notsend" name="Регионы, не загрузившие реестры" procedure="" template="Notsend.xls">
 			<FORM>
@@ -1693,13 +1688,8 @@
 		
 		<!-- РПП -->
 		<FORM id="BenefitsPackets" name="Пакеты реестров">
-			<GRID id="BENEFITSPACKETS" name="Пакеты реестров" table="BENEFITSPACKETS" readonly="true">
-				<MENU>
-					<MI actionlist="Insert;Update;View;Delete"/>
-					<MI actionlist="Ratify;Noratify"/>
-					<MI actionlist="ConfigTables"/>
-				</MENU>
-			</GRID>
+			<GRID id="BENEFITSPACKETS" name="Пакеты реестров" table="BENEFITSPACKETS" actionlist="Ratify;Noratify" reportlist="ErrorsProtocol"/>
+
 			<GRID id="BENEFICIARIESREGISTERS" name="Реестры получателей" table="BENEFICIARIESREGISTERS" readonly="true" actionlist="loadReestr;exportReestr">
 				<MENU>
 					<MI actionlist="Update;View;Delete;ConfigTables"/>
@@ -1850,6 +1840,9 @@
 			<GRID id="MULTIPLEPAYMENTS" name="Случаи многократных выплат" table="MULTIPLEPAYMENTS" readonly="true" actionlist="MultiplepaymentsA" reportlist="Multiplepayments;MultiplepaymentsProtocol;PersonalFile"/>
 		</FORM>
 		
+		<FORM id="Unlawfulsurcharge" name="Случаи неправомерных доплат">
+			<GRID id="UNLAWFULSURCHARGE" name="Случаи неправомерных доплат" table="UNLAWFULSURCHARGE" readonly="true" actionlist="UnlawfulsurchargeA" reportlist="Unlawfulsurcharge;PersonalFile"/>
+		</FORM>
 		
 		<FORM id="Benefitsrecipients" name="Получатели пособий">
 			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS" reportlist="PersonalFile"/>
@@ -1862,10 +1855,6 @@
 				</TAB>
 			</TABS>
 		</FORM>
-		
-		
-		
-		
 		
 		<FORM id="Senders" name="Отправители пакетов">
 			<GRID id="SENDERS" name="Отправители пакетов" table="SENDERS"/>
