@@ -817,8 +817,12 @@
 		<TABLE id="VACANCYORG" name="Вакансии">
 			<A id="ORGANIZATIONID" parentkey="cascade"/>
 			<GA id="INFORMVACANCY" caption="Информация о вакансии">
-				<A id="PROFESSIONDIRID" labelwidth="190"/>
-				<A id="CODEPROFVIRT" caption="Код по ОКПДТР" labelwidth="190" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true"/>
+				<A id="PROFESSIONDIRID" labelwidth="190" formula="select c.codeprofvirt from vacancyorg c where c.id = @PROFESSIONDIRID ::bigint">
+					<AI id="*" readonly="CODEPROFVIRT"/>
+				</A>
+				<A id="CODEPROFVIRT" caption="Код по ОКПДТР" labelwidth="190" type="string" nulls="true" visible="form" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true">
+					<AI id="*" readonly="PROFESSIONDIRID"/>
+				</A>
 				<A id="QUALIFICATION" caption="Класс (категория) квалификации" labelwidth="190" type="list" nulls="true" visible="form" local="true">
 					<AI id="1" name="1 разряд"/>
 					<AI id="2" name="2 разряд"/>
@@ -875,7 +879,7 @@
 			<A id="ARRIVALDATEACTUALTEST" name="Дата прибытия" caption="Дата прибытия" type="date" labelwidth="600" virtual="true" formula="select r.ARRIVALDATEACTUAL from PASSAGEAGSCIT r where r.citizenryid = @CITIZENRYID ::bigint"/>
 			<A id="VACANCYORGID" name="Наименование должности" caption="Наименование должности" labelwidth="180"/>
 			<!-- <A id="PROFESSIONDIRID" name="Наименование должности" caption="Наименование должности" visible="form" labelwidth="180"/> --> 
-			<A id="CODEPROFVIRT" name="Код по ОКПДТР" caption="Код по ОКПДТР" type="string" labelwidth="180" nulls="true" visible="form" local="true" virtual="true" formula="select c.codeprof from professiondir c where c.id = @VACANCYORGID ::bigint"/>
+			<A id="CODEPROFVIRT" name="Код по ОКПДТР" caption="Код по ОКПДТР" type="string" labelwidth="180" nulls="true" visible="form" local="true" virtual="true" formula="select c.codeprof from VACANCYORG v, professiondir c where v.id = @VACANCYORGID ::bigint and v.PROFESSIONDIRID = c.id"/>
 			<A id="TARIFFRATE" name="Тарифная ставка" caption="Тарифная ставка" labelwidth="180" type="number" len="17.2" nulls="false" local="true"/>
 			<A id="MODEWORKDIRID" labelwidth="180"/>
 			<A id="WORKINGCONDITIONS" caption="Условия труда" labelwidth="180" type="list" nulls="true" visible="form" local="true">
