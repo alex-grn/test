@@ -480,7 +480,7 @@
 			<A id="COMPANYNAMEID" name="Наименование организации"/>
 		</GA>
 		<GA id="HEADER">
-			<A id="BENEFITSTYPEDIRID"/>
+			<A id="BENEFITSTYPEDIRID" parentkey="cascade"/>
 			<A id="BENEFITSPACKETSID" visible="false" nulls="true" readonly="true"/>
 			<A id="REGVIRT2" name="Регион" caption="Регион" type="string" nulls="true" readonly="true" virtual="true" labelwidth="120"
 			   formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
@@ -1072,11 +1072,9 @@
 		</TABLE>
 		<TABLE id="BENEFIT05PAYMENT" name="Выплата пособия">
 			<A id="BENEFIT05ID" parentkey="cascade"/>
-			
 			<A id="CHILD05ID"/>
 			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true"
 			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from CHILD05 d, BENEFITCHILD b where d.id = @CHILD05ID ::bigint and d.BENEFITCHILDID = b.id" local="true"/>
-			
 			<GA id="REGIONALCOEFFICIENT"/>
 			<GA id="BENEFITPERIODPAY"/>
 		</TABLE>
@@ -1206,9 +1204,9 @@
 			<A id="RECIPIENTSCATEGORIESDIRID"/>
 			<A id="RECIPIENTADDRESS" name="Адрес получателя" caption="Адрес получателя" labelwidth="150" type="text" len="250" nulls="false" visible="form" local="true"/>
 			<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность получателя пособия"/>
-			<TI unique="PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER"/>
+			<A id="LINKREG" name="Ссылка на реестр" type="boolean" visible="gri" local="true"/>
+			<TI unique="PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER"/> 
 		</TABLE>
-		
 		<TABLE id="BENEFITCHILD" name="Сведения о ребенке получателя пособия">
 			<A id="BENEFITSRECIPIENTSID" parentkey="cascade"/>
 			<GA id="FIO"/>
@@ -1232,6 +1230,7 @@
 			<A id="BENEFITSTYPEDIRID" labelwidth="75" parentkey="cascade" visible="true"/>
 			<A id="NOTE" labelwidth="75"/>
 		</TABLE>
+		
 		<!-- Отправители пакетов -->
 		<TABLE id="SENDERS" name="Отправители пакетов">
 			<GA id="SENDERSGROUP" name="Отправитель" caption="Отправитель"/>
