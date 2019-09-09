@@ -817,12 +817,12 @@
 		<TABLE id="VACANCYORG" name="Вакансии">
 			<A id="ORGANIZATIONID" parentkey="cascade"/>
 			<GA id="INFORMVACANCY" caption="Информация о вакансии">
-				<A id="PROFESSIONDIRID" labelwidth="190" formula="select c.codeprofvirt from vacancyorg c where c.id = @PROFESSIONDIRID ::bigint">
-					<AI id="*" readonly="CODEPROFVIRT"/>
-				</A>
-				<A id="CODEPROFVIRT" caption="Код по ОКПДТР" labelwidth="190" type="string" nulls="true" visible="form" formula="select c.codeprof from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true">
-					<AI id="*" readonly="PROFESSIONDIRID"/>
-				</A>
+				<A id="PROFESSIONDIRID" labelwidth="190" formula="select c.id from professiondir c where c.id = @CODEPROFVIRT ::bigint"/>
+				<!--	<AI id="*" readonly="CODEPROFVIRT"/>
+				</A>-->
+				<A id="CODEPROFVIRT" name="Код по ОКПДТР" caption="Код по ОКПДТР" labelwidth="190" type="ref" table="PROFESSIONDIR" ret="CODEPROF" form="Professiondir" nulls="true" visible="form" formula="select c.id from professiondir c where c.id = @PROFESSIONDIRID ::bigint" local="true"/>
+				<!--	<AI id="*" readonly="PROFESSIONDIRID"/>
+				</A>-->
 				<A id="QUALIFICATION" caption="Класс (категория) квалификации" labelwidth="190" type="list" nulls="true" visible="form" local="true">
 					<AI id="1" name="1 разряд"/>
 					<AI id="2" name="2 разряд"/>
@@ -1092,10 +1092,10 @@
 		<TABLE id="DIRECTION" name="Направления">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
 				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" parentkey="nocascade" visible="true"/>
-				<A id="REGIONDIRID" labelwidth="150" width="50" nulls="true" visible="true"/>
-				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="150" width="50" type="string" nulls="true" visible="form" local="true"/>
-				<A id="PROFESSIONDIRID" caption="Профессии" labelwidth="150" visible="form"/>
-				<A id="LEVELEDUCATION" name="Образование" caption="Образование" labelwidth="150" type="list" nulls="true" visible="form" local="true">
+				<A id="REGIONDIR" name="Регион" caption="Регион" type="string" labelwidth="150" width="50" nulls="true" visible="true" virtual="true" readonly="true" formula="select r.name from CITIZENRY x,regiondir r where x.id = @CITIZENRYID::bigint and r.id = x.regiondirid" local="true"/>
+				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="150" width="50" type="string" nulls="true" visible="form" virtual="true" readonly="true" formula="select x.settlement from CITIZENRY x where x.id = @CITIZENRYID::bigint" local="true"/>
+				<A id="PROFESSIONDIR" name="Профессии" caption="Профессии" type="string" labelwidth="150" visible="form" virtual="true" readonly="true" formula="select p.name from CITIZENRY x, EDUCATIONCIT e, professiondir p where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id and e.professiondirid = p.id"/>
+				<A id="LEVELEDUCATION" name="Образование" caption="Образование" labelwidth="150" type="list" nulls="true" visible="form" local="true" virtual="true" readonly="true" formula="select e.leveleducation from CITIZENRY x, EDUCATIONCIT e where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id">
 					<AI id="1" name="Дошкольное образование"/>
 					<AI id="2" name="Начальное общее образование"/>
 					<AI id="3" name="Основное общее образование"/>
@@ -1106,16 +1106,16 @@
 					<AI id="8" name="Высшее образование"/>
 					<AI id="9" name="Послевузовское образование"/>
 				</A>
-				<A id="SUITABILITY" caption="Годность к военной службе" labelwidth="150" type="list" nulls="true" visible="form" local="true">
+				<A id="SUITABILITY" caption="Годность к военной службе" labelwidth="150" type="list" nulls="true" visible="form" local="true" virtual="true" readonly="true" formula="select x.suitability from CITIZENRY x where x.id = @CITIZENRYID::bigint">
 					<AI id="1" name="А"/>
 					<AI id="2" name="Б"/>
 					<AI id="3" name="В"/>
 					<AI id="4" name="Г"/>
 					<AI id="5" name="Д"/>
 				</A>
-				<A id="SPECIALFAMILYSTATUS" caption="Особое семейное положение" type="boolean" nulls="true" visible="form" local="true"/>
-				<A id="EXCLUDEARMEDFORCES" caption="Исключить вакансии в ВС, другие войска и организации оборонной промышленности" type="boolean" nulls="true" visible="form" local="true"/>
-				<A id="NATIVEPEOPLE" caption="Коренные народы" type="boolean" nulls="true" visible="form" local="true"/>
+				<A id="SPECIALFAMILYSTATUS" caption="Особое семейное положение" type="boolean" nulls="true" visible="form" virtual="true" readonly="true" local="true" formula="select x.specialfamilystatus from CITIZENRY x where x.id = @CITIZENRYID::bigint"/>
+				<A id="EXCLUDEARMEDFORCES" caption="Исключить вакансии в ВС, другие войска и организации оборонной промышленности" type="boolean" nulls="true" visible="form" virtual="true" readonly="true" local="true" formula="select x.excludearmedforces from CITIZENRY x where x.id = @CITIZENRYID::bigint"/>
+				<A id="NATIVEPEOPLE" caption="Коренные народы" type="boolean" nulls="true" visible="form" virtual="true" readonly="true" local="true" formula="select x.nativepeople from CITIZENRY x where x.id = @CITIZENRYID::bigint"/>
 			</GA>
 			<GA id="VACANCYDIRECTION" name="Вакансия" caption="Вакансии">
 				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
