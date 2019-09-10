@@ -51,8 +51,8 @@
 			<MENU name="Планы Направлений">
 				<MI name="Планы Направлений" formlist="Plans"/>
 			</MENU>
-			<MENU name="Направления">
-				<MI name="Направления" formlist="Direction"/>
+			<MENU name="План заданий">
+				<MI name="План заданий" formlist="Direction"/>
 			</MENU>
 			<MENU name="Статистика">
 				<MI name="Профессии" reportlist="PROFESSIONREPORT"/>
@@ -65,6 +65,7 @@
 				<MI name="Организации и вакансии" reportlist="ORGVACREPORT"/>
 			</MENU>
 			<MENU name="Справочники">
+				<MI name="Организации" formlist="Organizationdir"/>
 				<MI name="Ведомство" formlist="Departmentdir"/>
 				<MI name="Коренные народы" formlist="Nativepeopledir"/>
 				<MI name="Профессии/Должности" formlist="Professiondir"/>
@@ -496,7 +497,7 @@
 		</GA>
 		<GA id="FL" name="ФЛ" caption="ФЛ">
 			<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="610" type="string" nulls="true" visible="form" local="true"/>
-			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="610" type="int" len="6" nulls="false" visible="form" local="true"/>
+			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="610" type="int" len="6" nulls="true" visible="form" local="true"/>
 			<A id="REGIONDIRID" labelwidth="120" nulls="false"/>
 			<A id="SETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="120" type="string" nulls="false" visible="form" local="true"/>
 			<A id="STREET" name="Улица" caption="Улица" labelwidth="120" type="string" nulls="false" visible="form" local="true"/>
@@ -804,7 +805,7 @@
 		<!-- Раздел "Организации" -->
 		<TABLE id="ORGANIZATION" name="Организации">
 			<A id="VACANCIESYEAR" name="Год" caption="Год" labelwidth="620" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
-			<A id="INN" name="ИНН" caption="ИНН" labelwidth="620" type="number" len="12" nulls="false" visible="form" local="true"/>
+			<A id="INN" name="ИНН" caption="ИНН" labelwidth="620" type="number" len="10" nulls="false" visible="form" local="true"/>
 			<A id="Name" name="Наименование" caption="Наименование" labelwidth="120" type="string" nulls="false" local="true"/>
 			<A id="DEPARTMENTDIRID" nulls="true" labelwidth="120"/>
 			<GA id="UA" name="ЮА" caption="Юридический адрес"/>
@@ -957,6 +958,7 @@
 		<!-- Вкладка "Образование и опыт" -->
 		<TABLE id="EDUCATIONCIT" name="Образование и опыт">
 			<A id="CITIZENRYID" parentkey="cascade"/>
+			<A id="HIDEDATE" name="Скрытая дата" caption="Скрытая дата" type="date" nulls="true" visible="false" formula="now()" local="true"/>
 			<GA id="EDUCATIONCITYZEN" name="Образование" caption="Образование">
 				<A id="LEVELEDUCATION" caption="Уровень образования" nulls="false" labelwidth="150"/>
 				<A id="SPECIALTYEDUCATIONDIRID" caption="Специальность" labelwidth="150" nulls="true"/>
@@ -1071,8 +1073,8 @@
 		</TABLE>
 		
 		
-		<!-- Раздел Направления -->
-		<TABLE id="DIRECTION" name="Направления">
+		<!-- Раздел План заданий -->
+		<TABLE id="DIRECTION" name="План заданий">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
 				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" parentkey="nocascade" visible="true"/>
 				<A id="REGIONDIR" name="Регион" caption="Регион" type="string" labelwidth="150" width="50" nulls="true" visible="true" virtual="true" readonly="true" formula="select r.name from CITIZENRY x,regiondir r where x.id = @CITIZENRYID::bigint and r.id = x.regiondirid" local="true"/>
@@ -1142,10 +1144,30 @@
 				</A>
 			</GA>
 		</TABLE>
+		<!-- Вкладки План направлений -->
+		<TABLE id="CITIZENRYPLANS" name="Граждане">
+			<A id="CITIZENRYID" name="Гражданин" caption="Гражданин"/>
+		</TABLE>
+		<TABLE id="ORGANIZATIONPLANS" name="Организации">
+			<A id="ORGANIZATIONID" name="Организации" caption="Организации"/>
+		</TABLE>
+		<TABLE id="VACANCYORGPLANS" name="Вакансии">
+			<A id="VACANCYORGID" name="Вакансии" caption="Вакансии"/>
+		</TABLE>
 		
 		
 		
 		<!-- Справочники АГС -->
+		<!-- Организации -->
+		<TABLE id="ORGANIZATIONDIR" name="Организации">
+			<A id="INN" name="ИНН" caption="ИНН" labelwidth="620" type="number" len="10" nulls="false" visible="true" local="true"/>
+			<A id="Name" name="Наименование" caption="Наименование" labelwidth="120" type="string" nulls="false" local="true"/>
+			<A id="DEPARTMENTDIRID" nulls="true" labelwidth="120"/>
+			<GA id="UA" name="ЮА" caption="Юридический адрес"/>
+			<GA id="FA" name="ФА" caption="Фактический адрес"/>
+			<TI unique="INN"/>
+			<A id="STATUSORG" readonly="true"/>
+		</TABLE>
 		<!-- Ведомства -->
 		<TABLE id="DEPARTMENTDIR" name="Ведомство">
 			<A id="NAME" name="Наименование" caption="Наименование" type="string" labelwidth="200" nulls="false" local="true"/>
@@ -1350,7 +1372,7 @@
 		<!-- Отчеты АГС -->
 		<REPORT id="PrintCard" name="Печать карточки" procedure="" template="test_actionreport.xlsx"/>
 		<REPORT id="PrintCardCitizen" name="Печать карточки гражданина" procedure="" template=""/>
-		<REPORT id="PrintCardDirection" name="Печать карточки направления" procedure="" template=""/>
+		<REPORT id="PrintCardDirection" name="Печать карточки план заданий" procedure="" template=""/>
 		<REPORT id="PrintCardPlan" name="Печать карточки плана направлений" procedure="" template=""/>
 		<REPORT id="LoadCitizen" name="Загрузка граждан" procedure="" template=""/>
 		
@@ -1696,8 +1718,8 @@
 						</MENU>
 					</GRID>
 				</TAB>
-				<TAB name="Направления">
-					<GRID id="DIRECTION" name="Направления" table="DIRECTION" readonly="true">
+				<TAB name="План заданий">
+					<GRID id="DIRECTION" name="План заданий" table="DIRECTION" readonly="true">
 						<MENU>
 							<MI actionlist="View;ConfigTables"/>
 						</MENU>
@@ -1718,9 +1740,20 @@
 					<MI actionlist="Insert;Update;View;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
+			<TABS>
+				<TAB name="Граждане">
+					<GRID id="CITIZENRYPLANS" name="Граждане" table="CITIZENRYPLANS"/>
+				</TAB>
+				<TAB name="Организации">
+					<GRID id="ORGANIZATIONPLANS" name="Организации" table="ORGANIZATIONPLANS"/>
+				</TAB>
+				<TAB name="Вакансии">
+					<GRID id="VACANCYORGPLANS" name="Вакансии" table="VACANCYORGPLANS"/>
+				</TAB>
+			</TABS>
 		</FORM>
-		<FORM id="Direction" name="Направления">
-			<GRID id="Direction" name="Направления" table="DIRECTION" actionlist="Approve;Reject;Unpin;Confirm" reportlist="PrintCardDirection" readonly="true">
+		<FORM id="Direction" name="План заданий">
+			<GRID id="Direction" name="План заданий" table="DIRECTION" actionlist="Approve;Reject;Unpin;Confirm" reportlist="PrintCardDirection" readonly="true">
 				<MENU>
 					<MI actionlist="Insert;Update;View;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
@@ -1728,6 +1761,9 @@
 		</FORM>
 		<FORM id="Statistics" name="Статистика">
 			<GRID id="Statistics" name="Статистика" table="STATISTICS"/>
+		</FORM>
+		<FORM id="Organizationdir" name="Организации">
+			<GRID id="Organizationdir" name="Организации" table="ORGANIZATIONDIR"/>
 		</FORM>
 		<FORM id="Departmentdir" name="Ведомство">
 			<GRID id="Departmentdir" name="Ведомство" table="DEPARTMENTDIR"/>
