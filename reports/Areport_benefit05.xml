@@ -43,7 +43,89 @@
 						</script>
                      </query>
                 </queries>
-			</band>		
+			</band>
+			<band name="totaldata" orientation="H">
+				<queries>
+                    <query name="totaldata" type="sql">
+                        <script>
+							select b05r.region,
+								   b05r.pers_count,
+								   b05r.reg_coeff,
+								   b05r.norm_sum,
+								   b05r.norm_sum_by_reg_coeff,
+								   b05r.pers_sum_by_reg_coeff,
+								   b05r.pay_sum,
+								   b05r.dist_sum,
+								   b05r.row_ps1
+							  from benefit05_rep b05r
+							 where b05r.uid = ${UID}::bigint
+							   and b05r.row_ps0 = 0
+							 order by b05r.code_area,
+									  b05r.row_ps0,
+									  b05r.code_region,
+									  b05r.row_ps1;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+            <band name="areadata" orientation="H">
+				<bands>
+					<band name="regiondata" orientation="H">
+						<queries>
+                            <query name="regiondata" type="sql">
+                                <script>
+									select b05r.region,
+										   b05r.pers_count,
+										   b05r.reg_coeff,
+										   b05r.norm_sum,
+										   b05r.norm_sum_by_reg_coeff,
+										   b05r.pers_sum_by_reg_coeff,
+										   b05r.pay_sum,
+										   b05r.dist_sum,
+										   b05r.code_area,
+										   b05r.row_ps0,
+										   b05r.code_region,
+										   b05r.row_ps1
+									  from benefit05_rep b05r
+									 where b05r.uid = ${UID}::bigint
+									   and b05r.row_ps1 not in (0,1)
+									   and b05r.code_area = ${areadata.code_area}
+									 order by b05r.code_area,
+											  b05r.row_ps0,
+											  b05r.code_region,
+											  b05r.row_ps1;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="areadata" type="sql">
+                        <script>
+							select b05r.region,
+								   b05r.pers_count,
+								   b05r.reg_coeff,
+								   b05r.norm_sum,
+								   b05r.norm_sum_by_reg_coeff,
+								   b05r.pers_sum_by_reg_coeff,
+								   b05r.pay_sum,
+								   b05r.dist_sum,
+								   b05r.code_area,
+								   b05r.row_ps0,
+								   b05r.code_region,
+								   b05r.row_ps1
+							  from benefit05_rep b05r
+							 where b05r.uid = ${UID}::bigint
+                               and b05r.row_ps0 = 1
+                               and b05r.row_ps1 = 1
+							 order by b05r.code_area,
+									  b05r.row_ps0,
+									  b05r.code_region,
+									  b05r.row_ps1;
+                        </script>
+                    </query>
+                </queries>
+            </band>
         </bands>
         <queries/>
     </rootBand>
