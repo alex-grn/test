@@ -13,11 +13,19 @@ $body$
      st := 'statuscitizen';
    elsif tablename = 'direction' then
      st := 'status';
+   elsif tablename = 'plans' then
+     st := 'status2';
    else
      st := 'statusorg';
    end if;
    sql:='update '||tablename||' s set '||st||' = 3 where s.id = '|| nID;
    execute sql;
+   if tablename = 'vacancyorg' then
+         update organization s set statusorg = 3 where s.id = (select s.organizationid from VACANCYORG s where s.id = nID);
+   end if;
+   if tablename = 'citizenry' then
+         update direction s set status = 3 where s.citizenryid = nID;
+   end if;
  end;
 $body$
 LANGUAGE 'plpgsql'
