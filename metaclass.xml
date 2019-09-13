@@ -341,13 +341,8 @@
 		<A id="CHILD05ID" caption="Ребенок" type="ref" table="CHILD05" pid="BENEFIT05ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
 		<A id="CHILD07ID" caption="Ребенок" type="ref" table="CHILD07" pid="BENEFIT07ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
 		<A id="MULTIPLEPAYMENTSID"  caption="Случаи многократных выплат" type="ref" table="MULTIPLEPAYMENTS" ret="BENEFITSRECIPIENTSID" nulls="false" local="true"/>
-				
-				<A id="BENEFITSRECIPIENTSID" name="Вид" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTTYPEID_RET" form="Benefitsrecipients" nulls="false"/>
-				<A id="BENEFITSRECIPIENTSID" name="Серия" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTSERIES" form="Benefitsrecipients" nulls="false"/>
-				<A id="BENEFITSRECIPIENTSID" name="Номер" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTNUMBER" form="Benefitsrecipients" nulls="false"/>
-				<A id="BENEFITSRECIPIENTSID" name="Дата выдачи" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTDATE" form="Benefitsrecipients" nulls="false"/>
-			
-		
+		<A id="BENEFITSRECIPIENTFULLVIRT" name="Получатель пособия" caption="Получатель пособия" labelwidth="120" type="string" nulls="true" visible="form" readonly="false" virtual="true" 
+		   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID::bigint" local="true"/>		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -474,6 +469,12 @@
 			<A id="PERSONDOCUMENTNUMBER" name="Номер" caption="Номер" labelwidth="140" type="string" len="20" local="true"/>
 			<A id="PERSONDOCUMENTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="false" local="true"/>
 		</GA>
+		<GA id="PERSONDOCUMENTVIRT" name="Документ, удостоверяющий личность" caption="Документ, удостоверяющий личность">
+			<A id="PERSONDOCUMENTTYPEIDVIRT" name="Вид" caption="Вид" labelwidth="140" type="ref" table="PERSONDOCUMENTDIR" ret="NAME" nulls="false" virtual="true" formula="select PERSONDOCUMENTTYPEID from BENEFITSRECIPIENTS where id=@BENEFITSRECIPIENTSID"/>
+			<A id="PERSONDOCUMENTSERIES" name="Cерия" caption="Cерия" labelwidth="140" type="string" len="20" nulls="false" local="true" virtual="true" formula="select PERSONDOCUMENTSERIES from BENEFITSRECIPIENTS where id=@BENEFITSRECIPIENTSID"/>
+			<A id="PERSONDOCUMENTNUMBER" name="Номер" caption="Номер" labelwidth="140" type="string" len="20" local="true" virtual="true" formula="select PERSONDOCUMENTNUMBER from BENEFITSRECIPIENTS where id=@BENEFITSRECIPIENTSID"/>
+			<A id="PERSONDOCUMENTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="false" local="true" virtual="true" formula="select PERSONDOCUMENTDATE from BENEFITSRECIPIENTS where id=@BENEFITSRECIPIENTSID"/>
+		</GA>
 		<GA id="FIO" name="Ф.И.О.">
 			<A id="LASTNAME" name="Фамилия" caption="Фамилия" labelwidth="150" type="string" len="100" nulls="false" local="true"/>
 			<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="150" type="string" len="100" nulls="false" local="true"/>
@@ -494,10 +495,15 @@
 			<A id="LASTNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.lastname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
 			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
 			<A id="PATRONYMICVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.patronymic from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
-			<A id="BENEFITSRECIPIENTFULL" name="Получатель пособия" caption="Получатель пособия" labelwidth="120" type="string" nulls="true" visible="form" readonly="false" virtual="true"
-			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID::bigint" local="true"/>
+			<A id="BENEFITSRECIPIENTFULLVIRT"/>
 			<A id="REMARKID" visible="false"/>
 			<A id="REMARKVIRT" name="Примечание" caption="Примечание" labelwidth="120" type="text" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.note from remark r where r.id=@REMARKID ::bigint" local="true"/>
+		</GA>
+		<GA id="CHILDDOCVIRT" name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
+			<A id="TYPEVIRT" name="Вид" caption="Вид" type="string" nulls="true" readonly="true" virtual="true" formula="select d.name from benefitchild b, CERTIFICATEBIRTHDIR d where b.id=@BENEFITCHILDID ::bigint and b.docbirthchildtypeid=d.id" local="true"/>
+			<A id="SERIALVIRT" name="Серия" caption="Серия" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildserial from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			<A id="NUMBERVIRT" name="Номер" caption="Номер" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildnumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
+			<A id="DATEVIRT" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchilddate from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
 		</GA>
 		<GA id="CHILD">
 			<A id="BENEFITCHILDID"/>
@@ -510,12 +516,7 @@
 				<A id="BIRTHDATEVIRT" name="Дата рождения (усыновления)" caption="Дата рождения (усыновления)" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.benefitchilddatebirth from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
 				<A id="CHILDUMBERVIRT" name="Очередность рождения (усыновления)" caption="Очередность рождения (усыновления)" labelwidth="450" type="int" nulls="true" readonly="true" virtual="true" formula="select b.benefitchildumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
 			</GA>
-			<GA name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
-				<A id="TYPEVIRT" name="Вид" caption="Вид" type="string" nulls="true" readonly="true" virtual="true" formula="select d.name from benefitchild b, CERTIFICATEBIRTHDIR d where b.id=@BENEFITCHILDID ::bigint and b.docbirthchildtypeid=d.id" local="true"/>
-				<A id="SERIALVIRT" name="Серия" caption="Серия" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildserial from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
-				<A id="NUMBERVIRT" name="Номер" caption="Номер" type="string" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchildnumber from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
-				<A id="DATEVIRT" name="Дата выдачи" caption="Дата выдачи" labelwidth="450" type="date" nulls="true" readonly="true" virtual="true" formula="select b.docbirthchilddate from benefitchild b where b.id=@BENEFITCHILDID ::bigint" local="true"/>
-			</GA>
+			<GA id="CHILDDOCVIRT"/>
 		</GA>
 		<GA id="CHILD2">
 			<A id="BENEFITCHILDID"/>
@@ -1165,45 +1166,26 @@
 		<!-- АНАЛИТИКА -->
 		<!-- Случаи многократных выплат" -->
 		<TABLE id="MULTIPLEPAYMENTS" name="Случаи многократных выплат">
-			<A id="BENEFIT" name="Пособие" type="string" nulls="true" local="true"/>
-			
-			
-			<A id="BENEFITSRECIPIENTSID" visible="form"/>
-			<A id="BENEFITSRECIPIENTFULL" name="Получатель пособия" visible="grid"/>
-			<GA name="Документ, удостоверяющий личность">
-				<!-- <A id="VID" name="Вид" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTTYPEID_RET" local="true"/> -->
-				<!-- <A id="SID" name="Серия" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTSERIES" local="true"/> -->
-				<A id="NID" name="Номер" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTNUMBER" local="true"/>
-				<!-- <A id="DVID" name="Дата выдачи2" type="ref" table="BENEFITSRECIPIENTS" ret="PERSONDOCUMENTDATE" local="true"/> -->
-		
-				<!-- <A id="PERSONDOCUMENTTYPEID" name="Вид"/> -->
-				<!-- <A id="DOCSERIESB" name="Cерия" type="string" nulls="true" local="true"/> -->
-				<!-- <A id="DOCNUMBERB" name="Номер" type="string" nulls="true" local="true"/> -->
-				<!-- <A id="DOCDATEB" name="Дата выдачи" type="date" nulls="true" local="true"/> -->
-			</GA>
+			<A id="BENEFITSTYPEDIRID" name="Пособие" caption="Пособие" visible="grid" nulls="false"/>
+			<A id="BENEFITSRECIPIENTSID" caption="Получатель пособияID" visible="false"/>
+			<A id="BENEFITSRECIPIENTFULLVIRT" name="Получатель пособия" visible="grid"/>
+			<GA id="PERSONDOCUMENTVIRT"/>
 		</TABLE>	
-		
 		<TABLE id="MULTIPLEPAYMENTSFOOTER" name="История выплат">
 			<A id="MULTIPLEPAYMENTSID" parentkey="cascade"/>
-			<A id="BENEFITCHILDID" name="Ребенок" caption="Ребенок" visible="true"/>
-			
-			
-			<A id="BIRTHDATEC" name="Дата рождения ребенка" caption="Дата рождения ребенка" type="date" nulls="true" local="true"/>
-			<GA id="DOCC" name="Документ, подтверждающий факт рождения ребенка" caption="Документ, подтверждающий факт рождения ребенка">
-				<A id="DOCBIRTHCHILDTYPEID" name="Вид" caption="Вид"/>
-				<A id="DOCSERIESC" name="Cерия" caption="Cерия" type="string" nulls="true" local="true"/>
-				<A id="DOCNUMBERC" name="Номер" caption="Номер" type="string" nulls="true" local="true"/>
-				<A id="DOCDATEC" name="Дата выдачи" caption="Дата выдачи" type="date" nulls="true" local="true"/>
-			</GA>
-			<A id="SUBJECTSDIRID" name="Регион" caption="Регион" visible="true"/>
-			<A id="BENEFITSTYPEDIRID" name="Регион2" caption="Регион2" visible="true"/>
+			<A id="BENEFITSRECIPIENTSID" visible="false" virtual="true" formula="select BENEFITSRECIPIENTSID from MULTIPLEPAYMENTS where id = @MULTIPLEPAYMENTSID"/>
+			<A id="BENEFITCHILDID" name="РебенокID" caption="РебенокID" visible="false"/>
+			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from BENEFITCHILD b where b.id=@BENEFITCHILDID" local="true"/>
+			<A id="BIRTHDATEVIRT"/>
+			<GA id="CHILDDOCVIRT"/>
+			<A id="SUBJECTSDIRID" name="Регион" caption="Регион" visible="true" />
 			<A id="PERIODPAY" name="Период" caption="Период" type="string" nulls="true" local="true"/>
 			<A id="SUMPAY" name="Сумма" caption="Сумма" type="number" nulls="true" local="true"/>
 		</TABLE>
 		
 		<!-- Случаи неправомерных доплат -->
 		<TABLE id="UNLAWFULSURCHARGE" name="Случаи неправомерных доплат">
-			<!-- <A id="FIOB" name="Получатель пособия" type="string" nulls="true" local="true"/> -->
 			<A id="BENEFITSRECIPIENTSID"/>
 			<A id="REGION" name="Регион" type="string" nulls="true" local="true"/>
 			<A id="PERIODEXTRA" name="Период доплаты" type="string" nulls="true" local="true"/>
@@ -1224,7 +1206,21 @@
 			<A id="RECIPIENTSCATEGORIESDIRID"/>
 			<A id="RECIPIENTADDRESS" name="Адрес получателя" caption="Адрес получателя" labelwidth="150" type="text" len="250" nulls="false" visible="form" local="true"/>
 			<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность получателя пособия"/>
-			<A id="LINKREG" name="Ссылка на реестр" type="boolean" visible="grid" local="true"/>
+			<A id="LINKREGVIRT" name="Ссылка на реестр" type="boolean" virtual="true" visible="grid" 
+			   formula="select case when sum(ssum)  > 0 then 'true' else 'false' end from 
+				(select count(*) as ssum from benefit01 s where s.benefitsrecipientsid = @ID
+				union
+				select count(*) from benefit02 s where s.benefitsrecipientsid = @ID
+				union
+				select count(*) from benefit03 s where s.benefitsrecipientsid = @ID
+				union
+				select count(*) from benefit04 s where s.benefitsrecipientsid = @ID
+				union
+				select count(*) from benefit05 s where s.benefitsrecipientsid = @ID
+				union
+				select count(*) from benefit06 s where s.benefitsrecipientsid = @ID
+				union
+				select count(*) from benefit07 s where s.benefitsrecipientsid = @ID) ss" local="true"/>
 			<TI unique="PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER"/> 
 		</TABLE>
 		<TABLE id="BENEFITCHILD" name="Сведения о ребенке получателя пособия">
@@ -1445,6 +1441,7 @@
 		<ACTION id="Ratify" name="Утвердить" type="procedure" procedure="p_packets_ratify"/>
 	<!-- По нажатии меню "Снять утверждение" возврат к возможности загрузки пакетов -->
 		<ACTION id="Noratify" name="Снять утверждение" type="procedure" procedure="p_packets_noratify"/>
+		
 		<!-- Случаи многократных выплат -->
 		<ACTION id="MultiplepaymentsA" name="Сформировать" type="procedure" procedure="p_action_multiplepayments_gen" >
 			<FORM>
@@ -1474,6 +1471,7 @@
 				</GA>
 			</FORM>
 		</ACTION>
+		
 		<!-- Случаи неправомерных доплат -->
 		<ACTION id="UnlawfulsurchargeA" name="Сформировать" type="procedure" procedure="p_action_unlawfulsurcharge_gen">
 			<FORM>
@@ -1812,7 +1810,7 @@
 			<GRID id="MULTIPLEPAYMENTS" name="Случаи многократных выплат" table="MULTIPLEPAYMENTS" readonly="true" actionlist="MultiplepaymentsA" reportlist="Multiplepayments;MultiplepaymentsProtocol;PersonalFile"/>
 			<TABS>
 				<TAB name="История выплат">
-					<GRID id="MULTIPLEPAYMENTSFOOTER" name="История выплат" table="MULTIPLEPAYMENTSFOOTER"/>
+					<GRID id="MULTIPLEPAYMENTSFOOTER" name="История выплат" table="MULTIPLEPAYMENTSFOOTER" readonly="true"/>
 				</TAB>
 			</TABS>
 		</FORM>
