@@ -1082,7 +1082,7 @@
 				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" parentkey="nocascade" visible="true"/>
 				<A id="REGIONDIR" name="Регион" caption="Регион" type="string" labelwidth="150" width="40" nulls="true" visible="true" virtual="true" readonly="true" formula="select r.name from CITIZENRY x,regiondir r where x.id = @CITIZENRYID::bigint and r.id = x.regiondirid" local="true"/>
 				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="150" width="40" type="string" nulls="true" visible="form" virtual="true" readonly="true" formula="select x.settlement from CITIZENRY x where x.id = @CITIZENRYID::bigint" local="true"/>
-				<A id="PROFESSIONDIR" name="Профессии" caption="Профессии" type="string" labelwidth="150" visible="form" virtual="true" readonly="true" formula="select p.name from CITIZENRY x, EDUCATIONCIT e, professiondir p where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id and e.professiondirid = p.id"/>
+				<A id="PROFESSIONDIR" name="Профессии" caption="Профессии" type="string" labelwidth="150" visible="form" virtual="true" readonly="true" formula="select p.name from CITIZENRY x, EDUCATIONCIT e, professiondir p where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id and e.professiondirid = p.id and e.hidedate = (select max(hidedate) from EDUCATIONCIT ee where ee.citizenryid = e.citizenryid)"/>
 				<A id="LEVELEDUCATION" name="Образование" caption="Образование" labelwidth="150" type="list" nulls="true" visible="form" local="true" virtual="true" readonly="true" formula="select e.leveleducation from CITIZENRY x, EDUCATIONCIT e where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id and e.hidedate = (select max(hidedate) from EDUCATIONCIT ee where ee.citizenryid = e.citizenryid)">
 					<AI id="1" name="Дошкольное образование"/>
 					<AI id="2" name="Начальное общее образование"/>
@@ -1109,9 +1109,9 @@
 				<A id="CHECKBOX3" name="Искать по образованию" caption="Искать по образованию" type="boolean" width="34" visible="form"/>
 			</GA>
 			<GA id="VACANCYDIRECTION" name="Вакансия" caption="Вакансии">
-				<A id="ORGANIZATIONID" labelwidth="150" ret="Name"/>
+				<A id="ORGANIZATIONDIRID" labelwidth="150" ret="Name"/>
 				<A id="VACANCYORGID" name="Вакансия" caption="Вакансия" labelwidth="150"/>
-				<A id="REGIONVIRT" name="Регион" caption="Регион" labelwidth="150" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.name from organization s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONID ::bigint"/>
+				<A id="REGIONVIRT" name="Регион" caption="Регион" labelwidth="150" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.name from ORGANIZATIONDIR s, regiondir r where s.regiondirid = r.id and s.id = @ORGANIZATIONDIRID"/>
 				<A id="HOUSINGVIRT" name="Жилье" caption="Жилье" labelwidth="150" type="list" nulls="false" visible="true" virtual="true" formula="select m.housing from vacancyorg m where m.id = @VACANCYORGID ::bigint" local="true">
 					<AI id="1" name="Не предосталяется"/>
 					<AI id="2" name="Предосталяется"/>
