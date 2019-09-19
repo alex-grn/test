@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="Areport_benefit01.xls" documentPath="Areport_benefit01.xls" outputType="xls" outputNamePattern="Areport_benefit01.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||COALESCE(s.patronymic,'') as FIO,
+									to_char(s.recipientsdatebirth,'dd.mm.yyyy') as date_r,
+									(select x.name from PERSONDOCUMENTDIR x where x.id = s.persondocumenttypeid) as doc_type,
+									s.persondocumentseries as doc_serial,
+									s.persondocumentnumber as doc_number,
+									to_char(s.persondocumentdate,'dd.mm.yyyy') as doc_date
+							from BENEFITSRECIPIENTS s
+							where s.id = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint;
+						</script>
+                     </query>
+                </queries>
+			</band>	
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||COALESCE(s.patronymic,'') as r_FIO,
+								to_char(s.benefitchilddatebirth,'dd.mm.yyyy') as date_r,
+								s.benefitchildumber,
+								(select x.name from PERSONDOCUMENTDIR x where x.id = s.docbirthchildtypeid) as doc_type,
+								s.docbirthchildserial as doc_serial,
+								s.docbirthchildnumber as doc_number,
+								to_char(s.docbirthchilddate,'dd.mm.yyyy') as doc_date
+							from BENEFITCHILD s
+							where s.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint;
+						</script>
+                     </query>
+                </queries>
+			</band>	
+			<band name="Header2" orientation="H"/>
+			<band name="spec1" orientation="H">
+				<queries>
+                     <query name="spec1" type="sql">
+                        <script>
+							--первый реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 1) as types,
+									(select COALESCE(x.lastname,'')||' '||COALESCE(x.firstname,'')||' '||COALESCE(x.patronymic,'') from benefitchild x where x.id = bs.benefitchildid) as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.extrasum,0) as surcharge,
+									COALESCE(p.returnsum,0) as return,
+									COALESCE(p.retentionsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit01 b,
+								benefitspackets d,
+								subjectsdir s,
+								child bs,
+								benefit01payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit01id = b.id
+							and bs.id = p.child01id
+							UNION
+							--второй реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 2) as types,
+									'-' as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.extrasum,0) as surcharge,
+									COALESCE(p.returnsum,0) as return,
+									COALESCE(p.retentionsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit02 b,
+								benefitspackets d,
+								subjectsdir s,
+								benefit02payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit02id = b.id
+							UNION
+							--третий реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 3) as types,
+									'-' as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.extrasum,0) as surcharge,
+									COALESCE(p.returnsum,0) as return,
+									COALESCE(p.retentionsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit03 b,
+								benefitspackets d,
+								subjectsdir s,
+								benefit03payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit03id = b.id
+							UNION
+							--четвертый реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 4) as types,
+									(select COALESCE(x.lastname,'')||' '||COALESCE(x.firstname,'')||' '||COALESCE(x.patronymic,'') from benefitchild x where x.id = bs.benefitchildid) as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.extrasum,0) as surcharge,
+									COALESCE(p.returnsum,0) as return,
+									COALESCE(p.retentionsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit04 b,
+								benefitspackets d,
+								subjectsdir s,
+								child04 bs,
+								benefit04payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit04id = b.id
+							and bs.id = p.child04id
+							UNION
+							--пятый реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 5) as types,
+									(select COALESCE(x.lastname,'')||' '||COALESCE(x.firstname,'')||' '||COALESCE(x.patronymic,'') from benefitchild x where x.id = bs.benefitchildid) as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.extrasum,0) as surcharge,
+									COALESCE(p.returnsum,0) as return,
+									COALESCE(p.retentionsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit05 b,
+								benefitspackets d,
+								subjectsdir s,
+								child05 bs,
+								benefit05payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit05id = b.id
+							and bs.id = p.child05id
+							UNION
+							--шестой реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 6) as types,
+									'-' as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.extrasum,0) as surcharge,
+									COALESCE(p.returnsum,0) as return,
+									COALESCE(p.retentionsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit06 b,
+								benefitspackets d,
+								subjectsdir s,
+								benefit06payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit06id = b.id
+							UNION
+							--седьмой реестр
+							select   case d.repmonth::integer
+									when 1 then 'Январь' when 2 then 'Февраль' when 3 then 'Март' when 4 then 'Апрель' when 5 then 'Май' when 6 then 'Июнь'
+									when 7 then 'Июль' when 8 then 'Август' when 9 then 'Сентябрь' when 10 then 'Октябрь' when 11 then 'Ноябрь' when 12 then 'Декабрь' end as reporting_period,
+									s.name as region,
+									(select x.name from BENEFITSTYPEDIR x where x.rosternumber = 7) as types,
+									(select COALESCE(x.lastname,'')||' '||COALESCE(x.firstname,'')||' '||COALESCE(x.patronymic,'') from benefitchild x where x.id = bs.benefitchildid) as child,
+									COALESCE(p.paysum,0) as pays,
+									COALESCE(p.surchargesum,0) as surcharge,
+									COALESCE(p.refundsum,0) as return,
+									COALESCE(p.holdsum,0) as retention,
+									(select x.note from remark x where x.id = b.remarkid) as note
+							from benefit07 b,
+								benefitspackets d,
+								subjectsdir s,
+								child07 bs,
+								benefit07payment p
+							where b.benefitsrecipientsid = (select case lower(${tablename}) 
+												when 'multiplepayments' then (select s.benefitsrecipientsid from multiplepayments s where s.id = ${id}::bigint)
+												when 'unlawfulsurcharge' then (select s.benefitsrecipientsid from unlawfulsurcharge s where s.id = ${id}::bigint)
+												else ${id}::bigint
+												end )::bigint
+							and b.benefitspacketsid = d.id
+							and s.id = d.subjectsdirid
+							and p.benefit07id = b.id
+							and bs.id = p.child07id
+							;
+						</script>
+                     </query>
+                </queries>
+			</band>	
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

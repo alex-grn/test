@@ -1,3 +1,9 @@
+CREATE OR REPLACE FUNCTION public.p_reestr_parse_xml (
+  file_xml xml,
+  pos integer = 1
+)
+RETURNS void AS
+$body$
  declare 
    snode text; 
    child record; 
@@ -38,20 +44,7 @@
                                                                  update BENEFICIARIESREGISTERS s set benefitstypenamedirid = rec.id where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); flag := 2;
                                                         end loop;
                                                         if flag <> 2 then raise using message = 'Ќомер реестра не соответствует. –еестр не загружен!'; flag := 0; end if;
-           for rec in (select x.id as xid,reg.id as regid, lower(se.name) as fromm, se.code as sender, x.repyear, case lower(x.repmonth)
- 					         																	when '€нварь'  then '01'
-                             																	when 'февраль' then '02'
-                             																	when 'март'    then '03'
-                             																	when 'апрель'  then '04'
-                             																	when 'май'     then '05'
-                             																	when 'июнь'    then '06'
-                             																	when 'июль'    then '07'
-                             																	when 'август'  then '08'
-                             																	when 'сент€брь' then '09'
-                             																	when 'окт€брь' then '10'
-                             																	when 'но€брь'  then '11'
-                             																	when 'декабрь' then '12'
-                             																  end as smonths 
+           for rec in (select x.id as xid,reg.id as regid, lower(se.name) as fromm, se.code as sender, x.repyear, x.repmonth::integer as smonths 
                  	     from benefitspackets x,  
                       		  BENEFICIARIESREGISTERS reg,
                       		  SUBJECTSDIR se  
@@ -61,7 +54,7 @@
                   		 loop
                           if rec.sender <> tBUF[2]::integer THEN raise using message = ' од отправител€ не соответствует отправителю. –еестр не загружен.';
                           elsif rec.repyear <> tBUF[4]::integer THEN raise using message = '√од отчетного периода в реестре не соответствует отчетному периоду. –еестр не загружен!';
-                          elsif rec.smonths <> tBUF[3] THEN raise using message = 'ћес€ц отчетного периода в реестре не соответствует отчетному периоду. –еестр не загружен.';
+                          elsif rec.smonths <> tBUF[3]::integer THEN raise using message = 'ћес€ц отчетного периода в реестре не соответствует отчетному периоду. –еестр не загружен.';
                           end if;flag:=1;
                          -- update benefit07 s set benefitspacketsid = rec.xid,benefitstypedirid = rec.regid where s.id = (select max(s.id) from benefit07 s);
                      end loop;
@@ -316,3 +309,12 @@
    end loop;  
    --exception when others then raise using message = tBUF[1]||' '||tBUF[2]||' '||tBUF[3]||' '||tBUF[4]||' '||tBUF[5]||' '||tBUF[6]||' '||tBUF[7]||' '||tBUF[8]||' '||tBUF[9]||' '||tBUF[10]||' '||tBUF[11]||' '||tBUF[12]||' '||tBUF[13];  
  end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_reestr_parse_xml (file_xml xml, pos integer)
+  OWNER TO magicbox;

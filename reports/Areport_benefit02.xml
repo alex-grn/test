@@ -49,25 +49,13 @@
                     <query name="spec" type="sql">
                         <script> 
 								   select 'ќбщий итог:' as FED, 
-								count(b.id) AS POL,
+								(select count(*) from benefit02 x, benefitspackets xx where xx.id = x.benefitspacketsid and xx.repmonth::integer  between ${repmonth}::integer and ${repmonthby}::integer and xx.repyear = ${repyear}::INTEGER) AS POL,
 								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
 												FROM  BENEFIT02PAYMENT p 
 											   WHERE B.ID = P.benefit02id)),0) AS PAY
 						     from subjectsdir r
-							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid and 
-												(SELECT CASE lower(Z.repmonth)
-													WHEN 'февраль' then 2
-                									WHEN 'март' then 3
-                									WHEN 'апрель' then 4
-                									WHEN 'май' then 5
-                									WHEN 'июнь' then 6
-                									WHEN 'июль' then 7
-                									WHEN 'август' then 8
-                									WHEN 'сент€брь' then 9
-                									WHEN 'окт€брь' then 10
-                									WHEN 'но€брь' then 11
-                									WHEN 'декабрь' then 12
-                									end ) between ${repmonth}::integer and ${repmonthby}::integer
+							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid 
+							and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
      						and z.repyear = ${repyear}::INTEGER
 					left join BENEFIT02 B on b.benefitspacketsid = z.id;
                         </script>
@@ -81,25 +69,13 @@
                             <query name="spec2" type="sql">
                                 <script>
 									select r.name as FED, 
-								count(b.id) AS POL,
+								(select count(*) from benefit02 x, benefitspackets xx where xx.id = x.benefitspacketsid and xx.repmonth::integer  between ${repmonth}::integer and ${repmonthby}::integer and xx.repyear = ${repyear}::INTEGER) AS POL,
 								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
 												FROM  BENEFIT02PAYMENT p 
 											   WHERE B.ID = P.benefit02id)),0) AS PAY
 						     from subjectsdir r
-							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid and 
-												(SELECT CASE lower(Z.repmonth)
-													WHEN 'февраль' then 2
-                									WHEN 'март' then 3
-                									WHEN 'апрель' then 4
-                									WHEN 'май' then 5
-                									WHEN 'июнь' then 6
-                									WHEN 'июль' then 7
-                									WHEN 'август' then 8
-                									WHEN 'сент€брь' then 9
-                									WHEN 'окт€брь' then 10
-                									WHEN 'но€брь' then 11
-                									WHEN 'декабрь' then 12
-                									end ) between ${repmonth}::integer and ${repmonthby}::integer
+							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid 
+							and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
      						and z.repyear = ${repyear}::INTEGER
 					left join BENEFIT02 B on b.benefitspacketsid = z.id
 										where r.fedreg = ${spec1.FED}
@@ -113,25 +89,13 @@
                     <query name="spec1" type="sql">
                         <script>
                             select r.fedreg as FED, 
-								count(b.id) AS POL,
+								(select count(*) from benefit02 x, benefitspackets xx where xx.id = x.benefitspacketsid and xx.repmonth::integer  between ${repmonth}::integer and ${repmonthby}::integer and xx.repyear = ${repyear}::INTEGER) AS POL,
 								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
 												FROM  BENEFIT02PAYMENT p 
 											   WHERE B.ID = P.benefit02id)),0) AS PAY
 						     from subjectsdir r
-							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid and 
-												(SELECT CASE lower(Z.repmonth)
-													WHEN 'февраль' then 2
-                									WHEN 'март' then 3
-                									WHEN 'апрель' then 4
-                									WHEN 'май' then 5
-                									WHEN 'июнь' then 6
-                									WHEN 'июль' then 7
-                									WHEN 'август' then 8
-                									WHEN 'сент€брь' then 9
-                									WHEN 'окт€брь' then 10
-                									WHEN 'но€брь' then 11
-                									WHEN 'декабрь' then 12
-                									end ) between ${repmonth}::integer and ${repmonthby}::integer
+							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid 
+							and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
      						and z.repyear = ${repyear}::INTEGER
 					left join BENEFIT02 B on b.benefitspacketsid = z.id
  						GROUP BY R.fedreg;
