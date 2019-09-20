@@ -341,6 +341,7 @@
 		<A id="CHILD05ID" caption="Ребенок" type="ref" table="CHILD05" pid="BENEFIT05ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
 		<A id="CHILD07ID" caption="Ребенок" type="ref" table="CHILD07" pid="BENEFIT07ID" ret="BENEFITCHILDID_ret" nulls="false" visible="form" />
 		<A id="MULTIPLEPAYMENTSID"  caption="Случаи многократных выплат" type="ref" table="MULTIPLEPAYMENTS" ret="BENEFITSRECIPIENTSID" nulls="false" local="true"/>
+		<A id="UNLAWFULSURCHARGEID" caption="Случаи неправомерных доплат" type="ref" table="UNLAWFULSURCHARGE" ret="BENEFITSRECIPIENTSID" nulls="false" local="true"/>
 		<A id="BENEFITSRECIPIENTFULLVIRT" name="Получатель пособия" caption="Получатель пособия" labelwidth="120" type="string" nulls="true" visible="form" readonly="false" virtual="true" 
 		   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID::bigint" local="true"/>		
 	</ATTRIBUTES>
@@ -1171,6 +1172,7 @@
 			<A id="BENEFITSRECIPIENTFULLVIRT" name="Получатель пособия" visible="grid"/>
 			<GA id="PERSONDOCUMENTVIRT"/>
 		</TABLE>	
+		
 		<TABLE id="MULTIPLEPAYMENTSFOOTER" name="История выплат">
 			<A id="MULTIPLEPAYMENTSID" parentkey="cascade"/>
 			<A id="BENEFITSRECIPIENTSID" visible="false" virtual="true" formula="select BENEFITSRECIPIENTSID from MULTIPLEPAYMENTS where id = @MULTIPLEPAYMENTSID"/>
@@ -1190,12 +1192,28 @@
 		
 		<!-- Случаи неправомерных доплат -->
 		<TABLE id="UNLAWFULSURCHARGE" name="Случаи неправомерных доплат">
-			<A id="BENEFITSRECIPIENTSID"/>
-			<A id="REGION" name="Регион" type="string" nulls="true" local="true"/>
-			<A id="PERIODEXTRA" name="Период доплаты" type="string" nulls="true" local="true"/>
-			<A id="BENEFIT" name="Пособие" type="string" nulls="true" local="true"/>
-			<A id="RECIPIENTSCAT" name="Категория получателя" type="string" nulls="true" local="true"/>
-			<A id="REMARK" name="Примечание" type="number" nulls="true" local="true"/>
+			<A id="BENEFITSTYPENAMEDIRID" name="Пособие" caption="Пособие" visible="true" nulls="false"/>
+			<A id="BENEFITSRECIPIENTSID" caption="Получатель пособияID" visible="false"/>
+			<A id="BENEFITSRECIPIENTFULLVIRT" name="Получатель пособия" visible="grid"/>
+			<GA id="PERSONDOCUMENTVIRT"/>
+		</TABLE>
+		<TABLE id="UNLAWFULSURCHARGEFOOTER" name="История доплат">
+			<A id="UNLAWFULSURCHARGEID" parentkey="cascade"/>
+			<A id="BENEFITSRECIPIENTSID" visible="false" virtual="true" formula="select BENEFITSRECIPIENTSID from UNLAWFULSURCHARGE where id = @UNLAWFULSURCHARGEID"/>
+			<A id="BENEFITCHILDID" name="РебенокID" caption="РебенокID" visible="false"/>
+			<A id="CHILD" name="Ребенок" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" virtual="true"
+			   formula="select trim(COALESCE(lastname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(patronymic,'')) from BENEFITCHILD b where b.id=@BENEFITCHILDID" local="true"/>
+			<A id="BIRTHDATEVIRT"/>
+			<GA id="CHILDDOCVIRT"/>
+			<A id="SUBJECTSDIRID" name="Регион" caption="Регион" visible="true"/>
+			<GA name="Выплаты">
+				<A id="PERIODPAY"/>
+				<A id="SUMPAY"/>
+			</GA>
+			<GA name="Доплата">
+				<A id="PERIODEXTRA" name="Период" type="string" nulls="true" local="true"/>
+				<A id="SUMEXTRA" name="Сумма" caption="Сумма" type="number" nulls="true" local="true"/>
+			</GA>
 		</TABLE>
 		
 		<!-- Получатели пособий -->
@@ -1459,7 +1477,7 @@
 						<A id="PERSONDOCUMENTTYPEID" labelwidth="45" nulls="true"/>
 						<A id="DOCSERIESB" caption="Cерия" labelwidth="45" width="35" type="string" nulls="true" local="true"/>
 						<A id="DOCNUMBERB" caption="Номер" labelwidth="50" width="30" type="string" nulls="true" local="true"/>
-						<A id="DOCDATEB" caption="Дата выдачи" labelwidth="90" width="20" type="date" nulls="true" local="true"/>
+						<!-- <A id="DOCDATEB" caption="Дата выдачи" labelwidth="90" width="20" type="date" nulls="true" local="true"/> -->
 					</GA>
 				</GA>
 				<GA caption="Ребенок получателя пособия">
@@ -1480,6 +1498,7 @@
 		<ACTION id="UnlawfulsurchargeA" name="Сформировать" type="procedure" procedure="p_action_unlawfulsurcharge_gen">
 			<FORM>
 				<A id="BENEFITSTYPENAMEDIRID" caption="Пособие" labelwidth="65" nulls="false" array="true"/>
+				<A id="REPYEAR" caption="Год" nulls="true" labelwidth="630"/>
 				<GA caption="Получатель пособия">
 					<A id="LASTNAMEB" caption="Фамилия" labelwidth="55" width="33" type="string" nulls="true" local="true"/>
 					<A id="FIRSTNAMEB" caption="Имя" labelwidth="57" width="30" type="string" nulls="true" local="true"/>
@@ -1489,7 +1508,18 @@
 						<A id="DOCSERIESB" caption="Cерия" labelwidth="45" width="35" type="string" nulls="true" local="true"/>
 						<A id="DOCNUMBERB" caption="Номер" labelwidth="50" width="30" type="string" nulls="true" local="true"/>
 					</GA>
-				</GA>	
+				</GA>
+				<GA caption="Ребенок получателя пособия">
+					<A id="LASTNAMEC" caption="Фамилия" labelwidth="55" width="33" type="string" nulls="true" local="true"/>
+					<A id="FIRSTNAMEC" caption="Имя" labelwidth="57" width="30" type="string" nulls="true" local="true"/>
+					<A id="PATRONYMICC" caption="Отчество" labelwidth="90" width="30" type="string" nulls="true" local="true"/>
+					<GA caption="Документ, подтверждающий факт рождения ребенка">
+						<A id="DOCBIRTHCHILDTYPEID" labelwidth="45" nulls="true"/>
+						<A id="DOCSERIESC" caption="Cерия" labelwidth="45" width="35" type="string" nulls="true" local="true"/>
+						<A id="DOCNUMBERC" caption="Номер" labelwidth="50" width="30" type="string" nulls="true" local="true"/>
+					</GA>
+					<A id="BIRTHDATEC" caption="Дата рождения" type="date" nulls="true" labelwidth="560" local="true"/>
+				</GA>				
 			</FORM>
 		</ACTION>
 	</ACTIONS>
@@ -1818,12 +1848,14 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		
 		<FORM id="Unlawfulsurcharge" name="Случаи неправомерных доплат">
-			<GRID id="UNLAWFULSURCHARGE" name="Случаи неправомерных доплат" table="UNLAWFULSURCHARGE" readonly="true" actionlist="UnlawfulsurchargeA" reportlist="Unlawfulsurcharge;PersonalFile">
-				<MENU>
-					<MI actionlist="ConfigTables"/>
-				</MENU>
-			</GRID>
+			<GRID id="UNLAWFULSURCHARGE" name="Случаи неправомерных доплат" table="UNLAWFULSURCHARGE" readonly="true" actionlist="Insert;Update;Delete;UnlawfulsurchargeA" reportlist="Unlawfulsurcharge;PersonalFile"/>
+			<TABS>
+				<TAB name="История доплат">
+					<GRID id="UNLAWFULSURCHARGEFOOTER" name="История доплат" table="UNLAWFULSURCHARGEFOOTER"/>
+				</TAB>
+			</TABS>
 		</FORM>
 		<FORM id="Benefitsrecipients" name="Получатели пособий">
 			<GRID id="BENEFITSRECIPIENTS" name="Получатели пособий" table="BENEFITSRECIPIENTS" reportlist="PersonalFile"/>
