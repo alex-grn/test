@@ -9,27 +9,27 @@ declare
    nUSERID bigint = uid;
    file_xml xml;
    file_text text;
-   sql	     text;
-   dow 		 record;
-   rec 		 record;
-   dr		 record;
-   nRZ		 bigint;
+   sql       text;
+   dow     record;
+   rec     record;
+   dr    record;
+   nRZ     bigint;
    OLDbenefitID bigint;
    benefitID bigint;
-   nREG		 bigint;
-   nType	 bigint;
+   nREG    bigint;
+   nType   bigint;
    nPACK     bigint;
-   tRETURN	 text;
+   tRETURN   text;
    err_table text;
    err_state text;
-   nTEMP 	 numeric = 0;
-   sNODE	 text;
+   nTEMP   numeric = 0;
+   sNODE   text;
    sRESULT   text;
-   bufID	 bigint;
+   bufID   bigint;
  begin
  --новинка создаем файл с ошибками
  delete from filebuffer where cid = ident; 
--- insert into filebuffer(cid, code, tablename, filename, cfile) values (ident, 'CFILE', 'errors', 'errors.txt', 'TEsting');
+-- insert into filebuffer(cid, code, tablename, filename, bfile) values (ident, 'BFILE', 'errors', 'errors.txt', P_SYSTEM_FILE_FROM_TEXT('TEsting'));
 -- return 'test';
  --
  insert into filebuffer(cid, code, tablename, filename, bfile) values (ident, 'BFILE', 'ErrorsProtocol', 'ErrorsProtocol.txt', P_SYSTEM_FILE_FROM_TEXT('')) returning filebuffer.id into bufID;
@@ -41,10 +41,10 @@ declare
    update BENEFICIARIESREGISTERS s set status = '01' where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x);
    if (select s.statuspack 
          from BENEFITSPACKETS s,
-   			  BENEFICIARIESREGISTERS r where s.id = r.benefitspacketsid
-                   						 and r.id = (select max(x.id) from BENEFICIARIESREGISTERS x)) = '01' then 
+          BENEFICIARIESREGISTERS r where s.id = r.benefitspacketsid
+                               and r.id = (select max(x.id) from BENEFICIARIESREGISTERS x)) = '01' then 
                                          tRETURN = '«агрузка реестра не возможна, обратитесь к своему куратору в ‘едеральную службу по труду и зан€тости';
-  										update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(tRETURN) where s.id = bufID;
+                                         update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(tRETURN) where s.id = bufID;
                                          delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); return tRETURN;
    end if;
    begin
@@ -66,16 +66,16 @@ declare
    end;
    exception when others then 
         GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
-      							  err_table = TABLE_NAME,
-      							  tRETURN = MESSAGE_TEXT;
+                      err_table = TABLE_NAME,
+                      tRETURN = MESSAGE_TEXT;
        delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); raise using message = 'others';return tRETURN;
    end;
     sql = 'CREATE TEMPORARY TABLE file_imp (
-    	         stable		text,
-                 sort		integer,
-                 nzap		integer,
-                 level		integer,
-                 flag		integer,
+               stable   text,
+                 sort   integer,
+                 nzap   integer,
+                 level    integer,
+                 flag   integer,
                  col1       text,
                  col2       text,
                  col3       text,
@@ -88,7 +88,7 @@ declare
                  col10      text,
                  col11      text,
                  col12      text,
-                 col13	    text
+                 col13      text
                  ) 
                  WITH (oids = false) ON COMMIT DROP;';
      execute sql;
@@ -98,8 +98,8 @@ declare
    
    exception when others then
    GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
-      							err_table = TABLE_NAME,
-      							tRETURN = MESSAGE_TEXT;
+                    err_table = TABLE_NAME,
+                    tRETURN = MESSAGE_TEXT;
     delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
     return tRETURN;
     end;
@@ -108,24 +108,25 @@ declare
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
+   tRETURN = '';
    if sNODE = 'benefit07' then
    --select max(s.id) into benefitID from benefit07 s;
    for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop insert into benefit07(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit07 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit07 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -142,7 +143,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -156,9 +157,9 @@ declare
                       exception when no_data_found then 
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit07 s set benefitsrecipientsid = nRZ where s.id = benefitID;
                         /*for dr in(
@@ -167,7 +168,7 @@ declare
                         where s.id = benefitID )
                         loop
                         OLDbenefitID:=benefitID;
-                          begin																--тут проверка на дубл€ж если нужно
+                          begin                               --тут проверка на дубл€ж если нужно
                           select x.id 
                             into benefitID
                             from benefit07 x
@@ -193,21 +194,21 @@ declare
                       exception when no_data_found then
                       if dow.flag = 1 then return 'ƒанные по ребенку (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, подтверждающего факт рождени€, дата рождени€ не подтверждены). –еестр загружен с ошибкой.'; end if;
                       --raise using MESSAGE =nRZ||' '||dow.col1||' '||dow.col2||' '||dow.col3||' '||dow.col7||' '||dow.col6;
-                      	insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
+                        insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
                         values(nUSERID,nRZ,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,1); select max(f.id) into OLDbenefitID from BENEFITCHILD f;
-                        		when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         insert into child07(uid,benefit07id,benefitchildid) values(nUSERID,benefitID,OLDbenefitID); select max(f.id) into OLDbenefitID from child f;
                     elsif dow.stable = 'FAMILYMEMBERS' then
-                    if dow.col7::numeric <> dow.col6::numeric / dow.col1::integer then tRETURN = '—реднедушевой доход членов семьи не соответствует алгоритму расчета. –еестр не загружен!'; update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(ltrim(cfile||chr(13)||tRETURN,chr(13))) where s.id = bufID;
-                     																delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
-    																				/*return tRETURN;*/ end if;
+                    if dow.col7::numeric <> dow.col6::numeric / dow.col1::integer then tRETURN = ltrim(tRETURN||chr(13)||'—реднедушевой доход членов семьи не соответствует алгоритму расчета. –еестр не загружен!',chr(13));
+                                                    delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
+                                            /*return tRETURN;*/ end if;
                      insert into FAMILYMEMBERS(uid,benefit07id,familymembercount,totalincome,averageincome,fio,incomecertificatenumber,incomecertificatedate,registereddate07)
                      values(nUSERID,benefitID,dow.col1::integer,dow.col6::numeric,dow.col7::numeric,dow.col4,dow.col2,dow.col3::date,dow.col5::date); nTEMP:=dow.col7::numeric;
                     elsif dow.stable = 'BENEFIT07PURPOSE' then
-                    if dow.col3::numeric > 1.5 * nTEMP then tRETURN = '—реднедушевой доход членов семьи должен быть не больше, чем в 1,5 раза, размера прожиточного минимума трудоспособного населени€. –еестр не загружен!'; update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(ltrim(cfile||chr(13)||tRETURN,chr(13))) where s.id = bufID;
-                     																delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
-    																				/*return tRETURN;*/ end if;
+                    if dow.col3::numeric > 1.5 * nTEMP then tRETURN = ltrim(tRETURN||chr(13)||'—реднедушевой доход членов семьи должен быть не больше, чем в 1,5 раза, размера прожиточного минимума трудоспособного населени€. –еестр не загружен!',chr(13));
+                                                    delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
+                                            /*return tRETURN;*/ end if;
                      insert into BENEFIT07PURPOSE(uid,benefit07id,benefitpurposenumber,benefitpurposedate,benefitsubsistenceworking)
                      values(nUSERID,benefitID,dow.col1,dow.col2::date,dow.col3::numeric); 
                      --on CONFLICT (benefitpurposenumber, benefitpurposedate, cid) do update set benefitpurposenumber = dow.col1, benefitpurposedate = dow.col2::date, benefitsubsistenceworking = dow.col3::numeric;
@@ -216,11 +217,11 @@ declare
                      values(nUSERID,benefitID,dow.col1::numeric,dow.col2::date,dow.col3::date,dow.col4::numeric,dow.col5::date,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::date,dow.col10::numeric,dow.col11::date,dow.col12::date,dow.col13::numeric,OLDbenefitID);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -235,19 +236,19 @@ declare
      for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop  insert into benefit01(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit01 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit01 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -264,7 +265,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -278,9 +279,9 @@ declare
                       exception when no_data_found then 
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;                      
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit01 s set benefitsrecipientsid = nRZ where s.id = benefitID;
                     elsif dow.stable = 'BENEFITCHILD' then
@@ -296,9 +297,9 @@ declare
                         /*and s.benefitsrecipientsid = nRZ*/;
                       exception when no_data_found then
                         if dow.flag = 1 then return 'ƒанные по ребенку (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, подтверждающего факт рождени€, дата рождени€ не подтверждены). –еестр загружен с ошибкой.'; end if;
-                       	insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
+                        insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
                         values(nUSERID,nRZ,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer); select max(f.id) into OLDbenefitID from BENEFITCHILD f;
-                        		when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         insert into child(uid,benefit01id,benefitchildid) values(nUSERID,benefitID,OLDbenefitID); select max(f.id) into OLDbenefitID from child f;
                     elsif dow.stable = 'BENEFIT01BASIS' then
@@ -312,11 +313,11 @@ declare
                      values(nUSERID,benefitID,dow.col1::numeric,dow.col2::numeric,dow.col3,dow.col4::numeric,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::numeric,dow.col10::date,dow.col11::numeric,OLDbenefitID);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -331,19 +332,19 @@ declare
      for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop insert into benefit02(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit02 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit02 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -360,7 +361,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -374,9 +375,9 @@ declare
                       exception when no_data_found then 
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;                      
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit02 s set benefitsrecipientsid = nRZ where s.id = benefitID;
                     elsif dow.stable = 'BENEFIT01BASIS' then
@@ -390,11 +391,11 @@ declare
                      values(nUSERID,benefitID,dow.col1::numeric,dow.col2::numeric,dow.col3,dow.col4::numeric,dow.col5::date,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::numeric,dow.col10::date,dow.col11::numeric);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -409,19 +410,19 @@ declare
      for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop insert into benefit03(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit03 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit03 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -438,7 +439,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -452,9 +453,9 @@ declare
                       exception when no_data_found then 
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;                      
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit03 s set benefitsrecipientsid = nRZ where s.id = benefitID; 
                     elsif dow.stable = 'BENEFIT01BASIS' then
@@ -468,11 +469,11 @@ declare
        /*date*/      values(nUSERID,benefitID,dow.col1::numeric,dow.col2::numeric,dow.col3::date,dow.col4::numeric,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::numeric,dow.col10::date,dow.col11::numeric);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -487,19 +488,19 @@ declare
      for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop insert into benefit04(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit04 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit04 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -516,7 +517,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -531,10 +532,10 @@ declare
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;                      
                         begin
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         exception when others then raise using message = COALESCE(dow.col1,'@')||' '||COALESCE(dow.col2,'@')||' '||COALESCE(dow.col3,'@')||' '||COALESCE(dow.col9,'@')||' '||COALESCE(dow.col10,'@')||' '||COALESCE(dow.col11,'@')||' '||COALESCE(dow.col12,'@') ; end;
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit04 s set benefitsrecipientsid = nRZ where s.id = benefitID;
                     elsif dow.stable = 'BENEFITCHILD' then
@@ -550,9 +551,9 @@ declare
                         /*and s.benefitsrecipientsid = nRZ*/;
                       exception when no_data_found then
                         if dow.flag = 1 then return 'ƒанные по ребенку (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, подтверждающего факт рождени€, дата рождени€ не подтверждены). –еестр загружен с ошибкой.'; end if;
-                       	insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
+                        insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
                         values(nUSERID,nRZ,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer); select max(f.id) into OLDbenefitID from BENEFITCHILD f;
-                        		when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         insert into child04(uid,benefit04id,benefitchildid) values(nUSERID,benefitID,OLDbenefitID);  select max(f.id) into OLDbenefitID from child04 f;
                     elsif dow.stable = 'BENEFIT01BASIS' then
@@ -566,11 +567,11 @@ declare
                      values(nUSERID,benefitID,dow.col1::numeric,dow.col2::numeric,dow.col3::date,dow.col4::numeric,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::numeric,dow.col10::date,dow.col11::numeric,OLDbenefitID);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -585,19 +586,19 @@ declare
      for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop insert into benefit05(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit05 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit05 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -614,7 +615,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -628,9 +629,9 @@ declare
                       exception when no_data_found then 
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;                      
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit05 s set benefitsrecipientsid = nRZ where s.id = benefitID;
                     elsif dow.stable = 'BENEFITCHILD' then
@@ -646,9 +647,9 @@ declare
                         and s.benefitsrecipientsid = nRZ;
                       exception when no_data_found then
                         if dow.flag = 1 then return 'ƒанные по ребенку (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, подтверждающего факт рождени€, дата рождени€ не подтверждены). –еестр загружен с ошибкой.'; end if;
-                       	insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
+                        insert into BENEFITCHILD(uid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber) 
                         values(nUSERID,nRZ,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer); select max(f.id) into OLDbenefitID from BENEFITCHILD f;
-                        		when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         insert into child05(uid,benefit05id,benefitchildid) values(nUSERID,benefitID,OLDbenefitID); select max(f.id) into OLDbenefitID from child05 f;
                     elsif dow.stable = 'BENEFIT01BASIS' then
@@ -662,11 +663,11 @@ declare
    /*date*/          values(nUSERID,benefitID,dow.col1::numeric,dow.col2::numeric,dow.col3,dow.col4::numeric,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::numeric,dow.col10::date,dow.col11::numeric,OLDbenefitID);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -681,19 +682,19 @@ declare
      for rec in (select S.NZAP from file_imp s group by s.NZAP) 
    loop insert into benefit06(hid,uid) VALUES(null,nUSERID);select max(s.id) into benefitID from benefit06 s;
    for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
-                  		 loop
+                       from benefitspackets x,  
+                            BENEFICIARIESREGISTERS reg,
+                            SUBJECTSDIR se  
+                      where reg.benefitspacketsid = x.id
+                        and se.id  = x.subjectsdirid
+                          and reg.id = (select max(r.id) from BENEFICIARIESREGISTERS r) )
+                       loop
                           update benefit06 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
                      end loop; 
    select max(s.id) into nREG from BENEFICIARIESREGISTERS s;
    select s1.id,s.benefitstypenamedirid into nPACK,nType from BENEFICIARIESREGISTERS s,benefitspackets s1 where s1.id = s.benefitspacketsid and s.id = nreg;
     for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
+            from file_imp f WHERE F.nzap = rec.nzap
                   order by f.nzap,f.sort
                 )
                 loop
@@ -710,7 +711,7 @@ declare
                    if dow.col11 = '' then dow.col11 := null;end if;
                    if dow.col12 = '' then dow.col12 := null;end if;
                    if dow.col13 = '' then dow.col13 := null;end if;
-                	if dow.stable = 'BENEFITSRECIPIENTS' then
+                  if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN
                       select s.id
@@ -724,9 +725,9 @@ declare
                       exception when no_data_found then 
                         if dow.flag = 1 then return 'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; end if;                      
                         insert into BENEFITSRECIPIENTS(uid,lastname,firstname,patronymic,citizenship,snils,recipientsdatebirth,recipientscategoriesdirid,recipientaddress,persondocumenttypeid,persondocumentseries,persondocumentnumber,persondocumentdate)
-                      	VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
+                        VALUES(nUSERID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date);
                         select max(s.id) into nRZ from BENEFITSRECIPIENTS s;
-                      			when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                            when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
                       end;
                         update benefit06 s set benefitsrecipientsid = nRZ where s.id = benefitID; 
                     elsif dow.stable = 'BENEFIT01BASIS' then
@@ -740,11 +741,11 @@ declare
    /*date*/          values(nUSERID,benefitID,dow.col1::numeric,dow.col2::numeric,dow.col3::date,dow.col4::numeric,dow.col6::date,dow.col7::numeric,dow.col8::date,dow.col9::numeric,dow.col10::date,dow.col11::numeric);
                     elsif dow.stable = 'REMARK' then  
                      insert into remark(hid,uid) values(null,nUSERID);
-        											   update remark s set note = dow.col1,
-                                                       					   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
+                                 update remark s set note = dow.col1,
+                                                                   benefitsrecipientsid = (select max(s.id) from BENEFITSRECIPIENTS s),
                                                                            benefitstypedirid    = (select max(s.id) from BENEFICIARIESREGISTERS s),
                                                                            benefitspacketsid    = (select x.id from benefitspackets x, 
-                                                                           									        BENEFICIARIESREGISTERS x1 
+                                                                                                    BENEFICIARIESREGISTERS x1 
                                                                                                               where x1.benefitspacketsid = x.id
                                                                                                                 and x1.id = (select max(s.id) from BENEFICIARIESREGISTERS s))
                                                                      where s.id = (select max(x.id) from remark x); 
@@ -752,11 +753,14 @@ declare
                     end if;
                 end loop;
                end loop;                
-     end if;            
+     end if;
+     if tRETURN <> '' then
+       update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(tRETURN) where s.id = bufID;
+     end if;
    exception when others then 
       GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
-      							err_table = TABLE_NAME,
-      							tRETURN = MESSAGE_TEXT;
+                    err_table = TABLE_NAME,
+                    tRETURN = MESSAGE_TEXT;
       if err_state='23505' then  
              for dow in select m.name from metaclass m where m.classnode='TABLE' and m.code = upper(err_table)
              loop
