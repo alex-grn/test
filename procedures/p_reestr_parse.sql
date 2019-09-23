@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION public.p_reestr_parse (
 )
 RETURNS text AS
 $body$
- declare
+declare
    nID bigint = id;
    nUSERID bigint = uid;
    file_xml xml;
@@ -24,7 +24,16 @@ $body$
    err_state text;
    nTEMP 	 numeric = 0;
    sNODE	 text;
+   sRESULT   text;
+   bufID	 bigint;
  begin
+ --новинка создаем файл с ошибками
+ delete from filebuffer where cid = ident; 
+-- insert into filebuffer(cid, code, tablename, filename, cfile) values (ident, 'CFILE', 'errors', 'errors.txt', 'TEsting');
+-- return 'test';
+ --
+ insert into filebuffer(cid, code, tablename, filename, bfile) values (ident, 'BFILE', 'ErrorsProtocol', 'ErrorsProtocol.txt', P_SYSTEM_FILE_FROM_TEXT('')) returning filebuffer.id into bufID;
+ 
    if (select count(s.id) from senders s, users u where u.id = nUSERID and s.userid = u.id and s.banload = true)>0 and to_number(to_char(now(),'dd'),'99')>11 then
     tRETURN:= '«агрузка реестра после 11 числа текущего мес€ца запрещена!'; 
     delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); return tRETURN; end if;
@@ -35,6 +44,7 @@ $body$
    			  BENEFICIARIESREGISTERS r where s.id = r.benefitspacketsid
                    						 and r.id = (select max(x.id) from BENEFICIARIESREGISTERS x)) = '01' then 
                                          tRETURN = '«агрузка реестра не возможна, обратитесь к своему куратору в ‘едеральную службу по труду и зан€тости';
+  										update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(tRETURN) where s.id = bufID;
                                          delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); return tRETURN;
    end if;
    begin
@@ -45,14 +55,14 @@ $body$
    delete from filebuffer f where f.cid = nID;
    if file_text is null  then
      delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x);
-     tRETURN = 'ќшибка: ‘айл реестра отсутствует.'; raise using message = 'ќшибка: ‘айл реестра отсутствует.';return tRETURN;
+     tRETURN = 'ќшибка: ‘айл реестра отсутствует.'; update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(tRETURN) where s.id = bufID;return tRETURN;
    end if;
    begin
      file_xml = cast(replace(file_text,'xmlns','name') as xml);
    exception
      when others then
        delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x);
-       tRETURN = 'ќшибка: Ќекорректна€ структура XML-файла.'; raise using message = 'ќшибка: Ќекорректна€ структура XML-файла.';return tRETURN;
+       tRETURN = 'ќшибка: Ќекорректна€ структура XML-файла.';update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(tRETURN) where s.id = bufID;return tRETURN;
    end;
    exception when others then 
         GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
@@ -84,7 +94,8 @@ $body$
      execute sql;
    -- DELETE FROM FILE_IMP;
    begin
-   perform p_reestr_parse_xml(file_xml);
+   perform p_reestr_parse_xml(file_xml,bufID);
+   
    exception when others then
    GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
       							err_table = TABLE_NAME,
@@ -92,7 +103,7 @@ $body$
     delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
     return tRETURN;
     end;
-    select lower(cast((xpath('name(/*)', file_xml))[1] as text)) into sNODE;
+    select lower(cast((xpath('name(/*)', file_xml))[1] as text)) into sNODE; 
    begin
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
@@ -188,15 +199,15 @@ $body$
                       end;
                         insert into child07(uid,benefit07id,benefitchildid) values(nUSERID,benefitID,OLDbenefitID); select max(f.id) into OLDbenefitID from child f;
                     elsif dow.stable = 'FAMILYMEMBERS' then
-                    if dow.col7::numeric <> dow.col6::numeric / dow.col1::integer then tRETURN = '—реднедушевой доход членов семьи не соответствует алгоритму расчета. –еестр не загружен!';
+                    if dow.col7::numeric <> dow.col6::numeric / dow.col1::integer then tRETURN = '—реднедушевой доход членов семьи не соответствует алгоритму расчета. –еестр не загружен!'; update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(ltrim(cfile||chr(13)||tRETURN,chr(13))) where s.id = bufID;
                      																delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
-    																				return tRETURN; end if;
+    																				/*return tRETURN;*/ end if;
                      insert into FAMILYMEMBERS(uid,benefit07id,familymembercount,totalincome,averageincome,fio,incomecertificatenumber,incomecertificatedate,registereddate07)
                      values(nUSERID,benefitID,dow.col1::integer,dow.col6::numeric,dow.col7::numeric,dow.col4,dow.col2,dow.col3::date,dow.col5::date); nTEMP:=dow.col7::numeric;
                     elsif dow.stable = 'BENEFIT07PURPOSE' then
-                    if dow.col3::numeric > 1.5 * nTEMP then tRETURN = '—реднедушевой доход членов семьи должен быть не больше, чем в 1,5 раза, размера прожиточного минимума трудоспособного населени€. –еестр не загружен!'; 
+                    if dow.col3::numeric > 1.5 * nTEMP then tRETURN = '—реднедушевой доход членов семьи должен быть не больше, чем в 1,5 раза, размера прожиточного минимума трудоспособного населени€. –еестр не загружен!'; update filebuffer s set bfile = P_SYSTEM_FILE_FROM_TEXT(ltrim(cfile||chr(13)||tRETURN,chr(13))) where s.id = bufID;
                      																delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x); 
-    																				return tRETURN; end if;
+    																				/*return tRETURN;*/ end if;
                      insert into BENEFIT07PURPOSE(uid,benefit07id,benefitpurposenumber,benefitpurposedate,benefitsubsistenceworking)
                      values(nUSERID,benefitID,dow.col1,dow.col2::date,dow.col3::numeric); 
                      --on CONFLICT (benefitpurposenumber, benefitpurposedate, cid) do update set benefitpurposenumber = dow.col1, benefitpurposedate = dow.col2::date, benefitsubsistenceworking = dow.col3::numeric;
@@ -755,7 +766,7 @@ $body$
       update BENEFICIARIESREGISTERS s set wrongloading = tRETURN, status = '02' where s.id = nREG;
      --insert into WRONGLOADING( benefitspacketsid,wrong,benefitstypenamedirid) values( nPACK,tRETURN,nType);
    end;
-  
+   if (select count(*) from filebuffer s where s.id = bufID and s.bfile = P_SYSTEM_FILE_FROM_TEXT('')) != 0 then delete from filebuffer s where s.id = bufID; else  delete from BENEFICIARIESREGISTERS s where s.id = (select max(x.id) from BENEFICIARIESREGISTERS x);  tRETURN:='¬озникла ошибка при загрузке реестра!';  end if;
    return tRETURN;
  end;
 $body$
