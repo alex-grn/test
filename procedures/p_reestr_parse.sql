@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION public.p_reestr_parse (
   id bigint,
+  ident bigint,
   uid bigint
 )
 RETURNS text AS
@@ -94,7 +95,7 @@ declare
      execute sql;
    -- DELETE FROM FILE_IMP;
    begin
-   perform p_reestr_parse_xml(file_xml,bufID);
+   perform p_reestr_parse_xml(file_xml, ident, bufID);
    
    exception when others then
    GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
@@ -780,5 +781,5 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
 
-ALTER FUNCTION public.p_reestr_parse (id bigint, uid bigint)
+ALTER FUNCTION public.p_reestr_parse (id bigint, ident bigint, uid bigint)
   OWNER TO magicbox;
