@@ -78,8 +78,7 @@
 			<AI id="list" name="Список"/>
 			<AI id="colorlist" name="Список цветов"/>
 			<AI id="hidetext" name="Скрытая строка"/>
-			<AI id="clob" name="Текстовый файл"/>
-			<AI id="blob" name="Бинарный файл"/>
+			<AI id="file" name="Файл"/>
 		</A>
 		<A id="FILENAME" name="Имя файла" caption="Имя файла" type="string" nulls="true"/>
 		<A id="DOCTYPEID" name="Тип документа" caption="Тип" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false"/>
@@ -112,6 +111,7 @@
 			<AI id="TAB" name="Страница"/>
 			<AI id="REPORTS" name="Отчеты"/>
 			<AI id="REPORT" name="Отчет"/>
+			<AI id="COMMENT" name="Коментарий"/>
 		</A>
 		<A id="PROPNODE" name="Свойство" caption="Свойство" type="list" nulls="false">
 			<AI id="id" name="Идентификатор"/>
@@ -125,6 +125,7 @@
 			<AI id="len" name="Длина данных"/>
 			<AI id="pid" name="Родитель"/>
 			<AI id="table" name="Таблица"/>
+			<AI id="tablename" name="Наименование таблицы"/>
 			<AI id="ret" name="Возвращаемый атрибут"/>
 			<AI id="form" name="Форма"/>
 			<AI id="formlist" name="Список форм"/>
@@ -220,8 +221,7 @@
 			<AI id="#8B00FF" name="Фиолетовый"/>
 			<AI id="#FFFF00" name="Жёлтый"/>
 		</A>
-		<A id="CFILE" name="Файл" caption="Файл" type="clob" ext="txt" nulls="true"/>
-		<A id="BFILE" name="Файл" caption="Файл" type="blob" ext="*" nulls="true"/>
+		<A id="BFILE" name="Файл" caption="Файл" type="file" ext="*" nulls="true"/>
 		<A id="DISABLED" name="Запись заблокирована" caption="Запись заблокирована" type="boolean" nulls="true" value="false"/>
 		<A id="ACCESS" name="Разрешить доступ" caption="Разрешить доступ" type="boolean" nulls="false" value="false"/>
 		<A id="LOGIN" name="Логин" caption="Логин" type="string" len="40" nulls="false"/>
@@ -260,11 +260,17 @@
 		<A id="DAYS" name="Дни" caption="Дни" labelwidth="100" type="int" len="3" nulls="false" value="0"/>
 		<A id="HOURS" name="Часы" caption="Часы" labelwidth="100" type="int" len="2" nulls="false" value="0"/>
 		<A id="MINUTES" name="Минуты" caption="Минуты" labelwidth="100" type="int" len="2" nulls="false" value="0"/>
-		<A id="TASKNAMEID" name="Наименование задачи" caption="Наименование задачи" labelwidth="300" type="ref" table="" ret="CODE" form="" nulls="true"/>
+		<A id="TASKSID" name="Задачи" caption="Задачи" labelwidth="300" type="number" nulls="true"/>
+		<A id="STATEID" name="Состояние" caption="Состояние" labelwidth="300" type="ref" pid="BPACTIVITYID" table="STATE" ret="STATENAME" nulls="true"/>
 		<A id="STATELIST" name="Условие перехода" caption="Условие перехода" type="list" nulls="false">
 			<AI id="Yes" name="Да"/>
 			<AI id="No" name="Нет"/>
 		</A>
+		<A id="DATECREATE" name="Дата создания" caption="Дата создания" type="datetime" nulls="true" visible="grid" readonly="true"/>
+		<A id="DATECHANGE" name="Дата изменения" caption="Дата изменения" type="datetime" nulls="true" visible="grid" readonly="true"/>
+		<A id="USERS" name="Инициатор" caption="Инициатор" type="string" nulls="true" readonly="true" virtual="true" formula="select s.name from tasks t, users s where t.ID = @ID::bigint and s.id = t.uid"/>
+		<A id="PROGRESS" name="Ход выполнения" caption="Ход выполнения" type="text" nulls="true"/>
+		<A id="EXECUTOR" name="Исполнитель" caption="Исполнитель" type="ref" table="USERS" ret="NAME" form="Users" nulls="true" visible="grid" readonly="true"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -278,20 +284,20 @@
 		</GA>
 		<GA id="Document" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" caption="Документ" width="40"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and cid=0"/>
 			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="DocumentP" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" labelwidth="90" width="20"/>
 			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
 			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="FileInformation" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
 			<A id="FILELINKSID" name="Описание файла"/>
-			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-			<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID" local="true"/>
+			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID" local="true"/>
+			<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID" local="true"/>
 		</GA>
 		<GA id="RecordInfo" name="Сведения о записи" caption="Сведения о записи">
 			<A id="UID" name="Автор записи" caption="Автор" labelwidth="50" width="40" type="ref" table="USERS" ret="NAME" form="Users" nulls="true" visible="form" readonly="true" local="true"/>
@@ -330,7 +336,7 @@
 			</GA>
 			<GA>
 				<A id="FILTER" name="Фильтр" caption="Фильтр:" width="12" type="boolean" nulls="false" value="false" local="true"/>
-				<A id="FILTERINFO" name="Настройки фильтра" caption="" width="88" type="string" nulls="true" visible="form" readonly="true" formula="case when @FILTER = 'false' then null else (select b.filterinfo from configcolumnsbuff b where b.id = @ID ::bigint) end" local="true"/>
+				<A id="FILTERINFO" name="Настройки фильтра" caption="" width="88" type="string" nulls="true" visible="form" readonly="true" formula="case when @FILTER = 'false' then null else (select b.filterinfo from configcolumnsbuff b where b.id = @ID) end" local="true"/>
 			</GA>
 			<GA>
 				<A id="SORTINFO" name="Сортировка" caption="Сортировка" labelwidth="103" type="list" nulls="false" local="true">
@@ -417,7 +423,7 @@
 		<TABLE id="ROLEPRIVS" name="Права доступа" hid="UNITID_ret">
 			<A id="ROLEID" parentkey="cascade"/>
 			<A id="UNITID" nulls="false"/>
-			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="300" nulls="true" visible="grid" readonly="true" virtual="true" formula="select u.classnode from units u where u.id = @UNITID::bigint"/>
+			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="300" nulls="true" visible="grid" readonly="true" virtual="true" formula="select u.classnode from units u where u.id = @UNITID"/>
 			<A id="ACCESS"/>
 			<TI unique="ROLEID,HID,UNITID"/>
 		</TABLE>
@@ -425,7 +431,6 @@
 			<A id="CODE"/>
 			<A id="TABLENAME"/>
 			<A id="FILENAME"/>
-			<A id="CFILE"/>
 			<A id="BFILE"/>
 			<TI unique="TABLENAME,CODE,FILENAME"/>
 		</TABLE>
@@ -489,11 +494,11 @@
 		</TABLE>
 		<TABLE id="CONCEPTITEMS" name="Конвертер: Форматы обмена данными (элементы)" hid="CODE">
 			<A id="CONCEPTID" parentkey="cascade"/>
-			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
+			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID and hid is null and @HID is null or hid=@HID and cid=0"/>
 			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
 			<A id="NAME" labelwidth="150"/>
 			<GA>
-				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@ID ::bigint, @ATTR ::boolean)" local="true">
+				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@CONCEPTID, @HID, @ATTR)" local="true">
 					<AI id="xlssheet" name="Страница Excel"/>
 					<AI id="xlscol" name="Колонка Excel"/>
 					<AI id="xmlnode" name="Таг XML"/>
@@ -514,10 +519,10 @@
 		</TABLE>
 		<TABLE id="CONVACTS" name="Конвертер: Алгоритмы загрузки (действия)">
 			<A id="CONVID" parentkey="cascade"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID::bigint"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID"/>
 			<GA>
-				<A id="POSITION" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
-				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="80" formula="select coalesce(@CONCEPTITEMID ::bigint, min(id)) from conceptitems where conceptid=@CONCEPTID ::bigint and hid is null and cid=0"/>
+				<A id="POSITION" name="Порядок" caption="Порядок" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID and hid is null and @HID is null or hid=@HID and cid=0"/>
+				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="80" formula="select min(ci.id) from conv c, conceptitems ci where c.id=@CONVID and c.conceptid = ci.conceptid and ci.cid=0"/>
 			</GA>
 			<GA name="Объект базы данных" caption="Объект базы данных">
 				<A id="CONVUNITTYPE" name="Тип" caption="Тип" labelwidth="36" width="15" type="list" nulls="false" local="true">
@@ -527,7 +532,7 @@
 				<A id="CONVUNIT" name="Наименование" caption="Наименование" labelwidth="110" width="85" type="list" nulls="false" query="select upper(tablename) as id, (select coalesce(upper(tablename)||' - '||max(m.name),upper(tablename)) from metaclass m where m.classnode='TABLE' and m.code=upper(tablename)) as code from pg_tables where schemaname = 'public' and @CONVUNITTYPE = 'table' union all select upper(p.proname) as id, (select coalesce(upper(p.proname)||' - '||max(m.name),upper(p.proname)) from metaclass m, metaclassprops mp where m.classnode='ACTION' and m.id = mp.metaclassid and mp.propnode='procedure' and lower(mp.strvalue)=p.proname) as code from pg_proc p, pg_namespace s where p.pronamespace = s.oid and s.nspname='public' and @CONVUNITTYPE = 'procedure'" local="true"/>
 			</GA>
 			<GA>
-				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
+				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Delete' as id, 'Удалить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
 				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
 			</GA>
 			<A id="CONDITION" name="Условие выполнения" caption="Условие выполнения" labelwidth="80" type="text" nulls="true" local="true"/>
@@ -535,11 +540,11 @@
 		</TABLE>
 		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
 			<A id="CONVACTID" parentkey="cascade"/>
-			<A id="CONVID" visible="false" virtual="true" formula="select a.convid from convacts a where a.id=@CONVACTID ::bigint"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTID ::bigint and a.convid=n.id"/>
-			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTID ::bigint" local="true"/>
+			<A id="CONVID" visible="false" virtual="true" formula="select a.convid from convacts a where a.id=@CONVACTID"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTID and a.convid=n.id"/>
+			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTID" local="true"/>
 			<GA name="Параметр" caption="Параметр">
-				<A id="POSITION" readonly="true"/>
+				<A id="POSITION" name="Порядок" caption="Порядок" readonly="true"/>
 				<A id="CODE" readonly="true"/>
 				<A id="NAME" type="string" readonly="true"/>
 				<GA>
@@ -561,7 +566,7 @@
 						<AI id="bigserial" name="Первичный ключ"/>
 						<AI id="xml" name="Формат XML"/>
 						<AI id="json" name="Формат JSON"/>
-						<AI id="bytea" name="Бинарный файл"/>
+						<AI id="bytea" name="Файл"/>
 					</A>
 					<A id="DATANOTNULL" name="Обязательное" caption="Обязательное" labelwidth="93" width="6" type="list" readonly="true" local="true">
 						<AI id="no" name="Нет"/>
@@ -590,48 +595,62 @@
 		<TABLE id="CONVLOADS" name="Конвертер: Процессы загрузки">
 			<GA name="Процесс" caption="Процесс">
 				<A id="CONVID" width="40"/>
-				<A id="NUMB" name="Идентификатор" caption="Идентификатор" width="60" type="int" formula="select coalesce(max(numb)+1,1)::int from convloads where convid=@CONVID ::bigint and cid=0" local="true"/>
+				<A id="NUMB" name="Идентификатор" caption="Идентификатор" width="60" type="int" formula="select coalesce(max(numb)+1,1)::int from convloads where convid=@CONVID and cid=0" local="true"/>
 			</GA>
 			<GA name="Состояние" caption="Состояние">
 				<A id="STATUS" name="Статус" caption="Статус" width="46" type="list" nulls="false" readonly="true" value="0" local="true">
 					<AI id="0" name="Не выполнялся"/>
-					<AI id="1" name="Выполнен"/>
-					<AI id="2" name="Ошибка"/>
+					<AI id="1" name="Подготовлен"/>
+					<AI id="2" name="Выполнен"/>
+					<AI id="3" name="Ошибка"/>
 				</A>
 				<A id="LOADDATE" name="Дата и время выполнения" caption="Дата и время выполнения" labelwidth="160" width="54" type="datetime" nulls="true" readonly="true" local="true"/>
 			</GA>
 			<GA name="Ошибка" caption="Ошибка">
 				<A id="ERRORMSG" name="Сообщение" caption="Сообщение" width="100" type="text" nulls="true" local="true"/>
-				<A id="CONVLOADID" nulls="true" visible="false" virtual="true" formula="select @ID"/>
-				<A id="CONVLOADACTID" nulls="true"/>
 			</GA>
 			<GA id="FileInformation"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTS" name="Конвертер: Буфер выполнения (действия)" hid="CONVACTNAMEVIRT">
 			<A id="CONVLOADID" parentkey="cascade"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select c.conceptid from convloads l, conv c where l.id=@CONVLOADID ::bigint and l.convid = c.id"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select c.conceptid from convloads l, conv c where l.id=@CONVLOADID and l.convid = c.id"/>
 			<GA name="Формат" caption="Формат">
-				<A id="CONCEPTITEMID"/>
-				<A id="POSITION" name="Номер экземпляра" caption="Номер экземпляра" labelwidth="120"/>
+				<A id="POSITION" name="Экземпляр" caption="Экземпляр" labelwidth="70" width="30"/>
+				<A id="CONCEPTITEMID" name="Элемент" caption="Элемент" labelwidth="70" width="70"/>
 			</GA>
-			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADID ::bigint"/>
+			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADID"/>
 			<GA name="Алгоритм" caption="Алгоритм">
-				<A id="CONVACTID" labelwidth="120" width="70"/>
-				<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" nulls="false" readonly="true" value="0" local="true">
+				<A id="CONVACTPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="70" width="30" type="string" nulls="true" readonly="true" virtual="true" formula="select a.position from convacts a where a.id=@CONVACTID" local="true"/>
+				<A id="CONVACTID" labelwidth="70" width="70"/>
+				<A id="CONVACTNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text,5,' ')||'.'||c.code||' ['||lpad(a.position ::text,2,' ')||'.'||a.convunit||']' from convacts a, conceptitems c where a.conceptitemid = c.id and a.id=@CONVACTID" local="true"/>
+			</GA>
+			<GA name="" caption="Условие выполнения">
+				<A id="CONDITION" name="Условие выполнения" caption="" labelwidth="80" type="text" nulls="true" local="true"/>
+			</GA>
+			<GA name="Состояние" caption="Состояние">
+				<A id="STATUS" name="Статус" caption="Статус" type="list" nulls="false" readonly="true" value="0" local="true">
 					<AI id="0" name="Не выполнялся"/>
-					<AI id="1" name="Выполнен"/>
-					<AI id="2" name="Ошибка"/>
+					<AI id="1" name="Пропущен"/>
+					<AI id="2" name="Выполнен"/>
+					<AI id="3" name="Ошибка"/>
 				</A>
 			</GA>
-			<A id="CONVACTNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text ,5, ' ') ||'.'|| a.convunit from convacts a where a.id=@CONVACTID ::bigint" local="true"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
 			<A id="CONVLOADACTID" parentkey="cascade"/>
-			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID ::bigint"/>
-			<A id="CONVACTPARAMID" name="Код" caption="Код" labelwidth="100"/>
-			<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID ::bigint" local="true"/>
-			<A id="STRVALUE" name="Значение" caption="Значение"/>
+			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID"/>
+			<GA name="Параметр" caption="Параметр">
+				<A id="CONVACTPARAMPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select f.position from convactparams f where f.id = @CONVACTPARAMID" local="true"/>
+				<A id="CONVACTPARAMID" name="Код" caption="Код" labelwidth="90"/>
+				<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID" local="true"/>
+			</GA>
+			<GA name="" caption="Формула">
+				<A id="VALUE_FORMULA" name="Формула" caption="" type="text" nulls="true" local="true"/>
+			</GA>
+			<GA name="" caption="Значение">
+				<A id="STRVALUE" name="Значение" caption="" type="text"/>
+			</GA>
 		</TABLE>
 		<TABLE id="BPPOOL" name="Процессы">
 			<GA id="DictionaryNote"/>
@@ -695,10 +714,17 @@
 		</TABLE>
 		<TABLE id="TASKS" name="Задачи">
 			<GA>
-				<A id="TASKNAME" name="Наименование задачи" caption="Наименование задачи" type="string" nulls="true"/>
-				<A id="DATECREATE" name="Дата создания" caption="Дата создания" type="date" nulls="true"/>
-				<A id="DATECHANGE" name="Дата изменения" caption="Дата изменения" type="date" nulls="true"/>
-				<A id="USERSID" name="Инициатор" caption="Инициатор" type="date" nulls="true" formula="select s.name from "/>
+				<A id="TASKSID" visible="ЛОЖЬ"/>
+				<A id="TASKSNAME" name="Наименование задачи" caption="Наименование задачи" labelwidth="200" type="text" readonly="true" virtual="true" formula="select P.name from BPACTIVITY P where P.ID = @BPACTIVITYID::BIGINT"/>
+				<A id="USERS"/>
+				<A id="EXECUTOR"/>
+				<A id="PROGRESS"/>
+				<A id="DATECREATE"/>
+				<A id="DATECHANGE"/>
+				<A id="BPPOOLID"/>
+				<A id="BPACTIVITYID" readonly="true"/>
+				<A id="STATEID"/>
+				<A id="NOTE"/>
 			</GA>
 		</TABLE>
 	</TABLES>
@@ -734,7 +760,7 @@
 		<ACTION id="ConfigExport" name="Выгрузить конфигурацию системы" type="script" actionlist="ConfigExportProc;LoadFileFromFilebuffer"/>
 		<ACTION id="uploadReports" name="Загрузить шаблоны отчетов" type="java">
 			<FORM>
-				<A id="BFILE" caption="Файл" type="blob" array="true" nulls="false"/>
+				<A id="BFILE" array="true" nulls="false"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
@@ -781,15 +807,19 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="convactparams_fill" name="Обновить список параметров" type="procedure" procedure="p_system_convactparams_fill"/>
+		<ACTION id="ConvLoadsClear" name="Очистить буфер выполнения" type="procedure" procedure="p_system_convloads_clear"/>
+		<ACTION id="ConvLoadsUploadFile" name="Загрузить файл" type="script" actionlist="uploadFilelinks;ConvLoadsClear"/>
 		<ACTION id="ConvPrepare" name="Подготовить буфер конвертации" type="procedure" procedure="p_system_convloads_prepare"/>
-		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_convloads_start"/>
 		<ACTION id="ConvLoadsPrepare" name="Подготовить буфер выполнения" type="script" actionlist="FilelinksToFilebuffer;ConvPrepare"/>
+		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_convloads_start"/>
 		<ACTION id="ConfigTablesCopy" name="Копирование настроек пользователя" type="procedure" procedure="p_system_configtables_copy">
 			<FORM>
 				<A id="USERID_FROM" name="Пользователь (от кого)" caption="Пользователь (от кого)" labelwidth="150" type="ref" table="USERS" ret="LOGIN" form="Users" nulls="false" local="true"/>
 				<A id="USERID_TO" name="Пользователь (кому)" caption="Пользователь (кому)" labelwidth="150" type="ref" table="USERS" ret="LOGIN" form="Users" array="true" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="SendForExecution" name="Отправить на исполнение" type="procedure" procedure="p_tasks_start"/>
+		<ACTION id="TasksRollBack" name="Откатить" type="procedure" procedure="p_tasks_rollback"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
@@ -880,7 +910,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="ConvLoads" name="Процессы загрузки">
-			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="uploadFilelinks;ConvLoadsPrepare;ConvLoadsStart"/>
+			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="ConvLoadsUploadFile;ConvLoadsPrepare;ConvLoadsStart"/>
 			<GRID id="ConvLoadActs" name="Буфер выполнения (действия)" table="CONVLOADACTS" readonly="true">
 				<MENU>
 					<MI actionlist="View;Delete;ConfigTables"/>
@@ -924,7 +954,8 @@
 			</TABS>
 		</FORM>
 		<FORM id="Tasks" name="Задачи">
-			<GRID id="Tasks" name="Задачи" table="TASKS"/>
+			<GRID id="Tasks" name="Задачи" table="TASKS" actionlist="SendForExecution;TasksRollBack"/>
+			<GRID id="Taskshistory" name="История выполнения" table="TASKSHISTORY"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
