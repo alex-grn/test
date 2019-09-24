@@ -1,6 +1,7 @@
 <SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
+		<MODULE id="AIS_SPN" name="АИС СРН" menu="AIS_SPN"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="Administrator" name="Меню модуля Администратор">
@@ -34,6 +35,37 @@
 				<MI name="Содержание" actionlist="Help"/>
 			</MENU>
 		</MENU>
+		<MENU id="AIS_SPN" name="Меню модуля АИС СРН">
+			<MENU name="Личные дела">
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Личные дела" formlist="PrivateAffair"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Группы">
+				<MI name="Группы" actionlist="ConfigLoad"/>
+			</MENU>
+			<MENU name="Заявления и обращения">
+				<MI name="Заявления и обращения" formlist="Petition"/>
+			</MENU>
+			<MENU name="Назначения и выплаты">
+				<MI name="Назначения и выплаты" actionlist="ConfigLoad"/>
+			</MENU>
+			<MENU name="Выплатные документы">
+				<MI name="Выплатные документы" actionlist="ConfigLoad"/>
+			</MENU>
+			<MENU name="Нормативно-справочная информация">
+				<MI name="Вид документа" formlist="Sprviewdoc"/>
+				<MI name="Тип заявления" formlist="Sprtypedoc"/>
+				<MI name="Документы, подтверждающие право на установление льготы" formlist="Sprpravodoc"/>
+				<MI name="Страны" formlist="Sprworldcountry"/>
+				<MI name="Перечень льготных категорий" formlist="Spr_rrc_cat"/>
+				<MI name="Меры социальной защиты (поддержки)" formlist="Sprsocmsp"/>
+				<MI name="Уровень нормативно-правового регулирования предоставления МСЗ" formlist="Sprnprmsp"/>
+				<MI name="Виды МСЗ" formlist="Sprviewmsp"/>
+				<MI name="Формы предоставления МСЗ" formlist="Sprformmsp"/>
+				<MI name="Виды родства" formlist="Sprreltype"/>
+			</MENU>
+		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
 		<A id="CODE" name="Код" caption="Код" type="string" nulls="false"/>
@@ -57,8 +89,7 @@
 			<AI id="list" name="Список"/>
 			<AI id="colorlist" name="Список цветов"/>
 			<AI id="hidetext" name="Скрытая строка"/>
-			<AI id="clob" name="Текстовый файл"/>
-			<AI id="blob" name="Бинарный файл"/>
+			<AI id="file" name="Файл"/>
 		</A>
 		<A id="FILENAME" name="Имя файла" caption="Имя файла" type="string" nulls="true"/>
 		<A id="DOCTYPEID" name="Тип документа" caption="Тип" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false"/>
@@ -91,6 +122,7 @@
 			<AI id="TAB" name="Страница"/>
 			<AI id="REPORTS" name="Отчеты"/>
 			<AI id="REPORT" name="Отчет"/>
+			<AI id="COMMENT" name="Коментарий"/>
 		</A>
 		<A id="PROPNODE" name="Свойство" caption="Свойство" type="list" nulls="false">
 			<AI id="id" name="Идентификатор"/>
@@ -104,6 +136,7 @@
 			<AI id="len" name="Длина данных"/>
 			<AI id="pid" name="Родитель"/>
 			<AI id="table" name="Таблица"/>
+			<AI id="tablename" name="Наименование таблицы"/>
 			<AI id="ret" name="Возвращаемый атрибут"/>
 			<AI id="form" name="Форма"/>
 			<AI id="formlist" name="Список форм"/>
@@ -199,8 +232,7 @@
 			<AI id="#8B00FF" name="Фиолетовый"/>
 			<AI id="#FFFF00" name="Жёлтый"/>
 		</A>
-		<A id="CFILE" name="Файл" caption="Файл" type="clob" ext="txt" nulls="true"/>
-		<A id="BFILE" name="Файл" caption="Файл" type="blob" ext="*" nulls="true"/>
+		<A id="BFILE" name="Файл" caption="Файл" type="file" ext="*" nulls="true"/>
 		<A id="DISABLED" name="Запись заблокирована" caption="Запись заблокирована" type="boolean" nulls="true" value="false"/>
 		<A id="ACCESS" name="Разрешить доступ" caption="Разрешить доступ" type="boolean" nulls="false" value="false"/>
 		<A id="LOGIN" name="Логин" caption="Логин" type="string" len="40" nulls="false"/>
@@ -230,6 +262,37 @@
 		<A id="CONVLOADID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
 		<A id="CONVLOADACTID" name="Действие" caption="Действие" type="ref" pid="CONVLOADID" table="CONVLOADACTS" ret="CONVACTID_ret" form="ConvLoadActs" nulls="false"/>
 		<A id="CONVLOADACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMID_ret" nulls="false"/>
+		<A id="GENDER" name="Пол" caption="Пол" labelwidth="210" type="list" nulls="false">
+			<AI id="man" name="Мужской"/>
+			<AI id="woman" name="Женский"/>
+		</A>
+		<A id="TYPEFRLK" name="Вид ЛК" caption="Вид ЛК" labelwidth="210" type="list" nulls="false">
+			<AI id="federal" name="Федеральный"/>
+			<AI id="regional" name="Региональный"/>
+		</A>
+		<A id="PRIVATEAFFAIRID" name="Личные дела" caption="Личные" labelwidth="210" type="ref" table="PRIVATEAFFAIR" ret="NAMEVIRT" nulls="true"/>
+		<A id="ADDRESSGPID" name="Адрес общий" caption="Адрес общий" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="ADDRESSRESIDENTID" name="Адрес проживания" caption="Адрес проживания" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="ADDRESSREGID" name="Адрес регистрации" caption="Адрес регистрации" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="APPLICATIONDOCGRID" name="Заявление" caption="Заявление" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="DOCGRID" name="Все документы" caption="Все документы" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="FAMILYSTRUCTUREID" name="Состав семьи" caption="Состав семьи" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="PETITION_LDID" name="Обращения ЛД" caption="Обращения ЛД" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="HEALTHID" name="Сведения о здоровье" caption="Сведения о здоровье" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="PROFITADDID" name="Доходы гражданина" caption="Доходы гражданина" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="INSMSPID" name="Назначенные МСЗ" caption="Назначенные МСЗ" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="PAYMASTER_LDID" name="Выплатные реквизиты" caption="Выплатные реквизиты" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
+		<A id="PETITIONID" name="Заявления и обращения" caption="Заявления и обращения" type="ref" table="PETITION" nulls="false"/>
+		<A id="SPRVIEWDOCID" name="Вид документа" caption="Вид документа" labelwidth="210" type="ref" table="SPRVIEWDOC" ret="SPRVDVIRT" nulls="true"/>
+		<A id="SPRTYPEDOCID" name="Тип заявления" caption="Тип заявления" labelwidth="210" type="ref" table="SPRTYPEDOC" ret="SPRTDVIRT" nulls="true"/>
+		<A id="SPRPRAVODOCID" name="Документы, подтверждающие право на льготы" caption="Документы, подтверждающие право на льготы" labelwidth="210" type="ref" table="SPRPRAVODOC" ret="SPRPRAVODOCVIRT" nulls="true"/>
+		<A id="SPRWORLDCOUNTRYID" name="Страна" caption="Страна" labelwidth="210" type="ref" table="SPRWORLDCOUNTRY" ret="SPRWCVIRT" nulls="true"/>
+		<A id="SPR_RRC_CATID" name="Перечень льготных категорий" caption="Перечень льготных категорий" labelwidth="210" type="ref" table="SPR_RRC_CAT" ret="SPRLKATVIRT" nulls="true"/>
+		<A id="SPRSOCMSPID" name="Меры социальной защиты (поддержки)" caption="Меры социальной защиты" labelwidth="210" type="ref" table="SPRSOCMSP" ret="SPRMSPVIRT" nulls="true"/>
+		<A id="SPRNPRMSPID" name="Уровень нормативно-правового регулирования предоставления МСЗ" caption="Уровень нормативно-правового регулирования предоставления МСЗ" labelwidth="210" type="ref" table="SPRNPRMSP" ret="SPRNPRMSPVIRT" nulls="true"/>
+		<A id="SPRVIEWMSPID" name="Виды МСЗ" caption="Виды МСЗ" labelwidth="210" type="ref" table="SPRVIEWMSP" ret="SPRVIEWMSPVIRT" nulls="true"/>
+		<A id="SPRFORMMSPID" name="Формы предоставления МСЗ" caption="Формы предоставления МСЗ" labelwidth="210" type="ref" table="SPRFORMMSP" ret="SPRFORMMSPVIRT" nulls="true"/>
+		<A id="SPRRELTYPEID" name="Виды родства" caption="Виды родства" labelwidth="210" type="ref" table="SPRRELTYPE" ret="SPRRYVIRT" nulls="true"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -243,20 +306,20 @@
 		</GA>
 		<GA id="Document" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" caption="Документ" width="40"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and cid=0"/>
 			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="DocumentP" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" labelwidth="90" width="20"/>
 			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID ::bigint and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
 			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="FileInformation" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
 			<A id="FILELINKSID" name="Описание файла"/>
-			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
-			<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID ::bigint" local="true"/>
+			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID" local="true"/>
+			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID" local="true"/>
+			<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID" local="true"/>
 		</GA>
 		<GA id="RecordInfo" name="Сведения о записи" caption="Сведения о записи">
 			<A id="UID" name="Автор записи" caption="Автор" labelwidth="50" width="40" type="ref" table="USERS" ret="NAME" form="Users" nulls="true" visible="form" readonly="true" local="true"/>
@@ -295,7 +358,7 @@
 			</GA>
 			<GA>
 				<A id="FILTER" name="Фильтр" caption="Фильтр:" width="12" type="boolean" nulls="false" value="false" local="true"/>
-				<A id="FILTERINFO" name="Настройки фильтра" caption="" width="88" type="string" nulls="true" visible="form" readonly="true" formula="case when @FILTER = 'false' then null else (select b.filterinfo from configcolumnsbuff b where b.id = @ID ::bigint) end" local="true"/>
+				<A id="FILTERINFO" name="Настройки фильтра" caption="" width="88" type="string" nulls="true" visible="form" readonly="true" formula="case when @FILTER = 'false' then null else (select b.filterinfo from configcolumnsbuff b where b.id = @ID) end" local="true"/>
 			</GA>
 			<GA>
 				<A id="SORTINFO" name="Сортировка" caption="Сортировка" labelwidth="103" type="list" nulls="false" local="true">
@@ -377,7 +440,7 @@
 		<TABLE id="ROLEPRIVS" name="Права доступа" hid="UNITID_ret">
 			<A id="ROLEID" parentkey="cascade"/>
 			<A id="UNITID" nulls="false"/>
-			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="300" nulls="true" visible="grid" readonly="true" virtual="true" formula="select u.classnode from units u where u.id = @UNITID::bigint"/>
+			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="300" nulls="true" visible="grid" readonly="true" virtual="true" formula="select u.classnode from units u where u.id = @UNITID"/>
 			<A id="ACCESS"/>
 			<TI unique="ROLEID,HID,UNITID"/>
 		</TABLE>
@@ -385,16 +448,18 @@
 			<A id="CODE"/>
 			<A id="TABLENAME"/>
 			<A id="FILENAME"/>
-			<A id="CFILE"/>
 			<A id="BFILE"/>
 			<TI unique="TABLENAME,CODE,FILENAME"/>
 		</TABLE>
 		<TABLE id="OPTIONS" name="Параметры системы">
-			<GA id="Dictionary"/>
-			<A id="STRVALUE"/>
-			<A id="NUMVALUE"/>
-			<A id="DATVALUE"/>
-			<TI unique="CODE"/>
+			<A id="NAME" name="Наименование" caption="Наименование" type="list" nulls="true" local="true">
+				<AI id="ImportTime" name="Периодичность загрузки из внешних баз, в часах"/>
+				<AI id="PageSize" name="Размер страницы"/>
+			</A>
+			<A id="STRVALUE" name="Значение(строка)" caption="Значение(строка)" type="string" nulls="true"/>
+			<A id="NUMVALUE" name="Значение(число)" caption="Значение(число)" type="number" len="17.5" nulls="true"/>
+			<A id="DATVALUE" name="Значение(дата)" caption="Значение(дата)" type="date" nulls="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" type="text" nulls="true"/>
 		</TABLE>
 		<TABLE id="DOCTYPES" name="Типы документов">
 			<GA id="Dictionary"/>
@@ -449,11 +514,11 @@
 		</TABLE>
 		<TABLE id="CONCEPTITEMS" name="Конвертер: Форматы обмена данными (элементы)" hid="CODE">
 			<A id="CONCEPTID" parentkey="cascade"/>
-			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
+			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID and hid is null and @HID is null or hid=@HID and cid=0"/>
 			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
 			<A id="NAME" labelwidth="150"/>
 			<GA>
-				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@ID ::bigint, @ATTR ::boolean)" local="true">
+				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@CONCEPTID, @HID, @ATTR)" local="true">
 					<AI id="xlssheet" name="Страница Excel"/>
 					<AI id="xlscol" name="Колонка Excel"/>
 					<AI id="xmlnode" name="Таг XML"/>
@@ -474,10 +539,10 @@
 		</TABLE>
 		<TABLE id="CONVACTS" name="Конвертер: Алгоритмы загрузки (действия)">
 			<A id="CONVID" parentkey="cascade"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID::bigint"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID"/>
 			<GA>
-				<A id="POSITION" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID ::bigint and hid is null and @HID is null or hid=@HID ::bigint and cid=0"/>
-				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="80" formula="select coalesce(@CONCEPTITEMID ::bigint, min(id)) from conceptitems where conceptid=@CONCEPTID ::bigint and hid is null and cid=0"/>
+				<A id="POSITION" name="Порядок" caption="Порядок" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID and hid is null and @HID is null or hid=@HID and cid=0"/>
+				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="80" formula="select min(ci.id) from conv c, conceptitems ci where c.id=@CONVID and c.conceptid = ci.conceptid and ci.cid=0"/>
 			</GA>
 			<GA name="Объект базы данных" caption="Объект базы данных">
 				<A id="CONVUNITTYPE" name="Тип" caption="Тип" labelwidth="36" width="15" type="list" nulls="false" local="true">
@@ -487,7 +552,7 @@
 				<A id="CONVUNIT" name="Наименование" caption="Наименование" labelwidth="110" width="85" type="list" nulls="false" query="select upper(tablename) as id, (select coalesce(upper(tablename)||' - '||max(m.name),upper(tablename)) from metaclass m where m.classnode='TABLE' and m.code=upper(tablename)) as code from pg_tables where schemaname = 'public' and @CONVUNITTYPE = 'table' union all select upper(p.proname) as id, (select coalesce(upper(p.proname)||' - '||max(m.name),upper(p.proname)) from metaclass m, metaclassprops mp where m.classnode='ACTION' and m.id = mp.metaclassid and mp.propnode='procedure' and lower(mp.strvalue)=p.proname) as code from pg_proc p, pg_namespace s where p.pronamespace = s.oid and s.nspname='public' and @CONVUNITTYPE = 'procedure'" local="true"/>
 			</GA>
 			<GA>
-				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
+				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Delete' as id, 'Удалить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
 				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
 			</GA>
 			<A id="CONDITION" name="Условие выполнения" caption="Условие выполнения" labelwidth="80" type="text" nulls="true" local="true"/>
@@ -495,11 +560,11 @@
 		</TABLE>
 		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
 			<A id="CONVACTID" parentkey="cascade"/>
-			<A id="CONVID" visible="false" virtual="true" formula="select a.convid from convacts a where a.id=@CONVACTID ::bigint"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTID ::bigint and a.convid=n.id"/>
-			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTID ::bigint" local="true"/>
+			<A id="CONVID" visible="false" virtual="true" formula="select a.convid from convacts a where a.id=@CONVACTID"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select n.conceptid from conv n, convacts a where a.id=@CONVACTID and a.convid=n.id"/>
+			<A id="CODEVIRT" type="string" visible="false" virtual="true" formula="select ''||a.position||'.'||@CODE from convacts a where a.id=@CONVACTID" local="true"/>
 			<GA name="Параметр" caption="Параметр">
-				<A id="POSITION" readonly="true"/>
+				<A id="POSITION" name="Порядок" caption="Порядок" readonly="true"/>
 				<A id="CODE" readonly="true"/>
 				<A id="NAME" type="string" readonly="true"/>
 				<GA>
@@ -521,7 +586,7 @@
 						<AI id="bigserial" name="Первичный ключ"/>
 						<AI id="xml" name="Формат XML"/>
 						<AI id="json" name="Формат JSON"/>
-						<AI id="bytea" name="Бинарный файл"/>
+						<AI id="bytea" name="Файл"/>
 					</A>
 					<A id="DATANOTNULL" name="Обязательное" caption="Обязательное" labelwidth="93" width="6" type="list" readonly="true" local="true">
 						<AI id="no" name="Нет"/>
@@ -550,48 +615,472 @@
 		<TABLE id="CONVLOADS" name="Конвертер: Процессы загрузки">
 			<GA name="Процесс" caption="Процесс">
 				<A id="CONVID" width="40"/>
-				<A id="NUMB" name="Идентификатор" caption="Идентификатор" width="60" type="int" formula="select coalesce(max(numb)+1,1)::int from convloads where convid=@CONVID ::bigint and cid=0" local="true"/>
+				<A id="NUMB" name="Идентификатор" caption="Идентификатор" width="60" type="int" formula="select coalesce(max(numb)+1,1)::int from convloads where convid=@CONVID and cid=0" local="true"/>
 			</GA>
 			<GA name="Состояние" caption="Состояние">
 				<A id="STATUS" name="Статус" caption="Статус" width="46" type="list" nulls="false" readonly="true" value="0" local="true">
 					<AI id="0" name="Не выполнялся"/>
-					<AI id="1" name="Выполнен"/>
-					<AI id="2" name="Ошибка"/>
+					<AI id="1" name="Подготовлен"/>
+					<AI id="2" name="Выполнен"/>
+					<AI id="3" name="Ошибка"/>
 				</A>
 				<A id="LOADDATE" name="Дата и время выполнения" caption="Дата и время выполнения" labelwidth="160" width="54" type="datetime" nulls="true" readonly="true" local="true"/>
 			</GA>
 			<GA name="Ошибка" caption="Ошибка">
 				<A id="ERRORMSG" name="Сообщение" caption="Сообщение" width="100" type="text" nulls="true" local="true"/>
-				<A id="CONVLOADID" nulls="true" visible="false" virtual="true" formula="select @ID"/>
-				<A id="CONVLOADACTID" nulls="true"/>
 			</GA>
 			<GA id="FileInformation"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTS" name="Конвертер: Буфер выполнения (действия)" hid="CONVACTNAMEVIRT">
 			<A id="CONVLOADID" parentkey="cascade"/>
-			<A id="CONCEPTID" visible="false" virtual="true" formula="select c.conceptid from convloads l, conv c where l.id=@CONVLOADID ::bigint and l.convid = c.id"/>
+			<A id="CONCEPTID" visible="false" virtual="true" formula="select c.conceptid from convloads l, conv c where l.id=@CONVLOADID and l.convid = c.id"/>
 			<GA name="Формат" caption="Формат">
-				<A id="CONCEPTITEMID"/>
-				<A id="POSITION" name="Номер экземпляра" caption="Номер экземпляра" labelwidth="120"/>
+				<A id="POSITION" name="Экземпляр" caption="Экземпляр" labelwidth="70" width="30"/>
+				<A id="CONCEPTITEMID" name="Элемент" caption="Элемент" labelwidth="70" width="70"/>
 			</GA>
-			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADID ::bigint"/>
+			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADID"/>
 			<GA name="Алгоритм" caption="Алгоритм">
-				<A id="CONVACTID" labelwidth="120" width="70"/>
-				<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" nulls="false" readonly="true" value="0" local="true">
+				<A id="CONVACTPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="70" width="30" type="string" nulls="true" readonly="true" virtual="true" formula="select a.position from convacts a where a.id=@CONVACTID" local="true"/>
+				<A id="CONVACTID" labelwidth="70" width="70"/>
+				<A id="CONVACTNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text,5,' ')||'.'||c.code||' ['||lpad(a.position ::text,2,' ')||'.'||a.convunit||']' from convacts a, conceptitems c where a.conceptitemid = c.id and a.id=@CONVACTID" local="true"/>
+			</GA>
+			<GA name="" caption="Условие выполнения">
+				<A id="CONDITION" name="Условие выполнения" caption="" labelwidth="80" type="text" nulls="true" local="true"/>
+			</GA>
+			<GA name="Состояние" caption="Состояние">
+				<A id="STATUS" name="Статус" caption="Статус" type="list" nulls="false" readonly="true" value="0" local="true">
 					<AI id="0" name="Не выполнялся"/>
-					<AI id="1" name="Выполнен"/>
-					<AI id="2" name="Ошибка"/>
+					<AI id="1" name="Пропущен"/>
+					<AI id="2" name="Выполнен"/>
+					<AI id="3" name="Ошибка"/>
 				</A>
 			</GA>
-			<A id="CONVACTNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text ,5, ' ') ||'.'|| a.convunit from convacts a where a.id=@CONVACTID ::bigint" local="true"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
 			<A id="CONVLOADACTID" parentkey="cascade"/>
-			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID ::bigint"/>
-			<A id="CONVACTPARAMID" name="Код" caption="Код" labelwidth="100"/>
-			<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID ::bigint" local="true"/>
-			<A id="STRVALUE" name="Значение" caption="Значение"/>
+			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID"/>
+			<GA name="Параметр" caption="Параметр">
+				<A id="CONVACTPARAMPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select f.position from convactparams f where f.id = @CONVACTPARAMID" local="true"/>
+				<A id="CONVACTPARAMID" name="Код" caption="Код" labelwidth="90"/>
+				<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID" local="true"/>
+			</GA>
+			<GA name="" caption="Формула">
+				<A id="VALUE_FORMULA" name="Формула" caption="" type="text" nulls="true" local="true"/>
+			</GA>
+			<GA name="" caption="Значение">
+				<A id="STRVALUE" name="Значение" caption="" type="text"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PRIVATEAFFAIR" name="Личные дела" caption="Личные дела">
+			<TABS>
+				<TAB name="Общие сведения">
+					<GA name="Общие сведения">
+						<A id="OUID" name="№ личного дела" caption="№ личного дела" labelwidth="210" type="number" nulls="false" local="true"/>
+						<A id="INN" name="ИНН" caption="ИНН" labelwidth="210" type="number" nulls="true" local="true"/>
+						<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="210" type="number" nulls="true" local="true"/>
+						<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="false" local="true"/>
+						<A id="NAME" name="Имя" caption="Имя" labelwidth="210" type="string" nulls="false" local="true"/>
+						<A id="SECONDNAME" name="Отчество" caption="Отчество" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="GENDER" name="Пол"/>
+						<TI unique="GENDER"/>
+						<A id="SPRWORLDCOUNTRYID" caption="Гражданство"/>
+						<GA name="Сведения о рождении" caption="Сведения о рождении">
+							<A id="PLACEOFBIRTH" name="Место рождения" caption="Место рождения" labelwidth="210" type="string" nulls="true" local="true"/>
+							<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" labelwidth="210" type="date" nulls="true" local="true"/>
+							<A id="YOUNG" name="Возраст" caption="Возраст" labelwidth="210" type="date" nulls="true" local="true"/>
+							<A id="DATEDEATH" name="Дата смерти" caption="Дата смерти" labelwidth="210" type="date" nulls="true" local="true"/>
+						</GA>
+						<A id="NAMEVIRT" name="Наименование" caption="Наименование" type="string" visible="false" virtual="true" formula="select @OUID ::text || ' ' || @SURNAME"/>
+					</GA>
+					<GA name="Документ, удостоверяющий личность" caption="Документ, удостоверяющий личность">
+						<A id="SPRVIEWDOCID" caption="Вид документа"/>
+						<A id="DOCUMENTSERIES" name="Серия" caption="Серия" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DOCUMENTSNUMBER" name="Номер" caption="Номер" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="ISSUE_EXTENSIONSDATE" name="Дата выдачи документа" caption="Дата выдачи документа" labelwidth="210" type="date" nulls="true" local="true"/>
+						<A id="GIVEDOCUMENTORG" name="Организация, выдавшая документ" caption="Организация, выдавшая документ" labelwidth="210" type="text" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Контактный телефон">
+					<GA name="Телефон" caption="Контактный телефон">
+						<A id="PHONEMOB" name="Мобильный телефон" caption="Мобильный телефон" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+						<A id="PHONEHOME" name="Домашний телефон" caption="Домашний телефон" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Электронная почта">
+					<GA name="Электронная почта">
+						<A id="EMAIL" name="Электронная почта" caption="Электронная почта" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="ADDRESSGP" name="Адрес общий" caption="Адрес">
+			<TABS>
+				<TAB name="Адрес общий">
+					<A id="ADDRESSRESIDENTID" caption="Адрес проживания"/>
+					<A id="ADDRESSMATCH" name="Адрес проживания совпадает с адресом регистрации" caption="Адрес проживания совпадает с адресом регистрации" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="ADDRESSREGID" caption="Адрес регистрации"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="ADDRESSRESIDENT" name="Адрес проживания" caption="Адрес проживания">
+			<TABS>
+				<TAB name="Адрес проживания">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="ADDRESSRESIDENT_VIRT" name="Укажите адрес проживания полностью" caption="Укажите адрес проживания полностью" labelwidth="210" type="text" visible="true" virtual="true" formula="select @POST_INDEX ::text || ' ' || @ADR_SUBFED || '  ул. ' || @ADR_STREET || ' ' || @ADR_HOUSE"/>
+					<A id="POST_INDEX" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="ADR_COUNTRY" name="Страна" caption="Страны" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_SUBFED" name="Регион" caption="Регион" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_FEBBOROUGH" name="Район" caption="Район" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_TOWN" name="Населенный пункт" caption="Населенный пункт" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_STREET" name="Улица" caption="Улица" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_HOUSE" name="Дом" caption="Дом" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_BUILDING" name="Корпус" caption="Корпус" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_BUILD" name="Строение" caption="Строение" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_FLAT" name="Квартира" caption="Квартира" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADDRESSMATCH" name="Адрес проживания совпадает с адресом регистрации" caption="Адрес проживания совпадает с адресом регистрации" labelwidth="210" type="number" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="ADDRESSREG" name="Адрес регистрации" caption="Адрес регистрации">
+			<TABS>
+				<TAB name="Адрес регистрации">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="POST_INDEX" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="ADR_COUNTRY" name="Страна" caption="Страна" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_SUBFED" name="Регион" caption="Регион" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_FEBBOROUGH" name="Район" caption="Район" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_TOWN" name="Населенный пункт" caption="Населенный пункт" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_STREET" name="Улица" caption="Улица" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_HOUSE" name="Дом" caption="Дом" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_BUILDING" name="Корпус" caption="Корпус" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_BUILD" name="Строение" caption="Строение" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADR_FLAT" name="Квартира" caption="Квартира" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DPROP" name="Дата регистрации" caption="Дата регистрации" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DOUTPROP" name="Дата окончания регистрации" caption="Дата окончания регистрации" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="ADDRESSREG_VIRT" name="Виртуальное поле" caption="Наименование" labelwidth="210" type="string" visible="false" virtual="true" formula="select @POST_INDEX ::text || ' ' || @ADR_SUBFED"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="APPLICATIONDOCGR" name="Заявление" caption="Заявление">
+			<TABS>
+				<TAB name="Заявление">
+					<GA name="Общие сведения">
+						<A id="APPLICANT" name="Заявитель" caption="Заявитель" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DOCUMENTMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="REGTDATE" name="Дата регистрации" caption="Дата регистрации" labelwidth="210" type="date" nulls="true" local="true"/>
+						<A id="APPLSTATUS" name="Статус заявления" caption="Статус заявления" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
+					<GA name="Назначение" caption="Назначение">
+						<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+						<A id="SPRTYPEDOCID" name="Тип заявления"/>
+						<A id="SPR_RRC_CATID" name="Льготная категория"/>
+						<A id="SPRSOCMSPID" name="Мера социальной поддержки"/>
+					</GA>
+					<GA name="Общие характеристики" caption="Общие характеристики">
+						<A id="DOCBASESTARTDATE" name="Льготодержатель" caption="Льготодержатель" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DOCBASEFINISHDATE" name="Получатель " caption="Получатель " labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DOCSTATUS" name="Лицо, на основании данных ЛД которого запрашивается МСЗ" caption="Лицо, на основании данных ЛД которого запрашивается МСЗ" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
+					<A id="TESTRESULT" name="Результат проверки" caption="Результат проверки" labelwidth="210" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="DOCGR" name="Документы ЛД предоставленные при обращении" caption="Документы ЛД предоставленные при обращении">
+			<TABS>
+				<TAB name="Документы предоставленные при обращении">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="PRIVATEAFFAIR" name="Личное дело" caption="Личное дело" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="SPRPRAVODOCID" caption="Вид документа"/>
+					<A id="DOCUMENTSERIES" name="Серия документа" caption="Серия документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCBASESTARTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DOCBASEFINISHDATE" name="Дата окончания действия " caption="Дата окончания действия " labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="REGDATE" name="Дата предоставления" caption="Дата предоставления" labelwidth="210" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="FAMILYSTRUCTURE" name="Состав семьи" caption="Состав семьи">
+			<TABS>
+				<TAB name="Состав семьи">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="NAME" name="Имя" caption="Имя" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="SECONDNAME" name="Отчество" caption="Отчество" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="ADDRESSREG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRRELTYPEID" name="Степень родства" caption="Степень родства"/>
+					<A id="MAINTENANCE" name="Иждивение" caption="Иждивение" labelwidth="210" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="INSMSP" name="Решение по Обращению" caption="Решение по Обращению">
+			<TABS>
+				<TAB name="Решение по Обращению">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="PROTOCOLOBR" name="Протокол" caption="Протокол" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATEOBR" name="Дата проверки обращения" caption="Дата проверки обращения" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="PERSTESTSOLUTION" name="Специалист,проверивший решение" caption="Специалист,проверивший решение" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATEDEC" name="Дата подготовки решения" caption="Дата подготовки решения" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="NUMBERSOLUTIONS" name="Номер решения" caption="Номер решения" labelwidth="210" type="string" nulls="true" local="true"/>
+					<GA name="Назначение" caption="Назначение">
+						<A id="MSP" name="МСЗ" caption="МСЗ" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="TYPELK" name="Тип льготной категории" caption="МСЗ" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="SZDEST" name="Размер назначения" caption="Размер назначения" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="HEALTH" name="Сведения о здоровье" caption="Сведения о здоровье">
+			<TABS>
+				<TAB name="Сведения о здоровье">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="NAME" name="Имя" caption="Имя" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="SECONDNAME" name="Отчество" caption="Отчество" labelwidth="210" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="PROFITADD" name="Расчет доходов" caption="Расчет доходов">
+			<TABS>
+				<TAB name="Доходы гражданина">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="NAME" name="Имя" caption="Имя" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="SECONDNAME" name="Отчество" caption="Отчество" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="ADDRESSREG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="PAYMASTER_LD" name="Выплатные реквизиты" caption="Выплатные реквизиты">
+			<TABS>
+				<TAB name="Выплатные реквизиты">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="PETITION" name="Заявления и обращения" caption="Регистрация заявления">
+			<TABS>
+				<TAB name="Регистрация заявления">
+					<GA name="Заявления и обращения">
+						<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+						<A id="REGPETITION" name="Номер заявления" caption="Номер заявления" labelwidth="210" type="number" nulls="true" local="true"/>
+						<A id="REGDATECREATE" name="Дата регистрации" caption="Дата регистрации" labelwidth="210" type="date" nulls="true" local="true"/>
+						<A id="TYPEAPPLICATION" name="Тип заявления" caption="Тип заявления" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="MSP" name="Мера социальной поддержки" caption="Мера социальной поддержки" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="LKAT" name="Льготная категория" caption="Льготная категория" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="PERSONOUID" name="Заявитель" caption="Заявитель" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="STATUS" name="Статус" caption="Статус" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="HOLDER" name="Льготодержатель" caption="Льготодержатель" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="RECEIVER" name="Получатель" caption="Получатель" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="CREATEDATE" name="Дата и время создания" caption="Дата и время создания" labelwidth="210" type="datetime" nulls="true" local="true"/>
+						<A id="CROWNER" name="Специалист, принявший заявление" caption="Специалист, принявший заявление" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRTYPEDOC" name="Тип заявления" caption="Тип заявления">
+			<TABS>
+				<TAB name="Тип заявления">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="FULLNAMESPR" name="Полное наименование" caption="Полное наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="SPR_RRC_CATID" name="Льготная категория" caption="Льготная категория"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRTDVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRVIEWDOC" name="Вид документа" caption="Вид документа">
+			<TABS>
+				<TAB name="Вид документа">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование документа" caption="Наименование документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="NOTENAMESPR" name="Примечание" caption="Примечание" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="SPRVDVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRPRAVODOC" name="Документы, подтверждающие право на установление льготы" caption="Документы, подтверждающие право на установление льготы">
+			<TABS>
+				<TAB name="Документы, подтверждающие право на установление льготы">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование документа" caption="Наименование документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="NOTENAMESPR" name="Примечание" caption="Примечание" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="SPRPRAVODOCVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRRELTYPE" name="Виды родства" caption="Виды родства">
+			<TABS>
+				<TAB name="Виды родства">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="SPRRYVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPR_RRC_CAT" name="Перечень льготных категорий" caption="Перечень льготных категорий">
+			<TABS>
+				<TAB name="Перечень льготных категорий">
+					<A id="CODESPR" name="Код ЛК" caption="Код ЛК" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="NPDSPR" name="Нормативный правовой документ" caption="Нормативный правовой документ" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="PRIMSPR" name="Примечание" caption="Примечание" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="TYPEFRLK" name="Вид ЛК" caption="Вид ЛК"/>
+					<TI unique="TYPEFRLK"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRLKATVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRSOCMSP" name="Меры социальной защиты (поддержки)" caption="Меры социальной защиты (поддержки)">
+			<TABS>
+				<TAB name="Меры социальной защиты (поддержки)">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="NPDSPR" name="Нормативный правовой документ" caption="Нормативный правовой документ" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="SITSPR" name="Условия" caption="Условия" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="SPRNPRMSPID" name="Уровень МСЗ" caption="Уровень МСЗ"/>
+					<A id="SPRVIEWMSPID" name="Вид МСЗ" caption="Вид МСЗ"/>
+					<A id="SPRFORMMSPID" name="Форма предоставления МСЗ" caption="Форма предоставления МСЗ"/>
+					<A id="PERIODSMSPSPR" name="Период МСЗ" caption="Период МСЗ" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRMSPVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRNPRMSP" name="Уровень нормативно-правового регулирования предоставления МСЗ" caption="Уровень нормативно-правового регулирования предоставления МСЗ">
+			<TABS>
+				<TAB name="Уровень нормативно-правового регулирования предоставления МСЗ">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRNPRMSPVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRSOURCFINANCMSP" name="Источник финансирования МСЗ" caption="Источник финансирования МСЗ">
+			<TABS>
+				<TAB name="Источник финансирования МСЗ">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRNPRMMSPVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRFORMMSP" name="Формы предоставления МСЗ" caption="Формы предоставления МСЗ">
+			<TABS>
+				<TAB name="Формы предоставления МСЗ">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRFORMMSPVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRVIEWMSP" name="Виды МСЗ" caption="Виды МСЗ">
+			<TABS>
+				<TAB name="Виды МСЗ">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="SPRVIEWMSPVIRT" name="Виртуальное поле со значением NAMESPR" caption="Виртуальное поле со значением NAMESPR" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRPERIODMSP" name="Периоды МСЗ" caption="Периоды МСЗ">
+			<TABS>
+				<TAB name="Периоды МСЗ">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRWORLDCOUNTRY" name="Страна" caption="Страна">
+			<TABS>
+				<TAB name="Страны">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="30" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Краткое наименование" caption="Краткое наименование" labelwidth="210" width="30" type="string" nulls="true" local="true"/>
+					<A id="FULLNAMESPR" name="Полное наименование" caption="Полное наименование" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="30" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="30" type="date" nulls="true" local="true"/>
+					<A id="SPRWCVIRT" name="Виртуальное поле со значением NAMESPR" caption="Наименование" labelwidth="210" type="string" visible="false" virtual="true" formula="select @NAMESPR ::text"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRINDEX" name="Почтовый индекс" caption="Почтовый индекс">
+			<TABS>
+				<TAB name="Регион">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="50" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRREGION" name="Регион" caption="Регион">
+			<TABS>
+				<TAB name="Регион">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="50" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRAREA" name="Район" caption="Район">
+			<TABS>
+				<TAB name="Район">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="50" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRCITY" name="Город" caption="Город">
+			<TABS>
+				<TAB name="Город">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="50" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRHUMANSETTL" name="Населенный пункт" caption="Населенный пункт">
+			<TABS>
+				<TAB name="Населенный пункт">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="50" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="SPRSTREET" name="Улица" caption="Улица">
+			<TABS>
+				<TAB name="Улица">
+					<A id="CODESPR" name="Код справочника" caption="Код справочника" labelwidth="210" width="50" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" width="50" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -626,7 +1115,7 @@
 		<ACTION id="ConfigExport" name="Выгрузить конфигурацию системы" type="script" actionlist="ConfigExportProc;LoadFileFromFilebuffer"/>
 		<ACTION id="uploadReports" name="Загрузить шаблоны отчетов" type="java">
 			<FORM>
-				<A id="BFILE" caption="Файл" type="blob" array="true" nulls="false"/>
+				<A id="BFILE" array="true" nulls="false"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
@@ -673,9 +1162,11 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="convactparams_fill" name="Обновить список параметров" type="procedure" procedure="p_system_convactparams_fill"/>
+		<ACTION id="ConvLoadsClear" name="Очистить буфер выполнения" type="procedure" procedure="p_system_convloads_clear"/>
+		<ACTION id="ConvLoadsUploadFile" name="Загрузить файл" type="script" actionlist="uploadFilelinks;ConvLoadsClear"/>
 		<ACTION id="ConvPrepare" name="Подготовить буфер конвертации" type="procedure" procedure="p_system_convloads_prepare"/>
-		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_convloads_start"/>
 		<ACTION id="ConvLoadsPrepare" name="Подготовить буфер выполнения" type="script" actionlist="FilelinksToFilebuffer;ConvPrepare"/>
+		<ACTION id="ConvLoadsStart" name="Выполнить конвертацию" type="procedure" procedure="p_system_convloads_start"/>
 		<ACTION id="ConfigTablesCopy" name="Копирование настроек пользователя" type="procedure" procedure="p_system_configtables_copy">
 			<FORM>
 				<A id="USERID_FROM" name="Пользователь (от кого)" caption="Пользователь (от кого)" labelwidth="150" type="ref" table="USERS" ret="LOGIN" form="Users" nulls="false" local="true"/>
@@ -772,7 +1263,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="ConvLoads" name="Процессы загрузки">
-			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="uploadFilelinks;ConvLoadsPrepare;ConvLoadsStart"/>
+			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="ConvLoadsUploadFile;ConvLoadsPrepare;ConvLoadsStart"/>
 			<GRID id="ConvLoadActs" name="Буфер выполнения (действия)" table="CONVLOADACTS" readonly="true">
 				<MENU>
 					<MI actionlist="View;Delete;ConfigTables"/>
@@ -795,6 +1286,77 @@
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
 			</GRID>
+		</FORM>
+		<FORM id="PrivateAffair" name="Личные дела">
+			<GRID id="Privateaffair" name="Личные дела" table="PRIVATEAFFAIR"/>
+			<TABS>
+				<TAB name="Адрес">
+					<GRID id="Addressgp" name="Адрес" table="ADDRESSGP"/>
+				</TAB>
+				<TAB name="Адрес проживания">
+					<GRID id="Addressresident" name="Адрес проживания" table="ADDRESSRESIDENT"/>
+				</TAB>
+				<TAB name="Заявление">
+					<GRID id="Applicationdocgr" name="Заявление" table="APPLICATIONDOCGR"/>
+				</TAB>
+				<TAB name="Документы ЛД">
+					<GRID id="Docgr" name="Документы ЛД" table="DOCGR"/>
+				</TAB>
+				<TAB name="Состав семьи">
+					<GRID id="Familystructure" name="Состав семьи" table="FAMILYSTRUCTURE"/>
+				</TAB>
+				<TAB name="Обращения">
+					<GRID id="Petition" name="Обращения и Заявления" table="PETITION"/>
+				</TAB>
+				<TAB name="Сведения о здоровье">
+					<GRID id="Health" name="Сведения о здоровье" table="HEALTH"/>
+				</TAB>
+				<TAB name="Расчёт доходов">
+					<GRID id="Profitadd" name="Граждане, по которым выполняется расчёт" table="PROFITADD"/>
+				</TAB>
+				<TAB name="Назначения и Выплаты">
+					<GRID id="Profitadd" name="Назначения и Выплаты" table="PROFITADD"/>
+				</TAB>
+				<TAB name="Решение по Обращению">
+					<GRID id="Insmsp" name="Решение по Обращению" table="INSMSP"/>
+				</TAB>
+				<TAB name="Выплатные реквизиты">
+					<GRID id="Paymaster_ld" name="Выплатные реквизиты" table="Выплатные реквизиты"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Petition" name="Заявления и обращения">
+			<GRID id="Petition" name="Заявления и обращения" table="PETITION"/>
+		</FORM>
+		<FORM id="Sprtypedoc" name="Тип заявления">
+			<GRID id="Sprtypedoc" name="Тип заявления" table="SPRTYPEDOC"/>
+		</FORM>
+		<FORM id="Sprviewdoc" name="Вид документа">
+			<GRID id="Sprviewdoc" name="Вид документа" table="SPRVIEWDOC"/>
+		</FORM>
+		<FORM id="Sprpravodoc" name="Документы, подтверждающие право на установление льготы">
+			<GRID id="Sprpravodoc" name="Документы, подтверждающие право на установление льготы" table="SPRPRAVODOC"/>
+		</FORM>
+		<FORM id="Sprworldcountry" name="Страна">
+			<GRID id="Sprworldcountry" name="Страна" table="SPRWORLDCOUNTRY"/>
+		</FORM>
+		<FORM id="Spr_rrc_cat" name="Перечень льготных категорий">
+			<GRID id="Spr_rrc_cat" name="Перечень льготных категорий" table="SPR_RRC_CAT"/>
+		</FORM>
+		<FORM id="Sprsocmsp" name="Меры социальной защиты (поддержки)">
+			<GRID id="Sprsocmsp" name="Меры социальной защиты (поддержки)" table="SPRSOCMSP"/>
+		</FORM>
+		<FORM id="Sprnprmsp" name="Уровень нормативно-правового регулирования предоставления МСЗ">
+			<GRID id="Sprnprmsp" name="Уровень нормативно-правового регулирования предоставления МСЗ" table="SPRNPRMSP"/>
+		</FORM>
+		<FORM id="Sprformmsp" name="Формы предоставления МСЗ">
+			<GRID id="Sprformmsp" name="Формы предоставления МСЗ" table="SPRFORMMSP"/>
+		</FORM>
+		<FORM id="Sprviewmsp" name="Виды МСЗ">
+			<GRID id="Sprviewmsp" name="Виды МСЗ" table="SPRVIEWMSP"/>
+		</FORM>
+		<FORM id="Sprreltype" name="Виды родства">
+			<GRID id="Sprreltype" name="Виды родства" table="SPRRELTYPE"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
