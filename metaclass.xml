@@ -846,6 +846,13 @@
 			<A id="LIMIT1" name="На 1 год планового периода" caption="На 1 год планового периода" labelwidth="150" type="number" len="17.2" nulls="false" value="0"/>
 			<A id="LIMIT2" name="На 2 год планового периода" caption="На 2 год планового периода" labelwidth="150" type="number" len="17.2" nulls="false" value="0"/>
 		</GA>
+		<GA id="VPPayInformation" name="Сведения о документе на оплату" caption="Сведения о документе на оплату">
+			<A id="PAYINOUTID" name="Номер документа" caption="Номер документа" width="50" nulls="true"/>
+			<A id="DOCDATEVIRT" name="Дата" caption="Дата" type="date" width="50" nulls="false" visible="form" readonly="true" virtual="true" formula="select t.docdate from PayInOut t where t.id = @PAYINOUTID ::bigint" local="true"/>
+			<A id="SUMMPAYINVIRT" name="Сумма поступления" caption="Сумма поступления" type="number" len="17.2" width="50" nulls="false" visible="form" readonly="true" virtual="true" formula="select t.summpayin from PayInOut t where t.id = @PAYINOUTID ::bigint" local="true"/>
+			<A id="SUMMPAYOUTVIRT" name="Сумма выплаты" caption="Сумма выплаты" type="number" len="17.2" width="50" nulls="false" visible="form" readonly="true" virtual="true" formula="select t.summpayout from PayInOut t where t.id = @PAYINOUTID ::bigint" local="true"/>
+			<A id="PURPOSEVIRT" name="Назначение платежа" caption="Назначение платежа" type="text" nulls="false" visible="form" readonly="true" virtual="true" formula="select t.purpose from PayInOut t where t.id = @PAYINOUTID ::bigint" local="true"/>		
+		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
 		<TABLE id="LEVACCESS" name="Уровни доступа" hid="NAME">
@@ -2207,14 +2214,10 @@
 		</TABLE>
 		<TABLE id="FINEPAY" name="История оплаты">
 			<A id="FINEID" parentkey="cascade"/>
-			<A id="PAYINOUTID" name="Оплата" caption="Оплата"/>
-			<A id="DATEVP" name="Дата выписки" caption="Дата выписки" labelwidth="500" type="date" nulls="true"/>
-			<A id="DOCNUMB" name="Номер документа" caption="Номер" type="string" len="80" nulls="false"/>
-			<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="false"/>
-			<A id="UIN" name="УИН" caption="УИН" type="number" len="20" nulls="false" value="0"/>
-			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
-			<A id="CNAME_PAY" name="Наименование плательщика" caption="Наименование плательщика" type="text" nulls="false"/>
-			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" type="text" nulls="false"/>
+			<GA id="VPPayInformation"/>			
+			<A id="DATEVP" name="Дата выписки" caption="Дата выписки" labelwidth="500" type="date" nulls="true"/>			
+			<A id="UIN" name="УИН" caption="УИН" type="number" len="20" nulls="false" value="0"/>			
+			<A id="CNAME_PAY" name="Наименование плательщика" caption="Наименование плательщика" type="text" nulls="false"/>			
 		</TABLE>
 		<TABLE id="FINELOADING" name="Загрузка штрафов">
 			<A id="OWNERID" name="Принадлежность" labelwidth="100" width="50"/>
@@ -2313,8 +2316,8 @@
 			<A id="PAYINOUTID" parentkey="cascade"/>
 			<A id="KBK_OUTID" name="Бюджетная классификация расходов" nulls="true"/>
 			<A id="KBK_INID" name="Бюджетная классификация доходов" nulls="true"/>
-			<A id="SUMMPAYIN" name="Сумма поступления" caption="Сумма поступления" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
-			<A id="SUMMPAYOUT" name="Сумма выплаты" caption="Сумма выплаты" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
+			<A id="SUMMPAYIN" name="Сумма поступления" caption="Сумма поступления" type="number" len="17.2" nulls="false" readonly="true"/>
+			<A id="SUMMPAYOUT" name="Сумма выплаты" caption="Сумма выплаты" type="number" len="17.2" nulls="false" readonly="true"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -2434,6 +2437,27 @@
 				<A id="aNUMFINE" name="Номер постановления" caption="Номер постановления" type="boolean" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StatusTo1" name="Не вступил в силу" type="procedure" procedure="p_status_change">
+			<FORM>
+				<A id="STATUS_FROM" caption="Статус откуда" type="string" value="0" visible="false" local="true"/>
+				<A id="STATUS_TO" caption="Статус куда" type="string" value="1" visible="false" local="true"/>
+				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="StatusTo2" name="Вступил в силу" type="procedure" procedure="p_status_change">
+			<FORM>
+				<A id="STATUS_FROM" caption="Статус откуда" type="string" value="1;3" visible="false" local="true"/>
+				<A id="STATUS_TO" caption="Статус куда" type="string" value="2" visible="false" local="true"/>
+				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="StatusTo3" name="Передан в суд" type="procedure" procedure="p_status_change">
+			<FORM>
+				<A id="STATUS_FROM" caption="Статус откуда" type="string" value="2" visible="false" local="true"/>
+				<A id="STATUS_TO" caption="Статус куда" type="string" value="3" visible="false" local="true"/>
+				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
+			</FORM>
+		</ACTION>		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
@@ -3003,7 +3027,7 @@
 			<GRID id="gAddAttr" name="Дополнительный признак" table="ADD_ATTR"/>
 		</FORM>
 		<FORM id="Fine" name="Администрирование штрафов">
-			<GRID id="Fine" name="Администрирование штрафов" table="FINE" actionlist="PaySelect"/>
+			<GRID id="Fine" name="Администрирование штрафов" table="FINE" actionlist="PaySelect;StatusTo1;StatusTo2;StatusTo3"/>
 			<TABS>
 				<TAB name="История изменения">
 					<GRID id="FineHistory" name="История изменения" table="FINEHISTORY"/>
