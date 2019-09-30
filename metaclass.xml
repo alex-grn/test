@@ -13,6 +13,7 @@
 				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
 				<MI name="Параметры системы" formlist="Options"/>
 				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MI name="Изменить пароль" actionlist="PasswordChangeExit"/>
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Права доступа">
@@ -864,8 +865,11 @@
 			<A id="LOGIN"/>
 			<A id="PASSWORD"/>
 			<A id="NAME" nulls="false"/>
-			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="200"/>
-			<A id="DISABLED"/>
+			<GA>
+				<A id="PASSWORD_EXPIRE" name="Срок действия пароля" caption="Срок действия пароля" labelwidth="250" width="40" type="date" nulls="true"/>
+				<A id="DISABLED" labelwidth="50" width="60"/>
+			</GA>
+			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="250"/>
 			<TI id="USERS_LOGIN_UK" unique="LOGIN"/>
 			<TI id="USERS_NAME_UK" unique="NAME"/>
 		</TABLE>
@@ -2348,6 +2352,14 @@
 				<A id="BFILE" array="true" nulls="false"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="PasswordChange" name="Изменить пароль" type="procedure" procedure="p_system_user_password_change">
+			<FORM>
+				<A id="PASSWORD_OLD" name="Старый пароль" caption="Старый пароль" labelwidth="180" type="hidetext" len="240" nulls="false"/>
+				<A id="PASSWORD_NEW" name="Новый пароль" caption="Новый пароль" labelwidth="180" type="hidetext" len="240" nulls="false"/>
+				<A id="PASSWORD2_NEW" name="Новый пароль(подтвердить)" caption="Новый пароль(подтвердить)" labelwidth="180" type="hidetext" len="240" nulls="false"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="PasswordChangeExit" name="Изменить пароль" type="script" actionlist="PasswordChange;Exit"/>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
 		<ACTION id="Help" name="Справка" type="link" href="help" visible="window"/>
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
@@ -2498,14 +2510,14 @@
 			<GRID id="LevAccess" name="Уровни доступа" table="LEVACCESS"/>
 		</FORM>
 		<FORM id="MetaClass" name="Классы метаданных">
-			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad" reportlist="MetaClassReport">
+			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad" reportlist="MetaClassReport" readonly="true">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update">
-						<FORM>
-							<RECORD/>
-							<GRID id="MetaClassProps" name="Свойства метаданных" table="METACLASSPROPS"/>
-						</FORM>
-					</MI>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="MetaClassProps" name="Свойства метаданных" table="METACLASSPROPS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
