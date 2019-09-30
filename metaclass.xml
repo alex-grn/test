@@ -10,6 +10,7 @@
 				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
 				<MI name="Параметры системы" formlist="Options"/>
 				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MI name="Изменить пароль" actionlist="PasswordChangeExit"/>
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Права доступа">
@@ -530,8 +531,11 @@
 			<A id="LOGIN"/>
 			<A id="PASSWORD"/>
 			<A id="NAME" nulls="false"/>
-			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="200"/>
-			<A id="DISABLED"/>
+			<GA>
+				<A id="PASSWORD_EXPIRE" name="Срок действия пароля" caption="Срок действия пароля" labelwidth="250" width="40" type="date" nulls="true"/>
+				<A id="DISABLED" labelwidth="50" width="60"/>
+			</GA>
+			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="250"/>
 			<TI id="USERS_LOGIN_UK" unique="LOGIN"/>
 			<TI id="USERS_NAME_UK" unique="NAME"/>
 		</TABLE>
@@ -1244,9 +1248,17 @@
 		<ACTION id="ConfigExport" name="Выгрузить конфигурацию системы" type="script" actionlist="ConfigExportProc;LoadFileFromFilebuffer"/>
 		<ACTION id="uploadReports" name="Загрузить шаблоны отчетов" type="java">
 			<FORM>
-				<A id="BFILE" caption="Файл" type="blob" array="true" nulls="false"/>
+				<A id="BFILE" array="true" nulls="false"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="PasswordChange" name="Изменить пароль" type="procedure" procedure="p_system_user_password_change">
+			<FORM>
+				<A id="PASSWORD_OLD" name="Старый пароль" caption="Старый пароль" labelwidth="180" type="hidetext" len="240" nulls="false"/>
+				<A id="PASSWORD_NEW" name="Новый пароль" caption="Новый пароль" labelwidth="180" type="hidetext" len="240" nulls="false"/>
+				<A id="PASSWORD2_NEW" name="Новый пароль(подтвердить)" caption="Новый пароль(подтвердить)" labelwidth="180" type="hidetext" len="240" nulls="false"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="PasswordChangeExit" name="Изменить пароль" type="script" actionlist="PasswordChange;Exit"/>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
 		<ACTION id="Help" name="Справка" type="link" href="help" visible="window"/>
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
@@ -1417,14 +1429,14 @@
 			<GRID id="LevAccess" name="Уровни доступа" table="LEVACCESS"/>
 		</FORM>
 		<FORM id="MetaClass" name="Классы метаданных">
-			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad" reportlist="MetaClassReport">
+			<GRID id="MetaClass" name="Классы метаданных" table="METACLASS" actionlist="ConfigLoad" reportlist="MetaClassReport" readonly="true">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update">
-						<FORM>
-							<RECORD/>
-							<GRID id="MetaClassProps" name="Свойства метаданных" table="METACLASSPROPS"/>
-						</FORM>
-					</MI>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="MetaClassProps" name="Свойства метаданных" table="METACLASSPROPS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -1723,7 +1735,7 @@
 					</GRID>
 				</TAB>
 				<TAB name="Избирательные комиссии">
-					<A id="ELECTCAMPAIGN1VIRT" caption="Избирательная кампания" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCAMPAIGN1VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<GRID id="ElectСommInCampGR1" name="Избирательные комиссии, проводящие выборы" table="ELECTCOMMINCAMP" readonly="true">
 						<MENU>
 							<MI actionlist="ExportRegExcel;FormRegEA;FormRegEACM;Insert;Update;Delete;MoveFolder;ConfigTables"/>
@@ -1731,8 +1743,8 @@
 					</GRID>
 				</TAB>
 				<TAB name="Расчетные документы">
-					<A id="ELECTCAMPAIGN2VIRT" caption="Избирательная кампания" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
-					<A id="ELECTCOMMINCAMP2VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
+					<A id="ELECTCAMPAIGN2VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCOMMINCAMP2VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<GRID id="RegisterGR1" name="Расчетные документы" table="REGISTER" reportlist="TIK_ZP_VKTIK;UIK_ZP_VKTIK;PayslipReport;WorktblReport">
 						<MENU>
 							<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ImportRegExcel;FormSheet;ControlWHTBL;ControlLBO;ConfigTables"/>
@@ -1740,9 +1752,9 @@
 					</GRID>
 				</TAB>
 				<TAB name="Члены избирательной комиссии">
-					<A id="ELECTCAMPAIGN3VIRT" caption="Избирательная кампания" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
-					<A id="ELECTCOMMINCAMP3VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
-					<A id="REGISTER3VIRT" caption="Расчетный документ" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
+					<A id="ELECTCAMPAIGN3VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCOMMINCAMP3VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
+					<A id="REGISTER3VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
 					<GRID id="RegisterlistGR1" name="Члены избирательных комиссий по ведомости" table="REGISTERLIST">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;CalcPays;ConfigTables"/>
@@ -1750,10 +1762,10 @@
 					</GRID>
 				</TAB>
 				<TAB name="Сведения о фактически отработанном времени">
-					<A id="ELECTCAMPAIGN4VIRT" caption="Избирательная кампания" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
-					<A id="ELECTCOMMINCAMP4VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
-					<A id="REGISTER4VIRT" caption="Расчетный документ" type="string" labelwidth="180" virtual="true" readonly="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
-					<A id="REGISTERLIST4VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
+					<A id="ELECTCAMPAIGN4VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCOMMINCAMP4VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
+					<A id="REGISTER4VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
+					<A id="REGISTERLIST4VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
 					<GRID id="WorkTBLGR1" name="Сведения о фактически отработанном времени" table="WORKTBL">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
@@ -1761,10 +1773,10 @@
 					</GRID>
 				</TAB>
 				<TAB name="Расчетный лист">
-					<A id="ELECTCAMPAIGN5VIRT" caption="Избирательная кампания" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
-					<A id="ELECTCOMMINCAMP5VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
-					<A id="REGISTER5VIRT" caption="Расчетный документ" type="string" labelwidth="180" virtual="true" readonly="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
-					<A id="REGISTERLIST5VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" virtual="true" readonly="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
+					<A id="ELECTCAMPAIGN5VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCOMMINCAMP5VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
+					<A id="REGISTER5VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
+					<A id="REGISTERLIST5VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
 					<GRID id="PaysGR1" name="Расчет" table="PAYS" readonly="true">
 						<MENU>
 							<MI actionlist="Insert;Update;View;Delete;ConfigTables"/>
