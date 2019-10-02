@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="profession_report.xls" documentPath="profession_report.xls" outputType="xls" outputNamePattern="profession_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select 'Год призыва '||${yearconscription}::text  as HEADREPORT
+						</script>
+                     </query>
+                </queries>
+			</band>
+            <band name="secprof" orientation="H">
+				<bands>
+					<band name="detail" orientation="H">
+						<queries>
+                            <query name="detail" type="sql">
+                                <script>
+								select row_number() over() as num_pp,
+									   VR.name,
+									   vr.codeprof
+								  FROM (select PD.CODEPROF,
+											   PD.NAME
+										  from ORGANIZATION  O,
+											   PLANS         P,
+											   VACANCYORG    V,
+											   PROFESSIONDIR PD
+										 where O.PLANSID = P.ID
+										   and P.YEARCONSCRIPTION = ${yearconscription}::bigint
+										   and V.ORGANIZATIONID = O.ID
+										   and V.PROFESSIONDIRID = PD.ID
+										   and PD.SECTIONPROF::BIGINT = ${secprof.head_flag}
+										 group by PD.CODEPROF, PD.NAME
+										 order by PD.NAME) VR;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="secprof" type="sql">
+                        <script>
+							select 'Раздел 1. «Профессии рабочих»' as head_name,
+								   PD.SECTIONPROF::BIGINT as head_flag
+							  from ORGANIZATION  O,
+								   PLANS         P,
+								   VACANCYORG    V,
+								   PROFESSIONDIR PD
+							 where O.PLANSID = P.ID
+							   and P.YEARCONSCRIPTION = ${yearconscription}::bigint
+							   and V.ORGANIZATIONID = O.ID
+							   and V.PROFESSIONDIRID = PD.ID
+							   and (${sectionprof}::bigint in (1, 3) and PD.SECTIONPROF::BIGINT = 1)
+							 limit 1;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+            <band name="secprof" orientation="H">
+				<bands>
+					<band name="detail" orientation="H">
+						<queries>
+                            <query name="detail" type="sql">
+                                <script>
+								select row_number() over() as num_pp,
+									   VR.name,
+									   vr.codeprof
+								  FROM (select PD.CODEPROF,
+											   PD.NAME
+										  from ORGANIZATION  O,
+											   PLANS         P,
+											   VACANCYORG    V,
+											   PROFESSIONDIR PD
+										 where O.PLANSID = P.ID
+										   and P.YEARCONSCRIPTION = ${yearconscription}::bigint
+										   and V.ORGANIZATIONID = O.ID
+										   and V.PROFESSIONDIRID = PD.ID
+										   and PD.SECTIONPROF::BIGINT = ${secprof.head_flag}
+										 group by PD.CODEPROF, PD.NAME
+										 order by PD.NAME) VR;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="secprof" type="sql">
+                        <script>
+							select 'Раздел 2. «Должности служащих»' as head_name,
+								   PD.SECTIONPROF::BIGINT as head_flag
+							  from ORGANIZATION  O,
+								   PLANS         P,
+								   VACANCYORG    V,
+								   PROFESSIONDIR PD
+							 where O.PLANSID = P.ID
+							   and P.YEARCONSCRIPTION = ${yearconscription}::bigint
+							   and V.ORGANIZATIONID = O.ID
+							   and V.PROFESSIONDIRID = PD.ID
+							   and (${sectionprof}::bigint in (2, 3) and PD.SECTIONPROF::BIGINT = 2)
+							 limit 1;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
