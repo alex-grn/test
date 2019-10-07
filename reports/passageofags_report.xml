@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="passageofags_report.xls" documentPath="passageofags_report.xls" outputType="xls" outputNamePattern="passageofags_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select 1::text  as HEADREPORT
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="df" orientation="H">
+				<queries>
+                     <query name="df" type="sql">
+                        <script>
+						</script>
+                     </query>
+                </queries>
+			</band>
+            <band name="df" orientation="H">
+				<bands>
+					<band name="do" orientation="H">
+						<queries>
+                            <query name="do" type="sql">
+                                <script>
+									select pr.fio,
+										   pr.pers_document,
+										   pr.vac_period,
+										   pr.vac_type,
+										   pr.vac_valid,
+										   pr.unpaid_period,
+										   pr.unpaid_valid
+									  from PASSAGEOFAGS_REP PR
+									 where pr.id_rep::bigint = ${ident}::bigint
+									   and pr.id_row = ${df.id_row}
+									   and pr.sort_row > 0
+									 order by pr.sort_row;
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="df" type="sql">
+                        <script>
+							select pr.id_row,
+								   pr.fio,
+								   pr.pers_document,
+								   pr.vac_period,
+								   pr.vac_type,
+								   pr.vac_valid,
+								   pr.unpaid_period,
+								   pr.unpaid_valid
+							  from PASSAGEOFAGS_REP PR
+							 where pr.id_rep::bigint = ${ident}::bigint
+							   and pr.sort_row = 0
+							 order by pr.id_row, pr.sort_row;
+                        </script>
+                    </query>
+                </queries>
+            </band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
