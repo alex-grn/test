@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="directionags_report.xls" documentPath="directionags_report.xls" outputType="xls" outputNamePattern="directionags_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select 1::text  as HEADREPORT
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="persdata" orientation="H">
+				<queries>
+                     <query name="persdata" type="sql">
+                        <script>
+							select case when trim(C.lastname) is not null then trim(C.lastname) else '' end ||' '||
+								   case when trim(C.firstname) is not null then trim(C.firstname) else '' end ||' '||
+								   case when trim(C.patronymic) is not null then trim(C.patronymic) else '' end as fio,
+								   C.numberc,
+								   RD.name as reg_name,
+								   C.enlistment,
+								   case D.status
+								     when '1' then
+									   'Проект'
+								     when '2' then
+									   'Отклонено'
+								     when '3' then
+									   'Утверждено'
+								     when '4' then
+									   'Подтверждено'
+								     when '5' then
+									   'Подбор'
+								   else
+									 'Не определено!'
+								   end as status
+							  from CITIZENRY                C
+								   left join PASSAGEAGSCIT PC on PC.citizenryid = C.id
+								   left join REGIONDIR	   RD on RD.ID = C.regiondirid
+								   left join PLANS 		    P on P.id = C.plansid
+								   left join DIRECTION      D on D.citizenryid = C.id
+							 where 
+							 <!-- только направлен на АГС -->
+							 C.statuscitizen = '6'
+							 <!-- Год призыва -->
+							 and ((${yearconscription} = '' or ${yearconscription} is null) or P.yearconscription = ${yearconscription}::integer)
+							 <!-- Период призыва -->
+							 and ((${conscription} = '' or ${conscription} is null) or P.conscription = ${conscription})
+							 <!-- Военкомат -->
+							 and ((${enlistment} = '' or ${enlistment} is null) or p_tools_strinlike(C.enlistment, ${enlistment}) = 1)
+							 <!-- Регион -->
+							 and ((${regiondirid} = '' or ${regiondirid} is null) or C.regiondirid = ${regiondirid}::bigint)
+							 and ((${status} = '' or ${status} is null) or D.status = ${status})
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="persfull" orientation="H">
+				<queries>
+                     <query name="persfull" type="sql">
+                        <script>
+							select count(1) as cnt_pers_full
+							  from CITIZENRY                C
+								   left join PASSAGEAGSCIT PC on PC.citizenryid = C.id
+								   left join REGIONDIR	   RD on RD.ID = C.regiondirid
+								   left join PLANS 		    P on P.id = C.plansid
+								   left join DIRECTION      D on D.citizenryid = C.id
+							 where 
+							 <!-- ВСЕ -->
+							 <!-- Год призыва -->
+							 ((${yearconscription} = '' or ${yearconscription} is null) or P.yearconscription = ${yearconscription}::integer)
+							 <!-- Период призыва -->
+							 and ((${conscription} = '' or ${conscription} is null) or P.conscription = ${conscription})
+							 <!-- Военкомат -->
+							 and ((${enlistment} = '' or ${enlistment} is null) or p_tools_strinlike(C.enlistment, ${enlistment}) = 1)
+							 <!-- Регион -->
+							 and ((${regiondirid} = '' or ${regiondirid} is null) or C.regiondirid = ${regiondirid}::bigint)
+							 and ((${status} = '' or ${status} is null) or D.status = ${status})
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="perssend" orientation="H">
+				<queries>
+                     <query name="perssend" type="sql">
+                        <script>
+							select count(1) cnt_pers_send
+							  from CITIZENRY                C
+								   left join PASSAGEAGSCIT PC on PC.citizenryid = C.id
+								   left join REGIONDIR	   RD on RD.ID = C.regiondirid
+								   left join PLANS 		    P on P.id = C.plansid
+								   left join DIRECTION      D on D.citizenryid = C.id
+							 where 
+							 <!-- только направлен на АГС -->
+							 C.statuscitizen = '6'
+							 <!-- Год призыва -->
+							 and ((${yearconscription} = '' or ${yearconscription} is null) or P.yearconscription = ${yearconscription}::integer)
+							 <!-- Период призыва -->
+							 and ((${conscription} = '' or ${conscription} is null) or P.conscription = ${conscription})
+							 <!-- Военкомат -->
+							 and ((${enlistment} = '' or ${enlistment} is null) or p_tools_strinlike(C.enlistment, ${enlistment}) = 1)
+							 <!-- Регион -->
+							 and ((${regiondirid} = '' or ${regiondirid} is null) or C.regiondirid = ${regiondirid}::bigint)
+							 and ((${status} = '' or ${status} is null) or D.status = ${status})
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
