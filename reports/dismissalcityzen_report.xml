@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="dismissalcityzen_report.xls" documentPath="dismissalcityzen_report.xls" outputType="xls" outputNamePattern="dismissalcityzen_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select 1::text  as HEADREPORT
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="persdata" orientation="H">
+				<queries>
+                     <query name="persdata" type="sql">
+                        <script>
+							select case when trim(C.lastname) is not null then trim(C.lastname) else '' end ||' '||
+								   case when trim(C.firstname) is not null then trim(C.firstname) else '' end ||' '||
+								   case when trim(C.patronymic) is not null then trim(C.patronymic) else '' end as fio,
+								   C.numberc,
+								   to_char(PC.dateofdismissla, 'dd.mm.yyyy') as dateofdismissla,
+								   case PC.basis4
+									 when '1' then
+									   'По истечению срока альтернативной гражданской службы'
+									 when '2' then
+									   'В связи с признанием военно-врачебной комиссией не годным к военной службе или ограниченно годным к военной службе'
+									 when '3' then
+									   'В связи с осуществлением им полномочий члена Совета Федерации РФ или в связи с избранием его депутатом Государственной Думы РФ'
+									 when '4' then
+									   'В связи наказания в виде лишения свободы'
+								   else
+									 'Не определено!'
+								   end basis,
+								   RD.name as reg_name,
+								   C.enlistment
+							  from CITIZENRY                C
+								   left join PASSAGEAGSCIT PC on PC.citizenryid = C.id
+								   left join REGIONDIR	   RD on RD.ID = C.regiondirid
+								   left join PLANS 		   P  on P.id = C.plansid
+							 where 
+							 <!-- только уволенные -->
+							 C.statuscitizen = '8'
+							 <!-- основание для увольнения -->
+							 and ((${basis4} = '' or ${basis4} is null) or PC.basis4 = ${basis4})
+							 <!-- Год призыва -->
+							 and ((${yearconscription} = '' or ${yearconscription} is null) or P.yearconscription = ${yearconscription}::integer)
+							 <!-- Период призыва -->
+							 and ((${conscription} = '' or ${conscription} is null) or P.conscription = ${conscription})
+							 <!-- Военкомат -->
+							 and ((${enlistment} = '' or ${enlistment} is null) or C.enlistment = ${enlistment})
+							 <!-- Регион призыва -->
+							 and ((${regiondirid} = '' or ${regiondirid} is null) or C.regiondirid = ${regiondirid}::bigint)
+							 <!-- Регион прохождения АГС -->
+							 and ((${regiondir2id} = '' or ${regiondir2id} is null) or exists (select 1
+							                                                                     from DIRECTION       D,
+																								      ORGANIZATION    O,
+																									  ORGANIZATIONDIR OD
+																							    where D.citizenryid = C.id
+																								  and D.organizationid = O.id
+																								  and O.organizationdirid = OD.id
+ 																								  and OD.regiondirid = ${regiondir2id}::bigint))
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="persfull" orientation="H">
+				<queries>
+                     <query name="persfull" type="sql">
+                        <script>
+							select count(1) as cnt_pers_full
+							  from CITIZENRY                C
+								   left join PASSAGEAGSCIT PC on PC.citizenryid = C.id
+								   left join REGIONDIR	   RD on RD.ID = C.regiondirid
+								   left join PLANS 		   P  on P.id = C.plansid
+							 where 
+							 <!-- ВСЕ -->
+							 <!-- Год призыва -->
+							 ((${yearconscription} = '' or ${yearconscription} is null) or P.yearconscription = ${yearconscription}::integer)
+							 <!-- Период призыва -->
+							 and ((${conscription} = '' or ${conscription} is null) or P.conscription = ${conscription})
+							 <!-- Военкомат -->
+							 and ((${enlistment} = '' or ${enlistment} is null) or C.enlistment = ${enlistment})
+							 <!-- Регион призыва -->
+							 and ((${regiondirid} = '' or ${regiondirid} is null) or C.regiondirid = ${regiondirid}::bigint)
+							 <!-- Регион прохождения АГС -->
+							 and ((${regiondir2id} = '' or ${regiondir2id} is null) or exists (select 1
+							                                                                     from DIRECTION       D,
+																								      ORGANIZATION    O,
+																									  ORGANIZATIONDIR OD
+																							    where D.citizenryid = C.id
+																								  and D.organizationid = O.id
+																								  and O.organizationdirid = OD.id
+ 																								  and OD.regiondirid = ${regiondir2id}::bigint))
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="persdismiss" orientation="H">
+				<queries>
+                     <query name="persdismiss" type="sql">
+                        <script>
+							select count(1) cnt_pers_dismiss
+							  from CITIZENRY                C
+								   left join PASSAGEAGSCIT PC on PC.citizenryid = C.id
+								   left join REGIONDIR	   RD on RD.ID = C.regiondirid
+								   left join PLANS 		   P  on P.id = C.plansid
+							 where 
+							 <!-- только уволенные -->
+							 C.statuscitizen = '8'
+							 <!-- основание для увольнения -->
+							 and ((${basis4} = '' or ${basis4} is null) or PC.basis4 = ${basis4})
+							 <!-- Год призыва -->
+							 and ((${yearconscription} = '' or ${yearconscription} is null) or P.yearconscription = ${yearconscription}::integer)
+							 <!-- Период призыва -->
+							 and ((${conscription} = '' or ${conscription} is null) or P.conscription = ${conscription})
+							 <!-- Военкомат -->
+							 and ((${enlistment} = '' or ${enlistment} is null) or C.enlistment = ${enlistment})
+							 <!-- Регион призыва -->
+							 and ((${regiondirid} = '' or ${regiondirid} is null) or C.regiondirid = ${regiondirid}::bigint)
+							 <!-- Регион прохождения АГС -->
+							 and ((${regiondir2id} = '' or ${regiondir2id} is null) or exists (select 1
+							                                                                     from DIRECTION       D,
+																								      ORGANIZATION    O,
+																									  ORGANIZATIONDIR OD
+																							    where D.citizenryid = C.id
+																								  and D.organizationid = O.id
+																								  and O.organizationdirid = OD.id
+ 																								  and OD.regiondirid = ${regiondir2id}::bigint))
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
