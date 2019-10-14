@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="orgvac_report.xls" documentPath="orgvac_report.xls" outputType="xls" outputNamePattern="orgvac_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select ${yearconscription}::text  as REPORT_YEAR
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="dfirst00" orientation="H">
+				<queries>
+                     <query name="dfirst00" type="sql">
+                        <script>
+							select 'Раздел 1. Организации, находящиеся в ведении федеральных органов исполнительной власти' as name_block
+							  from report_orgvac ro
+							 where ro.ident = ${ident}::bigint
+							   and ro.levelsignificance = '1'
+    						 limit 1;
+						</script>
+                     </query>
+                </queries>
+			</band>
+            <band name="dfirst01" orientation="H">
+				<bands>
+					<band name="dfirst02" orientation="H">
+						<queries>
+                            <query name="dfirst02" type="sql">
+                                <script>
+								select ro.num_pp,
+									   ro.org_vac_name,
+								       ro.org_vac_gen_count
+								  from report_orgvac ro
+								 where ro.ident = ${ident}::bigint
+								   and ro.id_row = ${dfirst01.id_row}::bigint
+								   and ro.sort_row > 0
+								 order by ro.num_pp
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="dfirst01" type="sql">
+                        <script>
+							select ro.id_row,
+							       ro.num_pp,
+								   ro.org_name,
+								   ro.reg_name,
+								   ro.org_addr,
+								   ro.org_vac_name,
+								   ro.org_vac_gen_count
+							  from report_orgvac ro
+							 where ro.ident = ${ident}::bigint
+							   and ro.sort_row = 0
+							   and EXISTS(select 1 from report_orgvac r where r.ident = ro.ident and r.id_row = ro.id_row and r.levelsignificance = '1')
+							 order by ro.id_row
+                        </script>
+                    </query>
+                </queries>
+            </band>
+		    <band name="dfirst03" orientation="H">
+				<queries>
+                     <query name="dfirst03" type="sql">
+                        <script>
+							select '1.' as name_block
+							  from report_orgvac ro
+							 where ro.ident = ${ident}::bigint
+							   and ro.levelsignificance = '1'
+    						 limit 1;
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="dfirst04" orientation="H">
+				<queries>
+                     <query name="dfirst04" type="sql">
+                        <script>
+							select 'Раздел 2. Организации, находящиеся в ведении органов исполнительной власти'||chr(13)||chr(10)||'субъектов Российской федерации' as name_block
+							  from report_orgvac ro
+							 where ro.ident = ${ident}::bigint
+							   and ro.levelsignificance = '2'
+    						 limit 1;
+						</script>
+                     </query>
+                </queries>
+			</band>
+            <band name="dfirst05" orientation="H">
+				<bands>
+					<band name="dfirst06" orientation="H">
+						<queries>
+                            <query name="dfirst06" type="sql">
+                                <script>
+								select ro.num_pp,
+									   ro.org_vac_name,
+								       ro.org_vac_gen_count
+								  from report_orgvac ro
+								 where ro.ident = ${ident}::bigint
+								   and ro.id_row = ${dfirst05.id_row}::bigint
+								   and ro.sort_row > 0
+								 order by ro.num_pp
+                                </script>
+                            </query>
+                        </queries>
+					</band>
+				</bands>
+                <queries>
+                    <query name="dfirst05" type="sql">
+                        <script>
+							select ro.id_row,
+							       ro.num_pp,
+								   ro.org_name,
+								   ro.reg_name,
+								   ro.org_addr,
+								   ro.org_vac_name,
+								   ro.org_vac_gen_count
+							  from report_orgvac ro
+							 where ro.ident = ${ident}::bigint
+							   and ro.sort_row = 0
+							   and EXISTS(select 1 from report_orgvac r where r.ident = ro.ident and r.id_row = ro.id_row and r.levelsignificance = '2')
+							 order by ro.id_row
+                        </script>
+                    </query>
+                </queries>
+            </band>
+		    <band name="dfirst07" orientation="H">
+				<queries>
+                     <query name="dfirst07" type="sql">
+                        <script>
+							select '2.' as name_block
+							  from report_orgvac ro
+							 where ro.ident = ${ident}::bigint
+							   and ro.levelsignificance = '2'
+    						 limit 1;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
