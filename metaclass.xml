@@ -52,8 +52,8 @@
 			<MENU name="Планы Направлений">
 				<MI name="Планы Направлений" formlist="Plans"/>
 			</MENU>
-			<MENU name="План заданий">
-				<MI name="План заданий" formlist="Direction"/>
+			<MENU name="Планы заданий">
+				<MI name="Планы заданий" formlist="Direction"/>
 			</MENU>
 			<MENU name="Статистика">
 				<MI name="Профессии" reportlist="PROFESSIONREPORT"/>
@@ -480,8 +480,8 @@
 		<COMMENT name="Группы атрибутов АГС"/>
 		<GA id="FL" name="ФЛ" caption="ФЛ">
 			<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="610" type="string" nulls="true" visible="form" local="true"/>
-			<A id="DEPARTMENTDIRID"/>
 			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="610" type="int" len="6" nulls="true" visible="form" local="true"/>
+			<A id="DEPARTMENTDIRID" labelwidth="120"/>
 			<A id="REGIONDIRID" labelwidth="120" nulls="false"/>
 			<A id="SETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="120" type="string" nulls="false" visible="form" local="true"/>
 			<A id="STREET" name="Улица" caption="Улица" labelwidth="120" type="string" nulls="false" visible="form" local="true"/>
@@ -834,7 +834,7 @@
 			<A id="ORGANIZATIONID" parentkey="cascade"/>
 			<GA id="INFORMVACANCY" caption="Информация о вакансии">
 				<A id="PROFESSIONDIRID" name="Код по ОКПДТР" limit="0" caption="Код по ОКПДТР" labelwidth="190" ret="CODEPROF" form="Professiondir" nulls="false"/>
-				<A id="PROFESSIONDIRVIRT" name="Профессия/Должность" limit="0" caption="Профессия/Должность" labelwidth="190" type="text" nulls="true" visible="form" virtual="true" formula="select NAME from PROFESSIONDIR where ID = @PROFESSIONDIRID" local="true"/>
+				<A id="PROFESSIONDIRVIRT" name="Профессия/Должность" limit="0" caption="Профессия/Должность" labelwidth="190" type="text" nulls="true" visible="true" virtual="true" formula="select NAME from PROFESSIONDIR where ID = @PROFESSIONDIRID" local="true"/>
 				<A id="QUALIFICATION" caption="Класс (категория) квалификации" labelwidth="190" type="list" nulls="true" visible="form" local="true">
 					<AI id="1" name="1 разряд"/>
 					<AI id="2" name="2 разряд"/>
@@ -941,7 +941,7 @@
 				<COMMENT name="Закладка Дополнительные данные"/>
 				<TAB name="Дополнительные данные">
 					<GA id="SECONDARYDATA" name="Дополнительные данные" caption="Дополнительные данные">
-						<GA id="FL" name="ФЛ" caption="Адресные данные"/>
+						<GA id="FL" name="Адресные данные" caption="Адресные данные"/>
 						<A id="SUITABILITY" labelwidth="160" width="30" nulls="false"/>
 						<A id="CONSCRIPTION" caption="Период призыва" width="30" nulls="false"/>
 						<A id="YEARCONSCRIPTION" name="Год призыва" caption="Год призыва" labelwidth="75" width="27" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
@@ -1008,8 +1008,8 @@
 				</A>
 			</GA>
 		</TABLE>
-		<COMMENT name="Вкладка План заданий"/>
-		<TABLE id="DIRECTION" name="План заданий">
+		<COMMENT name="Вкладка Планы заданий"/>
+		<TABLE id="DIRECTION" name="Планы заданий">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
 				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" parentkey="nocascade" visible="true"/>
 				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="150" width="40" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select x.settlement from CITIZENRY x where x.id = @CITIZENRYID::bigint" local="true"/>
@@ -1392,8 +1392,8 @@
 		<COMMENT name="Отчеты АГС"/>
 		<REPORT id="PrintCard" name="Печать карточки" procedure="" template="test_actionreport.xlsx"/>
 		<REPORT id="PrintCardCitizen" name="Печать карточки гражданина" procedure="" template=""/>
-		<REPORT id="PrintCardDirection" name="Печать карточки план заданий" procedure="" template=""/>
-		<REPORT id="PrintCardPlan" name="Печать карточки плана направлений" procedure="" template=""/>
+		<REPORT id="PrintCardDirection" name="Печать плана заданий" procedure="" template=""/>
+		<REPORT id="PrintCardPlan" name="Печать плана направлений" procedure="" template=""/>
 		<REPORT id="LoadCitizen" name="Загрузка граждан" procedure="" template=""/>
 		<COMMENT name="Статистика Профессии"/>
 		<REPORT id="PROFESSIONREPORT" name="Профессии" procedure="" template="profession_report.xls">
@@ -1652,7 +1652,7 @@
 		<FORM id="Organization" name="Организации">
 			<GRID id="ORGANIZATION" name="Организации" table="ORGANIZATION" actionlist="Approve;Reject;CancelReject;Block;Unlock" readonly="true">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;View;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="Insert;Update;View;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<TABS>
@@ -1687,8 +1687,8 @@
 						</MENU>
 					</GRID>
 				</TAB>
-				<TAB name="План заданий">
-					<GRID id="DIRECTION" name="План заданий" table="DIRECTION" actionlist="Approve;Reject;Unpin;ProjectIns;Confirm;JobPlanSelect;JobPlanSelectClear" reportlist="PrintCardDirection" readonly="true">
+				<TAB name="Планы заданий">
+					<GRID id="DIRECTION" name="Планы заданий" table="DIRECTION" actionlist="Approve;Reject;Unpin;ProjectIns;Confirm;JobPlanSelect;JobPlanSelectClear" reportlist="PrintCardDirection" readonly="true">
 						<MENU>
 							<MI actionlist="Insert;Update;View;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
