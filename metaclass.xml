@@ -25,6 +25,7 @@
 					<MI name="Форматы обмена данными" formlist="Concepts"/>
 					<MI name="Алгоритмы загрузки" formlist="Conv"/>
 					<MI name="Процессы загрузки" formlist="ConvLoads"/>
+					<MI name="Внешние ключи" formlist="ConvKeys"/>
 				</MENU>
 			</MENU>
 			<MENU name="Справочники">
@@ -54,6 +55,7 @@
 				<MI name="Прогноз поступления доходов" formlist="fForecastIncom"/>
 				<MI name="Справка перечислений поступлений в бюджеты" formlist="fBudgetIncomIransfer"/>
 				<MI name="Итоги по Л.С.адм.доходов бюджета" formlist="fStatePersAccAdm"/>
+				<MI name="Задачи" formlist="fTask"/>
 			</MENU>
 			<MENU name="Отчетность">
 				<MENU name="Исполнение">
@@ -79,6 +81,7 @@
 					<MI name="Подразделения" formlist="fDepart"/>
 					<MI name="Географические понятия" formlist="fGeo"/>
 					<MI name="Типы географических понятий" formlist="fGeoType"/>
+					<MI name="Подписанты" formlist="fSignatory"/>
 				</MENU>
 				<MENU name="КБК доходов">
 					<MI name="Бюджетный классификатор доходов" formlist="fBkd"/>
@@ -164,6 +167,7 @@
 			<AI id="type" name="Тип данных"/>
 			<AI id="len" name="Длина данных"/>
 			<AI id="pid" name="Родитель"/>
+			<AI id="pid_ref" name="Родитель в ссылочной таблице"/>
 			<AI id="table" name="Таблица"/>
 			<AI id="tablename" name="Наименование таблицы"/>
 			<AI id="ret" name="Возвращаемый атрибут"/>
@@ -291,8 +295,24 @@
 		<A id="CONVLOADID" name="Процесс загрузки" caption="Процесс загрузки" labelwidth="150" type="ref" table="CONVLOADS" ret="NUMB" form="ConvLoads" nulls="false"/>
 		<A id="CONVLOADACTID" name="Действие" caption="Действие" type="ref" pid="CONVLOADID" table="CONVLOADACTS" ret="CONVACTID_ret" form="ConvLoadActs" nulls="false"/>
 		<A id="CONVLOADACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMID_ret" nulls="false"/>
+		<A id="STATUS_TASK" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" value="1">
+			<AI id="1" name="Создана"/>
+			<AI id="2" name="Направлена"/>
+			<AI id="3" name="В работе"/>
+			<AI id="4" name="Выполнена" readonly="true"/>
+			<AI id="5" name="На доработке"/>
+			<AI id="0" name="Аннулирована" readonly="true"/>
+		</A>
+		<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" value="1">
+			<AI id="1" name="Заружено"/>
+			<AI id="2" name="В работе"/>
+			<AI id="3" name="На согласовании"/>
+			<AI id="4" name="Согласовано" readonly="true"/>
+			<AI id="5" name="На доработке"/>
+			<AI id="0" name="Аннулировано" readonly="true"/>
+		</A>
 		<A id="PERIOD_ID" name="Периоды" caption="Периоды" labelwidth="150" width="50" type="ref" table="PERIOD" ret="CODE" form="fPeriod" nulls="false"/>
-		<A id="BKD_ID" name="Бюджетный классификатор доходов" caption="Классификатор доходов" labelwidth="150" width="50" type="ref" table="BKD" ret="p_get_bkd_code( @BKD_ID ::bigint )" form="fBkd" nulls="false"/>
+		<A id="BKD_ID" name="Бюджетный классификатор доходов" caption="Классификатор доходов" labelwidth="150" width="50" type="ref" table="BKD" ret="BKD_CODE_VIRT" form="fBkd" nulls="false"/>
 		<A id="DIR_RECIP_ID" name="Гл.распорядитель,админ." caption="Гл.распорядитель,админ." labelwidth="150" width="50" type="ref" table="DIR_RECIP" ret="CODE" form="fDirRecip" nulls="false"/>
 		<A id="INCOM_GROUP_ID" name="Группа доходов" caption="Группа доходов" labelwidth="150" width="50" type="ref" table="INCOM_GROUP" ret="CODE" form="fIncomGroup" nulls="false"/>
 		<A id="INCOM_SUB_GROUP_ID" name="Подгруппа доходов" caption="Подгруппа доходов" labelwidth="150" width="50" type="ref" table="INCOM_SUB_GROUP" ret="CODE" form="fIncomSubGroup" nulls="false"/>
@@ -308,7 +328,7 @@
 		<A id="AGENT_BANKS_ID" name="Финансовые учреждения" caption="Финансовые учреждения" labelwidth="150" type="ref" table="AGENT_BANKS" ret="NAME" form="fAgentBanks" nulls="true"/>
 		<A id="AGENT_ID" name="Организации" caption="Организации" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="false"/>
 		<A id="TREAS_ID" name="Казначейства" caption="Казначейства" labelwidth="150" type="ref" table="TREAS" ret="CODE" form="fTreas" nulls="true"/>
-		<A id="TREAS_AGN_ID" name="Агент казначейства" caption="Агент казначейства" labelwidth="150" type="number" nulls="true" formula="select AGENT_ID from TREAS where ID=@TREAS_ID::bigint"/>
+		<A id="TREAS_AGN_ID" name="Агент казначейства" caption="Агент казначейства" labelwidth="150" type="number" nulls="true" formula="select AGENT_ID from TREAS where ID=@TREAS_ID ::bigint"/>
 		<A id="TREAS_ACC_ID" name="Счета казначейства" caption="Счета казначейства" labelwidth="150" type="ref" table="TREAS_ACC" ret="ID" form="fTreas" nulls="true"/>
 		<A id="BANK_ACC_TYPES_ADMIN_ID" name="Тип счета распорядителя" caption="Тип счета распорядителя" labelwidth="150" type="ref" table="BANK_ACC_TYPES" ret="CODE" form="fBankAccTypes" nulls="true"/>
 		<A id="BANK_ACC_TYPES_RESIP_ID" name="Тип счета получателя" caption="Тип счета получателя" labelwidth="150" type="ref" table="BANK_ACC_TYPES" ret="CODE" form="fBankAccTypes" nulls="true"/>
@@ -324,6 +344,7 @@
 		<A id="DIRECTOR_ID" name="Руководитель" caption="Руководитель" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="fPerson" nulls="true"/>
 		<A id="ACCOUNTANT_ID" name="Бухгалтер" caption="Бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="fPerson" nulls="true"/>
 		<A id="EXECTOR_ID" name="Ответств.исполнитель" caption="Ответств.исполнитель" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="fPerson" nulls="true"/>
+		<A id="SIGNATORY_ID" name="Подписанты" caption="Подписанты" labelwidth="150" type="ref" table="SIGNATORY" ret="CODE" form="fSignatory" nulls="true"/>
 		<A id="BUDGET_PLAN_ID" name="Годовое задание по сбору доходов" caption="Годовое задание по сбору доходов" labelwidth="150" type="ref" table="BUDGET_PLAN" ret="ID" form="fBudgetPlan" nulls="false"/>
 		<A id="BUDGET_INCOM_ID" name="Фактические поступления" caption="Фактические поступления" labelwidth="150" type="ref" table="BUDGET_INCOM" ret="ID" form="fBudgetIncom" nulls="false"/>
 		<A id="FORECAST_INCOM_ID" name="Прогноз поступления доходов" caption="Прогноз поступления доходов" labelwidth="150" type="ref" table="FORECAST_INCOM" ret="ID" form="fForecastIncom" nulls="false"/>
@@ -333,6 +354,8 @@
 		<A id="AGENT_BI_ID" name="Организация факт.поступления" caption="Организация факт.поступления" labelwidth="100" type="ref" table="BUDGET_INCOM" ret="AGENT_ID" form="fBudgetIncom" nulls="false"/>
 		<A id="BUDGET_INCOM_TRANSFER_ID" name="Справка перечислений поступления в бюджеты" caption="Справка перечислений поступления в бюджеты" labelwidth="150" type="ref" table="BUDGET_INCOM_TRANSFER" ret="ID" form="fBudgetIncomTransfer" nulls="false"/>
 		<A id="STATE_PERS_ACC_ADM_ID" name="Итоги по Л.С.адм.доходов бюджета" caption="Итоги по Л.С.адм.доходов бюджета" labelwidth="150" type="ref" table="STATE_PERS_ACC_ADM" ret="ID" form="fStatePersAccAdm" nulls="false"/>
+		<A id="TASK_ID" name="Задачи" caption="Задачи" labelwidth="150" type="ref" table="TASK" ret="ID" form="fTask" nulls="false"/>
+		<A id="TASK_SPC_ID" name="Задачи" caption="Состав задачи" labelwidth="150" type="ref" table="TASK_SPC" ret="ID" form="fTask" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="Dictionary">
@@ -351,7 +374,7 @@
 		</GA>
 		<GA id="DocumentP" name="Документ" caption="Документ">
 			<A id="DOCPREF" caption="Префикс" labelwidth="50" width="20" formula="date_part('year', now())"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="50" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::bigint+1,1)                        from @TABLENAME where docpref = @DOCPREF and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="50" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g') ::bigint+1,1) from @TABLENAME where docpref = @DOCPREF and cid=0"/>
 			<A id="DOCVER" labelwidth="50" width="20"/>
 			<A id="DOCDATE" labelwidth="50" width="20" formula="now()"/>
 		</GA>
@@ -634,22 +657,30 @@
 			<A id="CONVID" parentkey="cascade"/>
 			<A id="CONCEPTID" visible="false" virtual="true" formula="select conceptid from conv where id=@CONVID"/>
 			<GA>
-				<A id="POSITION" name="Порядок" caption="Порядок" labelwidth="60" width="20" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID and hid is null and @HID is null or hid=@HID and cid=0"/>
-				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="80" formula="select min(ci.id) from conv c, conceptitems ci where c.id=@CONVID and c.conceptid = ci.conceptid and ci.cid=0"/>
+				<A id="POSITION" name="Порядок" caption="Порядок" labelwidth="90" width="24" formula="select coalesce(max(position)+1,1) from convacts where convid=@CONVID and hid is null and @HID is null or hid=@HID and cid=0"/>
+				<A id="CONCEPTITEMID" name="Таблица формата" caption="Таблица формата" labelwidth="110" width="76" formula="select min(ci.id) from conv c, conceptitems ci where c.id=@CONVID and c.conceptid = ci.conceptid and ci.cid=0"/>
 			</GA>
-			<GA name="Объект базы данных" caption="Объект базы данных">
-				<A id="CONVUNITTYPE" name="Тип" caption="Тип" labelwidth="36" width="15" type="list" nulls="false" local="true">
+			<GA name="Действие" caption="Действие">
+				<A id="CONVUNITTYPE" name="Тип объекта" caption="Тип объекта" labelwidth="80" width="20" type="list" nulls="false" value="table" local="true">
 					<AI id="table" name="Таблица"/>
-					<AI id="procedure" name="Процедура"/>
+					<AI id="procedure" name="Процедура" readonly="CONVACTION"/>
 				</A>
-				<A id="CONVUNIT" name="Наименование" caption="Наименование" labelwidth="110" width="85" type="list" nulls="false" query="select upper(tablename) as id, (select coalesce(upper(tablename)||' - '||max(m.name),upper(tablename)) from metaclass m where m.classnode='TABLE' and m.code=upper(tablename)) as code from pg_tables where schemaname = 'public' and @CONVUNITTYPE = 'table' union all select upper(p.proname) as id, (select coalesce(upper(p.proname)||' - '||max(m.name),upper(p.proname)) from metaclass m, metaclassprops mp where m.classnode='ACTION' and m.id = mp.metaclassid and mp.propnode='procedure' and lower(mp.strvalue)=p.proname) as code from pg_proc p, pg_namespace s where p.pronamespace = s.oid and s.nspname='public' and @CONVUNITTYPE = 'procedure'" local="true"/>
+				<A id="CONVUNIT" name="Наименование" caption="Наименование" labelwidth="90" width="80" type="list" nulls="false" query="select upper(tablename) as id, (select coalesce(upper(tablename)||' - '||max(m.name),upper(tablename)) from metaclass m where m.classnode='TABLE' and m.code=upper(tablename)) as code from pg_tables where schemaname = 'public' and @CONVUNITTYPE = 'table' union all select upper(p.proname) as id, (select coalesce(upper(p.proname)||' - '||max(m.name),upper(p.proname)) from metaclass m, metaclassprops mp where m.classnode='ACTION' and m.id = mp.metaclassid and mp.propnode='procedure' and lower(mp.strvalue)=p.proname) as code from pg_proc p, pg_namespace s where p.pronamespace = s.oid and s.nspname='public' and @CONVUNITTYPE = 'procedure'" local="true"/>
+				<A id="CONVACTION" name="Способ выполнения" caption="Способ выполнения" labelwidth="130" type="list" nulls="false" value="Insert" local="true">
+					<AI id="Insert" name="Добавить, если нет записи"/>
+					<AI id="Update" name="Исправить, если есть запись"/>
+					<AI id="UpdateNotNull" name="Исправить, ошибка если нет записи"/>
+					<AI id="Delete" name="Удалить, если есть запись"/>
+					<AI id="Select" name="Поиск записи"/>
+					<AI id="SelectNotNull" name="Поиск, ошибка если нет записи"/>
+				</A>
 			</GA>
-			<GA>
-				<A id="CONVACTION" name="Действие" caption="Действие" labelwidth="80" width="70" type="list" nulls="false" formula="(select 'Insert' where @CONVUNITTYPE = 'table' union all select 'Execute' where @CONVUNITTYPE = 'procedure')" query="select 'Insert' as id, 'Добавить, если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Update' as id, 'Исправить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'UpdateNotNull' as id, 'Исправить, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Delete' as id, 'Удалить, если есть запись' as code where @CONVUNITTYPE = 'table' union all select 'Select' as id, 'Поиск записи' as code where @CONVUNITTYPE = 'table' union all select 'SelectNotNull' as id, 'Поиск, ошибка если нет записи' as code where @CONVUNITTYPE = 'table' union all select 'Execute' as id, 'Выполнить процедуру' as code where @CONVUNITTYPE = 'procedure'" local="true"/>
-				<A id="EXTKEYID" name="Внешний ключ формата" caption="Внешний ключ формата" labelwidth="145" width="30" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
+			<GA name="" caption="Условие выполнения">
+				<A id="CONDITION_FORMULA" name="Условие выполнения" caption="" labelwidth="80" type="text" nulls="true" local="true"/>
 			</GA>
-			<A id="CONDITION" name="Условие выполнения" caption="Условие выполнения" labelwidth="80" type="text" nulls="true" local="true"/>
-			<A id="NOTE" labelwidth="80"/>
+			<GA caption="Примечание">
+				<A id="NOTE" name="Примечание" caption="" labelwidth="80"/>
+			</GA>
 		</TABLE>
 		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
 			<A id="CONVACTID" parentkey="cascade"/>
@@ -668,7 +699,7 @@
 						<AI id="out" name="Выходной"/>
 						<AI id="inout" name="Входной/выходной"/>
 					</A>
-					<A id="DATATYPE" name="Тип данных" caption="Тип данных" labelwidth="80" width="44" type="list" readonly="true" local="true">
+					<A id="DATATYPE" name="Тип данных" caption="Тип данных" labelwidth="85" width="44" type="list" readonly="true" local="true">
 						<AI id="varchar" name="Строка"/>
 						<AI id="int" name="Целое число"/>
 						<AI id="numeric" name="Действительное число"/>
@@ -689,6 +720,16 @@
 						<AI id="no" name="Нет"/>
 						<AI id="yes" name="Да"/>
 					</A>
+					<GA>
+						<A id="REF_TABLE" name="Таблица" caption="Таблица ссылки" labelwidth="100" width="31" type="string" visible="form" readonly="true" local="true">
+							<AI id="" name="Пусто" readonly="VALUE_KEYOUT"/>
+						</A>
+						<A id="REF_RET" name="Поле возврата" caption="Поле возврата" labelwidth="85" width="31" type="string" visible="form" readonly="true" local="true"/>
+						<A id="REF_PID" name="Родительское поле" caption="Родительское поле" labelwidth="130" width="38" type="string" visible="form" readonly="true" local="true"/>
+						<A id="REF_PID_REF" name="Родительское поле в таблице" caption="Родительское поле в таблице" labelwidth="150" width="100" type="string" visible="false" local="true"/>
+					</GA>
+					<A id="LIST_VALUES" name="Список значений" caption="Список значений" labelwidth="100" type="string" visible="false" local="true"/>
+					<A id="LIST_QUERY" name="Запрос списка значений" caption="Запрос списка значений" labelwidth="130" type="string" visible="false" local="true"/>
 				</GA>
 			</GA>
 			<GA name="Источник значения" caption="Источник значения">
@@ -698,8 +739,8 @@
 			</GA>
 			<GA name="Обработка значения" caption="Формула">
 				<A id="VALUE_FORMULA" name="Формула" caption="" width="100" type="text" nulls="true" local="true"/>
-				<A id="VALUE_TRIM" name="Удалить пробелы" caption="Удалить крайние пробелы" width="30" type="boolean" local="true"/>
-				<A id="VALUE_UNIQUE" name="Обеспечить уникальность" caption="Обеспечить уникальность" width="70" type="boolean" local="true"/>
+				<A id="VALUE_TRIM" name="Удалить пробелы" caption="Удалить крайние пробелы" width="50" type="boolean" local="true"/>
+				<A id="VALUE_KEYOUT" name="Внешний ключ" caption="Найти индентификатор по значению внешнего ключа" width="50" type="boolean" local="true"/>
 			</GA>
 			<GA caption="Ключи поиска записи">
 				<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="boolean" array="true" local="true"/>
@@ -718,10 +759,9 @@
 					<AI id="3" name="Ошибка"/>
 				</A>
 				<A id="LOADDATE" name="Дата и время выполнения" caption="Дата и время выполнения" labelwidth="160" width="54" type="datetime" nulls="true" readonly="true" local="true"/>
+				<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" width="100" type="text" nulls="true" readonly="true" local="true"/>
 			</GA>
-			<GA name="Ошибка" caption="Ошибка">
-				<A id="ERRORMSG" name="Сообщение" caption="Сообщение" width="100" type="text" nulls="true" local="true"/>
-			</GA>
+			<A id="ERRORONE" name="До первой ошибки" caption="Прерывать работу при первой ошибке" type="boolean" value="true" local="true"/>
 			<GA id="FileInformation"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
@@ -729,41 +769,69 @@
 			<A id="CONVLOADID" parentkey="cascade"/>
 			<A id="CONCEPTID" visible="false" virtual="true" formula="select c.conceptid from convloads l, conv c where l.id=@CONVLOADID and l.convid = c.id"/>
 			<GA name="Формат" caption="Формат">
-				<A id="POSITION" name="Экземпляр" caption="Экземпляр" labelwidth="70" width="30"/>
-				<A id="CONCEPTITEMID" name="Элемент" caption="Элемент" labelwidth="70" width="70"/>
+				<A id="POSITION" name="Экземпляр" caption="Экземпляр" labelwidth="80" width="20"/>
+				<A id="CONCEPTITEMID" name="Элемент" caption="Элемент" labelwidth="90" width="80"/>
 			</GA>
 			<A id="CONVID" visible="false" virtual="true" formula="select convid from convloads where id=@CONVLOADID"/>
-			<GA name="Алгоритм" caption="Алгоритм">
-				<A id="CONVACTPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="70" width="30" type="string" nulls="true" readonly="true" virtual="true" formula="select a.position from convacts a where a.id=@CONVACTID" local="true"/>
-				<A id="CONVACTID" labelwidth="70" width="70"/>
-				<A id="CONVACTNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text,5,' ')||'.'||c.code||' ['||lpad(a.position ::text,2,' ')||'.'||a.convunit||']' from convacts a, conceptitems c where a.conceptitemid = c.id and a.id=@CONVACTID" local="true"/>
+			<GA name="Действие" caption="Действие">
+				<A id="CONVACTPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="80" width="20" type="string" nulls="true" readonly="false" virtual="true" formula="select a.position from convacts a where a.id=@CONVACTID" local="true"/>
+				<A id="CONVACTID" name="Наименование" caption="Наименование" labelwidth="90" width="80"/>
+				<A id="CONVACTNAMEVIRT" labelwidth="100" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select lpad(@POSITION ::text,5,' ')||'.'||c.code||' ['||lpad(a.position ::text,2,' ')||'.'||a.convunit||']' from convacts a, conceptitems c where a.conceptitemid = c.id and a.id=@CONVACTID" local="true"/>
+				<A id="CONVACTIONVIRT" name="Способ выполнения" caption="Способ выполнения" labelwidth="120" type="list" nulls="false" readonly="false" virtual="true" formula="select a.convaction from convacts a where a.id=@CONVACTID" local="true">
+					<AI id="Insert" name="Добавить, если нет записи"/>
+					<AI id="Update" name="Исправить, если есть запись"/>
+					<AI id="UpdateNotNull" name="Исправить, ошибка если нет записи"/>
+					<AI id="Delete" name="Удалить, если есть запись"/>
+					<AI id="Select" name="Поиск записи"/>
+					<AI id="SelectNotNull" name="Поиск, ошибка если нет записи"/>
+				</A>
 			</GA>
-			<GA name="" caption="Условие выполнения">
-				<A id="CONDITION" name="Условие выполнения" caption="" labelwidth="80" type="text" nulls="true" local="true"/>
+			<GA name="Условие выполнения" caption="Условие выполнения">
+				<A id="CONDITION_FORMULA" name="Формула" caption="Формула" labelwidth="80" type="text" nulls="true" local="true"/>
+				<A id="CONDITION" name="Результат" caption="Результат" labelwidth="80" type="list" nulls="true" local="true">
+					<AI id="true" name="Да"/>
+					<AI id="false" name="Нет"/>
+				</A>
 			</GA>
 			<GA name="Состояние" caption="Состояние">
-				<A id="STATUS" name="Статус" caption="Статус" type="list" nulls="false" readonly="true" value="0" local="true">
+				<GA>
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="80" width="50" type="list" nulls="false" readonly="true" value="0" local="true">
 					<AI id="0" name="Не выполнялся"/>
 					<AI id="1" name="Пропущен"/>
 					<AI id="2" name="Выполнен"/>
 					<AI id="3" name="Ошибка"/>
 				</A>
+					<A id="RECCOUNT" name="Количество записей" caption="Количество записей" labelwidth="130" width="50" type="int" nulls="false" value="0"/>
+				</GA>
+				<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="80" type="text" nulls="true" readonly="true" local="true"/>
 			</GA>
 		</TABLE>
 		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
 			<A id="CONVLOADACTID" parentkey="cascade"/>
 			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID"/>
 			<GA name="Параметр" caption="Параметр">
-				<A id="CONVACTPARAMPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select f.position from convactparams f where f.id = @CONVACTPARAMID" local="true"/>
+				<A id="CONVACTPARAMPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select p.position from convactparams p where p.id = @CONVACTPARAMID" local="true"/>
 				<A id="CONVACTPARAMID" name="Код" caption="Код" labelwidth="90"/>
-				<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select f.name from convactparams f where f.id = @CONVACTPARAMID" local="true"/>
+				<A id="CONVACTPARAMNAMEVIRT" name="Наименование" caption="Наименование" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select p.name from convactparams p where p.id = @CONVACTPARAMID" local="true"/>
 			</GA>
-			<GA name="" caption="Формула">
-				<A id="VALUE_FORMULA" name="Формула" caption="" type="text" nulls="true" local="true"/>
+			<GA name="Значение" caption="Значение">
+				<A id="STRVALUE_LOAD" name="Из файла/параметра" caption="Из файла или параметра действия" labelwidth="90" type="text"/>
+				<A id="VALUE_FORMULA" name="Формула" caption="Формула" labelwidth="90" type="text" nulls="true" local="true"/>
+				<A id="STRVALUE" name="Результат" caption="Результат" labelwidth="90" type="text"/>
 			</GA>
-			<GA name="" caption="Значение">
-				<A id="STRVALUE" name="Значение" caption="" type="text"/>
+			<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="string" visible="grid" virtual="true" formula="select replace(replace(replace(replace(p.value_key::text,'{',''),'}',''),'f','Нет'),'t','Да') from convactparams p where p.id = @CONVACTPARAMID" local="true"/>
+		</TABLE>
+		<TABLE id="CONVKEYS" name="Конвертер: Внешние ключи">
+			<GA name="Внутренний ключ" caption="Внутренний ключ">
+				<A id="TABLENAMEIN" name="Таблица" caption="Таблица" type="string" nulls="true" local="true"/>
+				<A id="KEYIN" name="Значение" caption="Значение" type="string" nulls="true" local="true"/>
 			</GA>
+			<GA name="Внешний ключ" caption="Внешний ключ">
+				<A id="TABLENAMEOUT" name="Таблица" caption="Таблица" type="string" nulls="true" local="true"/>
+				<A id="KEYOUT" name="Значение" caption="Значение" type="string" nulls="true" local="true"/>
+			</GA>
+			<TI id="CONVKEYS_IN_UK" unique="TABLENAMEIN,KEYIN"/>
+			<TI id="CONVKEYS_OUT_UK" unique="TABLENAMEOUT,KEYOUT"/>
 		</TABLE>
 		<TABLE id="ERRLOG" name="Журнал ошибок">
 			<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="false"/>
@@ -982,16 +1050,16 @@
 			<GA id="DictionaryNote"/>
 			<A id="AGENT_ID" name="Организация" labelwidth="150" parentkey="cascade"/>
 			<A id="BANK_ACC" name="Счет" caption="Счет" type="string" len="40" nulls="true" local="true"/>
-			<A id="AGENT_BANKS_ID" labelwidth="150"/>
-			<A id="TREAS_ID" labelwidth="150"/>
-			<A id="BANK_ACC_TYPES_ID" caption="Тип счета" labelwidth="150"/>
-			<A id="BEGIN_DATE" name="Дата открытия счета" caption="Дата открытия счета" labelwidth="150" nulls="true"/>
-			<A id="END_DATE" name="Дата закрытия счета" caption="Дата окончания" labelwidth="150" nulls="true"/>
-			<A id="CORR_AGENT_ACC_ID" name="Банк корреспондент" labelwidth="150" nulls="true"/>
-			<A id="GEO_ID" labelwidth="150" parentkey="cascade" nulls="true"/>
-			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="150" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_geo_fullname(@GEO_ID::bigint  )" local="true"/>
-			<A id="BIC" name="БИК(МФО)" caption="БИК(МФО)" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
-			<A id="SWIFT" name="S.W.I.F.T" caption="S.W.I.F.T" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
+			<A id="AGENT_BANKS_ID" labelwidth="200"/>
+			<A id="TREAS_ID" labelwidth="200"/>
+			<A id="BANK_ACC_TYPES_ID" caption="Тип счета" labelwidth="200"/>
+			<A id="BEGIN_DATE" name="Дата открытия счета" caption="Дата открытия счета" labelwidth="200" nulls="true"/>
+			<A id="END_DATE" name="Дата закрытия счета" caption="Дата окончания" labelwidth="200" nulls="true"/>
+			<A id="CORR_AGENT_ACC_ID" name="Банк корреспондент" labelwidth="200" nulls="true"/>
+			<A id="GEO_ID" labelwidth="100" parentkey="cascade" nulls="true"/>
+			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="100" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_geo_fullname(@GEO_ID ::bigint  )" local="true"/>
+			<A id="BIC" name="БИК(МФО)" caption="БИК(МФО)" labelwidth="100" type="string" len="40" nulls="true" local="true"/>
+			<A id="SWIFT" name="S.W.I.F.T" caption="S.W.I.F.T" labelwidth="100" type="string" len="40" nulls="true" local="true"/>
 			<TI id="iAGENT_ACC_CODE" index="CODE"/>
 			<TI id="iAGENT_ACC_UK" unique="CODE,AGENT_ID,BANK_ACC"/>
 			<TI id="iAGENT_ACC_NANE" index="NAME"/>
@@ -1053,18 +1121,18 @@
 		</TABLE>
 		<TABLE id="PERSON" name="Персонал">
 			<GA id="DictionaryNote"/>
-			<A id="ELB_ID" name="N реестр.записи" caption="N реестр.записи" labelwidth="50" type="string" len="20" nulls="true" local="true"/>
-			<A id="ELB_CODE" name="N орг.Эл.Бюджета" caption="N орг.Эл.Бюджета" labelwidth="50" type="string" len="8" nulls="true" local="true"/>
-			<A id="SUR_NAME" name="Фамилия" caption="Фамилия" labelwidth="50" type="string" len="250" nulls="true" local="true"/>
-			<A id="FIRST_NAME" name="Имя" caption="Имя" labelwidth="50" type="string" len="250" nulls="true" local="true"/>
-			<A id="MIDDLE_NAME" name="Отчество" caption="Отчество" labelwidth="50" type="string" len="250" nulls="true" local="true"/>
-			<A id="SEX" name="Пол" caption="Пол" labelwidth="50" width="50" type="list" nulls="false" local="true">
+			<A id="ELB_ID" name="N реестр.записи" caption="N реестр.записи" type="string" len="20" nulls="true" local="true"/>
+			<A id="ELB_CODE" name="N орг.Эл.Бюджета" caption="N орг.Эл.Бюджета" type="string" len="8" nulls="true" local="true"/>
+			<A id="SUR_NAME" name="Фамилия" caption="Фамилия" type="string" len="250" nulls="true" local="true"/>
+			<A id="FIRST_NAME" name="Имя" caption="Имя" type="string" len="250" nulls="true" local="true"/>
+			<A id="MIDDLE_NAME" name="Отчество" caption="Отчество" type="string" len="250" nulls="true" local="true"/>
+			<A id="SEX" name="Пол" caption="Пол" width="50" type="list" nulls="false" local="true">
 				<AI id="0" name="не задан "/>
 				<AI id="1" name="мужской"/>
 				<AI id="2" name="женский"/>
 			</A>
-			<A id="INN" labelwidth="50" type="string" len="12" nulls="true" local="true"/>
-			<TI id="iPERSON_UK" unique="CODE,NAME"/>
+			<A id="INN" name="ИНН" caption="ИНН" type="string" len="12" nulls="true" local="true"/>
+			<TI id="iPERSON_UK" unique="CODE,NAME,INN"/>
 			<TI id="iPERSON_CODE" index="CODE"/>
 			<TI id="iPERSON_NAME" index="NAME"/>
 		</TABLE>
@@ -1153,6 +1221,37 @@
 			<TI id="iPERSON_JOB_PERF_END_DATE" index="END_DATE"/>
 			<TI id="iPERSON_JOB_PERF_ACTIVE" index="ACTIVE"/>
 		</TABLE>
+		<TABLE id="SIGNATORY" name="Подписанты">
+			<GA id="DictionaryNote"/>
+			<GA id="DictionaryParam"/>
+			<A id="SIGN_TYPE" name="Текущий" caption="Текущий" width="10" type="boolean" nulls="false" value="false" local="true"/>
+			<TI id="iSIGNATORY_UK" unique="CODE,NAME,SIGN_TYPE"/>
+			<TI id="iSIGNATORY_CODE" index="CODE"/>
+			<TI id="iSIGNATORY_NAME" index="NAME"/>
+			<TI id="iSIGNATORY_SIGN_TYPE" index="SIGN_TYPE"/>
+			<TI id="iSIGNATORY_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iSIGNATORY_END_DATE" index="END_DATE"/>
+			<TI id="iSIGNATORY_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="SIGNATORY_SPC" name="Состав подписантов">
+			<A id="SIGNATORY_ID" parentkey="cascade"/>
+			<A id="SIGN_TYPE" name="Тип" caption="Тип" labelwidth="50" width="50" type="list" nulls="false" value="0" local="true">
+				<AI id="0" name="Руководитель"/>
+				<AI id="1" name="Бухгалтер"/>
+				<AI id="2" name="Исполнитель"/>
+			</A>
+			<A id="PERSON_ID" parentkey="cascade"/>
+			<A id="JOB_ID" parentkey="cascade"/>
+			<GA id="AgentContact"/>
+			<A id="NOTE"/>
+			<TI id="iSIGNATORY_SPC_PRN" index="SIGNATORY_ID"/>
+			<TI id="iSIGNATORY_SPC_SIGN_TYPE" index="SIGN_TYPE"/>
+			<TI id="iSIGNATORY_SPC_PERSON" index="PERSON_ID"/>
+			<TI id="iSIGNATORY_SPC_JOB" index="JOB_ID"/>
+			<TI id="iSIGNATORY_SPC_PHONE" index="PHONE"/>
+			<TI id="iSIGNATORY_SPC_WEBSITE" index="WEBSITE"/>
+			<TI id="iSIGNATORY_SPC_EMAIL" index="EMAIL"/>
+		</TABLE>
 		<TABLE id="TREAS" name="Казначейства" hid="CODE">
 			<A id="KOD_TOFK" name="Код Свод.реестра" caption="Код Свод.реестра" labelwidth="150" type="string" len="4" nulls="true" local="true"/>
 			<GA id="DictionaryNote"/>
@@ -1173,7 +1272,7 @@
 		</TABLE>
 		<TABLE id="TREAS_ACC" name="Счета казначейства">
 			<A id="TREAS_ID" name="Казначейство" parentkey="cascade"/>
-			<A id="TREAS_AGN_VIRT" name="Агент казначейства" caption="Агент казначейства" type="ref" table="AGENT" ret="ID" nulls="true" visible="false" virtual="true" formula="select AGENT_ID from TREAS where ID=@TREAS_ID::bigint" local="true"/>
+			<A id="TREAS_AGN_VIRT" name="Агент казначейства" caption="Агент казначейства" type="ref" table="AGENT" ret="ID" nulls="true" visible="false" virtual="true" formula="select AGENT_ID from TREAS where ID=@TREAS_ID ::bigint" local="true"/>
 			<A id="ACC_ID" name="Счет казначейства" caption="Счет казначейства" labelwidth="150" type="ref" pid="TREAS_AGN_VIRT" table="AGENT_ACC" ret="CODE" form="fAgentAcc" nulls="true" local="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="iTREAS_ACC_UK" unique="TREAS_ID,ACC_ID,BEGIN_DATE"/>
@@ -1195,14 +1294,9 @@
 						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="200" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint ) +1,1) from @TABLENAME where DOCPREF='ППБ'"/>
 						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="200" type="date" nulls="false" formula="now()"/>
 					</GA>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="50" type="list" nulls="false" value="1" local="true">
-						<AI id="1" name="Заружен"/>
-						<AI id="2" name="В работе"/>
-						<AI id="3" name="На согласовании"/>
-						<AI id="4" name="Согласован" readonly="true"/>
-						<AI id="0" name="Аннулирован" readonly="true"/>
-					</A>
+					<A id="STATUS"/>
 					<A id="NOTE" labelwidth="100"/>
+					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select sign(count(f.id)) from BUDGET_INCOM_TRANSFER_FILE f where f.BUDGET_INCOM_TRANSFER_ID =@ID ::bigint" local="true"/>
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
 					<A id="KOD_TOFK" name="Код ОрФК" caption="Код ОрФК" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
 					<A id="NAME_TOFK" name="Наименование ОрФК" caption="Наименование ОрФК" labelwidth="150" type="string" len="2000" nulls="true" local="true"/>
@@ -1436,14 +1530,9 @@
 						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="200" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint) +1,1) from @TABLENAME where DOCPREF='ИЛС'"/>
 						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="200" type="date" nulls="false" formula="now()"/>
 					</GA>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="50" type="list" nulls="false" value="0" local="true">
-						<AI id="1" name="Заружен"/>
-						<AI id="2" name="В работе"/>
-						<AI id="3" name="На согласовании"/>
-						<AI id="4" name="Согласован" readonly="true"/>
-						<AI id="0" name="Аннулирован" readonly="true"/>
-					</A>
+					<A id="STATUS"/>
 					<A id="NOTE" labelwidth="100"/>
+					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select p_yes_no(count(f.id)) s from state_pers_acc_adm_file f where f.state_pers_acc_adm_id =@ID ::bigint" local="true"/>
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
 				</TAB>
 				<TAB name="Дополнительно">
@@ -1547,12 +1636,17 @@
 			<A id="ALL_SUM_NZACH" name="Общая сумма неисполненных зачетов" caption="Общая сумма неисполненных зачетов" labelwidth="300" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			<TI id="iSTATE_PERS_ACC_ADM_LTINPAD_PRN" index="STATE_PERS_ACC_ADM_ID"/>
 		</TABLE>
-		<TABLE id="BUDGET_PLAN" name="Годовое задание по сбору доходов">
+		<TABLE id="BUDGET_PLAN_FILE" name="Файлы Годовых заданий по сбору доходов">
+			<A id="BUDGET_PLAN_ID" parentkey="cascade"/>
+			<GA id="FileInformation"/>
+			<TI id="iBUDGET_PLAN_FILE_PRN" index="BUDGET_PLAN_ID"/>
+		</TABLE>
+		<TABLE id="BUDGET_PLAN" name="Годовые задания по сбору доходов">
 			<TABS>
 				<TAB name="Параметры">
 					<GA name="Заголовок" caption="Заголовок">
-						<A id="DOCPREF" name="Префикс документа" caption="Префикс" labelwidth="100" type="string" len="80" nulls="true" value="ПБД"/>
-						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint0 +1,1) from @TABLENAME where DOCPREF='ПБД'"/>
+						<A id="DOCPREF" name="Префикс документа" caption="Префикс" labelwidth="100" type="string" len="80" nulls="true" value="ГЗД"/>
+						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint) +1,1) from @TABLENAME where DOCPREF='ГЗД'"/>
 						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="100" type="date" nulls="false" formula="now()"/>
 					</GA>
 					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="100" type="list" nulls="true" value="0" local="true">
@@ -1562,15 +1656,10 @@
 						<AI id="4" name="Бюджет ГВФ РФ"/>
 						<AI id="5" name="Бюджет ТГВФ"/>
 					</A>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" value="1" local="true">
-						<AI id="1" name="Заружен"/>
-						<AI id="2" name="В работе"/>
-						<AI id="3" name="На согласовании"/>
-						<AI id="4" name="Согласован" readonly="true"/>
-						<AI id="0" name="На доработку"/>
-					</A>
+					<A id="STATUS"/>
 					<A id="AGENT_ID" name="ФКУ" caption="ФКУ" labelwidth="100"/>
 					<A id="NOTE" labelwidth="100"/>
+					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select p_yes_no(count(f.id)) s from BUDGET_PLAN_FILE f where f.BUDGET_PLAN_ID =@ID ::bigint " local="true"/>
 				</TAB>
 				<TAB name="Дополнительно">
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
@@ -1588,6 +1677,7 @@
 					</GA>
 				</TAB>
 			</TABS>
+			<TI id="iBUDGET_PLAN_UK" unique="DOCPREF,DOCNUMB,DOCDATE"/>
 			<TI id="iBUDGET_PLAN_DOCPREF" index="DOCPREF"/>
 			<TI id="iBUDGET_PLAN_DOCNUMB" index="DOCNUMB"/>
 			<TI id="iBUDGET_PLAN_DOCDATE" index="DOCDATE"/>
@@ -1618,6 +1708,7 @@
 				<A id="SUM_M_4" name="4 квартал" caption="4 квартал" labelwidth="100" width="50" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			</GA>
 			<A id="NOTE" labelwidth="100"/>
+			<TI id="iBUDGET_PLAN_SPC_UK" unique="BUDGET_PLAN_ID,BKD_ID"/>
 			<TI id="iBUDGET_PLAN_SPC_PRN" index="BUDGET_PLAN_ID"/>
 			<TI id="iBUDGET_PLAN_SPC_BKD" index="BKD_ID"/>
 			<TI id="iBUDGET_PLAN_SPC_SUM_P_Y" index="SUM_P_Y"/>
@@ -1633,23 +1724,23 @@
 		</TABLE>
 		<TABLE id="BUDGET_PLAN_STATUS" name="История смены статуса">
 			<A id="BUDGET_PLAN_ID" parentkey="cascade"/>
-			<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" readonly="true" local="true">
-				<AI id="1" name="Заружен"/>
-				<AI id="2" name="В работе"/>
-				<AI id="3" name="На согласовании"/>
-				<AI id="4" name="Согласован" readonly="true"/>
-				<AI id="0" name="На доработку"/>
-			</A>
-			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@uid::bigint"/>
+			<A id="STATUS" name="Преждний статус" caption="Преждний статус"/>
+			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@UID ::bigint"/>
 			<A id="DATE_STATUS_VIRT" name="Дата" caption="Дата" labelwidth="100" width="150" type="datetime" nulls="true" readonly="true" virtual="true" formula="select tim from BUDGET_PLAN_STATUS where id=@ID"/>
 			<A id="NOTE" labelwidth="150"/>
+			<TI id="iBUDGET_PLAN_STATUS_PRN" index="BUDGET_PLAN_ID"/>
+		</TABLE>
+		<TABLE id="BUDGET_INCOM_FILE" name="Файлы Фактических поступлений">
+			<A id="BUDGET_INCOM_ID" parentkey="cascade"/>
+			<GA id="FileInformation"/>
+			<TI id="iBUDGET_INCOM_FILE_PRN" index="BUDGET_INCOM_ID"/>
 		</TABLE>
 		<TABLE id="BUDGET_INCOM" name="Фактические поступления">
 			<TABS>
 				<TAB name="Параметры">
 					<GA name="Заголовок" caption="Заголовок">
-						<A id="DOCPREF" name="Префикс документа" caption="Префикс" labelwidth="100" type="string" len="80" nulls="true" value="БД"/>
-						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint) +1,1) from @TABLENAME where DOCPREF='БД'"/>
+						<A id="DOCPREF" name="Префикс документа" caption="Префикс" labelwidth="100" type="string" len="80" nulls="true" value="ФПД"/>
+						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint) +1,1) from @TABLENAME where DOCPREF='ФПД'"/>
 						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="100" type="date" nulls="false" formula="now()"/>
 					</GA>
 					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="100" type="list" nulls="true" value="0" local="true">
@@ -1659,15 +1750,10 @@
 						<AI id="4" name="Бюджет ГВФ РФ"/>
 						<AI id="5" name="Бюджет ТГВФ"/>
 					</A>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" value="1" local="true">
-						<AI id="1" name="Заружен"/>
-						<AI id="2" name="В работе"/>
-						<AI id="3" name="На согласовании"/>
-						<AI id="4" name="Согласован" readonly="true"/>
-						<AI id="0" name="На доработку"/>
-					</A>
+					<A id="STATUS"/>
 					<A id="AGENT_ID" name="ФКУ" caption="ФКУ"/>
 					<A id="NOTE" labelwidth="100"/>
+					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select p_yes_no(count(f.id)) s from BUDGET_INCOM_FILE f where f.BUDGET_INCOM_ID =@ID ::bigint " local="true"/>
 				</TAB>
 				<TAB name="Дополнительно">
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
@@ -1685,6 +1771,7 @@
 					</GA>
 				</TAB>
 			</TABS>
+			<TI id="iBUDGET_INCOM_UK" unique="DOCPREF,DOCNUMB,DOCDATE"/>
 			<TI id="iBUDGET_INCOM_DOCPREF" index="DOCPREF"/>
 			<TI id="iBUDGET_INCOM_DOCNUMB" index="DOCNUMB"/>
 			<TI id="iBUDGET_INCOM_DOCDATE" index="DOCDATE"/>
@@ -1696,7 +1783,7 @@
 			<TI id="iBUDGET_INCOM_BS_UFK" index="BS_UFK"/>
 			<TI id="iBUDGET_INCOM_KOD_ADB" index="KOD_ADB"/>
 		</TABLE>
-		<TABLE id="BUDGET_INCOM_SPC" name="Фактические поступления-спецификация">
+		<TABLE id="BUDGET_INCOM_SPC" name="Фактическое поступление-спецификация">
 			<A id="BUDGET_INCOM_ID" parentkey="cascade"/>
 			<A id="BKD_ID"/>
 			<A id="BKD_NAME_VIRT" name="Код БКД" caption="Код БКД" labelwidth="150" width="150" type="string" nulls="true" readonly="true" virtual="true" formula="select p_get_bkd_name( @BKD_ID ::bigint  )" local="true"/>
@@ -1709,6 +1796,7 @@
 				<A id="SUM_I1_FED_MES" name="В текущем месяце" caption="В текущем месяце" labelwidth="150" width="50" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			</GA>
 			<A id="NOTE" labelwidth="150"/>
+			<TI id="iBUDGET_INCOM_SPC_UK" unique="BUDGET_INCOM_ID,BKD_ID"/>
 			<TI id="iBUDGET_INCOM_SPC_PRN" index="BUDGET_INCOM_ID"/>
 			<TI id="iBUDGET_INCOM_SPC_BKD" index="BKD_ID"/>
 			<TI id="iBUDGET_INCOM_SPC_SUM_I3_FED" index="SUM_I3_FED"/>
@@ -1716,27 +1804,49 @@
 			<TI id="iBUDGET_INCOM_SPC_SUM_I1_FED" index="SUM_I1_FED"/>
 			<TI id="iBUDGET_INCOM_SPC_SUM_I1_FED_MES" index="SUM_I1_FED_MES"/>
 		</TABLE>
-		<COMMENT name="Поступило помесячно "/>
-		<TABLE id="BUDGET_INCOM_SUM" name="Фактические поступления-итоги по БКД" virtual="true" query="  select  spc.ID,    null::bigint  HID,     null::bigint  LID,     0::bigint     CID,     null::bigint  UID,     spc.ID BUDGET_INCOM_SPC_ID,    doc_bkd.docdate      TIM,   doc_bkd.docdate,   sum(spc.SUM_I1_FED_MES) OVER (PARTITION BY EXTRACT(YEAR from doc_bkd.docdate) order by  doc_bkd.docdate  )  as sum_transf,   sum(spc.SUM_I3_FED_MES) OVER (PARTITION BY EXTRACT(YEAR from doc_bkd.docdate) order by  doc_bkd.docdate  )  as sum_in     from budget_incom doc,   budget_incom_spc spc,   budget_incom doc_bkd,   budget_incom_spc spc_bkd   where spc.budget_incom_id = doc.id   and spc_bkd.budget_incom_id = doc_bkd.id   and spc.bkd_id = spc_bkd.bkd_id     AND EXTRACT(YEAR from doc.docdate) = EXTRACT(YEAR from doc_bkd.docdate)  GROUP BY   spc.ID,   doc_bkd.docdate,   spc.ID      order by  doc_bkd.docdate">
+		<COMMENT id="BIS_BKD" name="Итого помесячно по БКД"/>
+		<TABLE id="BUDGET_INCOM_SUM_BKD" name="Фактические поступления-итоги по БКД за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and spc.bkd_id = s.bkd_id            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and spc.bkd_id =s.bkd_id           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.bkd_id = spc_bkd.bkd_id        and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )        and bkd.status = '4'          group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate,         f.bkd_id      order by  f.docdate,         f.bkd_id">
 			<A id="DOCDATE" name="Дата" caption="Дата"/>
 			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
-			<A id="SUM_TRANSF" name="Перечислено" caption="Перечислено" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			<A id="SUM_IN" name="Поступило" caption="Поступило" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
+			<A id="SUM_TRANSF" name="Перечислено" caption="Перечислено" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
+		</TABLE>
+		<COMMENT id="BIS_FKU" name="Итого помесячно по ФКУ"/>
+		<TABLE id="BUDGET_INCOM_SUM_FKU" name="Фактические поступления-итоги по ФКУ за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.agent_id = bkd.agent_id          and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )        and bkd.status = '4'       group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate      order by  f.docdate">
+			<A id="DOCDATE" name="Дата" caption="Дата"/>
+			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
+			<A id="SUM_IN" name="Поступило" caption="Поступило" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
+			<A id="SUM_TRANSF" name="Перечислено" caption="Перечислено" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
+		</TABLE>
+		<COMMENT id="TOTAL_BKD_FKU" name="Всего по БКД и ФКУ p_resipt_profit_total_bkd_fku "/>
+		<TABLE id="BUDGET_INCOM_TOTAL_BKD_FKU" name="Фактические поступления-Всего по БКД и ФКУ" virtual="true" query="select distinct spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          r.val3,          r.val4,          r.val5,          r.val6,          r.val7,          r.val8,          r.val9,          r.val10,          r.val11,          r.val12,          r.val13                    from(          SELECT  doc.docdate,            doc.agent_id,           spc.bkd_id,           spc.budget_incom_id           FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd,         p_resipt_profit_total_bkd_fku(bkd.docdate,bkd.agent_id,spc_bkd.bkd_id) r          where  bkd.id = spc_bkd.budget_incom_id          and f.agent_id = bkd.agent_id           and f.bkd_id = spc_bkd.bkd_id          and bkd.status = '4'      ">
+			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
+			<A id="val3" name="Сумма план  (прошлый год)" caption="Сумма план  (прошлый год)" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val4" name="Сумма план 12 мес.(от текушей даты)" caption="Сумма план 12 мес.(от текушей даты)" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val5" name="Сумма факт(прошлый год)" caption="Сумма факт(прошлый год)" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val6" name="Процент выполн.на пред.год" caption="Процент выполн.на пред.год" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val7" name="Процент выполн.от периода" caption="Процент выполн.от периода" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val8" name="Сумма план iv квартал(прошлый год)" caption="Сумма план iv квартал(прошлый год) " labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val9" name="Сумма факт iv квартал(прошлый год)" caption="Сумма факт iv квартал(прошлый год) " labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val10" name="Процент выполн.iv квартал(прошлый год)" caption="Процент выполн.iv квартал(прошлый год) " labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val11" name="Сумма план декабрь(прошлый год)" caption="Сумма план декабрь(прошлый год) " labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val12" name="Сумма факт декабрь(прошлый год)" caption="Сумма факт декабрь(прошлый год) " labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="val13" name="Процент выполн.декабрь(прошлый год)" caption="Процент выполн.декабрь(прошлый год) " labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
 		</TABLE>
 		<TABLE id="BUDGET_INCOM_STATUS" name="История смены статуса">
 			<A id="BUDGET_INCOM_ID" parentkey="cascade"/>
-			<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" readonly="true" value="1" local="true">
-				<AI id="1" name="Заружен"/>
-				<AI id="2" name="В работе"/>
-				<AI id="3" name="На согласовании"/>
-				<AI id="4" name="Согласован" readonly="true"/>
-				<AI id="0" name="На доработку"/>
-			</A>
-			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@uid::bigint"/>
+			<A id="STATUS" name="Преждний статус" caption="Преждний статус"/>
+			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@UID ::bigint"/>
 			<A id="DATE_STATUS_VIRT" name="Дата" caption="Дата" labelwidth="100" width="150" type="datetime" nulls="true" readonly="true" virtual="true" formula="select tim from BUDGET_INCOM_STATUS where id=@ID"/>
 			<A id="NOTE" labelwidth="150"/>
+			<TI id="iBUDGET_INCOM_STATUS_PRN" index="BUDGET_INCOM_ID"/>
 		</TABLE>
-		<TABLE id="FORECAST_INCOM" name="Прогноз поступления доходов">
+		<TABLE id="FORECAST_INCOM_FILE" name="Файлы Прогнозов поступлений доходов">
+			<A id="FORECAST_INCOM_ID" parentkey="cascade"/>
+			<GA id="FileInformation"/>
+			<TI id="iFORECAST_INCOM_FILE_PRN" index="FORECAST_INCOM_ID"/>
+		</TABLE>
+		<TABLE id="FORECAST_INCOM" name="Прогнозы поступлений доходов">
 			<TABS>
 				<TAB name="Параметры">
 					<GA name="Заголовок" caption="Заголовок">
@@ -1744,16 +1854,11 @@
 						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint) +1,1) from @TABLENAME where DOCPREF='ППД'"/>
 						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="100" type="date" nulls="false" formula="now()"/>
 					</GA>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" value="1" local="true">
-						<AI id="1" name="Заружен"/>
-						<AI id="2" name="В работе"/>
-						<AI id="3" name="На согласовании"/>
-						<AI id="4" name="Согласован" readonly="true"/>
-						<AI id="0" name="На доработку"/>
-					</A>
+					<A id="STATUS"/>
 					<A id="AGENT_ID" name="Фин.орган" caption="Фин.орган" labelwidth="150" width="100"/>
 					<A id="DIR_RECIP_ID" name="Гл.распорядитель" caption="Гл.распорядитель" labelwidth="150" width="100"/>
 					<A id="NOTE" labelwidth="100"/>
+					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select p_yes_no(count(f.id)) s from FORECAST_INCOM_FILE f where f.FORECAST_INCOM_ID =@ID ::bigint " local="true"/>
 				</TAB>
 				<TAB name="Дополнительно">
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
@@ -1767,6 +1872,7 @@
 					</GA>
 				</TAB>
 			</TABS>
+			<TI id="iFORECAST_INCOM_UK" unique="DOCPREF,DOCNUMB,DOCDATE"/>
 			<TI id="iFORECAST_INCOM_DOCPREF" index="DOCPREF"/>
 			<TI id="iFORECAST_INCOM_DOCNUMB" index="DOCNUMB"/>
 			<TI id="iFORECAST_INCOM_DOCDATE" index="DOCDATE"/>
@@ -1796,6 +1902,7 @@
 				<A id="SUM_F_Y3" name="Федр.бюджет" caption="Оценка" labelwidth="150" width="50" type="number" len="17.2" nulls="true" value="0" local="true"/>
 				<A id="SUM_C_Y3" name="Консол.бюджеты РФ" caption="Консол.бюджеты РФ" labelwidth="150" width="50" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			</GA>
+			<TI id="iFORECAST_INCOM_SPC_UK" unique="FORECAST_INCOM_ID,BKD_ID"/>
 			<TI id="iFORECAST_INCOM_SPC_PRN" index="FORECAST_INCOM_ID"/>
 			<TI id="iFORECAST_INCOM_SPC_BKD" index="BKD_ID"/>
 			<TI id="iFORECAST_INCOM_SPC_SUM_DOCDATE" index="SUM_DOCDATE"/>
@@ -1810,16 +1917,52 @@
 		</TABLE>
 		<TABLE id="FORECAST_INCOM_STATUS" name="История смены статуса">
 			<A id="FORECAST_INCOM_ID" parentkey="cascade"/>
-			<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" type="list" nulls="false" readonly="true" value="1" local="true">
-				<AI id="1" name="Заружен"/>
-				<AI id="2" name="В работе"/>
-				<AI id="3" name="На согласовании"/>
-				<AI id="4" name="Согласован" readonly="true"/>
-				<AI id="0" name="На доработку"/>
-			</A>
-			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@uid::bigint"/>
+			<A id="STATUS" name="Преждний статус" caption="Преждний статус"/>
+			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@UID ::bigint"/>
 			<A id="DATE_STATUS_VIRT" name="Дата" caption="Дата" labelwidth="100" width="150" type="datetime" nulls="true" readonly="true" virtual="true" formula="select tim from FORECAST_INCOM_STATUS where id=@ID"/>
 			<A id="NOTE" labelwidth="150"/>
+			<TI id="iFORECAST_INCOM_STATUS_PRN" index="FORECAST_INCOM_ID"/>
+		</TABLE>
+		<TABLE id="TASK" name="Задачи">
+			<GA name="Заголовок" caption="Заголовок">
+				<A id="DOCPREF" name="Префикс" caption="Префикс" labelwidth="100" type="string" len="80" nulls="true" formula="select login from users where id=@UID ::bigint"/>
+				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint) +1,1) from @TABLENAME where DOCPREF=(select login from users where id=@UID ::bigint)"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="100" type="date" nulls="false" formula="now()"/>
+				<A id="DATE_END" name="Дата окончания" caption="Дата окончания" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Заказчик" caption="Заказчик">
+				<A id="AGENT_ID" name="ФКУ" caption="ФКУ" labelwidth="100"/>
+				<A id="PERSON_ID" name="Автор" caption="Автор" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="fPerson" nulls="false"/>
+			</GA>
+			<A id="STATUS_TASK"/>
+			<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель" labelwidth="100"/>
+			<A id="NOTE" name="Задача" caption="Задача" labelwidth="100"/>
+			<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select p_yes_no(count(f.id)) s from TASK_FILE f where f.TASK_ID =@ID ::bigint " local="true"/>
+			<TI id="iTASK_UK" unique="DOCPREF,DOCNUMB,DOCDATE"/>
+			<TI id="iTASK_DOCPREF" index="DOCPREF"/>
+			<TI id="iTASK_DOCNUMB" index="DOCNUMB"/>
+			<TI id="iTASK_DOCDATE" index="DOCDATE"/>
+			<TI id="iTASK_DATE_END" index="DATE_END"/>
+			<TI id="iTASK_AGENT_ID" index="AGENT_ID"/>
+			<TI id="iTASK_PERSON_ID" index="PERSON_ID"/>
+			<TI id="iTASK_STATUS_TASK" index="STATUS_TASK"/>
+			<TI id="iTASK_EXECTOR_ID" index="EXECTOR_ID"/>
+		</TABLE>
+		<TABLE id="TASK_FILE" name="Файлы задачи">
+			<A id="TASK_ID" parentkey="cascade"/>
+			<GA id="FileInformation"/>
+			<TI id="iTASK_FILE_PRN" index="TASK_ID"/>
+		</TABLE>
+		<TABLE id="TASK_STATUS" name="Состав задачи">
+			<A id="TASK_ID" parentkey="cascade"/>
+			<A id="STATUS_TASK" name="Преждний статус" caption="Преждний статус" readonly="true"/>
+			<A id="EXECTOR_ID" name="Преждний исполнитель" caption="Преждний исполнитель" labelwidth="100" readonly="true"/>
+			<A id="USER_STATUS_VIRT" name="Пользователь" caption="Пользователь" labelwidth="100" width="150" type="string" nulls="false" readonly="true" virtual="true" formula="select name from users where id=@UID ::bigint"/>
+			<A id="DATE_STATUS_VIRT" name="Дата" caption="Дата" labelwidth="100" width="150" type="datetime" nulls="true" readonly="true" virtual="true" formula="select tim from TASK_STATUS where id=@ID"/>
+			<A id="NOTE" labelwidth="150"/>
+			<TI id="iTASK_STATUS_PRN" index="TASK_ID"/>
+			<TI id="iTASK_STATUS_TASK_LOG" index="STATUS_TASK"/>
+			<TI id="iTASK_STATUS_EXECTOR_ID" index="EXECTOR_ID"/>
 		</TABLE>
 		<COMMENT id="REPORTS" name="Отчеты"/>
 		<TABLE id="RESIPT_PROFIT_BUF" name="Поступление доходов в федеральный бюджет">
@@ -1926,6 +2069,12 @@
 				<A id="REMOVE" caption="Удалить каскадно из назначения прав" type="boolean" nulls="false" value="true" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="setLID" name="Установить уровень доступа" type="procedure" procedure="p_system_set_levaccess">
+			<FORM>
+				<A id="LEVACCESSID"/>
+				<A id="ALLRECORD" caption="Все записи" type="boolean"/>
+			</FORM>
+		</ACTION>
 		<ACTION id="uploadFilelinks" name="Загрузить файл" type="java">
 			<FORM>
 				<A id="BFILE"/>
@@ -1971,52 +2120,124 @@
 				<A id="USERID_TO" name="Пользователь (кому)" caption="Пользователь (кому)" labelwidth="150" type="ref" table="USERS" ret="LOGIN" form="Users" array="true" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="aStatus1" name="Загружен" type="procedure" procedure="p_status_doc1">
+		<ACTION id="ConvertFile" name="Конвертировать файл" type="procedure" procedure="p_system_file_convert"/>
+		<ACTION id="LoadAndConvertFile" name="Загрузить и конвертировать файл" type="procedure" procedure="p_system_file_convert">
 			<FORM>
+				<A id="BFILE" nulls="false"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="LoadFileOptions" name="Загрузить параметры" type="script" actionlist="LoadAndConvertFile">
+			<P id="convname" value="test_excel"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="aStatus0" name="Аннулировать" type="procedure" procedure="p_action_status_doc">
+			<FORM>
+				<A id="STATUS" visible="false" value="0"/>
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="aStatus2" name="В работе" type="procedure" procedure="p_status_doc2">
+		<ACTION id="aStatus1" name="Заружено" type="procedure" procedure="p_action_status_doc">
 			<FORM>
+				<A id="STATUS" visible="false" value="1"/>
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="aStatus3" name="На согласовании" type="procedure" procedure="p_status_doc3">
+		<ACTION id="aStatus2" name="В работу" type="procedure" procedure="p_action_status_doc">
 			<FORM>
+				<A id="STATUS" visible="false" value="2"/>
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="aStatus4" name="Согласован" type="procedure" procedure="p_status_doc4">
+		<ACTION id="aStatus3" name="На согласование" type="procedure" procedure="p_action_status_doc">
 			<FORM>
+				<A id="STATUS" visible="false" value="3"/>
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="aStatus0" name="На доработку" type="procedure" procedure="p_status_doc0">
+		<ACTION id="aStatus4" name="Согласовано" type="procedure" procedure="p_action_status_doc">
 			<FORM>
+				<A id="STATUS" visible="false" value="4"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatus5" name="На доработку" type="procedure" procedure="p_action_status_doc">
+			<FORM>
+				<A id="STATUS" visible="false" value="5"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatusTask0" name="Аннулировать" type="procedure" procedure="p_action_status_task">
+			<FORM>
+				<A id="STATUS" visible="false" value="0"/>
+				<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatusTask1" name="Создать" type="procedure" procedure="p_action_status_task">
+			<FORM>
+				<A id="STATUS" visible="false" value="1"/>
+				<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatusTask2" name="Направить" type="procedure" procedure="p_action_status_task">
+			<FORM>
+				<A id="STATUS" visible="false" value="2"/>
+				<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatusTask3" name="В работу" type="procedure" procedure="p_action_status_task">
+			<FORM>
+				<A id="STATUS" visible="false" value="3"/>
+				<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatusTask4" name="Выполнено" type="procedure" procedure="p_action_status_task">
+			<FORM>
+				<A id="STATUS" visible="false" value="4"/>
+				<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aStatusTask5" name="На доработку" type="procedure" procedure="p_action_status_task">
+			<FORM>
+				<A id="STATUS" visible="false" value="5"/>
+				<A id="EXECTOR_ID" name="Исполнитель" caption="Исполнитель"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aFillSignatory" name="Заполнить подписантов" type="procedure" procedure="p_action_fill_signatory">
+			<FORM>
+				<A id="SIGNATORY_ID" parentkey="cascade"/>
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
-		<REPORT id="rResiptProfit" name="Поступление доходов" procedure="p_prn_resipt_profit" template="rpt_resipt_profit.xlsx" nulls="true">
+		<REPORT id="rBudgetPlanCardDoc" name="Годовое задание" procedure="" template="rpt_budget_plan.xlsx" nulls="true"/>
+		<REPORT id="rBudgetIncomCardDoc" name="Фактические поступления" procedure="" template="rpt_budget_incom.xlsx" nulls="true"/>
+		<REPORT id="rForecastCardDoc" name="Прогноз поступления доходов" procedure="" template="rpt_forecast_incom.xlsx" nulls="true"/>
+		<REPORT id="rResiptProfit" name="Поступление доходов" procedure="p_report_resipt_profit" template="rpt_resipt_profit.xlsx" nulls="true">
 			<FORM>
 				<A id="date_to" caption="На дату " labelwidth="200" type="date" formula="now()" local="true"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="rResiptProfitMintras" name="Поступление доходов Минтрас" procedure="p_prn_resipt_profit_mintras" template="rpt_resipt_profit_mintras.xlsx" nulls="true">
+		<REPORT id="rResiptProfitMintras" name="Поступление доходов Минтрас" procedure="p_report_resipt_profit_mintras" template="rpt_resipt_profit_mintras.xlsx" nulls="true">
 			<FORM>
 				<A id="date_to" caption="На дату " labelwidth="200" type="date" formula="now()" local="true"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="rResiptProfitFda" name="Поступление доходов ФДА" procedure="p_prn_resipt_profit_fda" template="rpt_resipt_profit_fda.xlsx" nulls="true">
+		<REPORT id="rResiptProfitFda" name="Поступление доходов ФДА" procedure="p_report_resipt_profit_fda" template="rpt_resipt_profit_fda.xlsx" nulls="true">
 			<FORM>
 				<A id="date_to" caption="На дату " labelwidth="100" type="date" formula="now()" local="true"/>
 				<A id="BKD_ID" name="КБК доходов" caption="КБК доходов" type="ref" table="BKD" ret="NAME" form="fBkd" nulls="false" local="true"/>
 				<A id="BKD_CODE_VIRT" name="Код КБК дохода" caption="Код КБК дохода" type="string" nulls="true" virtual="true" formula="select p_get_bkd_code(@BKD_ID )" local="true"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="rResiptProfitBkd" name="Поступление доходов по КБК" procedure="p_prn_resipt_profit_bkd" template="rpt_resipt_profit_bkd.xlsx" nulls="true">
+		<REPORT id="rResiptProfitBkd" name="Поступление доходов по КБК" procedure="p_report_resipt_profit_bkd" template="rpt_resipt_profit_bkd.xlsx" nulls="true">
 			<FORM>
 				<A id="date_to" caption="На дату " labelwidth="100" type="date" formula="now()" local="true"/>
 				<A id="AGENT_ID" name="ФКУ" caption="ФКУ" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="false" local="true"/>
@@ -2109,7 +2330,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="ConvLoads" name="Процессы загрузки">
-			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="ConvLoadsUploadFile;ConvLoadsPrepare;ConvLoadsStart"/>
+			<GRID id="ConvLoads" name="Процессы загрузки" table="CONVLOADS" actionlist="ConvLoadsUploadFile;ConvLoadsClear;ConvLoadsPrepare;ConvLoadsStart"/>
 			<GRID id="ConvLoadActs" name="Буфер выполнения (действия)" table="CONVLOADACTS" readonly="true">
 				<MENU>
 					<MI actionlist="View;Delete;ConfigTables"/>
@@ -2132,6 +2353,9 @@
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
 			</GRID>
+		</FORM>
+		<FORM id="ConvKeys" name="Внешние ключи">
+			<GRID id="ConvKeys" name="Внешние ключи" table="CONVKEYS"/>
 		</FORM>
 		<FORM id="fBkd" name="Бюджетный классификатор доходов">
 			<GRID id="gBkd" name="Бюджетный классификатор доходов" table="BKD">
@@ -2350,12 +2574,24 @@
 				</MENU>
 			</GRID>
 		</FORM>
-		<FORM id="fBudgetPlan" name="Годовое задание по сбору доходов">
+		<FORM id="fSignatory" name="Подписанты">
+			<GRID id="gSignatory" name="Подписанты" table="SIGNATORY">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="fSignatorySpc" name="Состав" table="SIGNATORY_SPC">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fBudgetPlan" name="Годовые задания по сбору доходов">
 			<TABS>
-				<TAB name="Прогноз поступ.доходов">
-					<GRID id="gBudgetPlan" name="Годовое задание по сбору доходов" table="BUDGET_PLAN" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus0">
+				<TAB name="Годовые задания по сбору доходов">
+					<GRID id="gBudgetPlan" name="Годовые задания по сбору доходов" table="BUDGET_PLAN" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus5;aStatus0" reportlist="rBudgetPlanCardDoc">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;ConfigTables"/>
 						</MENU>
 					</GRID>
 					<GRID id="gBudgetPlanSpc" name="Годовое задание-спецификация" table="BUDGET_PLAN_SPC">
@@ -2364,41 +2600,81 @@
 						</MENU>
 					</GRID>
 				</TAB>
+				<TAB name="Файлы">
+					<GRID id="gBudgetPlanFile" name="Файлы" table="BUDGET_PLAN_FILE" actionlist="addFilelinks;loadFilelinks">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
 				<TAB name="Статус">
-					<GRID id="gBudgetPlanStatus" name="История смены статуса" table="BUDGET_PLAN_STATUS"/>
+					<GRID id="gBudgetPlanStatus" name="История смены статуса" table="BUDGET_PLAN_STATUS">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
 		<FORM id="fBudgetIncom" name="Фактические поступления">
 			<TABS>
-				<TAB name="Факт.поступления">
-					<GRID id="gBudgetIncom" name="Фактические поступления" table="BUDGET_INCOM" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus0">
+				<TAB name="Фактические поступления">
+					<GRID id="gBudgetIncom" name="Фактические поступления" table="BUDGET_INCOM" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus5;aStatus0" reportlist="rBudgetIncomCardDoc">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;ConfigTables"/>
+						</MENU>
+					</GRID>
+					<GRID id="gBudgetIncomSpc" name="Фактическое поступление-спецификация" table="BUDGET_INCOM_SPC">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
-					<GRID id="gBudgetIncomSpc" name="Фактические поступления-спецификация" table="BUDGET_INCOM_SPC">
+					<TABS>
+						<TAB name="Итого по БКД">
+							<GRID id="gBudgetIncomSum" name="Фактические поступления-итоги по КБД за год" table="BUDGET_INCOM_SUM_BKD">
+								<MENU>
+									<MI actionlist="MoveFolder;ConfigTables"/>
+								</MENU>
+							</GRID>
+						</TAB>
+						<TAB name="Итого по ФКУ">
+							<GRID id="gBudgetIncomSum" name="Фактические поступления-итоги по ФКУ за год" table="BUDGET_INCOM_SUM_FKU">
+								<MENU>
+									<MI actionlist="MoveFolder;ConfigTables"/>
+								</MENU>
+							</GRID>
+						</TAB>
+						<TAB name="Всего по БКД и ФКУ">
+							<GRID id="gBudgetIncomTotal" name="Фактические поступления-Всего по БКД и ФКУ" table="BUDGET_INCOM_TOTAL_BKD_FKU">
+								<MENU>
+									<MI actionlist="MoveFolder;ConfigTables"/>
+								</MENU>
+							</GRID>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Файлы">
+					<GRID id="gBudgetIncomFile" name="Файлы" table="BUDGET_INCOM_FILE" actionlist="addFilelinks;loadFilelinks">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
-						</MENU>
-					</GRID>
-					<GRID id="gBudgetIncomSum" name="Фактические поступления-итоги по КБД" table="BUDGET_INCOM_SUM">
-						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Статус">
-					<GRID id="gBudgetIncomStatus" name="История смены статуса" table="BUDGET_INCOM_STATUS"/>
+					<GRID id="gBudgetIncomStatus" name="История смены статуса" table="BUDGET_INCOM_STATUS">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="fForecastIncom" name="Прогноз поступления доходов">
+		<FORM id="fForecastIncom" name="Прогнозы поступления доходов">
 			<TABS>
-				<TAB name="Прогноз поступ.доходов">
-					<GRID id="gForecastIncom" name="Прогноз поступления доходов" table="FORECAST_INCOM" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus0">
+				<TAB name="Прогнозы поступления доходов">
+					<GRID id="gForecastIncom" name="Прогнозы поступления доходов" table="FORECAST_INCOM" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus5;aStatus0" reportlist="rForecastCardDoc">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;ConfigTables"/>
 						</MENU>
 					</GRID>
 					<GRID id="gForecastIncomSpc" name="Прогноз поступления доходов-спецификация" table="FORECAST_INCOM_SPC">
@@ -2407,22 +2683,33 @@
 						</MENU>
 					</GRID>
 				</TAB>
+				<TAB name="Файлы">
+					<GRID id="gForecastIncomFile" name="Файлы" table="FORECAST_INCOM_FILE" actionlist="addFilelinks;loadFilelinks">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
 				<TAB name="Статус">
-					<GRID id="gForecastIncomStatus" name="История смены статуса" table="FORECAST_INCOM_STATUS"/>
+					<GRID id="gForecastIncomStatus" name="История смены статуса" table="FORECAST_INCOM_STATUS">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="fBudgetIncomIransfer" name="Справка перечислений поступления в бюджеты">
+		<FORM id="fBudgetIncomIransfer" name="Справки перечислений поступления в бюджеты">
 			<TABS>
 				<TAB name="Заголовок">
-					<GRID id="gBudgetIncomIransfer" name="Справка перечислений поступления в бюджеты" table="BUDGET_INCOM_TRANSFER">
+					<GRID id="gBudgetIncomIransfer" name="Справки перечислений поступления в бюджеты" table="BUDGET_INCOM_TRANSFER">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Файлы">
-					<GRID id="gBudgetIncomIransferFile" name="Файлы" table="BUDGET_INCOM_TRANSFER_FILE" actionlist="uploadFilelinks;loadFilelinks"/>
+					<GRID id="gBudgetIncomIransferFile" name="Файлы" table="BUDGET_INCOM_TRANSFER_FILE" actionlist="addFilelinks;loadFilelinks"/>
 				</TAB>
 				<TAB name="Суммы">
 					<GRID id="gBudgetIncomIransferWr" name="Перечис.поступл.в бюджеты-Общая информация" table="BUDGET_INCOM_TRANSFER_WR">
@@ -2458,7 +2745,7 @@
 					</GRID>
 				</TAB>
 				<TAB name="Файлы">
-					<GRID id="gStatePersAccFile" name="Файлы" table="STATE_PERS_ACC_ADM_FILE" actionlist="uploadFilelinks;loadFilelinks"/>
+					<GRID id="gStatePersAccFile" name="Файлы" table="STATE_PERS_ACC_ADM_FILE" actionlist="addFilelinks;loadFilelinks"/>
 				</TAB>
 				<TAB name="Суммы">
 					<GRID id="gStatePersAccAdmTo" name="1.Итоги по Л.С.--Почтовая информация о получателе файла" table="STATE_PERS_ACC_ADM_TO">
@@ -2493,6 +2780,23 @@
 					</GRID>
 				</TAB>
 			</TABS>
+		</FORM>
+		<FORM id="fTask" name="Задачи">
+			<GRID id="gTask" name="Задачи" table="TASK" actionlist="aStatusTask1;aStatusTask2;aStatusTask3;aStatusTask4;aStatusTask5;aStatusTask0">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="gTaskSpc" name="Состав задачи" table="TASK_STATUS">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="gTaskFile" name="Файлы задачи" table="TASK_FILE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
 	</FORMS>
 </SYSTEM>
