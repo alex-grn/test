@@ -226,7 +226,7 @@
 		<A id="WIDTH" name="Ширина" caption="Ширина" type="int" nulls="false"/>
 		<A id="VISIBLE" name="Видимость" caption="Видимость" type="boolean" nulls="false"/>
 		<A id="CONCEPTID" name="Формат" caption="Формат" type="ref" table="CONCEPTS" ret="NAME" form="Concepts" nulls="false"/>
-		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="false"/>
+		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="NAME" nulls="false"/>
 		<A id="CONVID" name="Алгоритм" caption="Алгоритм" type="ref" table="CONV" ret="NAME" form="Conv" nulls="false"/>
 		<A id="CONVACTID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVUNIT_ret" form="ConvActs" nulls="false"/>
 		<A id="CONVACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVACTID" table="CONVACTPARAMS" ret="CODE" nulls="false"/>
@@ -395,14 +395,11 @@
 			<TI unique="TABLENAME,CODE,FILENAME"/>
 		</TABLE>
 		<TABLE id="OPTIONS" name="Параметры системы">
-			<A id="NAME" name="Наименование" caption="Наименование" type="list" nulls="true" local="true">
-				<AI id="ImportTime" name="Периодичность загрузки из внешних баз, в часах"/>
-				<AI id="PageSize" name="Размер страницы"/>
-			</A>
-			<A id="STRVALUE" name="Значение(строка)" caption="Значение(строка)" type="string" nulls="true"/>
-			<A id="NUMVALUE" name="Значение(число)" caption="Значение(число)" type="number" len="17.5" nulls="true"/>
-			<A id="DATVALUE" name="Значение(дата)" caption="Значение(дата)" type="date" nulls="true"/>
-			<A id="NOTE" name="Примечание" caption="Примечание" type="text" nulls="true"/>
+			<GA id="Dictionary"/>
+			<A id="STRVALUE"/>
+			<A id="NUMVALUE"/>
+			<A id="DATVALUE"/>
+			<TI unique="CODE"/>
 		</TABLE>
 		<TABLE id="DOCTYPES" name="Типы документов">
 			<GA id="Dictionary"/>
@@ -459,7 +456,7 @@
 			<A id="CONCEPTID" parentkey="cascade"/>
 			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID and hid is null and @HID is null or hid=@HID and cid=0"/>
 			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
-			<A id="NAME" labelwidth="150"/>
+			<A id="NAME" labelwidth="150" nulls="false"/>
 			<GA>
 				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@CONCEPTID, @HID, @ATTR)" local="true">
 					<AI id="xlssheet" name="Страница Excel"/>
@@ -560,7 +557,7 @@
 				</GA>
 			</GA>
 			<GA name="Источник значения" caption="Источник значения">
-				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
+				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="NAME" nulls="true" local="true"/>
 				<A id="VALUE_PARAM" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVID" table="CONVACTPARAMS" ret="CODEVIRT" form="ConvActs" nulls="true" local="true"/>
 				<A id="VALUE_DEFAULT" name="Значение по умолчанию" caption="Значение по умолчанию" labelwidth="150" type="string" nulls="true" local="true"/>
 			</GA>
