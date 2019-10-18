@@ -288,7 +288,7 @@
 		<A id="WIDTH" name="Ширина" caption="Ширина" type="int" nulls="false"/>
 		<A id="VISIBLE" name="Видимость" caption="Видимость" type="boolean" nulls="false"/>
 		<A id="CONCEPTID" name="Формат" caption="Формат" type="ref" table="CONCEPTS" ret="NAME" form="Concepts" nulls="false"/>
-		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="false"/>
+		<A id="CONCEPTITEMID" name="Элемент формата" caption="Элемент формата" labelwidth="120" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="NAME" nulls="false"/>
 		<A id="CONVID" name="Алгоритм" caption="Алгоритм" type="ref" table="CONV" ret="NAME" form="Conv" nulls="false"/>
 		<A id="CONVACTID" name="Действие" caption="Действие" labelwidth="150" type="ref" pid="CONVID" table="CONVACTS" ret="CONVUNIT_ret" form="ConvActs" nulls="false"/>
 		<A id="CONVACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVACTID" table="CONVACTPARAMS" ret="CODE" nulls="false"/>
@@ -520,7 +520,7 @@
 				<A id="PASSWORD_EXPIRE" name="Срок действия пароля" caption="Срок действия пароля" labelwidth="250" width="40" type="date" nulls="true"/>
 				<A id="DISABLED" labelwidth="50" width="60"/>
 			</GA>
-			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="250"/>
+			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="200"/>
 			<TI id="USERS_LOGIN_UK" unique="LOGIN"/>
 			<TI id="USERS_NAME_UK" unique="NAME"/>
 		</TABLE>
@@ -632,7 +632,7 @@
 			<A id="CONCEPTID" parentkey="cascade"/>
 			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID and hid is null and @HID is null or hid=@HID and cid=0"/>
 			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
-			<A id="NAME" labelwidth="150"/>
+			<A id="NAME" labelwidth="150" nulls="false"/>
 			<GA>
 				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@CONCEPTID, @HID, @ATTR)" local="true">
 					<AI id="xlssheet" name="Страница Excel"/>
@@ -733,7 +733,7 @@
 				</GA>
 			</GA>
 			<GA name="Источник значения" caption="Источник значения">
-				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="CODE" nulls="true" local="true"/>
+				<A id="VALUE_CONCEPT" name="Элемент формата" caption="Элемент формата" labelwidth="150" type="ref" pid="CONCEPTID" table="CONCEPTITEMS" ret="NAME" nulls="true" local="true"/>
 				<A id="VALUE_PARAM" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" pid="CONVID" table="CONVACTPARAMS" ret="CODEVIRT" form="ConvActs" nulls="true" local="true"/>
 				<A id="VALUE_DEFAULT" name="Значение по умолчанию" caption="Значение по умолчанию" labelwidth="150" type="string" nulls="true" local="true"/>
 			</GA>
@@ -796,11 +796,11 @@
 			<GA name="Состояние" caption="Состояние">
 				<GA>
 					<A id="STATUS" name="Статус" caption="Статус" labelwidth="80" width="50" type="list" nulls="false" readonly="true" value="0" local="true">
-					<AI id="0" name="Не выполнялся"/>
-					<AI id="1" name="Пропущен"/>
-					<AI id="2" name="Выполнен"/>
-					<AI id="3" name="Ошибка"/>
-				</A>
+						<AI id="0" name="Не выполнялся"/>
+						<AI id="1" name="Пропущен"/>
+						<AI id="2" name="Выполнен"/>
+						<AI id="3" name="Ошибка"/>
+					</A>
 					<A id="RECCOUNT" name="Количество записей" caption="Количество записей" labelwidth="130" width="50" type="int" nulls="false" value="0"/>
 				</GA>
 				<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="80" type="text" nulls="true" readonly="true" local="true"/>
@@ -1805,21 +1805,21 @@
 			<TI id="iBUDGET_INCOM_SPC_SUM_I1_FED_MES" index="SUM_I1_FED_MES"/>
 		</TABLE>
 		<COMMENT id="BIS_BKD" name="Итого помесячно по БКД"/>
-		<TABLE id="BUDGET_INCOM_SUM_BKD" name="Фактические поступления-итоги по БКД за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and spc.bkd_id = s.bkd_id            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and spc.bkd_id =s.bkd_id           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.bkd_id = spc_bkd.bkd_id        and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )        and bkd.status = '4'          group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate,         f.bkd_id      order by  f.docdate,         f.bkd_id">
+		<TABLE id="BUDGET_INCOM_SUM_BKD" name="Фактические поступления-итоги по БКД за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and spc.bkd_id = s.bkd_id            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and spc.bkd_id =s.bkd_id           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.bkd_id = spc_bkd.bkd_id        and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )                group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate,         f.bkd_id      order by  f.docdate,         f.bkd_id">
 			<A id="DOCDATE" name="Дата" caption="Дата"/>
 			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
 			<A id="SUM_IN" name="Поступило" caption="Поступило" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			<A id="SUM_TRANSF" name="Перечислено" caption="Перечислено" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 		</TABLE>
 		<COMMENT id="BIS_FKU" name="Итого помесячно по ФКУ"/>
-		<TABLE id="BUDGET_INCOM_SUM_FKU" name="Фактические поступления-итоги по ФКУ за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.agent_id = bkd.agent_id          and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )        and bkd.status = '4'       group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate      order by  f.docdate">
+		<TABLE id="BUDGET_INCOM_SUM_FKU" name="Фактические поступления-итоги по ФКУ за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.agent_id = bkd.agent_id          and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )             group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate      order by  f.docdate">
 			<A id="DOCDATE" name="Дата" caption="Дата"/>
 			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
 			<A id="SUM_IN" name="Поступило" caption="Поступило" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			<A id="SUM_TRANSF" name="Перечислено" caption="Перечислено" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 		</TABLE>
 		<COMMENT id="TOTAL_BKD_FKU" name="Всего по БКД и ФКУ p_resipt_profit_total_bkd_fku "/>
-		<TABLE id="BUDGET_INCOM_TOTAL_BKD_FKU" name="Фактические поступления-Всего по БКД и ФКУ" virtual="true" query="select distinct spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          r.val3,          r.val4,          r.val5,          r.val6,          r.val7,          r.val8,          r.val9,          r.val10,          r.val11,          r.val12,          r.val13                    from(          SELECT  doc.docdate,            doc.agent_id,           spc.bkd_id,           spc.budget_incom_id           FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd,         p_resipt_profit_total_bkd_fku(bkd.docdate,bkd.agent_id,spc_bkd.bkd_id) r          where  bkd.id = spc_bkd.budget_incom_id          and f.agent_id = bkd.agent_id           and f.bkd_id = spc_bkd.bkd_id          and bkd.status = '4'      ">
+		<TABLE id="BUDGET_INCOM_TOTAL_BKD_FKU" name="Фактические поступления-Всего по БКД и ФКУ" virtual="true" query="select distinct spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          r.val3,          r.val4,          r.val5,          r.val6,          r.val7,          r.val8,          r.val9,          r.val10,          r.val11,          r.val12,          r.val13                    from(          SELECT  doc.docdate,            doc.agent_id,           spc.bkd_id,           spc.budget_incom_id           FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd,         p_resipt_profit_total_bkd_fku(bkd.docdate,bkd.agent_id,spc_bkd.bkd_id) r          where  bkd.id = spc_bkd.budget_incom_id          and f.agent_id = bkd.agent_id           and f.bkd_id = spc_bkd.bkd_id               ">
 			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
 			<A id="val3" name="Сумма план  (прошлый год)" caption="Сумма план  (прошлый год)" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="val4" name="Сумма план 12 мес.(от текушей даты)" caption="Сумма план 12 мес.(от текушей даты)" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
@@ -2125,10 +2125,6 @@
 			<FORM>
 				<A id="BFILE" nulls="false"/>
 			</FORM>
-		</ACTION>
-		<ACTION id="LoadFileOptions" name="Загрузить параметры" type="script" actionlist="LoadAndConvertFile">
-			<P id="convname" value="test_excel"/>
-			<P id="errorone" value="false"/>
 		</ACTION>
 		<ACTION id="aStatus0" name="Аннулировать" type="procedure" procedure="p_action_status_doc">
 			<FORM>
