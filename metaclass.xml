@@ -34,7 +34,7 @@
 				<MI name="Уровни доступа" formlist="LevAccess"/>
 			</MENU>
 			<MENU name="Справка">
-				<MI name="Содержание" actionlist="Help"/>
+				<MI name="Руководство Администратора" actionlist="HelpAdmin"/>
 			</MENU>
 		</MENU>
 		<MENU id="UDF" name="Управление доходным бюджетом">
@@ -159,6 +159,7 @@
 		<A id="PROPNODE" name="Свойство" caption="Свойство" type="list" nulls="false">
 			<AI id="id" name="Идентификатор"/>
 			<AI id="name" name="Наименование"/>
+			<AI id="menu" name="Меню"/>
 			<AI id="caption" name="Заголовок"/>
 			<AI id="labelwidth" name="Ширина подписи (в пикселях)"/>
 			<AI id="width" name="Ширина виджета внутри группы (в процентах)"/>
@@ -520,7 +521,7 @@
 				<A id="PASSWORD_EXPIRE" name="Срок действия пароля" caption="Срок действия пароля" labelwidth="250" width="40" type="date" nulls="true"/>
 				<A id="DISABLED" labelwidth="50" width="60"/>
 			</GA>
-			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="200"/>
+			<A id="LEVACCESSID" caption="Уровень доступа по умолчанию" labelwidth="250"/>
 			<TI id="USERS_LOGIN_UK" unique="LOGIN"/>
 			<TI id="USERS_NAME_UK" unique="NAME"/>
 		</TABLE>
@@ -1285,6 +1286,7 @@
 		<TABLE id="BUDGET_INCOM_TRANSFER_FILE" name="Файлы Справки перечислений поступлений в бюджеты">
 			<A id="BUDGET_INCOM_TRANSFER_ID" parentkey="cascade"/>
 			<GA id="FileInformation"/>
+			<TI id="iBUDGET_INCOM_TRANSFER_FILE_IND" index="BUDGET_INCOM_TRANSFER_ID"/>
 		</TABLE>
 		<TABLE id="BUDGET_INCOM_TRANSFER" name="Справка перечислений поступлений в бюджеты">
 			<TABS>
@@ -1521,6 +1523,7 @@
 		<TABLE id="STATE_PERS_ACC_ADM_FILE" name="Файлы Итогов по Л.С.адм.доходов бюджета">
 			<A id="STATE_PERS_ACC_ADM_ID" parentkey="cascade"/>
 			<GA id="FileInformation"/>
+			<TI id="iSTATE_PERS_ACC_ADM_FILE_IND" index="STATE_PERS_ACC_ADM_ID"/>
 		</TABLE>
 		<TABLE id="STATE_PERS_ACC_ADM" name="Итоги по Л.С.адм.доходов бюджета">
 			<TABS>
@@ -1805,14 +1808,14 @@
 			<TI id="iBUDGET_INCOM_SPC_SUM_I1_FED_MES" index="SUM_I1_FED_MES"/>
 		</TABLE>
 		<COMMENT id="BIS_BKD" name="Итого помесячно по БКД"/>
-		<TABLE id="BUDGET_INCOM_SUM_BKD" name="Фактические поступления-итоги по БКД за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and spc.bkd_id = s.bkd_id            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and spc.bkd_id =s.bkd_id           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.bkd_id = spc_bkd.bkd_id        and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )                group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate,         f.bkd_id      order by  f.docdate,         f.bkd_id">
+		<TABLE id="BUDGET_INCOM_SUM_BKD" name="Фактические поступления-итоги по БКД за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and spc.bkd_id = s.bkd_id            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and spc.bkd_id =s.bkd_id           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.bkd_id = spc_bkd.bkd_id        and bkd.status = '4'         and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )                group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate,         f.bkd_id      order by  f.docdate,         f.bkd_id">
 			<A id="DOCDATE" name="Дата" caption="Дата"/>
 			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
 			<A id="SUM_IN" name="Поступило" caption="Поступило" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 			<A id="SUM_TRANSF" name="Перечислено" caption="Перечислено" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
 		</TABLE>
 		<COMMENT id="BIS_FKU" name="Итого помесячно по ФКУ"/>
-		<TABLE id="BUDGET_INCOM_SUM_FKU" name="Фактические поступления-итоги по ФКУ за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.agent_id = bkd.agent_id          and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )             group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate      order by  f.docdate">
+		<TABLE id="BUDGET_INCOM_SUM_FKU" name="Фактические поступления-итоги по ФКУ за год" virtual="true" query="select  spc_bkd.ID,          spc_bkd.HID,           spc_bkd.LID,           spc_bkd.CID,           spc_bkd.UID,           spc_bkd.TIM,          spc_bkd.ID as budget_incom_spc_id,          f.docdate ,          sum (f.sum_transf) sum_transf,          sum (f.sum_in) sum_in        from(          SELECT  doc.docdate,           (          SELECT             sum(s.SUM_I1_FED_MES)             FROM  budget_incom d,              budget_incom_spc s            WHERE  s.budget_incom_id=d.id            and doc.docdate >= d.docdate            and d.agent_id = doc.agent_id            and d.status = '4'          ) as sum_transf,          (          SELECT            sum(s.SUM_I3_FED_MES)            FROM  budget_incom d,             budget_incom_spc s           WHERE  s.budget_incom_id=d.id           and doc.docdate >= d.docdate           and d.agent_id=doc.agent_id              and d.status = '4'                    ) as sum_in,           doc.agent_id,           spc.bkd_id,           spc.budget_incom_id         FROM  budget_incom doc,            budget_incom_spc spc              WHERE spc.budget_incom_id=doc.id         ) f ,         budget_incom bkd,         budget_incom_spc spc_bkd        where  bkd.id=spc_bkd.budget_incom_id        and f.agent_id = bkd.agent_id        and bkd.status = '4'               and EXTRACT(YEAR from f.docdate) = EXTRACT(YEAR from bkd.docdate )       group by spc_bkd.ID,         spc_bkd.HID,          spc_bkd.LID,          spc_bkd.CID,          spc_bkd.UID,          spc_bkd.TIM,         f.docdate      order by  f.docdate">
 			<A id="DOCDATE" name="Дата" caption="Дата"/>
 			<A id="BUDGET_INCOM_SPC_ID" parentkey="cascade"/>
 			<A id="SUM_IN" name="Поступило" caption="Поступило" labelwidth="100" width="100" type="number" len="17.2" nulls="true" value="0" local="true"/>
@@ -2060,7 +2063,7 @@
 		</ACTION>
 		<ACTION id="PasswordChangeExit" name="Изменить пароль" type="script" actionlist="PasswordChange;Exit"/>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
-		<ACTION id="Help" name="Справка" type="link" href="help" visible="window"/>
+		<ACTION id="HelpAdmin" name="Руководство Администратора" type="link" href="help/admin" visible="window"/>
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
@@ -2125,6 +2128,10 @@
 			<FORM>
 				<A id="BFILE" nulls="false"/>
 			</FORM>
+		</ACTION>
+		<ACTION id="LoadFileOptions" name="Загрузить параметры" type="script" actionlist="LoadAndConvertFile">
+			<P id="convname" value="test_excel"/>
+			<P id="errorone" value="false"/>
 		</ACTION>
 		<ACTION id="aStatus0" name="Аннулировать" type="procedure" procedure="p_action_status_doc">
 			<FORM>
@@ -2207,6 +2214,11 @@
 		<ACTION id="aFillSignatory" name="Заполнить подписантов" type="procedure" procedure="p_action_fill_signatory">
 			<FORM>
 				<A id="SIGNATORY_ID" parentkey="cascade"/>
+				<A id="NOTE" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="aImportDoc" name="Загрузить документ" type="procedure" procedure="p_action_import_doc">
+			<FORM>
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
@@ -2587,7 +2599,7 @@
 				<TAB name="Годовые задания по сбору доходов">
 					<GRID id="gBudgetPlan" name="Годовые задания по сбору доходов" table="BUDGET_PLAN" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus5;aStatus0" reportlist="rBudgetPlanCardDoc">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;aImportDoc;ConfigTables"/>
 						</MENU>
 					</GRID>
 					<GRID id="gBudgetPlanSpc" name="Годовое задание-спецификация" table="BUDGET_PLAN_SPC">
@@ -2617,7 +2629,7 @@
 				<TAB name="Фактические поступления">
 					<GRID id="gBudgetIncom" name="Фактические поступления" table="BUDGET_INCOM" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus5;aStatus0" reportlist="rBudgetIncomCardDoc">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;aImportDoc;ConfigTables"/>
 						</MENU>
 					</GRID>
 					<GRID id="gBudgetIncomSpc" name="Фактическое поступление-спецификация" table="BUDGET_INCOM_SPC">
@@ -2670,7 +2682,7 @@
 				<TAB name="Прогнозы поступления доходов">
 					<GRID id="gForecastIncom" name="Прогнозы поступления доходов" table="FORECAST_INCOM" actionlist="aStatus1;aStatus2;aStatus3;aStatus4;aStatus5;aStatus0" reportlist="rForecastCardDoc">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aFillSignatory;aImportDoc;ConfigTables"/>
 						</MENU>
 					</GRID>
 					<GRID id="gForecastIncomSpc" name="Прогноз поступления доходов-спецификация" table="FORECAST_INCOM_SPC">
@@ -2700,7 +2712,7 @@
 				<TAB name="Заголовок">
 					<GRID id="gBudgetIncomIransfer" name="Справки перечислений поступления в бюджеты" table="BUDGET_INCOM_TRANSFER">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aImportDoc;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -2736,7 +2748,7 @@
 				<TAB name="Заголовок">
 					<GRID id="gStatePersAccAdm" name="Итоги по Л.С.адм.доходов бюджета" table="STATE_PERS_ACC_ADM">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;aImportDoc;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
