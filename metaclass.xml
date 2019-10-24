@@ -34,7 +34,7 @@
 				<MI name="Уровни доступа" formlist="LevAccess"/>
 			</MENU>
 			<MENU name="Справка">
-				<MI name="Руководство Администратора" actionlist="HelpAdmin"/>
+				<MI name="Содержание" actionlist="Help"/>
 			</MENU>
 		</MENU>
 		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ"/>
@@ -53,16 +53,13 @@
 				<MI name="Назначения" formlist="Purpose"/>
 				<MI name="Начисления" formlist="Charges"/>
 				<MI name="Выплаты" formlist="Payments"/>
-			</MENU>
-			<MENU name="Выплатные документы">
-				<MI name="Выплатные документы" actionlist="ConfigLoad"/>
+				<MI name="Выплатные дела" formlist="Сasespaym"/>
 			</MENU>
 			<MENU name="Нормативно-справочная информация">
 				<MI name="Документы, удостоверяющие личность" formlist="Sprviewdoc"/>
 				<MI name="Награды и удостоверения к ним" formlist="Sprawardscert"/>
 				<MI name="Документы о заболеваниях" formlist="Sprtypedoc"/>
 				<MI name="Финансовые документы" formlist="Sprtypedoc"/>
-				<MI name="Документы на право пользования льготой" formlist="Sprtypedoc"/>
 				<MI name="Прочие документы" formlist="Sprtypedoc"/>
 				<MI name="Тип заявления" formlist="Sprtypedoc"/>
 				<MI name="Тип обращения" formlist="Sprtypeappeal"/>
@@ -86,6 +83,9 @@
 				<MI name="Документы, подтверждающие право на установление льготы" formlist="Sprpravodoc"/>
 				<MI name="Cправочник финансовых величин" formlist="Sprfinancguide"/>
 				<MI name="Величина прожиточного минимума" formlist="Sprsubmin"/>
+				<MI name="Документы, необходимые для назначения МСП" formlist="SprDOCreqmsp"/>
+				<MI name="Документы, необходимые для назначения МСП по ЛК на основании НПД" formlist="SprDOCreqmsp_lk_npd"/>
+				<MI name="Документы, необходимые для присвоения ЛК" formlist="SprDOCneclk"/>
 			</MENU>
 			<MENU name="Подсистема администрирования">
 				<MI name="Настройка конфигурации Системы" formlist="Configsystem"/>
@@ -309,28 +309,35 @@
 		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ"/>
 		<A id="PERSONID" name="Сведения о гражданине" labelwidth="210" type="ref" table="PERSON" ret="NAMEVIRT" form="Person"/>
 		<A id="FAMILYSTRUCTUREID" name="Состав семьи" type="ref" table="PERSON" ret="NAMEVIRT"/>
+		<A id="CATEGORIESID" name="Категории" type="ref" table="FAMILYSTRUCTURE" ret="CATEGOR"/>
+		<A id="FAMILYINCOMEID" name="Доход семьи" type="ref" table="FAMILYSTRUCTURE" ret="AVERGROUP"/>
+		<A id="FAMILYHISTORYID" name="История семьи" type="ref" table="FAMILYSTRUCTURE" ret="DATAST"/>
+		<A id="HOUSINGID" name="Жилищные условия" type="ref" table="PERSON" ret="MNEMOCODE"/>
 		<A id="HEALTHID" name="Сведения о здоровье" type="ref" table="PERSON" ret="NAMEVIRT"/>
 		<A id="EMPLOYMENTID" name="Профессиональная деятельность" type="ref" table="PERSON" ret="NAMEVIRT"/>
 		<A id="DATAWORKID" name="Данные о работе" type="ref" pid="EMPLOYMENTID" table="DATAWORK" ret="ORGANIZATION" nulls="false"/>
 		<A id="DATASTUDYID" name="Данные об учебе" type="ref" pid="EMPLOYMENTID" table="DATASTUDY" ret="ORGANIZATION" nulls="false"/>
 		<A id="DATASERVICEID" name="Данные о службе" type="ref" pid="EMPLOYMENTID" table="DATASERVICE" ret="STATUS" nulls="false"/>
-		<A id="PROFITADDID" name="Доходы гражданина" type="ref" table="PERSON" ret="NAMEVIRT"/>
-		<A id="CALCULATFAMILYINCOMEID" name="Расчёт среднедушевого дохода семьи" type="ref" table="PROFITADD" ret="NAMEVIRT"/>
 		<A id="ADDRESSFIOID" name="Адрес Физического лица" type="ref" pid="PERSONID" table="PERSON" ret="NAMEVIRT"/>
+		<A id="REVENUEID" name="Доходы" type="ref" table="PERSON" ret="STATUS"/>
+		<A id="PENSIONPROVISIONID" name="Пенсионное обеспечение" type="ref" table="PERSON" ret="TYPEPAYMENT"/>
 		<COMMENT name="ЛИЧНОЕ ДЕЛО"/>
 		<A id="PRIVATEAFFAIRID" name="Личные дела" labelwidth="210" type="ref" table="PRIVATEAFFAIR" ret="OUID" form="Privateaffair"/>
-		<A id="ADDRESSGPID" name="Адрес общий" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
+		<A id="ADDRESSGPID" name="Адрес общий" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" ret="MNEMOCODE"/>
 		<A id="ADDRESSRESIDENTID" name="Адрес проживания" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
 		<A id="ADDRESSREGID" name="Адрес регистрации" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
 		<COMMENT name="ЗАЯВЛЕНИЕ ЛД"/>
 		<A id="PETITIONLDID" name="Заявление ЛД" type="ref" pid="PRIVATEAFFAIRID" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
-		<A id="DOCMARRIAGEID" name="Свидетельство о заключении брака" type="ref" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
-		<A id="DOCINCOMEID" name="Справка о доходах" type="ref" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
-		<A id="DOCHOUSEBOOKID" name="Выписка из домовой книги" type="ref" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
 		<A id="INSMSPID" name="Назначенные МСЗ" type="ref" table="PRIVATEAFFAIR" nulls="true"/>
-		<A id="PAYMASTERLDID" name="Выплатные реквизиты" type="ref" table="PRIVATEAFFAIR" ret="NAMEVIRT"/>
 		<COMMENT name="ЗАЯВЛЕНИЯ И ОБРАЩЕНИЯ"/>
 		<A id="PETITIONID" name="Заявления и обращения" type="ref" table="PETITION" ret="DOCUMENTMBER" form="Petition"/>
+		<A id="DOCOBRGRID" name="Документы предоставленные к обращению" type="ref" table="PETITION" ret="DOCSTATUS"/>
+		<A id="DOCMARRIAGEID" name="Свидетельство о заключении брака" type="ref" table="DOCOBRGR" ret="DOCUMENTSNUMBER"/>
+		<A id="DOCINCOMEID" name="Справка о доходах" type="ref" table="DOCOBRGR" ret="DOCUMENTSNUMBER"/>
+		<A id="DOCHOUSEBOOKID" name="Выписка из домовой книги" type="ref" table="DOCOBRGR" ret="DOCUMENTSNUMBER"/>
+		<A id="PROFITADDID" name="Доходы гражданина" type="ref" table="PETITION" ret="NAMEVIRT"/>
+		<A id="CALCULATFAMILYINCOMEID" name="Расчёт среднедушевого дохода семьи" type="ref" table="PROFITADD" ret="MNEMOCODE"/>
+		<A id="PAYMASTERLDID" name="Выплатные реквизиты" type="ref" table="PETITION" ret="NAMEVIRT"/>
 		<COMMENT name="НАЗНАЧЕНИЯ И ВЫПЛАТЫ"/>
 		<A id="PURPOSEID" name="Назначения" type="ref" table="PURPOSE" ret="NAMESPR" form="Purpose"/>
 		<A id="CHARGESID" name="Начисления" type="ref" table="CHARGES" ret="NAMESPR" form="Scharges"/>
@@ -359,13 +366,16 @@
 		<A id="DOCREQASSIGMSZID" name="Документы, необходимые для назначения МСЗ" type="ref" table="DECSUPPORTSYSTEM" ret="CODE"/>
 		<A id="DOCREQASSIGMSZLKNPDID" name="Документы, необходимые для назначения МСЗ по ЛК на основании НПД" type="ref" table="DECSUPPORTSYSTEM" ret="CODE"/>
 		<A id="DOCREQASSIGLKID" name="Документы, необходимые для назначения МСЗ" type="ref" table="DECSUPPORTSYSTEM" ret="CODE"/>
-		<A id="ENACTMENTID" name="Законы и иные нормативные правовые акты" type="ref" table="ENACTMENT" ret="CODE" form="Enactment"/>
+		<A id="ENACTMENTID" name="Законы и иные нормативные правовые акты" type="ref" table="ENACTMENT" ret="NUMBER" form="Enactment"/>
 		<A id="ENACTMENTARTICLEID" name="Часть/Статья" type="ref" pid="ENACTMENTID" table="ENACTMENTARTICLE" ret="NAME"/>
 		<A id="SPRSOCMSPID" name="Меры социальной защиты (поддержки)" type="ref" table="SPRSOCMSP" ret="NAME" form="Sprsocmsp"/>
 		<A id="SPRMSPLEGACTID" name="Законы и иные НПА, которые относятся к МСЗ" type="ref" pid="SPRSOCMSPID" table="SPRMSPLEGACT" ret="CODE"/>
 		<A id="SPRPRAVODOCID" name="Документы, подтверждающие право на установление льготы" type="ref" table="SPRPRAVODOC" ret="NAMESPR" form="Sprpravodoc"/>
 		<A id="SPRFINANCGUIDEID" name="Справочник финансовых величин" type="ref" table="SPRFINANCGUIDE" ret="NAMESPR" form="Sprfinancguide"/>
 		<A id="SPRSUBMINID" name="Величина прожиточного минимума" type="ref" table="SPRSUBMIN" ret="NAMESPR" form="Sprsubmin"/>
+		<A id="SPRDOCREQMSPID" name="Документы, необходимые для назначения МСП" type="ref" table="SPRDOCREQMSP" ret="NAMESPR" form="SprDOCreqmsp"/>
+		<A id="SPRDOCREQMSP_LK_NPDID" name="Документы, необходимые для назначения МСП по ЛК на основании НПД" type="ref" table="SPRDOCREQMSP_LK_NPD" ret="NAMESPR" form="SprDOCreqmsp_lk_npd"/>
+		<A id="SPRDOCNECLKID" name="Документы, необходимые для присвоения ЛК" type="ref" table="SPRDOCNECLK" ret="NAMESPR" form="SprDOCneclk"/>
 		<COMMENT name="НАСТРОЙКА СТРУКТУРЫ ОРГАНИЗАЦИИ"/>
 		<A id="STRUCTUREID" name="Структура" type="ref" table="STRUCTURE" ret="CODE" form="Structure"/>
 		<A id="STAFFMEMBERID" name="Сотрудники" type="ref" table="STAFFMEMBER" ret="PERSNUMBER" form="Staffmember"/>
@@ -609,7 +619,7 @@
 			<A id="CONCEPTID" parentkey="cascade"/>
 			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID and hid is null and @HID is null or hid=@HID and cid=0"/>
 			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
-			<A id="NAME" labelwidth="150"/>
+			<A id="NAME" labelwidth="150" nulls="false"/>
 			<GA>
 				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@CONCEPTID, @HID, @ATTR)" local="true">
 					<AI id="xlssheet" name="Страница Excel"/>
@@ -658,6 +668,7 @@
 			<GA caption="Примечание">
 				<A id="NOTE" name="Примечание" caption="" labelwidth="80"/>
 			</GA>
+			<TI id="CONVACTS_UK" unique="CONVID,POSITION"/>
 		</TABLE>
 		<TABLE id="CONVACTPARAMS" name="Конвертер: Алгоритмы загрузки (параметры)">
 			<A id="CONVACTID" parentkey="cascade"/>
@@ -722,6 +733,7 @@
 			<GA caption="Ключи поиска записи">
 				<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="boolean" array="true" local="true"/>
 			</GA>
+			<TI id="CONVACTPARAMS_UK" unique="CONVACTID,POSITION"/>
 		</TABLE>
 		<TABLE id="CONVLOADS" name="Конвертер: Процессы загрузки">
 			<GA name="Процесс" caption="Процесс">
@@ -782,6 +794,7 @@
 				</GA>
 				<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="80" type="text" nulls="true" readonly="true" local="true"/>
 			</GA>
+			<TI id="CONVLOADACTS_UK" unique="CONVLOADID,POSITION,CONCEPTITEMID,CONVACTID"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
 			<A id="CONVLOADACTID" parentkey="cascade"/>
@@ -797,6 +810,7 @@
 				<A id="STRVALUE" name="Результат" caption="Результат" labelwidth="90" type="text"/>
 			</GA>
 			<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="string" visible="grid" virtual="true" formula="select replace(replace(replace(replace(p.value_key::text,'{',''),'}',''),'f','Нет'),'t','Да') from convactparams p where p.id = @CONVACTPARAMID" local="true"/>
+			<TI id="CONVLOADACTPARAMS_UK" unique="CONVLOADACTID,CONVACTPARAMID"/>
 		</TABLE>
 		<TABLE id="CONVKEYS" name="Конвертер: Внешние ключи">
 			<GA name="Внутренний ключ" caption="Внутренний ключ">
@@ -810,15 +824,15 @@
 			<TI id="CONVKEYS_IN_UK" unique="TABLENAMEIN,KEYIN"/>
 			<TI id="CONVKEYS_OUT_UK" unique="TABLENAMEOUT,KEYOUT"/>
 		</TABLE>
-		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ - ГЛАВНАЯ ТАБЛИЦА Сведения о гражданине"/>
+		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ - ГЛАВНАЯ ТАБЛИЦА СВЕДЕНИЯ О ГРАЖДАНИНЕ"/>
 		<TABLE id="PERSON" name="Сведения о гражданине" caption="Сведения о гражданине">
 			<TABS>
 				<TAB name="Общие сведения">
 					<GA name="Общие сведения" caption="Общие сведения">
 						<A id="SURNAME" name="Фамилия" caption="Фамилия" width="50" type="string" nulls="false" local="true"/>
-						<A id="INN" name="ИНН" caption="ИНН" width="50" type="number" nulls="true" local="true"/>
-						<A id="FIRSTNAME" name="Имя" caption="Имя" width="50" type="string" nulls="false" local="true"/>
 						<A id="SNILS" name="СНИЛС" caption="СНИЛС" width="50" type="number" nulls="true" local="true"/>
+						<A id="FIRSTNAME" name="Имя" caption="Имя" width="50" type="string" nulls="false" local="true"/>
+						<A id="INN" name="ИНН" caption="ИНН" width="50" type="number" nulls="true" local="true"/>
 						<A id="MIDDLENAME" name="Отчество" caption="Отчество" width="50" type="string" nulls="true" local="true"/>
 						<A id="PLACEOFBIRTH" name="Место рождения" caption="Место рождения" width="50" type="string" nulls="true" local="true"/>
 						<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" width="30" type="date" nulls="true" local="true"/>
@@ -840,10 +854,10 @@
 						<A id="GIVEDOCUMENTORG" name="Организация, выдавшая документ" caption="Организация, выдавшая документ" labelwidth="210" type="text" nulls="true" local="true"/>
 					</GA>
 					<GA name="Согласие на обработку персональных данных" caption="Согласие на обработку персональных данных">
-						<A id="YES" name="Да" caption="Да" width="25" type="boolean" nulls="true" local="true"/>
-						<A id="NO" name="Нет" caption="Нет" width="25" type="boolean" nulls="true" local="true"/>
-						<A id="NOTDEF" name="Не определено" caption="Не определено" width="25" type="boolean" nulls="true" local="true"/>
-						<A id="NOTRANSFER" name="Без передачи третьим лицам" caption="Без передачи третьим лицам" width="25" type="boolean" nulls="true" local="true"/>
+						<A id="YES" name="Да" caption="Да" width="24" type="boolean" nulls="true" local="true"/>
+						<A id="NO" name="Нет" caption="Нет" width="24" type="boolean" nulls="true" local="true"/>
+						<A id="NOTDEF" name="Не определено" caption="Не определено" width="24" type="boolean" nulls="true" local="true"/>
+						<A id="NOTRANSFER" name="Без передачи третьим лицам" caption="Без передачи третьим лицам" width="28" type="boolean" nulls="true" local="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Контактный телефон">
@@ -864,19 +878,63 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА АДРЕС ФИЗИЧЕСКОГО ЛИЦА ОБЩИЙ"/>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА АДРЕС ОБЩИЙ У PERSON"/>
 		<COMMENT name="ADDRESSMATCH АДРЕС ПРОЖИВАНИЯ СОВПАДАЕТ С АДРЕСОМ РЕГИСТРАЦИИ BOOLEAN УКАЖИТЕ АДРЕС ПРОЖИВАНИЯ ПОЛНОСТЬЮ"/>
 		<TABLE id="ADDRESSFIO" name="Адрес общий" caption="Адрес">
 			<TABS>
 				<TAB name="Адрес общий">
 					<A id="PERSONID" parentkey="cascade"/>
-					<A id="ADDRES_PR" name="Адрес проживания" caption="Адрес проживания" labelwidth="210" type="text" nulls="true" local="true"/>
 					<A id="ADDRES_REG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="ADDRES_COINCIDES" name="Адрес регистрации совпадает с адресом проживания" caption="Адрес регистрации совпадает с адресом проживания" labelwidth="210" type="boolean" nulls="true" local="true"/>
+					<A id="ADDRES_PR" name="Адрес проживания" caption="Адрес проживания" labelwidth="210" type="text" nulls="true" local="true"/>
 					<A id="ADDRES_VR_REG" name="Адрес временной регистрации" caption="Адрес временной регистрации" labelwidth="210" type="boolean" nulls="true" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА СОСТАВ СЕМЬИ: ФИО, (дата рождения),адрес, степень родства"/>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ЖИЛИЩНЫЕ УСЛОВИЯ У PERSON"/>
+		<TABLE id="HOUSING" name="Жилищные условия" caption="Жилищные условия">
+			<TABS>
+				<TAB name="Жилищные условия квартиры">
+					<GA name="Жилищные условия квартиры" caption="Жилищные условия квартиры">
+						<A id="TOTALAREA" name="Общая площадь" caption="Общая площадь" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="TOTALLIVING" name="Общая жилая площадь" caption="Общая жилая площадь" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="HEATEDAREA" name="Отапливаемая площадь" caption="Отапливаемая площадь" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="NUMRESORDER" name="Количество проживающих по ордеру" caption="Количество проживающих по ордеру" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="TOTALADDAREA" name="Общая дополнительная площадь" caption="Общая дополнительная площадь" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="ROOMS" name="Количество комнат" caption="Количество комнат" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="NUMBERBALCONIES" name="Количество балконов" caption="Количество балконов" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="FLOORNUMBER" name="Номер этажа" caption="Номер этажа" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="ADDRESSAPARTMENT" name="Адрес квартиры" caption="Адрес квартиры" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="SIGNPRIVATIZ" name="Признак приватизации" caption="Признак приватизации" labelwidth="210" type="boolean" nulls="true" local="true"/>
+						<A id="TYPEHOUSING" name="Тип жилья (для ОГБД)" caption="Тип жилья (для ОГБД)" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DOCUMENT" name="Документ" caption="Документ" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="PERIODHEATING" name="Период оплаты отопления" caption="Период оплаты отопления" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="PROPERTYOWNERSHIP" name="Вид владения имуществом" caption="Вид владения имуществом" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DATASTART" name="Дата регистрации сведений" caption="Дата регистрации сведений" width="50" type="date" nulls="true" formula="now()" local="true"/>
+						<A id="DATEEND" name="Дата окончания действия" caption="Дата окончания действия" width="50" type="date" nulls="true" local="true"/>
+						<A id="MNEMOCODE" name="Мнемокод" caption="Мнемокод" labelwidth="500" type="number" nulls="true" visible="false" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Информация о доме">
+					<GA name="Информация о доме">
+						<A id="DATASTDOM" name="Дата регистрации сведений" caption="Дата регистрации сведений" width="50" type="date" nulls="true" formula="now()" local="true"/>
+						<A id="DATEENDDOM" name="Дата окончания действия" caption="Дата окончания действия" width="50" type="date" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Владение недвижимостью">
+					<GA name="Владение недвижимостью">
+						<A id="REALTY" name="Недвижимость" caption="Недвижимость" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="PROPERTYOWNER" name="Владелец недвижимости" caption="Владелец недвижимости" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="TYPEPROPERT" name="Тип собственности" caption="Тип собственности" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="SHAREOWNER" name="Доля в собственности" caption="Доля в собственности" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="RESPONTENANT" name="Ответственный квартиросъемщик" caption="Ответственный квартиросъемщик" labelwidth="210" type="boolean" nulls="true" local="true"/>
+						<A id="DATASTDOM" name="Дата обеспечения жильем" caption="Дата обеспечения жильем" labelwidth="450" type="date" nulls="true" local="true"/>
+						<A id="DATEENDDOM" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="450" type="date" nulls="true" local="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА СОСТАВ СЕМЬИ У PERSON"/>
 		<TABLE id="FAMILYSTRUCTURE" name="Состав семьи" caption="Состав семьи">
 			<TABS>
 				<TAB name="Состав семьи">
@@ -884,17 +942,59 @@
 					<A id="APPLICANT" name="Заявитель" caption="Заявитель" labelwidth="250" type="string" nulls="true" local="true"/>
 					<A id="PRIVATEAFFAIRID" name="Член семьи" caption="Член семьи" labelwidth="250"/>
 					<A id="SPRRELTYPEID" name="Родственное отношение/к заявителю" caption="Родственное отношение/к заявителю" labelwidth="250" nulls="true"/>
+					<A id="HEADGROUP" name="Глава группы" caption="Глава группы" labelwidth="250" type="boolean" nulls="true" local="true"/>
 					<A id="DEPENDENCY" name="Иждивение" caption="Иждивение" labelwidth="250" type="boolean" nulls="true" local="true"/>
+					<A id="DATAST" name="Дата начала действия" caption="Дата начала действия" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATEEND" name="Дата окончания действия" caption="Дата окончания действия" width="50" type="date" nulls="true" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА СВЕДЕНИЯ О ЗДОРОВЬЕ ЛД"/>
+		<COMMENT name="В СОСТАВЕ СЕМЬИ - КАТЕГОРИИ"/>
+		<TABLE id="CATEGORIES" name="Категории" caption="Категории">
+			<TABS>
+				<TAB name="Категории">
+					<A id="CATEGOR" name="Категория" caption="Категория" labelwidth="210" type="list" nulls="false" local="true">
+						<AI id="0" name="малообеспеченная семья"/>
+						<AI id="1" name="семья, имеющая на попечении детей-сирот и детей, оставшихся без попечения родителей"/>
+						<AI id="2" name="неполная семья"/>
+						<AI id="3" name="семья, имеющая в своем составе детей с ограниченными умственными и физическими возможностями здоровья"/>
+						<AI id="4" name="семья, оказавшиеся в экстремальных ситуациях (пострадавшие от стихийных бедствий или приравненных к ним событий, семьи беженцев и переселенцев"/>
+						<AI id="5" name="многодетная семья"/>
+						<AI id="6" name="семья, имеющая в своем составе нетрудоспособных или длительно болеющих членов, инвалидов, в том числе детей-инвалидов"/>
+						<AI id="7" name="семья с неблагоприятным психологическим микроклиматом"/>
+						<AI id="8" name="семья, где дети и женщины подвергаются любым формам физического, сексуального или психологического насилия"/>
+						<AI id="9" name="семья, где родители или законные представители несовершеннолетних не исполняют своих обязанностей по их воспитанию, обучению и (или) содержанию и (или) отрицательно влияют на их поведение либо жестоко обращаются с ним"/>
+					</A>
+					<A id="SUPPORTDOC" name="Подтверждающий документ" caption="Подтверждающий документ" labelwidth="210" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="В СОСТАВЕ СЕМЬИ - ДОХОДЫ"/>
+		<TABLE id="FAMILYINCOME" name="Доход семьи" caption="Доход семьи">
+			<TABS>
+				<TAB name="Доход семьи">
+					<A id="AVERGROUP" name="Среднемесячный совокупный доход семьи" caption="Среднемесячный совокупный доход семьи" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="PERCAPMONTH" name="Среднедушевой доход в месяц" caption="Среднедушевой доход в месяц" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="FAMILYLIVING" name="Прожиточный минимум семьи" caption="Прожиточный семьи" labelwidth="250" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="В СОСТАВЕ СЕМЬИ - ИСТОРИЯ СЕМЬИ"/>
+		<TABLE id="FAMILYHISTORY" name="История семьи" caption="История семьи">
+			<TABS>
+				<TAB name="История семьи">
+					<A id="DATAST" name="Дата начала действия" caption="Дата начала действия" width="50" type="date" nulls="true" local="true"/>
+					<A id="DATEEND" name="Дата окончания действия" caption="Дата окончания действия" width="50" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА СВЕДЕНИЯ О ЗДОРОВЬЕ У PERSON"/>
 		<TABLE id="HEALTH" name="Сведения о здоровье" caption="Сведения о здоровье">
 			<TABS>
 				<TAB name="Сведения о здоровье">
 					<A id="PERSONID" parentkey="cascade"/>
 					<GA name="Справка (МСЭ или ВТЭК)" caption="Справка (МСЭ или ВТЭК)">
-						<A id="DOCUMENTMBER" name="Номер документа" caption="Номер документа" type="string" nulls="true" local="true"/>
+						<A id="DOCUMENTMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
 						<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" width="50" type="date" nulls="true" local="true"/>
 						<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" width="50" type="date" nulls="true" local="true"/>
 					</GA>
@@ -913,7 +1013,7 @@
 						<A id="LIFELONGDISAB" name="Пожизненая инвалидность" caption="Пожизненая инвалидность" labelwidth="450" type="boolean" nulls="true" local="true"/>
 					</GA>
 					<GA name="Заболевания и степень утраты" caption="Заболевания и степень утраты">
-						<A id="DEGRLOSS" name="Степень утраты " caption="Степень утраты " labelwidth="450" type="string" nulls="true" local="true"/>
+						<A id="DEGRLOSS" name="Степень утраты " caption="Степень утраты " labelwidth="250" type="string" nulls="true" local="true"/>
 						<A id="MAJORDIS" name="Основное заболевание" caption="Основное заболевание" labelwidth="250" type="string" nulls="true" local="true"/>
 						<A id="CONCOMDIS" name="Сопутствующее заболевание" caption="Сопутствующее заболевание" labelwidth="250" type="string" nulls="true" local="true"/>
 						<A id="COMPLICATION" name="Осложнение" caption="Осложнение" labelwidth="250" type="string" nulls="true" local="true"/>
@@ -924,7 +1024,7 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ПРОФЕССИОНАЛЬНАЯ ДЕЯТЕЛЬНОСТЬ"/>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ПРОФЕССИОНАЛЬНАЯ ДЕЯТЕЛЬНОСТЬ У PERSON"/>
 		<TABLE id="EMPLOYMENT" name="Профессиональная деятельность" caption="Профессиональная деятельность">
 			<TABS>
 				<TAB name="Профессиональная деятельность">
@@ -942,15 +1042,16 @@
 				<TAB name="Данные о работе">
 					<A id="EMPLOYMENTID" parentkey="cascade"/>
 					<A id="ORGANIZATION" name="Организация" caption="Организация" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="DATEEMPL" name="Дата трудоустройства" caption="Данные о работе" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATEEMPL" name="Дата трудоустройства" caption="Дата трудоустройства" labelwidth="210" type="date" nulls="true" local="true"/>
 					<A id="DATEDISMIS" name="Дата увольнения" caption="Дата увольнения" labelwidth="210" type="date" nulls="true" local="true"/>
 					<A id="REASONDISMIS" name="Причина увольнения" caption="Причина увольнения" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="SPECIALTY" name="Специальность" caption="Специальность" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="TYPEORGANIZ" name="Тип организации" caption="Тип организации" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="SERVICECATEGORY" name="Категория услуг" caption="Категория услуг" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="SERVICEGROUP" name="Группа обслуживания" caption="Группа обслуживания" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="POSITION" name="Должность" caption="Должность" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="SUPPORTINGDOC" name="Подтверждающий документ" caption="Подтверждающий документ" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="TYPEEXPER" name="Тип опыта" caption="Тип опыта" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="TYPEEXPER" name="Тип стажа" caption="Тип стажа" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="WORKEXPYEARS" name="Опыт работы, лет" caption="Опыт работы, лет" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="WORKEXPERMONTHS" name="Стаж работы, мес" caption="Стаж работы, мес" labelwidth="210" type="string" nulls="true" local="true"/>
 					<A id="WORKEXPERDAYS" name="Опыт работы, дней" caption="Опыт работы, дней" labelwidth="210" type="string" nulls="true" local="true"/>
@@ -993,7 +1094,7 @@
 						<A id="DOCUMENTSERIES" name="Серия" caption="Серия" labelwidth="210" type="string" nulls="true" local="true"/>
 						<A id="DOCUMENTSNUMBER" name="Номер" caption="Номер" labelwidth="210" type="string" nulls="true" local="true"/>
 						<A id="DATEISSUE" name="Дата выдачи документа" caption="Дата выдачи документа" labelwidth="210" type="date" nulls="true" local="true"/>
-						<A id="DATEEND" name="Дата окончания действия" caption="Дата выдачи документа" labelwidth="210" type="date" nulls="true" local="true"/>
+						<A id="DATEEND" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
 						<A id="STATUS" name="Статус" caption="Статус" labelwidth="210" type="string" nulls="true" local="true"/>
 					</GA>
 				</TAB>
@@ -1010,35 +1111,43 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА РАСЧЕТ ДОХОДОВ"/>
-		<TABLE id="PROFITADD" name="Расчет доходов" caption="Расчет доходов">
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ДОХОДЫ У PERSON"/>
+		<TABLE id="REVENUE" name="Доходы" caption="Доходы">
 			<TABS>
 				<TAB name="Доходы гражданина">
-					<A id="PERSONID" parentkey="cascade"/>
-					<A id="PERSONID" caption="Гражданин" labelwidth="120" nulls="true"/>
+					<A id="SPRTYPEINCOMEID" name="Вид дохода" caption="Вид дохода" labelwidth="300"/>
+					<A id="TOTALINCOME" name="Размер совокупного дохода за период, рубли" caption="Размер совокупного дохода за период, рубли" labelwidth="300" type="string" nulls="true" local="true"/>
+					<A id="DATESTART" name="Дата начала периода" caption="Дата начала периода" labelwidth="450" type="date" nulls="true" local="true"/>
+					<A id="DATEEND" name="Дата окончания периода" caption="Дата окончания периода" labelwidth="450" type="date" nulls="true" local="true"/>
+					<A id="AVERINCOME" name="Средний доход в месяц, рублей" caption="Средний доход в месяц, рублей" labelwidth="350" type="string" nulls="true" local="true"/>
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="350" type="string" nulls="true" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="РАСЧЁТ СРЕДНЕДУШЕВОГО ДОХОДА СЕМЬИ"/>
-		<TABLE id="CALCULATFAMILYINCOME" name="Расчёт среднедушевого дохода семьи" caption="Расчёт среднедушевого дохода семьи">
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ПЕНСИОННОЕ ОБЕСПЕЧЕНИЕ У PERSON"/>
+		<TABLE id="PENSIONPROVISION" name="Пенсионное обеспечение" caption="Пенсионное обеспечение">
 			<TABS>
-				<TAB name="Расчёт среднедушевого дохода семьи">
-					<A id="PROFITADDID" parentkey="cascade"/>
-					<A id="FAMILYMINIMUM" name="Сумма прожиточного минимума на семью" caption="Сумма прожиточного минимума на семью" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="PERSONMINIMUM" name="Прожиточный минимум на человека" caption="Прожиточный минимум на человека" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="PERIODCALC" name="Период для расчета" caption="Период для расчета" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="CALCULATIONMETHOD" name="Метод расчета" caption="Метод расчета" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="TOTALFAMILYINCOME" name="Совокупный доход семьи" caption="Совокупный доход семьи" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="CAPITAINCOME" name="Среднедушевой доход" caption="Среднедушевой доход" labelwidth="250" type="string" nulls="true" local="true"/>
-				</TAB>
-			</TABS>
-		</TABLE>
-		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ВЫПЛАТНЫЕ РЕКВИЗИТЫ"/>
-		<TABLE id="PAYMASTERLD" name="Выплатные реквизиты" caption="Выплатные реквизиты">
-			<TABS>
-				<TAB name="Выплатные реквизиты">
-					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
-					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="true" local="true"/>
+				<TAB name="Пенсионное обеспечение">
+					<A id="TYPEPAYMENT" name="Вид выплаты" caption="Вид выплаты" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="BASISPENSION" name="Основание пенсии" caption="Основание пенсии" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ASSIGNMENTCOND" name="Условие назначения" caption="Условие назначения" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATEAPPOINT" name="Дата назначения" caption="Дата назначения" labelwidth="450" type="date" nulls="true" local="true"/>
+					<A id="BODIESPENSION" name="Орган, осуществляющий пенсионное обеспечение" caption="Орган, осуществляющий пенсионное обеспечение" labelwidth="300" type="string" nulls="true" local="true"/>
+					<A id="STATUSCASE" name="Статус дела" caption="Статус дела" labelwidth="210" type="string" nulls="true" local="true"/>
+					<GA name="Текущий размер пенсии" caption="Текущий размер пенсии">
+						<A id="STARTDATEPROV" name="Дата начала предоставления" caption="Дата начала предоставления" labelwidth="450" type="date" nulls="true" local="true"/>
+						<A id="ENDDATEPROV" name="Дата окончания предоставления" caption="Дата окончания предоставления" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="AMOUNTPENSION" name="Размер пенсии, рублей" caption="Размер пенсии, рублей" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="FIXEDBASESIZE" name="Фиксированный базовый размер, рублей" caption="Фиксированный базовый размер, рублей" labelwidth="300" type="string" nulls="true" local="true"/>
+						<A id="INSPARTPENS" name="Страховая часть пенсии, рублей" caption="Страховая часть пенсии, рублей" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="AMOUNTVALORIZ" name="в том числе сумма валоризации" caption="в том числе сумма валоризации" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="FUNDEDPENS" name="Накопительная часть пенсии, рублей" caption="Накопительная часть пенсии, рублей" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
+					<GA name="Сведения о стаже" caption="Сведения о стаже">
+						<A id="EXPERYEARS" name="Стаж, лет" caption="Стаж, лет" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="EXPERMONTHS" name="Стаж, месяцев" caption="Стаж, месяцев" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="EXPERDAYS" name="Стаж, дней" caption="Стаж, дней" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
 				</TAB>
 			</TABS>
 		</TABLE>
@@ -1059,6 +1168,10 @@
 					</GA>
 					<A id="REGTDATE" name="Дата регистрации" caption="Дата регистрации" width="50" type="date" nulls="true" formula="now()" local="true"/>
 					<A id="DATEDEATH" name="Дата закрытия" caption="Дата закрытия" width="50" type="date" nulls="true" local="true"/>
+					<GA name="Статус Личного дела" caption="Статус Личного дела">
+						<A id="ACTIVE" name="Действующее" caption="Действующее" width="50" type="boolean" nulls="true" local="true"/>
+						<A id="REMREGIST" name="Снято с учета" caption="Снято с учета" width="50" type="boolean" nulls="true" local="true"/>
+					</GA>
 				</TAB>
 				<TAB name="Фото">
 					<GA name="Фото">
@@ -1072,8 +1185,11 @@
 		<TABLE id="ADDRESSGP" name="Адрес общий" caption="Адрес">
 			<TABS>
 				<TAB name="Адрес общий">
-					<A id="ADDRES_PR" name="Адрес проживания" caption="Адрес проживания" labelwidth="210" type="text" nulls="true" local="true"/>
 					<A id="ADDRES_REG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="ADDRES_COINCIDES" name="Адрес регистрации совпадает с адресом проживания" caption="Адрес регистрации совпадает с адресом проживания" labelwidth="210" type="boolean" nulls="true" local="true"/>
+					<A id="ADDRES_PR" name="Адрес проживания" caption="Адрес проживания" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="ADDRES_VR_REG" name="Адрес временной регистрации" caption="Адрес временной регистрации" labelwidth="210" type="boolean" nulls="true" local="true"/>
+					<A id="MNEMOCODE" name="Мнемокод" caption="Мнемокод" labelwidth="500" type="number" nulls="true" visible="false" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
@@ -1139,10 +1255,13 @@
 						<A id="IDLDMSP" name="Лицо, на основании данных ЛД которого запрашивается МСЗ" caption="Лицо, на основании данных ЛД которого запрашивается МСЗ" labelwidth="350" type="string" nulls="true" local="true"/>
 					</GA>
 					<GA name="Общие характеристики" caption="Общие характеристики">
-						<A id="DOCSTATUS" name="Статус заявления" caption="Статус заявления" labelwidth="210" type="string" nulls="true" local="true"/>
-						<A id="TESTRESULT" name="Результат проверки" caption="Результат проверки" labelwidth="210" type="string" nulls="true" local="true"/>
-						<A id="DATEDEC" name="Дата подготовки решения" caption="Дата подготовки решения" labelwidth="210" type="date" nulls="true" local="true"/>
 						<A id="NUMBERSOLUTIONS" name="Номер решения" caption="Номер решения" labelwidth="210" type="string" nulls="true" local="true"/>
+						<A id="DATEDEC" name="Дата подготовки решения" caption="Дата подготовки решения" labelwidth="210" type="date" nulls="true" local="true"/>
+						<A id="TESTRESULT" name="Результат проверки" caption="Результат проверки" labelwidth="210" type="string" nulls="true" local="true"/>
+					</GA>
+					<GA name="Статус заявления" caption="Статус заявления">
+						<A id="FORMED" name="Сформировано" caption="Сформировано" width="50" type="boolean" nulls="true" local="true"/>
+						<A id="REFUSAL" name="Отказ" caption="Отказ" width="50" type="boolean" nulls="true" local="true"/>
 					</GA>
 				</TAB>
 			</TABS>
@@ -1165,6 +1284,7 @@
 			<TABS>
 				<TAB name="Заявления и обращения">
 					<GA name="Общие сведения" caption="Общие сведения">
+						<A id="MNEMOCODE" name="Мнемокод" caption="Мнемокод" labelwidth="500" type="number" nulls="true" local="true"/>
 						<A id="DOCUMENTMBER" name="Номер документа" caption="Номер документа" labelwidth="500" type="string" nulls="true" local="true"/>
 						<A id="REGDATE" name="Дата и время регистрации" caption="Дата и время регистрации" labelwidth="500" type="date" nulls="true" formula="now()" local="true"/>
 						<A id="TYPEOBR" name="Тип обращения" caption="Тип обращения" labelwidth="500" type="list" nulls="true" local="true">
@@ -1172,7 +1292,7 @@
 							<AI id="1" name="Личное обращение"/>
 							<AI id="2" name="Заявление"/>
 						</A>
-						<A id="APPLICANT" name="Заявитель" caption="Заявитель" labelwidth="350" type="string" nulls="true" local="true"/>
+						<A id="APPLICANT" name="Заявитель" caption="Заявитель" labelwidth="210" type="string" nulls="true" local="true"/>
 					</GA>
 					<GA name="Характеристики" caption="Характеристики">
 						<A id="SPRTYPEDOC" name="Тип заявления" caption="Тип заявления" labelwidth="350" type="list" nulls="true" local="true">
@@ -1186,15 +1306,102 @@
 						<A id="DOCBASEFINISHDATE" name="Получатель" caption="Получатель" labelwidth="350" type="string" nulls="true" local="true"/>
 						<A id="IDLDMSP" name="Лицо, на основании данных ЛД которого запрашивается МСЗ" caption="Лицо, на основании данных ЛД которого запрашивается МСЗ" labelwidth="350" type="string" nulls="true" local="true"/>
 					</GA>
-					<A id="DOCSTATUS" name="Статус заявления" caption="Статус заявления" labelwidth="360" type="list" nulls="true" local="true">
-						<AI id="0" name="нет значения"/>
-						<AI id="1" name="Сформировано"/>
-					</A>
+					<GA name="Статус заявления" caption="Статус заявления">
+						<A id="FORMED" name="Сформировано" caption="Сформировано" width="50" type="boolean" nulls="true" local="true"/>
+						<A id="REFUSAL" name="Отказ в назначении" caption="Отказ в назначении" width="50" type="boolean" nulls="true" local="true"/>
+					</GA>
 					<A id="TESTRESULT" name="Результат проверки" caption="Результат проверки" labelwidth="360" type="list" nulls="true" local="true">
 						<AI id="0" name="нет значения"/>
 						<AI id="1" name="Сформировано"/>
 						<AI id="2" name="Отказ в назначении"/>
 					</A>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ДОКУМЕНТЫ ПРЕДОСТАВЛЕННЫЕ К ОБРАЩЕНИЮ"/>
+		<TABLE id="DOCOBRGR" name="Документы предоставленные к обращению" caption="Документы предоставленные к обращению">
+			<TABS>
+				<TAB name="Документы предоставленные к обращению">
+					<A id="SPRPRAVODOCID" caption="Вид документа" labelwidth="210" nulls="true"/>
+					<A id="DOCBASESTARTDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DOCBASEFINISHDATE" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DOCORGANIZAT" name="Организация, выдавшая документ" caption="Организация, выдавшая документ" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="210" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="СВИДЕТЕЛЬСТВО О ЗАКЛЮЧЕНИИ БРАКА"/>
+		<TABLE id="DOCMARRIAGE" name="Свидетельство о заключении брака" caption="Свидетельство о заключении брака">
+			<TABS>
+				<TAB name="Свидетельство о заключении брака">
+					<A id="DOCGRID" parentkey="cascade"/>
+					<A id="SPOUSE" name="Супруг/Супруга" caption="Супруг/Супруга" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCUMENTSERIES" name="Серия документа" caption="Серия документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCCZDATE" name="Дата составления записи" caption="Дата составления записи" labelwidth="210" type="date" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="СПРАВКА О ДОХОДАХ"/>
+		<TABLE id="DOCINCOME" name="Справка о доходах" caption="Справка о доходах">
+			<TABS>
+				<TAB name="Справка о доходах">
+					<A id="DOCGRID" parentkey="cascade"/>
+					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="SPRTYPEINCOMEID" name="Вид дохода" caption="Вид дохода" labelwidth="250"/>
+					<A id="TOTALCOMPINCOME" name="Размер совокупного дохода за период, руб" caption="Размер совокупного дохода за период, руб" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="DATEPERIODSTART" name="Дата начала периода" caption="Дата начала периода" labelwidth="500" type="date" nulls="true" local="true"/>
+					<A id="DATEPERIODSTOP" name="Дата окончания периода" caption="Дата окончания периода" labelwidth="500" type="date" nulls="true" local="true"/>
+					<A id="AVGEMONINCOME" name="Средний доход в месяц, руб" caption="Средний доход в месяц, руб" labelwidth="250" type="string" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ВЫПИСКА ИЗ ДОМОВОЙ КНИГИ"/>
+		<TABLE id="DOCHOUSEBOOK" name="Выписка из домовой книги" caption="Выписка из домовой книги">
+			<TABS>
+				<TAB name="Выписка из домовой книги">
+					<A id="DOCGRID" parentkey="cascade"/>
+					<A id="DOCUMENTSERIES" name="Серия документа" caption="Серия документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ADDRESSREG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DOCCZDATE" name="Перечень лиц" caption="Перечень лиц" labelwidth="210" type="text" nulls="true" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА РАСЧЕТ ДОХОДОВ"/>
+		<TABLE id="PROFITADD" name="Расчет доходов" caption="Расчет доходов">
+			<TABS>
+				<TAB name="Доходы гражданина">
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" width="50" type="string" nulls="false" local="true"/>
+					<A id="MIDDLENAME" name="Отчество" caption="Отчество" width="50" type="string" nulls="true" local="true"/>
+					<A id="FIRSTNAME" name="Имя" caption="Имя" width="60" type="string" nulls="false" local="true"/>
+					<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" width="40" type="date" nulls="true" local="true"/>
+					<A id="ADDRES_REG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="FAMILYSTRUCTUREID" name="Состав семьи"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="РАСЧЁТ СРЕДНЕДУШЕВОГО ДОХОДА СЕМЬИ"/>
+		<TABLE id="CALCULATFAMILYINCOME" name="Расчёт среднедушевого дохода семьи" caption="Расчёт среднедушевого дохода семьи">
+			<TABS>
+				<TAB name="Расчёт среднедушевого дохода семьи">
+					<A id="PROFITADDID" parentkey="cascade"/>
+					<A id="FAMILYMINIMUM" name="Сумма прожиточного минимума на семью" caption="Сумма прожиточного минимума на семью" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="PERSONMINIMUM" name="Прожиточный минимум на человека" caption="Прожиточный минимум на человека" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="PERIODCALC" name="Период для расчета" caption="Период для расчета" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="CALCULATIONMETHOD" name="Метод расчета" caption="Метод расчета" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="TOTALFAMILYINCOME" name="Совокупный доход семьи" caption="Совокупный доход семьи" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="CAPITAINCOME" name="Среднедушевой доход" caption="Среднедушевой доход" labelwidth="250" type="string" nulls="true" local="true"/>
+					<A id="MNEMOCODE" name="Мнемокод" caption="Мнемокод" labelwidth="500" type="number" nulls="true" visible="false" local="true"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ВЫПЛАТНЫЕ РЕКВИЗИТЫ"/>
+		<TABLE id="PAYMASTERLD" name="Выплатные реквизиты" caption="Выплатные реквизиты">
+			<TABS>
+				<TAB name="Выплатные реквизиты">
+					<A id="PRIVATEAFFAIRID" parentkey="cascade"/>
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="210" type="string" nulls="true" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
@@ -1213,44 +1420,6 @@
 						<A id="TYPELK" name="Тип льготной категории" caption="Тип льготной категории" labelwidth="210" type="string" nulls="true" local="true"/>
 						<A id="SZDEST" name="Размер назначения" caption="Размер назначения" labelwidth="210" type="string" nulls="true" local="true"/>
 					</GA>
-				</TAB>
-			</TABS>
-		</TABLE>
-		<COMMENT name="Документы предоставленные к заявлению"/>
-		<TABLE id="DOCMARRIAGE" name="Свидетельство о заключении брака" caption="Свидетельство о заключении брака">
-			<TABS>
-				<TAB name="Свидетельство о заключении брака">
-					<A id="DOCGRID" parentkey="cascade"/>
-					<A id="SPOUSE" name="Супруг/Супруга" caption="Супруг/Супруга" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="DOCUMENTSERIES" name="Серия документа" caption="Серия документа" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="DOCCZDATE" name="Дата составления записи" caption="Дата составления записи" labelwidth="210" type="date" nulls="true" local="true"/>
-				</TAB>
-			</TABS>
-		</TABLE>
-		<COMMENT name="Документы предоставленные к заявлению"/>
-		<TABLE id="DOCINCOME" name="Справка о доходах" caption="Справка о доходах">
-			<TABS>
-				<TAB name="Справка о доходах">
-					<A id="DOCGRID" parentkey="cascade"/>
-					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="SPRTYPEINCOMEID" name="Вид дохода" caption="Вид дохода" labelwidth="250"/>
-					<A id="TOTALCOMPINCOME" name="Размер совокупного дохода за период, руб" caption="Размер совокупного дохода за период, руб" labelwidth="250" type="string" nulls="true" local="true"/>
-					<A id="DATEPERIODSTART" name="Дата начала периода" caption="Дата начала периода" labelwidth="500" type="date" nulls="true" local="true"/>
-					<A id="DATEPERIODSTOP" name="Дата окончания периода" caption="Дата окончания периода" labelwidth="500" type="date" nulls="true" local="true"/>
-					<A id="AVGEMONINCOME" name="Средний доход в месяц, руб" caption="Средний доход в месяц, руб" labelwidth="250" type="string" nulls="true" local="true"/>
-				</TAB>
-			</TABS>
-		</TABLE>
-		<COMMENT name="Документы предоставленные к заявлению"/>
-		<TABLE id="DOCHOUSEBOOK" name="Выписка из домовой книги" caption="Выписка из домовой книги">
-			<TABS>
-				<TAB name="Выписка из домовой книги">
-					<A id="DOCGRID" parentkey="cascade"/>
-					<A id="DOCUMENTSERIES" name="Серия документа" caption="Серия документа" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="DOCUMENTSNUMBER" name="Номер документа" caption="Номер документа" labelwidth="210" type="string" nulls="true" local="true"/>
-					<A id="ADDRESSREG" name="Адрес регистрации" caption="Адрес регистрации" labelwidth="210" type="text" nulls="true" local="true"/>
-					<A id="DOCCZDATE" name="Перечень лиц" caption="Перечень лиц" labelwidth="210" type="text" nulls="true" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
@@ -1289,7 +1458,6 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		<COMMENT name="Выплаты table=PAYMENTS"/>
 		<COMMENT name="ГЛАВНАЯ ТАБЛИЦА СПРАВОЧНИК ТИП ЗАЯВЛЕНИЯ"/>
 		<TABLE id="SPRTYPEDOC" name="Тип заявления" caption="Тип заявления">
 			<TABS>
@@ -1309,6 +1477,8 @@
 				<TAB name="Тип заявления">
 					<A id="CODESPR" name="Код" caption="Код" labelwidth="210" type="number" nulls="true" local="true"/>
 					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
 					<TI unique="NAMESPR"/>
 				</TAB>
 			</TABS>
@@ -1551,6 +1721,7 @@
 		<TABLE id="DECSUPPORTSYSTEM" name="Подсистема принятия решений" caption="Подсистема принятия решений">
 			<TABS>
 				<TAB name="Подсистема принятия решений">
+					<A id="MNEMOCODESPR" name="Мнемокод" caption="Мнемокод" labelwidth="500" type="string" nulls="true" local="true"/>
 					<A id="CODESPR" name="Код" caption="Код" labelwidth="500" type="number" nulls="true" local="true"/>
 					<A id="SPRSOCMSPID" name="Наименование МСЗ" caption="Наименование МСЗ" labelwidth="210" nulls="true"/>
 					<A id="SPRRRCATID" name="Льготная категория" caption="Льготная категория" labelwidth="210" nulls="true"/>
@@ -1608,7 +1779,8 @@
 		<COMMENT name="ПОДЧИНЕННАЯ ТАБЛИЦА ЧАСТЬ/СТАТЬИ"/>
 		<TABLE id="ENACTMENTARTICLE" name="Части/Статьи">
 			<A id="ENACTMENTID" parentkey="cascade"/>
-			<A id="CODE" name="Часть/Статья" caption="Часть/Статья" type="string" nulls="true" local="true"/>
+			<A id="CODE" name="Код" caption="Код" labelwidth="500" type="string" nulls="true" local="true"/>
+			<A id="PARTARTICLE" name="Часть/Статья" caption="Часть/Статья" type="string" nulls="true" local="true"/>
 			<A id="NAME" name="Наименование" caption="Наименование" type="text" nulls="false" local="true"/>
 			<A id="NOTE" name="Примечание" caption="Примечание" type="text" nulls="true" local="true"/>
 			<A id="DATESTART" name="Дата начала действия" caption="Дата начала действия" labelwidth="500" type="date" nulls="true" local="true"/>
@@ -1709,6 +1881,42 @@
 						<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" formula="now()" local="true"/>
 						<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
 					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ГЛАВНАЯ ТАБЛИЦА СПРАВОЧНИК ДОКУМЕНТЫ, НЕОБХОДИМЫЕ ДЛЯ НАЗНАЧЕНИЯ МСП"/>
+		<TABLE id="SPRDOCREQMSP" name="Документы, необходимые для назначения МСП" caption="Документы, необходимые для назначения МСП">
+			<TABS>
+				<TAB name="Документы, необходимые для назначения МСП">
+					<A id="CODESPR" name="Код" caption="Код" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<TI unique="NAMESPR"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ГЛАВНАЯ ТАБЛИЦА СПРАВОЧНИК ДОКУМЕНТЫ, НЕОБХОДИМЫЕ ДЛЯ НАЗНАЧЕНИЯ МСП ПО ЛК НА ОСНОВАНИИ НПД"/>
+		<TABLE id="SPRDOCREQMSP_LK_NPD" name="Документы, необходимые для назначения МСП по ЛК на основании НПД" caption="Документы, необходимые для назначения МСП по ЛК на основании НПД">
+			<TABS>
+				<TAB name="Документы, необходимые для назначения МСП по ЛК на основании НПД">
+					<A id="CODESPR" name="Код" caption="Код" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<TI unique="NAMESPR"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<COMMENT name="ГЛАВНАЯ ТАБЛИЦА СПРАВОЧНИК ДОКУМЕНТЫ, НЕОБХОДИМЫЕ ДЛЯ ПРИСВОЕНИЯ ЛК"/>
+		<TABLE id="SPRDOCNECLK" name="Документы, необходимые для присвоения ЛК" caption="Документы, необходимые для присвоения ЛК">
+			<TABS>
+				<TAB name="Документы, необходимые для присвоения ЛК">
+					<A id="CODESPR" name="Код" caption="Код" labelwidth="210" type="number" nulls="true" local="true"/>
+					<A id="NAMESPR" name="Наименование" caption="Наименование" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="DATASPR" name="Дата начала действия" caption="Дата начала действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="DATAENDSPR" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="210" type="date" nulls="true" local="true"/>
+					<TI unique="NAMESPR"/>
 				</TAB>
 			</TABS>
 		</TABLE>
@@ -1858,7 +2066,7 @@
 		</ACTION>
 		<ACTION id="PasswordChangeExit" name="Изменить пароль" type="script" actionlist="PasswordChange;Exit"/>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
-		<ACTION id="HelpAdmin" name="Руководство Администратора" type="link" href="help/admin" visible="window"/>
+		<ACTION id="Help" name="Справка" type="link" href="help" visible="window"/>
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
@@ -2045,7 +2253,7 @@
 		<FORM id="ConvKeys" name="Внешние ключи">
 			<GRID id="ConvKeys" name="Внешние ключи" table="CONVKEYS"/>
 		</FORM>
-		<COMMENT name="ЛИЧНЫЕ ДЕЛА"/>
+		<COMMENT name="СВЕДЕНИЯ О ГРАЖДАНИНЕ"/>
 		<COMMENT name="Сведения о гражданине"/>
 		<FORM id="Person" name="Сведения о гражданине">
 			<GRID id="Person" name="Сведения о гражданине" table="PERSON"/>
@@ -2053,14 +2261,20 @@
 				<TAB name="Адрес">
 					<GRID id="Addressfio" name="Адрес" table="ADDRESSFIO"/>
 				</TAB>
+				<TAB name="Жилищные условия">
+					<GRID id="Housing" name="Жилищные условия" table="HOUSING"/>
+				</TAB>
 				<TAB name="Состав семьи">
 					<GRID id="Familystructure" name="Состав семьи" table="FAMILYSTRUCTURE"/>
-				</TAB>
-				<TAB name="Расчёт доходов">
-					<GRID id="Profitadd" name="Граждане, по которым выполняется расчёт" table="PROFITADD"/>
 					<TABS>
-						<TAB name="Расчёт среднедушевого дохода семьи">
-							<GRID id="Calculatfamilyincome" name="Расчёт среднедушевого дохода семьи" table="CALCULATFAMILYINCOME"/>
+						<TAB name="Категории">
+							<GRID id="Categories" name="Категории" table="CATEGORIES"/>
+						</TAB>
+						<TAB name="Доход семьи">
+							<GRID id="Familyincome" name="Доход семьи" table="FAMILYINCOME"/>
+						</TAB>
+						<TAB name="История семьи">
+							<GRID id="Familyhistory" name="История семьи" table="FAMILYHISTORY"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -2081,11 +2295,15 @@
 						</TAB>
 					</TABS>
 				</TAB>
-				<TAB name="Выплатные реквизиты">
-					<GRID id="Paymasterld" name="Выплатные реквизиты" table="Выплатные реквизиты"/>
+				<TAB name="Доходы">
+					<GRID id="Revenue" name="Доходы" table="REVENUE"/>
+				</TAB>
+				<TAB name="Пенсионное обеспечение">
+					<GRID id="Pensionprovision" name="Пенсионное обеспечение" table="PENSIONPROVISION"/>
 				</TAB>
 			</TABS>
 		</FORM>
+		<COMMENT name="ЛИЧНЫЕ ДЕЛА"/>
 		<FORM id="PrivateAffair" name="Личные дела">
 			<GRID id="PrivateAffair" name="Личные дела" table="PRIVATEAFFAIR"/>
 			<TABS>
@@ -2107,17 +2325,33 @@
 		<FORM id="Petition" name="Заявления и обращения">
 			<GRID id="Petition" name="Заявления и обращения" table="PETITION"/>
 			<TABS>
+				<TAB name="Документы предоставленные к обращению">
+					<GRID id="Docobrgr" name="Документы предоставленные к обращению" table="DOCOBRGR"/>
+					<TABS>
+						<TAB name="Свидетельство о заключении брака">
+							<GRID id="DOCMARRIAGE" name="Свидетельство о заключении брака" table="DOCMARRIAGE"/>
+						</TAB>
+						<TAB name="Справка о доходах">
+							<GRID id="DOCINCOME" name="Справка о доходах" table="DOCINCOME"/>
+						</TAB>
+						<TAB name="Выписка из домовой книги">
+							<GRID id="DOCHOUSEBOOK" name="Выписка из домовой книги" table="DOCHOUSEBOOK"/>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Расчёт доходов">
+					<GRID id="Profitadd" name="Граждане, по которым выполняется расчёт" table="PROFITADD"/>
+					<TABS>
+						<TAB name="Расчёт среднедушевого дохода семьи">
+							<GRID id="Calculatfamilyincome" name="Расчёт среднедушевого дохода семьи" table="CALCULATFAMILYINCOME"/>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Выплатные реквизиты">
+					<GRID id="Paymasterld" name="Выплатные реквизиты" table="Выплатные реквизиты"/>
+				</TAB>
 				<TAB name="Решение по Обращению">
 					<GRID id="Insmsp" name="Решение по Обращению" table="INSMSP"/>
-				</TAB>
-				<TAB name="Свидетельство о заключении брака">
-					<GRID id="DOCMARRIAGE" name="Свидетельство о заключении брака" table="DOCMARRIAGE"/>
-				</TAB>
-				<TAB name="Справка о доходах">
-					<GRID id="DOCINCOME" name="Справка о доходах" table="DOCINCOME"/>
-				</TAB>
-				<TAB name="Выписка из домовой книги">
-					<GRID id="DOCHOUSEBOOK" name="Выписка из домовой книги" table="DOCHOUSEBOOK"/>
 				</TAB>
 			</TABS>
 		</FORM>
@@ -2127,6 +2361,12 @@
 		</FORM>
 		<FORM id="Charges" name="Начисления">
 			<GRID id="Charges" name="Начисления" table="CHARGES"/>
+		</FORM>
+		<FORM id="Payments" name="Выплаты">
+			<GRID id="Payments" name="Выплаты" table="Payments"/>
+		</FORM>
+		<FORM id="Сasespaym" name="Выплатные дела">
+			<GRID id="Сasespaym" name="Выплатные дела" table="Сasespaym"/>
 		</FORM>
 		<COMMENT name="НОРМАТИВНО-СПРАВОЧНАЯ ИНФОРМАЦИЯ"/>
 		<FORM id="Sprtypedoc" name="Тип заявления">
@@ -2212,6 +2452,15 @@
 		</FORM>
 		<FORM id="Sprsubmin" name="Величина прожиточного минимума">
 			<GRID id="Sprsubmin" name="Величина прожиточного минимума" table="SPRSUBMIN"/>
+		</FORM>
+		<FORM id="SprDOCreqmsp" name="Документы, необходимые для назначения МСП">
+			<GRID id="SprDOCreqmsp" name="Документы, необходимые для назначения МСП" table="SPRDOCREQMSP"/>
+		</FORM>
+		<FORM id="SprDOCreqmsp_lk_npd" name="Документы, необходимые для назначения МСП по ЛК на основании НПД">
+			<GRID id="SprDOCreqmsp_lk_npd" name="Документы, необходимые для назначения МСП по ЛК на основании НПД" table="SPRDOCREQMSP_LK_NPD"/>
+		</FORM>
+		<FORM id="SprDOCneclk" name="Документы, необходимые для присвоения ЛК">
+			<GRID id="SprDOCneclk" name="Документы, необходимые для присвоения ЛК" table="SPRDOCNECLK"/>
 		</FORM>
 		<COMMENT name="ПОДСИСТЕМА АДМИНИСТРИРОВАНИЯ"/>
 		<COMMENT name="НАСТРОЙКА КОНФИГУРАЦИИ СИСТЕМЫ"/>
