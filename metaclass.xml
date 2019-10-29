@@ -34,7 +34,7 @@
 				<MI name="Уровни доступа" formlist="LevAccess"/>
 			</MENU>
 			<MENU name="Справка">
-				<MI name="Содержание" actionlist="Help"/>
+				<MI name="Руководство Администратора" actionlist="HelpAdmin"/>
 			</MENU>
 		</MENU>
 		<MENU id="UDF" name="ПС.Управление бюджетом и финансами">
@@ -633,7 +633,7 @@
 			<A id="CONCEPTID" parentkey="cascade"/>
 			<A id="POSITION" labelwidth="150" formula="select coalesce(max(position)+1,1) from conceptitems where conceptid=@CONCEPTID and hid is null and @HID is null or hid=@HID and cid=0"/>
 			<A id="CODE" name="Идентификатор" caption="Идентификатор" labelwidth="150"/>
-			<A id="NAME" labelwidth="150"/>
+			<A id="NAME" labelwidth="150" nulls="false"/>
 			<GA>
 				<A id="ITEM_TYPE" name="Тип элемента" caption="Тип элемента" labelwidth="150" width="90" type="list" nulls="false" readonly="true" formula="P_SYSTEM_CONCEPTITEMS_GET_TYPE(@CONCEPTID, @HID, @ATTR)" local="true">
 					<AI id="xlssheet" name="Страница Excel"/>
@@ -747,7 +747,7 @@
 			<GA caption="Ключи поиска записи">
 				<A id="VALUE_KEY" name="Ключ поиска записи" caption="Входит в ключ поиска записи" type="boolean" array="true" local="true"/>
 			</GA>
-			<TI id="CONVACTPARAMS_UK" unique="CONVACTID,POSITION"/>
+			<TI id="CONVACTPARAMS_UK" unique="CONVACTID,CODE"/>
 		</TABLE>
 		<TABLE id="CONVLOADS" name="Конвертер: Процессы загрузки">
 			<GA name="Процесс" caption="Процесс">
@@ -808,10 +808,11 @@
 				</GA>
 				<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="80" type="text" nulls="true" readonly="true" local="true"/>
 			</GA>
-			<TI id="CONVLOADACTS_UK" unique="CONVLOADID,POSITION,CONCEPTITEMID,CONVACTID"/>
+			<TI id="CONVLOADACTS_UK" unique="CONVLOADID,CONCEPTITEMID,POSITION,CONVACTID"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
 			<A id="CONVLOADACTID" parentkey="cascade"/>
+			<A id="CONVID" visible="false" virtual="true" formula="select t.convid from convloads t, convloadacts a where a.id=@CONVLOADACTID and a.CONVLOADID = t.ID"/>
 			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID"/>
 			<GA name="Параметр" caption="Параметр">
 				<A id="CONVACTPARAMPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select p.position from convactparams p where p.id = @CONVACTPARAMID" local="true"/>
@@ -835,8 +836,7 @@
 				<A id="TABLENAMEOUT" name="Таблица" caption="Таблица" type="string" nulls="true" local="true"/>
 				<A id="KEYOUT" name="Значение" caption="Значение" type="string" nulls="true" local="true"/>
 			</GA>
-			<TI id="CONVKEYS_IN_UK" unique="TABLENAMEIN,KEYIN"/>
-			<TI id="CONVKEYS_OUT_UK" unique="TABLENAMEOUT,KEYOUT"/>
+			<TI id="CONVKEYS_UK" unique="TABLENAMEIN,KEYOUT,KEYIN"/>
 		</TABLE>
 		<TABLE id="ERRLOG" name="Журнал ошибок">
 			<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="false"/>
@@ -1296,16 +1296,20 @@
 			<TABS>
 				<TAB name="Параметры">
 					<GA name="Заголовок" caption="Заголовок">
-						<A id="DOCPREF" name="Префикс документа" caption="Префикс" labelwidth="200" type="string" len="80" nulls="true" value="ППБ"/>
-						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="200" type="string" len="80" nulls="false" formula="select coalesce( max(DOCNUMB ::bigint ) +1,1) from @TABLENAME where DOCPREF='ППБ'"/>
-						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="200" type="date" nulls="false" formula="now()"/>
+						<A id="DOCPREF" name="Префикс документа" caption="Префикс" labelwidth="200" type="string" len="80" nulls="true" value="ФПД"/>
+						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="200" type="string" len="80" nulls="true" formula="select coalesce( max(DOCNUMB ::bigint ) +1,1) from @TABLENAME where DOCPREF='ФПД'"/>
+						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="200" type="date" nulls="true" formula="now()"/>
 					</GA>
 					<A id="STATUS"/>
 					<A id="NOTE" labelwidth="100"/>
-					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="false" readonly="true" virtual="true" formula="select sign(count(f.id)) from BUDGET_INCOM_TRANSFER_FILE f where f.BUDGET_INCOM_TRANSFER_ID =@ID ::bigint" local="true"/>
+					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="true" readonly="true" virtual="true" formula="select sign(count(f.id)) from BUDGET_INCOM_TRANSFER_FILE f where f.BUDGET_INCOM_TRANSFER_ID =@ID ::bigint" local="true"/>
+					<A id="NUM_VER" name="Версия файла" caption="Версия файла" labelwidth="150" type="string" nulls="true" local="true"/>
+					<A id="FORMER" name="Система" caption="Система" labelwidth="150" type="string" nulls="true" local="true"/>
+					<A id="FORM_VER" name="Версия Системы" caption="Версия Системы" labelwidth="150" type="string" nulls="true" local="true"/>
+					<A id="NORM_DOC" name="Редакция Системы" caption="Редакция Системы" labelwidth="150" type="string" nulls="true" local="true"/>
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
-					<A id="KOD_TOFK" name="Код ОрФК" caption="Код ОрФК" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
-					<A id="NAME_TOFK" name="Наименование ОрФК" caption="Наименование ОрФК" labelwidth="150" type="string" len="2000" nulls="true" local="true"/>
+					<A id="KOD_TOFK" name="Код ФК" caption="Код ФК" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
+					<A id="NAME_TOFK" name="Наименование ФК" caption="Наименование ФК" labelwidth="150" type="string" len="2000" nulls="true" local="true"/>
 					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="300" type="list" nulls="true" local="true">
 						<AI id="1" name="Федеральный бюджет"/>
 						<AI id="2" name="Бюджет субъекта РФ"/>
@@ -1329,11 +1333,11 @@
 			<TABS>
 				<TAB name="Параметры">
 					<A id="GUID_FK" name="Код ОрФК" caption="Код ОрФК" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
-					<A id="LS" name="Номер л/с АДБ" caption="Номер л/с АДБ" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
 					<A id="DATE_OTCH" name="Регламент.дата отчета" caption="Регламент.дата отчета" labelwidth="300" type="date" nulls="true" local="true"/>
 					<A id="DATE_OPER" name="Дата опер.дня" caption="Дата опер.дня" labelwidth="150" type="date" nulls="true" local="true"/>
 					<A id="KOD_TOFK" name="Код ОрФК" caption="Код ОрФК" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
 					<A id="NAME_TOFK" name="Наименование ОрФК" caption="Наименование ОрФК" labelwidth="150" type="string" len="2000" nulls="true" local="true"/>
+					<A id="BS_UFK" name="N баланс.счета УФК(40101)" caption="N баланс.счета УФК(40101)" labelwidth="150" type="string" len="20" nulls="true" local="true"/>
 					<A id="CODE_UBP_ADB" name="Код УФНС по Свод.реестру" caption="Код УФНС по Свод.реестру" labelwidth="300" type="string" len="2000" nulls="true" local="true"/>
 					<A id="NAME_UBP_ADB" name="Имя УФНС по Свод.реестру" caption="Имя УФНС по Свод.реестру" labelwidth="150" type="string" len="8" nulls="true" local="true"/>
 					<A id="GLAVA_GADB" name="Код главы ГАДБ " caption="Код главы ГАДБ " labelwidth="150" type="string" len="8" nulls="true" local="true"/>
@@ -2110,7 +2114,7 @@
 		</ACTION>
 		<ACTION id="PasswordChangeExit" name="Изменить пароль" type="script" actionlist="PasswordChange;Exit"/>
 		<ACTION id="Exit" name="Выйти из системы" type="link" href="doLogout"/>
-		<ACTION id="Help" name="Справка" type="link" href="help" visible="window"/>
+		<ACTION id="HelpAdmin" name="Руководство Администратора" type="link" href="help/admin" visible="window"/>
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
@@ -2268,31 +2272,88 @@
 		<REPORT id="rResiptProfit" name="Поступление доходов" procedure="p_report_resipt_profit" template="rpt_resipt_profit.xlsx" nulls="true">
 			<FORM>
 				<A id="DATE_TO" caption="На дату " labelwidth="200" type="date" formula="now()" local="true"/>
-				<A id="BKD_ID" name="КБК доходов" caption="КБК доходов" type="ref" table="BKD" ret="NAME" form="fBkd" nulls="true" local="true"/>
-				<A id="BKD_CODE_VIRT" name="Код КБК дохода" caption="Код КБК дохода" type="string" nulls="true" virtual="true" formula="select p_get_bkd_code(@BKD_ID::bigint)" local="true"/>
+				<A id="BKD_ID" name="КБК доходов" caption="КБК доходов" type="ref" table="BKD" ret="BKD_CODE_VIRT" form="fBkd" nulls="true" local="true"/>
+				<A id="BKD_NAME_VIRT" name="Имя КБК дохода" caption="Имя КБК дохода" type="text" nulls="true" virtual="true" formula="select p_get_bkd_name(@BKD_ID::bigint)" local="true"/>
+				<A id="BKD_CODE_VIRT" name="Код КБК дохода" caption="Код КБК дохода" type="text" nulls="true" visible="false" virtual="true" formula="select p_get_bkd_code(@BKD_ID::bigint)" local="true"/>
 				<A id="AGENT_ID" name="ФКУ" caption="ФКУ" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="true" local="true"/>
 				<A id="AGENT_NAME_VIRT" name="ФКУ имя" caption="ФКУ имя" labelwidth="100" type="text" nulls="true" virtual="true" formula="select p_get_agent_name(@AGENT_ID ::bigint )" local="true"/>
+				<A id="SIGNATORY_ID" nulls="true"/>
+				<GA name="Руководитель" caption="Руководитель">
+					<A id="SIGN_RUK_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s, person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_DOL_RUK_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_ADR_RUK_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='0'" local="true"/>
+				</GA>
+				<GA name="Ответственный исполнитель" caption="Ответственный исполнитель">
+					<A id="SIGN_EXEC_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s ,person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and s.sign_type='2'" local="true"/>
+					<A id="SIGN_DOL_EXEC_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='2'" local="true"/>
+					<A id="SIGN_ADR_EXEC_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='2'" local="true"/>
+				</GA>
+				<A id="SIGN_NOTE_VIRT" name="Примечание" caption="Примечание" type="string" nulls="true" formula="select s.note from signatory s where s.id = @SIGNATORY_ID::bigint " local="true"/>
+				<A id="DATE_POD_VIRT" name="Дата подписи" caption="Дата подписи" labelwidth="100" type="date" nulls="true" formula="select now() ::date" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="rResiptProfitMintras" name="Поступление доходов Минтрас" procedure="p_report_resipt_profit_mintras" template="rpt_resipt_profit_mintras.xlsx" nulls="true">
 			<FORM>
 				<A id="DATE_TO" caption="На дату " labelwidth="200" type="date" formula="now()" local="true"/>
+				<A id="SIGNATORY_ID" nulls="true"/>
+				<GA name="Руководитель" caption="Руководитель">
+					<A id="SIGN_RUK_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s, person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_DOL_RUK_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_ADR_RUK_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='0'" local="true"/>
+				</GA>
+				<GA name="Ответственный исполнитель" caption="Ответственный исполнитель">
+					<A id="SIGN_EXEC_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s ,person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and s.sign_type='2'" local="true"/>
+					<A id="SIGN_DOL_EXEC_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='2'" local="true"/>
+					<A id="SIGN_ADR_EXEC_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='2'" local="true"/>
+				</GA>
+				<A id="SIGN_NOTE_VIRT" name="Примечание" caption="Примечание" type="string" nulls="true" formula="select s.note from signatory s where s.id = @SIGNATORY_ID::bigint " local="true"/>
+				<A id="DATE_POD_VIRT" name="Дата подписи" caption="Дата подписи" labelwidth="100" type="date" nulls="true" formula="select now() ::date" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="rResiptProfitFda" name="Поступление доходов ФДА" procedure="p_report_resipt_profit_fda" template="rpt_resipt_profit_fda.xlsx" nulls="true">
 			<FORM>
 				<A id="DATE_TO" caption="На дату " labelwidth="100" type="date" formula="now()" local="true"/>
-				<A id="BKD_ID" name="КБК доходов" caption="КБК доходов" type="ref" table="BKD" ret="NAME" form="fBkd" nulls="false" local="true"/>
-				<A id="BKD_CODE_VIRT" name="Код КБК дохода" caption="Код КБК дохода" type="string" nulls="true" virtual="true" formula="select p_get_bkd_code(@BKD_ID ::bigint )" local="true"/>
+				<A id="BKD_ID" name="КБК доходов" caption="КБК доходов" type="ref" table="BKD" ret="BKD_CODE_VIRT" form="fBkd" nulls="true" local="true"/>
+				<A id="BKD_NAME_VIRT" name="Имя КБК дохода" caption="Имя КБК дохода" type="text" nulls="true" virtual="true" formula="select p_get_bkd_name(@BKD_ID ::bigint )" local="true"/>
+				<A id="BKD_CODE_VIRT" name="Код КБК дохода" caption="Код КБК дохода" type="text" nulls="true" visible="false" virtual="true" formula="select p_get_bkd_code(@BKD_ID::bigint)" local="true"/>
 				<A id="AGENT_ID" name="ФКУ" caption="ФКУ" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="true" local="true"/>
 				<A id="AGENT_NAME_VIRT" name="ФКУ имя" caption="ФКУ имя" labelwidth="100" type="text" nulls="true" virtual="true" formula="select p_get_agent_name(@AGENT_ID ::bigint)" local="true"/>
+				<A id="SIGNATORY_ID" nulls="true"/>
+				<GA name="Руководитель" caption="Руководитель">
+					<A id="SIGN_RUK_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s, person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_DOL_RUK_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_ADR_RUK_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='0'" local="true"/>
+				</GA>
+				<GA name="Ответственный исполнитель" caption="Ответственный исполнитель">
+					<A id="SIGN_EXEC_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s ,person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and s.sign_type='2'" local="true"/>
+					<A id="SIGN_DOL_EXEC_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='2'" local="true"/>
+					<A id="SIGN_ADR_EXEC_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='2'" local="true"/>
+				</GA>
+				<A id="SIGN_NOTE_VIRT" name="Примечание" caption="Примечание" type="string" nulls="true" formula="select s.note from signatory s where s.id = @SIGNATORY_ID::bigint " local="true"/>
+				<A id="DATE_POD_VIRT" name="Дата подписи" caption="Дата подписи" labelwidth="100" type="date" nulls="true" formula="select now() ::date" local="true"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="rResiptProfitBkd" name="Поступление доходов по КБК" procedure="p_report_resipt_profit_bkd" template="rpt_resipt_profit_bkd.xlsx" nulls="true">
+		<REPORT id="rResiptProfitBkd" name="Поступление доходов по КБК дохода" procedure="p_report_resipt_profit_bkd" template="rpt_resipt_profit_bkd.xlsx" nulls="true">
 			<FORM>
 				<A id="DATE_TO" caption="На дату " labelwidth="100" type="date" formula="now()" local="true"/>
+				<A id="BKD_ID" name="КБК доходов" caption="КБК доходов" type="ref" table="BKD" ret="BKD_CODE_VIRT" form="fBkd" nulls="true" local="true"/>
+				<A id="BKD_NAME_VIRT" name="Имя КБК дохода" caption="Имя КБК дохода" type="text" nulls="true" virtual="true" formula="select p_get_bkd_name(@BKD_ID ::bigint )" local="true"/>
+				<A id="BKD_CODE_VIRT" name="Код КБК дохода" caption="Код КБК дохода" type="text" nulls="true" visible="false" virtual="true" formula="select p_get_bkd_code(@BKD_ID::bigint)" local="true"/>
 				<A id="AGENT_ID" name="ФКУ" caption="ФКУ" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="true" local="true"/>
 				<A id="AGENT_NAME_VIRT" name="ФКУ имя" caption="ФКУ имя" labelwidth="100" type="text" nulls="true" virtual="true" formula="select p_get_agent_name(@AGENT_ID ::bigint)" local="true"/>
+				<A id="SIGNATORY_ID" nulls="true"/>
+				<GA name="Руководитель" caption="Руководитель">
+					<A id="SIGN_RUK_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s, person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_DOL_RUK_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='0'" local="true"/>
+					<A id="SIGN_ADR_RUK_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='0'" local="true"/>
+				</GA>
+				<GA name="Ответственный исполнитель" caption="Ответственный исполнитель">
+					<A id="SIGN_EXEC_VIRT" name="ФИО" caption="ФИО" type="string" nulls="true" virtual="true" formula="select p.code from signatory_spc s ,person p where s.signatory_id=@SIGNATORY_ID::bigint and p.id=s.person_id and s.sign_type='2'" local="true"/>
+					<A id="SIGN_DOL_EXEC_VIRT" name="Должность" caption="Должность" type="string" nulls="true" virtual="true" formula="select j.name from signatory_spc s, job j where s.signatory_id=@SIGNATORY_ID::bigint and j.id=s.job_id and  s.sign_type='2'" local="true"/>
+					<A id="SIGN_ADR_EXEC_VIRT" name="Контакт" caption="Контакт" type="string" nulls="true" virtual="true" formula="select s.phone||' '||s.email from signatory_spc s where s.signatory_id = @SIGNATORY_ID::bigint and  s.sign_type='2'" local="true"/>
+				</GA>
+				<A id="SIGN_NOTE_VIRT" name="Примечание" caption="Примечание" type="string" nulls="true" formula="select s.note from signatory s where s.id = @SIGNATORY_ID::bigint " local="true"/>
+				<A id="DATE_POD_VIRT" name="Дата подписи" caption="Дата подписи" labelwidth="100" type="date" nulls="true" formula="select now() ::date" local="true"/>
 			</FORM>
 		</REPORT>
 	</REPORTS>
