@@ -1,7 +1,7 @@
 <SYSTEM name="Система">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="Administrator" name="Администратор" menu="Administrator"/>
-		<MODULE id="UDF" name="ПС.Управление бюджетом и финансами" menu="UDF"/>
+		<MODULE id="UBF" name="ПС.Управление бюджетом и финансами" menu="UBF"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="Administrator" name="Меню модуля Администратор">
@@ -37,7 +37,7 @@
 				<MI name="Руководство Администратора" actionlist="HelpAdmin"/>
 			</MENU>
 		</MENU>
-		<MENU id="UDF" name="ПС.Управление бюджетом и финансами">
+		<MENU id="UBF" name="ПС.Управление бюджетом и финансами">
 			<MENU name="Файл">
 				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
 				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
@@ -56,6 +56,7 @@
 				<MI name="Прогноз поступления доходов" formlist="fForecastIncom"/>
 				<MI name="Справка перечислений поступлений в бюджеты" formlist="fBudgetIncomIransfer"/>
 				<MI name="Итоги по Л.С.адм.доходов бюджета" formlist="fStatePersAccAdm"/>
+				<MI name="Годовые задания по сбору доходов - импорт" formlist="fBudgetPlanTransfer"/>
 				<MI name="Задачи" formlist="fTask"/>
 			</MENU>
 			<MENU name="Отчетность">
@@ -804,7 +805,7 @@
 						<AI id="2" name="Выполнен"/>
 						<AI id="3" name="Ошибка"/>
 					</A>
-					<A id="RECCOUNT" name="Количество записей" caption="Количество записей" labelwidth="130" width="50" type="int" nulls="false" value="0"/>
+					<A id="RECCOUNT" name="Количество записей" caption="Количество записей" labelwidth="130" width="50" type="int" nulls="false" readonly="true" value="0"/>
 				</GA>
 				<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="80" type="text" nulls="true" readonly="true" local="true"/>
 			</GA>
@@ -813,6 +814,7 @@
 		<TABLE id="CONVLOADACTPARAMS" name="Конвертер: Буфер выполнения (параметры)">
 			<A id="CONVLOADACTID" parentkey="cascade"/>
 			<A id="CONVID" visible="false" virtual="true" formula="select t.convid from convloads t, convloadacts a where a.id=@CONVLOADACTID and a.CONVLOADID = t.ID"/>
+			<A id="CONVLOADID" visible="false" virtual="true" formula="select convloadid from convloadacts where id=@CONVLOADACTID"/>
 			<A id="CONVACTID" visible="false" virtual="true" formula="select convactid from convloadacts where id=@CONVLOADACTID"/>
 			<GA name="Параметр" caption="Параметр">
 				<A id="CONVACTPARAMPOSITIONVIRT" name="Порядок" caption="Порядок" labelwidth="90" type="string" nulls="true" readonly="true" virtual="true" formula="select p.position from convactparams p where p.id = @CONVACTPARAMID" local="true"/>
@@ -1300,8 +1302,8 @@
 						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="200" type="string" len="80" nulls="true" formula="select coalesce( max(DOCNUMB ::bigint ) +1,1) from @TABLENAME where DOCPREF='ФПД'"/>
 						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="200" type="date" nulls="true" formula="now()"/>
 					</GA>
-					<A id="STATUS"/>
-					<A id="NOTE" labelwidth="100"/>
+					<A id="STATUS" nulls="true"/>
+					<A id="NOTE" labelwidth="100" nulls="true"/>
 					<A id="FILE_SIGN_VIRT" name="Фаил загружен" caption="Фаил загружен" labelwidth="100" type="boolean" nulls="true" readonly="true" virtual="true" formula="select sign(count(f.id)) from BUDGET_INCOM_TRANSFER_FILE f where f.BUDGET_INCOM_TRANSFER_ID =@ID ::bigint" local="true"/>
 					<A id="NUM_VER" name="Версия файла" caption="Версия файла" labelwidth="150" type="string" nulls="true" local="true"/>
 					<A id="FORMER" name="Система" caption="Система" labelwidth="150" type="string" nulls="true" local="true"/>
@@ -1310,7 +1312,7 @@
 					<A id="LOAD_DATE" name="Дата загрузки" caption="Дата загрузки" labelwidth="150" width="54" type="datetime" nulls="true" readonly="true" formula="now()" local="true"/>
 					<A id="KOD_TOFK" name="Код ФК" caption="Код ФК" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
 					<A id="NAME_TOFK" name="Наименование ФК" caption="Наименование ФК" labelwidth="150" type="string" len="2000" nulls="true" local="true"/>
-					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="300" type="list" nulls="true" local="true">
+					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="300" type="list" nulls="true" value="1" local="true">
 						<AI id="1" name="Федеральный бюджет"/>
 						<AI id="2" name="Бюджет субъекта РФ"/>
 						<AI id="3" name="Местный бюджет"/>
@@ -1653,6 +1655,16 @@
 			<A id="BUDGET_PLAN_ID" parentkey="cascade"/>
 			<GA id="FileInformation"/>
 			<TI id="iBUDGET_PLAN_FILE_PRN" index="BUDGET_PLAN_ID"/>
+		</TABLE>
+		<TABLE id="BUDGET_PLAN_TRANSFER" name="Годовые задания по сбору доходов - импорт">
+			<A id="FCU" name="ФКУ" caption="ФКУ" labelwidth="50" type="string" nulls="true"/>
+			<A id="KBK" name="КБК" caption="КБК" labelwidth="50" type="string" nulls="true"/>
+			<A id="YEAR" name="Год" caption="Год" labelwidth="50" type="string" nulls="true"/>
+			<A id="SUM_YEAR" name="Годовая сумма" caption="Годовая сумма" labelwidth="50" type="string" nulls="true"/>
+			<A id="SUM_1QUART" name="Cумма 1 квартала" caption="Cумма 1 квартала" labelwidth="50" type="string" nulls="true"/>
+			<A id="SUM_2QUART" name="Cумма 2 квартала" caption="Cумма 2 квартала" labelwidth="50" type="string" nulls="true"/>
+			<A id="SUM_3QUART" name="Cумма 3 квартала" caption="Cумма 3 квартала" labelwidth="50" type="string" nulls="true"/>
+			<A id="SUM_4QUART" name="Cумма 4 квартала" caption="Cумма 4 квартала" labelwidth="50" type="string" nulls="true"/>
 		</TABLE>
 		<TABLE id="BUDGET_PLAN" name="Годовые задания по сбору доходов">
 			<TABS>
@@ -2847,6 +2859,13 @@
 					</GRID>
 				</TAB>
 			</TABS>
+		</FORM>
+		<FORM id="fBudgetPlanTransfer" name="Годовые задания по сбору доходов - импорт">
+			<GRID id="gBudgetPlanTransfer" name="Годовые задания по сбору доходов - импорт" table="BUDGET_PLAN_TRANSFER">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
 		</FORM>
 		<FORM id="fStatePersAccAdm" name="Итоги по Л.С.адм.доходов бюджета">
 			<TABS>
