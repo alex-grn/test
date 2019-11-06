@@ -1,0 +1,176 @@
+CREATE OR REPLACE FUNCTION public.p_action_child_birth (
+  idlist text,
+  tablename text
+)
+RETURNS text AS
+$body$
+DECLARE sRESULT TEXT ;
+nid bigint;
+nsumm  numeric;
+sMESS TEXT ;
+nCounter bigint;
+rec record;
+pod record;
+fl integer:=0;
+BEGIN
+	sRESULT = '' ;
+--проверка условий комплектности операций и  выдача сообщения
+--2 паспорта
+--свидетельсто о рождении
+--свидетельсто о браке
+	
+--execute 'select status from '|| quote_ident(TABLENAME)||' where ID = ANY(P_SYSTEM_GET_SELECTLIST($1))' into sCurrStatus  using idlist;
+
+--select id into nid from petition where ID = ANY(P_SYSTEM_GET_SELECTLIST($1));
+	
+--RAISE EXCEPTION 'Просчет пособия по рождению ребенка для % % ',TABLENAME,nid;
+
+for rec in(
+		select p.id as PID, p.PERSON_DECLARANT_ID
+          from petition p 
+         where p.id = ANY(P_SYSTEM_GET_SELECTLIST(idlist))
+        )
+	loop
+     	sRESULT:='Отказ в назначении:';
+    	if (select count(*) from DOC_BIRTH s,PERSON_DOC t, DOC_VID v where s.petition_id = rec.PID and t.id = s.person_doc_id and v.id = t.doc_vid_id and lower(v.code) = 'спрв.рожд.ф1') = 0 then
+        	sRESULT:=sRESULT||CHR(13)||'Нет документа о рождении Ф1;';
+        end if;
+        
+        for pod in(select D.ID as DOC_ID, null as TIP
+                from PERSON P, PERSON_DOC D, DOC_VID TD
+               where P.ID = rec.PERSON_DECLARANT_ID
+                 and D.PERSON_ID = P.ID
+                 and TD.ID = D.DOC_VID_ID
+                 and LOWER(TD.CODE) in ('пасп.рф' /*,'св.о.рожд'*/)
+              union
+              select D.ID, F.SPRRELTYPEID
+                from PETITION T, PERSON P, FAMILYSTRUCTURE F, PERSON FP, PERSON_DOC D, DOC_VID TD, SPRRELTYPE R
+               where P.ID = rec.PERSON_DECLARANT_ID
+                 and F.PERSON_ID = P.ID
+                 and FP.ID = F.PERSON_FAMILY_ID
+                 and D.PERSON_ID = FP.ID
+                 and TD.ID = D.DOC_VID_ID
+                 and R.ID = F.SPRRELTYPEID
+                 and (LOWER(TD.CODE) = 'пасп.рф' and R.CODESPR not in (5, 6, 9, 10, 20, 21, 42, 43) 
+                   or LOWER(TD.CODE) = 'св.о.рожд' and R.CODESPR in (5, 6, 9, 10, 20, 21, 42, 43)))
+                loop
+                  if (select count(*)
+          			from DOC_PERSON_PETITION T
+         				where T.PETITION_ID = rec.pid
+           					and T.PERSON_DOC_ID = pod.DOC_ID) = 0 then
+                            fl:=1;
+                  end if;
+                end loop;
+                if fl = 1 then 
+                	sRESULT:=sRESULT||CHR(13)||'Нет документов удостоверяющих личность;';fl:=0;
+                end if; 
+        for pod in(
+        	  select W.ID as DOC_ID
+                from PERSON P, DATA_WORK W, PERSON_DOC D, DOC_VID TD
+               where P.ID = rec.PERSON_DECLARANT_ID
+                 and W.PERSON_ID = P.ID
+                 and D.ID = W.PERSON_DOC_ID
+                 and TD.ID = D.DOC_VID_ID
+                 and LOWER(TD.CODE) in ('труд.книж.')
+              union
+              select W.ID
+                from PERSON P, FAMILYSTRUCTURE F, PERSON FP, DATA_WORK W, PERSON_DOC D, DOC_VID TD
+               where P.ID = rec.PERSON_DECLARANT_ID
+                 and F.PERSON_ID = P.ID
+                 and FP.ID = F.PERSON_FAMILY_ID
+                 and W.PERSON_ID = FP.ID
+                 and D.ID = W.PERSON_DOC_ID
+                 and TD.ID = D.DOC_VID_ID
+                 and LOWER(TD.CODE) in ('труд.книж.')
+                 )
+                loop
+                  if (select count(*)
+          				from DOC_DATA_WORK_PETITION T
+         				where T.PETITION_ID = REC.PID
+           				  and T.DATA_WORK_ID = POD.DOC_ID) = 0 then
+                      fl:=1;      
+                  end if;
+                end loop;
+                if fl = 1 then
+                	sRESULT:=sRESULT||CHR(13)||'Нет документов о трудовой деятельности;';fl:=0;
+                end if; 
+          if (select v.birth_date + interval '6 month' from DOC_BIRTH s,PERSON_DOC t, person v where s.petition_id = rec.PID and t.id = s.person_doc_id and v.id = t.person_id)<= (select now()) then
+          	sRESULT:=sRESULT||CHR(13)||'Ребенку более 6 месяцев;';
+          end if;
+          if sRESULT != 'Отказ в назначении:' then
+          	raise using message = sRESULT;
+          end if;
+    end loop;
+--Справка о рождении
+select coalesce(count(id),0) into nCounter from DOC_BIRTH where petition_id=ANY(P_SYSTEM_GET_SELECTLIST(idlist));
+if nCounter=0 then sMESS='Справку о рождении.'||chr(10); end if;
+--Документы удостоверяющие личность 
+select coalesce(count(d.id),0)  into nCounter 
+  from  DOC_PERSON_PETITION d,
+	person_doc dp,
+	doc_vid dv
+ where d.petition_id=ANY(P_SYSTEM_GET_SELECTLIST(idlist))
+   and d.person_doc_id=dp.id
+   and dp.doc_vid_id=dv.id
+   and dv.code='Пасп.РФ';
+
+if nCounter<>2 then sMESS=sMESS||' Паспорта родителей.'||chr(10); end if;
+
+select coalesce(count(d.id),0)  into nCounter 
+  from  DOC_PERSON_PETITION d,
+	person_doc dp,
+	doc_vid dv
+ where d.petition_id=ANY(P_SYSTEM_GET_SELECTLIST(idlist))
+   and d.person_doc_id=dp.id
+   and dp.doc_vid_id=dv.id
+   and dv.code='Труд.книж.';
+
+if nCounter<>2 then sMESS=sMESS||' Трудовые книжки родителей.'||chr(10); end if;
+   
+--Документы о трудовой деятельности
+select coalesce(count(id),0)  into nCounter from  DOC_DATA_WORK_PETITION where petition_id=ANY(P_SYSTEM_GET_SELECTLIST(idlist));
+if nCounter=0 then sMESS=sMESS||'Документ о трудовой деятельности заявителя.'||chr(10); end if;
+
+if sMESS is not null then
+RAISE EXCEPTION 'Необходимы документы: % ',chr(10)||sMESS;
+end if;
+
+select s.summa into nsumm from SPRSOCMSP s where s.code='63';
+
+INSERT INTO public.purpose(
+  person_benef_id, --bigint, -- Льготодержатель
+  person_recip_id, --bigint, -- Получатель
+  sprsocmspid,	   --bigint, -- МСЗ/Услуга
+  docnumb,         --character varying, -- Номер протокола
+  decdate, 	   --date,   -- Дата принятия решения
+  topayment, 	   --numeric,-- К выплате
+  numbprot, 	   --numeric,-- Назначенная сумма
+--Период предоставления МСЗ  
+  begin_date, 	   --date,   -- Дата начала
+  end_date,         --date    -- Дата окончания
+  private_affair_id
+ )
+select 
+  person_benef_id , -- Льготодержатель
+  person_recip_id , -- Получатель
+  sprsocmspid,-- bigint, -- МСЗ/Услуга
+( select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PURPOSE where cid=0),
+  now(),
+  nsumm,
+  nsumm,
+  now(),
+  now()+ interval '1 MONTH',
+  private_affair_id
+  from petition where ID = ANY(P_SYSTEM_GET_SELECTLIST($1));
+sRESULT:='Назначение сформировано!';
+RETURN sRESULT ;
+	END ;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_child_birth (idlist text, tablename text)
+  OWNER TO magicbox;

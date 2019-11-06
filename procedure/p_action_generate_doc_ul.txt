@@ -1,0 +1,79 @@
+CREATE OR REPLACE FUNCTION public.p_action_generate_doc_ul (
+  id bigint
+)
+RETURNS void AS
+$body$
+declare
+  REC record;
+  NID BIGINT := P_ACTION_GENERATE_DOC_UL.ID;
+begin
+
+  for REC in (select T.ID, D.ID as DOC_ID, null as TIP
+                from PETITION T, PERSON P, PERSON_DOC D, DOC_VID TD
+               where T.ID = NID
+                 and P.ID = T.PERSON_DECLARANT_ID
+                 and D.PERSON_ID = P.ID
+                 and TD.ID = D.DOC_VID_ID
+                 and LOWER(TD.CODE) in ('пасп.рф' /*,'св.о.рожд'*/)
+              union
+              select T.ID, D.ID, F.SPRRELTYPEID
+                from PETITION T, PERSON P, FAMILYSTRUCTURE F, PERSON FP, PERSON_DOC D, DOC_VID TD, SPRRELTYPE R
+               where T.ID = NID
+                 and P.ID = T.PERSON_DECLARANT_ID
+                 and F.PERSON_ID = P.ID
+                 and FP.ID = F.PERSON_FAMILY_ID
+                 and D.PERSON_ID = FP.ID
+                 and TD.ID = D.DOC_VID_ID
+                 and R.ID = F.SPRRELTYPEID
+                 and (LOWER(TD.CODE) = 'пасп.рф' and R.CODESPR not in (5, 6, 9, 10, 20, 21, 42, 43) 
+                   or LOWER(TD.CODE) = 'св.о.рожд' and R.CODESPR in (5, 6, 9, 10, 20, 21, 42, 43)))
+  loop
+    if (select count(*)
+          from DOC_PERSON_PETITION T
+         where T.PETITION_ID = REC.ID
+           and T.PERSON_DOC_ID = REC.DOC_ID) > 0
+    then
+      continue;
+    end if;
+    insert into DOC_PERSON_PETITION (PETITION_ID, PERSON_DOC_ID) values (REC.ID, REC.DOC_ID);
+  end loop;
+
+  for REC in (select T.ID, W.ID as DOC_ID
+                from PETITION T, PERSON P, DATA_WORK W, PERSON_DOC D, DOC_VID TD
+               where T.ID = NID
+                 and P.ID = T.PERSON_DECLARANT_ID
+                 and W.PERSON_ID = P.ID
+                 and D.ID = W.PERSON_DOC_ID
+                 and TD.ID = D.DOC_VID_ID
+                 and LOWER(TD.CODE) in ('труд.книж.')
+              union
+              select T.ID, W.ID
+                from PETITION T, PERSON P, FAMILYSTRUCTURE F, PERSON FP, DATA_WORK W, PERSON_DOC D, DOC_VID TD
+               where T.ID = NID
+                 and P.ID = T.PERSON_DECLARANT_ID
+                 and F.PERSON_ID = P.ID
+                 and FP.ID = F.PERSON_FAMILY_ID
+                 and W.PERSON_ID = FP.ID
+                 and D.ID = W.PERSON_DOC_ID
+                 and TD.ID = D.DOC_VID_ID
+                 and LOWER(TD.CODE) in ('труд.книж.'))
+  loop
+    if (select count(*)
+          from DOC_DATA_WORK_PETITION T
+         where T.PETITION_ID = REC.ID
+           and T.DATA_WORK_ID = REC.DOC_ID) > 0
+    then
+      continue;
+    end if;
+    insert into DOC_DATA_WORK_PETITION (PETITION_ID, DATA_WORK_ID) values (REC.ID, REC.DOC_ID);
+  end loop;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_generate_doc_ul (id bigint)
+  OWNER TO magicbox;
