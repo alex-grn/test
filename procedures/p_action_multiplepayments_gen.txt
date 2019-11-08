@@ -7,7 +7,6 @@ CREATE OR REPLACE FUNCTION public.p_action_multiplepayments_gen (
   persondocumenttypeid bigint,
   docseriesb text,
   docnumberb text,
-  docdateb date,
   lastnamec text,
   firstnamec text,
   patronymicc text,
@@ -37,7 +36,7 @@ declare
     sSQL text;
 begin
 
-if lastnameb is null and firstnameb is null and patronymicb is null and persondocumenttypeid is null and docseriesb is null and docnumberb is null and docdateb is null then
+if lastnameb is null and firstnameb is null and patronymicb is null and persondocumenttypeid is null and docseriesb is null and docnumberb is null/* and docdateb is null*/ then
       all_fields_h:=1;
 end if;
 if lastnamec is null and firstnamec is null and patronymicc is null and docbirthchildtypeid is null and docseriesc is null and docnumberc is null and birthdatec is null then
@@ -53,8 +52,8 @@ if all_fields_h != 1 then
       and (s.patronymic = patronymicb or patronymicb is null)
       and (s.persondocumenttypeid = p_action_multiplepayments_gen.persondocumenttypeid or p_action_multiplepayments_gen.persondocumenttypeid is null)
       and (s.persondocumentseries = docseriesb or docseriesb is null)
-      and (s.persondocumentnumber = docnumberb or docnumberb is null)
-      and (s.persondocumentdate = docdateb or docdateb is null);
+      and (s.persondocumentnumber = docnumberb or docnumberb is null);
+    --  and (s.persondocumentdate = docdateb or docdateb is null);
   exception when too_many_rows then raise using message = 'По заданному критерию найдено больше одного получателя пособия!';
   			when no_data_found then benef:=null;
   end;	 --raise using message = benef;
@@ -910,5 +909,5 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
 
-ALTER FUNCTION public.p_action_multiplepayments_gen (benefitstypenamedirid bigint [], repyear integer, lastnameb text, firstnameb text, patronymicb text, persondocumenttypeid bigint, docseriesb text, docnumberb text, docdateb date, lastnamec text, firstnamec text, patronymicc text, docbirthchildtypeid bigint, docseriesc text, docnumberc text, birthdatec date, uid bigint)
+ALTER FUNCTION public.p_action_multiplepayments_gen (benefitstypenamedirid bigint [], repyear integer, lastnameb text, firstnameb text, patronymicb text, persondocumenttypeid bigint, docseriesb text, docnumberb text, lastnamec text, firstnamec text, patronymicc text, docbirthchildtypeid bigint, docseriesc text, docnumberc text, birthdatec date, uid bigint)
   OWNER TO magicbox;
