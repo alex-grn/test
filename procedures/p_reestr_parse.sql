@@ -359,7 +359,7 @@ FL:=0;
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -505,6 +505,7 @@ FL:=0;
                         if dow.flag = 1 then /*return*/SERRORS := SERRORS||CHR(13)||'ƒанные по ребенку (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, подтверждающего факт рождени€, дата рождени€ не подтверждены). –еестр загружен с ошибкой.'; fl:=1; end if;
                       --
                        begin
+                        if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. ќтсутствует тег childNumber!'; end if;
                         insert into BENEFITCHILD(uid,lid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber)
                         values(nUSERID,nLID,BENEFITSRECIPIENTS_ID,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer) RETURNING BENEFITCHILD.ID INTO BENEFITCHILD_ID; select max(f.id) into OLDbenefitID from BENEFITCHILD f;
                        exception when others then  
@@ -557,7 +558,7 @@ FL:=0;
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -695,7 +696,7 @@ FL:=0;
                                and t.id = s.benefit02id
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -852,7 +853,7 @@ FL:=0;
                                and t.id = s.benefit03id
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -982,6 +983,7 @@ FL:=0;
               end if;
               --
               begin
+              if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. ќтсутствует тег childNumber!'; end if;
                insert into BENEFITCHILD
                 (UID, LID, BENEFITSRECIPIENTSID, LASTNAME, FIRSTNAME, PATRONYMIC, BENEFITCHILDDATEBIRTH, DOCBIRTHCHILDTYPEID, DOCBIRTHCHILDSERIAL, DOCBIRTHCHILDNUMBER, DOCBIRTHCHILDDATE, BENEFITCHILDUMBER)
                values
@@ -1041,7 +1043,7 @@ FL:=0;
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -1182,6 +1184,7 @@ FL:=0;
               end if;
               --
               begin
+               if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. ќтсутствует тег childNumber!'; end if;
                insert into BENEFITCHILD
                 (UID, LID, BENEFITSRECIPIENTSID, LASTNAME, FIRSTNAME, PATRONYMIC, BENEFITCHILDDATEBIRTH, DOCBIRTHCHILDTYPEID, DOCBIRTHCHILDSERIAL, DOCBIRTHCHILDNUMBER, DOCBIRTHCHILDDATE, BENEFITCHILDUMBER)
                values
@@ -1244,7 +1247,7 @@ FL:=0;
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -1412,8 +1415,8 @@ FL:=0;
                              where s.paysum is not null
                                and t.id = s.benefit06id
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
-                                FL:=2;
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!'; --статус предупреждение
+                                FL:=1;
                              END IF;
                         end if; 
                      --
@@ -1438,11 +1441,12 @@ FL:=0;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ             
    end if; 
    if fl = 1 then
-   		update BENEFICIARIESREGISTERS S set WRONGLOADING = TRETURN, STATUS = '02' where S.ID = NID;       
+   		update BENEFICIARIESREGISTERS S set WRONGLOADING = TRETURN, STATUS = '03' where S.ID = NID;  
+        return 'Ќайдены не критические ошибки при загрузке. –еестр загружен с предупреждением!';     
    elsif fl = 2 then
    		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '02' where S.ID = NID;
-        execute 'delete from '||SNODE||' t where t.benefitstypedirid = '||nID; 
-        return 'Ќайдены критические ошибки при загрузке, реестр не загружен!';
+        execute 'delete from '||SNODE||' t where t.benefitstypedirid = '||nID;
+        return 'Ќайдены критические ошибки при загрузке. –еестр не загружен!';
    end if;    
         
    exception when others then 
