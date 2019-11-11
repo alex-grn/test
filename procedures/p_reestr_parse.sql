@@ -358,7 +358,7 @@ FL:=0;
                                and c.id = s.child07id
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждение!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -557,7 +557,7 @@ FL:=0;
                                and c.id = s.child01id
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждение!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -695,7 +695,7 @@ FL:=0;
                              where s.paysum is not null
                                and t.id = s.benefit02id
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждение!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -852,7 +852,7 @@ FL:=0;
                              where s.paysum is not null
                                and t.id = s.benefit03id
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждение!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -1042,7 +1042,7 @@ FL:=0;
                                and c.id = s.child04id
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждение!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -1246,7 +1246,7 @@ FL:=0;
                                and c.id = s.child05id
                                and c.benefitchildid = BENEFITCHILD_ID
                                and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' необнаружено выплат. –еестр загружен с ошибками!';
+                                SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждение!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -1441,7 +1441,7 @@ FL:=0;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ             
    end if; 
    if fl = 1 then
-   		update BENEFICIARIESREGISTERS S set WRONGLOADING = TRETURN, STATUS = '03' where S.ID = NID;  
+   		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '03' where S.ID = NID;  
         return 'Ќайдены не критические ошибки при загрузке. –еестр загружен с предупреждением!';     
    elsif fl = 2 then
    		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '02' where S.ID = NID;
