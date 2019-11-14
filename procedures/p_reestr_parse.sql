@@ -506,7 +506,7 @@ FL:=0;
                       --
                        begin
                         if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Отсутствует тег childNumber!'; end if;
-                        if dow.col9 <=0 then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Очередность рождения ребенка не может быть <=0 или пустой!'; end if;
+                        if dow.col9::integer <=0 then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Очередность рождения ребенка не может быть <=0 или пустой!'; end if;
                         insert into BENEFITCHILD(uid,lid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber)
                         values(nUSERID,nLID,BENEFITSRECIPIENTS_ID,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer) RETURNING BENEFITCHILD.ID INTO BENEFITCHILD_ID; select max(f.id) into OLDbenefitID from BENEFITCHILD f;
                        exception when others then  
