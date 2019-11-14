@@ -116,7 +116,7 @@ begin
         elsif attr.sprop = 'firstname'	          then tBUF[2]:=attr.svalue;
         elsif attr.sprop = 'patronymic'	          then tBUF[3]:=attr.svalue; sFIO_R:=COALESCE(tBUF[1],'')||' '||COALESCE(tBUF[2],'')||' '||COALESCE(tBUF[3],'');
         elsif attr.sprop = 'birthdate' or attr.sprop = 'dateofbirth' then tBUF[4]:=attr.svalue;  --benefit07 or benefit01
-        elsif attr.sprop = 'childnumber'		  then tBUF[9]:=attr.svalue; if tBUF[9] = '' then tBUF[9] = '0';  end if; if tBUF[9]::numeric = 0  then /*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' childnumber очередность рождения ребенка не может быть 0 или пустой. Реестр не загружен!'; end if;--benefit01
+        elsif attr.sprop = 'childnumber'		  then tBUF[9]:=attr.svalue; if tBUF[9] = '' then tBUF[9] = '0';  end if; --if tBUF[9]::numeric <= 0  then /*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' childnumber очередность рождения ребенка не может быть 0 или пустой. Реестр не загружен!'; end if;--benefit01
        end if;
      --benefit07
      elsif lower(snode) = 'childdocument' then

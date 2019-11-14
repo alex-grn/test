@@ -47,7 +47,7 @@ begin
     return TRETURN;
   end if;
   TRETURN := 'Загрузка успешно завершена';
-  if   TO_NUMBER(TO_CHAR(NOW(), 'dd'), '99') > 11
+  if   TO_NUMBER(TO_CHAR(NOW(), 'dd'), '99') >= 11
         	or (select s.repmonth from BENEFITSPACKETS s where s.id = BENEFITSPACKETS_ID)::numeric != TO_NUMBER(TO_CHAR(NOW() - interval '1 month', 'mm'), '99') 
                or (select s.repyear from BENEFITSPACKETS s where s.id = BENEFITSPACKETS_ID) != TO_NUMBER(TO_CHAR(NOW() - interval '1 month', 'yyyy'), '9999')	
   			then
@@ -261,7 +261,7 @@ FL:=0;
                and trim(LOWER(COALESCE(S.PATRONYMIC, ''))) = LOWER(COALESCE(DOW.COL3, ''))
                and trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7)
                and trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6)
-            /* and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID*/
+               and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
             ;
           exception
             when NO_DATA_FOUND then
@@ -500,12 +500,13 @@ FL:=0;
                          and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
                         and trim(s.docbirthchildnumber) = trim(dow.col7) 
                         and trim(s.docbirthchildserial) = trim(dow.col6)
-                        /*and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID*/;
+                        and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID;
                       exception when no_data_found then
                         if dow.flag = 1 then /*return*/SERRORS := SERRORS||CHR(13)||'Данные по ребенку (указывается Фамилия Имя Отчество (при наличии), серия и номер документа, подтверждающего факт рождения, дата рождения не подтверждены). Реестр загружен с ошибкой.'; fl:=1; end if;
                       --
                        begin
                         if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Отсутствует тег childNumber!'; end if;
+                        if dow.col9 <=0 then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Очередность рождения ребенка не может быть <=0 или пустой!'; end if;
                         insert into BENEFITCHILD(uid,lid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber)
                         values(nUSERID,nLID,BENEFITSRECIPIENTS_ID,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer) RETURNING BENEFITCHILD.ID INTO BENEFITCHILD_ID; select max(f.id) into OLDbenefitID from BENEFITCHILD f;
                        exception when others then  
@@ -972,7 +973,7 @@ FL:=0;
                and trim(LOWER(COALESCE(S.PATRONYMIC, ''))) = LOWER(COALESCE(DOW.COL3, ''))
                and trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7)
                and trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6)
-            /*and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID*/
+            and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
             ;
           exception
             when NO_DATA_FOUND then
@@ -983,7 +984,7 @@ FL:=0;
               end if;
               --
               begin
-              if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Отсутствует тег childNumber!'; end if;
+              --if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Отсутствует тег childNumber!'; end if;
                insert into BENEFITCHILD
                 (UID, LID, BENEFITSRECIPIENTSID, LASTNAME, FIRSTNAME, PATRONYMIC, BENEFITCHILDDATEBIRTH, DOCBIRTHCHILDTYPEID, DOCBIRTHCHILDSERIAL, DOCBIRTHCHILDNUMBER, DOCBIRTHCHILDDATE, BENEFITCHILDUMBER)
                values
@@ -1184,7 +1185,7 @@ FL:=0;
               end if;
               --
               begin
-               if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Отсутствует тег childNumber!'; end if;
+               --if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' серия и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. Отсутствует тег childNumber!'; end if;
                insert into BENEFITCHILD
                 (UID, LID, BENEFITSRECIPIENTSID, LASTNAME, FIRSTNAME, PATRONYMIC, BENEFITCHILDDATEBIRTH, DOCBIRTHCHILDTYPEID, DOCBIRTHCHILDSERIAL, DOCBIRTHCHILDNUMBER, DOCBIRTHCHILDDATE, BENEFITCHILDUMBER)
                values
