@@ -342,10 +342,10 @@ FL:=0;
                   AND (P.PAYSUM IS NULL OR P.PAYSUM = 0)) < 1 then  end if;
           END IF;*/
           begin
-          --гиперсложная проверка по суммам
+          --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
-                           or dow.col0::numeric != 0 and dow.col10::numeric is not null 
+                           or dow.col10::numeric != 0 and dow.col10::numeric is not null 
                            or dow.col13::numeric != 0 and dow.col13::numeric is not null then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
@@ -357,8 +357,8 @@ FL:=0;
                                and t.id = s.benefit07id
                                and c.id = s.child07id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждение!';
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -542,7 +542,7 @@ FL:=0;
                      end;
                     elsif dow.stable = 'BENEFIT01PAYMENT' then 
                      begin 
-                     --гиперсложная проверка по суммам
+                     --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
@@ -557,8 +557,8 @@ FL:=0;
                                and t.id = s.benefit01id
                                and c.id = s.child01id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждение!';
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -683,7 +683,7 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFIT01PAYMENT'
         then
          begin
-         --гиперсложная проверка по суммам
+         --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
@@ -695,8 +695,8 @@ FL:=0;
                                    benefit02 t
                              where s.paysum is not null
                                and t.id = s.benefit02id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждение!';
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -840,7 +840,7 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFIT01PAYMENT'
         then
          begin
-         --гиперсложная проверка по суммам
+         --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
@@ -852,8 +852,8 @@ FL:=0;
                                    benefit03 t
                              where s.paysum is not null
                                and t.id = s.benefit03id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждение!';
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -1027,7 +1027,7 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFIT01PAYMENT'
         then
          begin
-         --гиперсложная проверка по суммам
+         --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
@@ -1042,8 +1042,8 @@ FL:=0;
                                and t.id = s.benefit04id
                                and c.id = s.child04id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждение!';
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -1231,7 +1231,7 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFIT01PAYMENT'
         then
          begin
-         --гиперсложная проверка по суммам
+         --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
@@ -1246,8 +1246,8 @@ FL:=0;
                                and t.id = s.benefit05id
                                and c.id = s.child05id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
-                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждение!';
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                                SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
@@ -1403,7 +1403,7 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFIT01PAYMENT'
         then
          begin
-         --гиперсложная проверка по суммам
+         --проверка по суммам
                        --смотрим есть ли значения в возврате, доплате, удержании
                      	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
@@ -1415,7 +1415,7 @@ FL:=0;
                                    benefit06 t
                              where s.paysum is not null
                                and t.id = s.benefit06id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!'; --статус предупреждение
                                 FL:=1;
                              END IF;
