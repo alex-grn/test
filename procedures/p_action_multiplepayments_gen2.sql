@@ -115,7 +115,7 @@ end if;
                          c.benefitchildid,
                          b.benefitsrecipientsid
        				from benefit0'||ob.rnumber||' b,
-                    	 child'||sSQL||' c,
+                         child'||sSQL||' c,
                          benefitspackets p,
                          benefit0'||ob.rnumber||'payment n
                    where (c.benefitchildid = '||childs||' or '||childs||' = 0 and '||benef||' != 0)
@@ -136,7 +136,31 @@ end if;
                  	MULTIPLEPAYMENTSFOOTER(multiplepaymentsid/*,reason*/,benefitchildid,subjectsdirid,periodpay,sumpay,uid)
                                     values(nPeka, /*1,*/rec.benefitchildid,rec.subjectsdirid,rec.paydate, rec.paysum, nUID); fl:=1;
             end loop;
-       end if;
+    ELSE
+    	for rec in execute 
+      			  'select p.subjectsdirid,
+      					 n.paydate,
+                         n.paysum,
+                         b.benefitsrecipientsid
+       				from benefit0'||ob.rnumber||' b,
+                         benefitspackets p,
+                         benefit0'||ob.rnumber||'payment n
+                   where p.id = b.benefitspacketsid
+                     and n.benefit0'||ob.rnumber||'id = b.id 
+                     and (b.benefitsrecipientsid = '||benef||' or '||benef||' = 0)'
+                     
+        	loop
+                 if nPeka is null then
+                 	insert into MULTIPLEPAYMENTS(uid,benefitstypenamedirid,benefitsrecipientsid) 
+                  			   values(nUID,ob.tIR,rec.benefitsrecipientsid) 
+                            returning MULTIPLEPAYMENTS.id
+                                 into nPeka;
+                 end if;
+            	 insert into 
+                 	MULTIPLEPAYMENTSFOOTER(multiplepaymentsid/*,reason*/,benefitchildid,subjectsdirid,periodpay,sumpay,uid)
+                                    values(nPeka, /*1,*/null,rec.subjectsdirid,rec.paydate, rec.paysum, nUID); fl:=1;
+            end loop;
+    end if;
        -- exception when others then raise using message = childs; end;
      end loop;
     if fl = 0 then raise using message = 'По заданным критериям дублирования выплат не обнаружено'; end if;
