@@ -253,6 +253,8 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFITCHILD'
         then
           begin
+          if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
             select S.ID
               into STRICT OLDBENEFITID
               from BENEFITCHILD S
@@ -492,7 +494,9 @@ FL:=0;
                         update benefit01 s set benefitsrecipientsid = BENEFITSRECIPIENTS_ID where s.id = benefitID;
                     elsif dow.stable = 'BENEFITCHILD' then
                       begin
-                     select s.id
+                     if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          			 if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+          		     select s.id
                        into STRICT OLDbenefitID 
                        from BENEFITCHILD s
                       where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
@@ -963,9 +967,12 @@ FL:=0;
           end;
           update BENEFIT04 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFITCHILD'
-        then
+        then --raise using message = COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(DOW.COL3,'')||' '||COALESCE(DOW.COL7,'')||' '||COALESCE(DOW.COL6,'')||' @ '||COALESCE(BENEFITSRECIPIENTS_ID,0)::text;
+          
           begin
-            select S.ID
+          if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+             select S.ID
               into STRICT OLDBENEFITID
               from BENEFITCHILD S
              where trim(LOWER(COALESCE(S.LASTNAME, ''))) = LOWER(COALESCE(DOW.COL1, ''))
@@ -1167,7 +1174,9 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFITCHILD'
         then
           begin
-            select S.ID
+          if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+             select S.ID
               into STRICT OLDBENEFITID
               from BENEFITCHILD S
              where trim(LOWER(COALESCE(S.LASTNAME, ''))) = LOWER(COALESCE(DOW.COL1, ''))
@@ -1447,6 +1456,7 @@ FL:=0;
    elsif fl = 2 then
    		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '02' where S.ID = NID;
         execute 'delete from '||SNODE||' t where t.benefitstypedirid = '||nID;
+        perform p_action_clear_records(1);
         return 'Найдены критические ошибки при загрузке. Реестр не загружен!';
    end if;    
         
