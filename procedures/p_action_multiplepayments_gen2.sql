@@ -107,6 +107,7 @@ end if;
        	sSQL:='07';
        end if;
     --   begin
+    if ob.rnumber in (1,4,5) then
       for rec in execute 
       			  'select p.subjectsdirid,
       					 n.paydate,
@@ -135,6 +136,7 @@ end if;
                  	MULTIPLEPAYMENTSFOOTER(multiplepaymentsid/*,reason*/,benefitchildid,subjectsdirid,periodpay,sumpay,uid)
                                     values(nPeka, /*1,*/rec.benefitchildid,rec.subjectsdirid,rec.paydate, rec.paysum, nUID); fl:=1;
             end loop;
+       end if;
        -- exception when others then raise using message = childs; end;
      end loop;
     if fl = 0 then raise using message = 'По заданным критериям дублирования выплат не обнаружено'; end if;
