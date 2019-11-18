@@ -557,7 +557,7 @@ FL:=0;
                                and t.id = s.benefit01id
                                and c.id = s.child01id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
@@ -695,7 +695,7 @@ FL:=0;
                                    benefit02 t
                              where s.paysum is not null
                                and t.id = s.benefit02id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
@@ -727,7 +727,7 @@ FL:=0;
         then
           insert into remark(hid,uid,lid,note,benefitsrecipientsid,benefitstypedirid,benefitspacketsid) 
                      values(null,nUSERID,nLID,dow.col1,BENEFITSRECIPIENTS_ID,NID,BENEFITSPACKETS_ID) RETURNING REMARK.ID INTO REMARK_ID;
-                     update benefit01 s set remarkid = REMARK_ID where s.id = benefitID;
+                     update benefit02 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
     end loop;
@@ -852,7 +852,7 @@ FL:=0;
                                    benefit03 t
                              where s.paysum is not null
                                and t.id = s.benefit03id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
@@ -872,7 +872,7 @@ FL:=0;
         then
           insert into remark(hid,uid,lid,note,benefitsrecipientsid,benefitstypedirid,benefitspacketsid) 
                      values(null,nUSERID,nLID,dow.col1,BENEFITSRECIPIENTS_ID,NID,BENEFITSPACKETS_ID) RETURNING REMARK.ID INTO REMARK_ID;
-                     update benefit01 s set remarkid = REMARK_ID where s.id = benefitID;
+                     update benefit03 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
     end loop;  
@@ -1042,13 +1042,13 @@ FL:=0;
                                and t.id = s.benefit04id
                                and c.id = s.child04id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
                         end if; 
                      --
-          if (dow.col4::numeric = 0 or dow.col4 is null) and (dow.col7::numeric = 0 or dow.col7 is null) and (dow.col9::numeric = 0 or dow.col9 is null)and (dow.col11::numeric = 0 or dow.col11 is null) THEN raise using message = 'Все теги с суммами пустые!'; end if;
+          if (dow.col4::numeric = 0 or dow.col4 is null) and (dow.col7::numeric = 0 or dow.col7 is null) and (dow.col9::numeric = 0 or dow.col9 is null) and (dow.col11::numeric = 0 or dow.col11 is null) THEN raise using message = 'Все теги с суммами пустые!'; end if;
           insert into BENEFIT04PAYMENT
             (UID, LID, BENEFIT04ID, COEFFICIENT, BENEFITFORCOEFFICIENT, PAYDATE, PAYSUM, EXTRADATE, EXTRASUM, RETURNDATE, RETURNSUM, RETENTIONDATE, RETENTIONSUM, CHILD04ID)
           values
@@ -1074,7 +1074,7 @@ FL:=0;
         then
           insert into remark(hid,uid,lid,note,benefitsrecipientsid,benefitstypedirid,benefitspacketsid) 
                      values(null,nUSERID,nLID,dow.col1,BENEFITSRECIPIENTS_ID,NID,BENEFITSPACKETS_ID) RETURNING REMARK.ID INTO REMARK_ID;
-                     update benefit01 s set remarkid = REMARK_ID where s.id = benefitID;
+                     update benefit04 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
     end loop;  
@@ -1246,7 +1246,7 @@ FL:=0;
                                and t.id = s.benefit05id
                                and c.id = s.child05id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!';
                                 FL:=1;
                              END IF;
@@ -1278,7 +1278,7 @@ FL:=0;
         then
           insert into remark(hid,uid,lid,note,benefitsrecipientsid,benefitstypedirid,benefitspacketsid) 
                      values(null,nUSERID,nLID,dow.col1,BENEFITSRECIPIENTS_ID,NID,BENEFITSPACKETS_ID) RETURNING REMARK.ID INTO REMARK_ID;
-                     update benefit01 s set remarkid = REMARK_ID where s.id = benefitID;
+                     update benefit05 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
     end loop;
@@ -1415,7 +1415,7 @@ FL:=0;
                                    benefit06 t
                              where s.paysum is not null
                                and t.id = s.benefit06id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (col4::numeric is null or col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
                                 SERRORS := SERRORS||CHR(13)||'По '||temp||' выплат не обнаружено. Реестр загружен с предупреждением!'; --статус предупреждение
                                 FL:=1;
                              END IF;
@@ -1435,7 +1435,7 @@ FL:=0;
         then
          insert into remark(hid,uid,lid,note,benefitsrecipientsid,benefitstypedirid,benefitspacketsid) 
                      values(null,nUSERID,nLID,dow.col1,BENEFITSRECIPIENTS_ID,NID,BENEFITSPACKETS_ID) RETURNING REMARK.ID INTO REMARK_ID;
-                     update benefit01 s set remarkid = REMARK_ID where s.id = benefitID;
+                     update benefit06 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
     end loop;
