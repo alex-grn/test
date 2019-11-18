@@ -253,16 +253,16 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFITCHILD'
         then
           begin
-          if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
-          if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+        --  if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+        --  if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
             select S.ID
               into STRICT OLDBENEFITID
               from BENEFITCHILD S
              where trim(LOWER(COALESCE(S.LASTNAME, ''))) = LOWER(COALESCE(DOW.COL1, ''))
                and trim(LOWER(COALESCE(S.FIRSTNAME, ''))) = LOWER(COALESCE(DOW.COL2, ''))
                and trim(LOWER(COALESCE(S.PATRONYMIC, ''))) = LOWER(COALESCE(DOW.COL3, ''))
-               and trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7)
-               and trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6)
+               and (trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7) or DOW.COL7 is null)
+               and (trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6) or DOW.COL6 is null)
                and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
             ;
           exception
@@ -970,16 +970,16 @@ FL:=0;
         then --raise using message = COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(DOW.COL3,'')||' '||COALESCE(DOW.COL7,'')||' '||COALESCE(DOW.COL6,'')||' @ '||COALESCE(BENEFITSRECIPIENTS_ID,0)::text;
           
           begin
-          if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
-          if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+          --if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          --if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
              select S.ID
               into STRICT OLDBENEFITID
               from BENEFITCHILD S
              where trim(LOWER(COALESCE(S.LASTNAME, ''))) = LOWER(COALESCE(DOW.COL1, ''))
                and trim(LOWER(COALESCE(S.FIRSTNAME, ''))) = LOWER(COALESCE(DOW.COL2, ''))
                and trim(LOWER(COALESCE(S.PATRONYMIC, ''))) = LOWER(COALESCE(DOW.COL3, ''))
-               and trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7)
-               and trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6)
+               and (trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7) or DOW.COL7 is null)
+               and (trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6) or DOW.COL6 is null)
             and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
             ;
           exception
@@ -1174,16 +1174,16 @@ FL:=0;
         elsif DOW.STABLE = 'BENEFITCHILD'
         then
           begin
-          if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
-          if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+          --if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          --if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)||' ФИО ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
              select S.ID
               into STRICT OLDBENEFITID
               from BENEFITCHILD S
              where trim(LOWER(COALESCE(S.LASTNAME, ''))) = LOWER(COALESCE(DOW.COL1, ''))
                and trim(LOWER(COALESCE(S.FIRSTNAME, ''))) = LOWER(COALESCE(DOW.COL2, ''))
                and trim(LOWER(COALESCE(S.PATRONYMIC, ''))) = LOWER(COALESCE(DOW.COL3, ''))
-               and trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7)
-               and trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6)
+               and (trim(S.DOCBIRTHCHILDNUMBER) = trim(DOW.COL7) or DOW.COL7 is null)
+               and (trim(S.DOCBIRTHCHILDSERIAL) = trim(DOW.COL6) or DOW.COL6 is null)
                and S.BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID;
           exception
             when NO_DATA_FOUND then
