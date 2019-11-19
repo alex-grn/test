@@ -130,6 +130,7 @@ begin
 FOR REC in (select S.COL1 from FILE_IMP S where s.stable = 'ERRORS')
 loop
 	update BENEFICIARIESREGISTERS s set wrongloading = COALESCE(wrongloading,'')||chr(13)||rec.col1, status = '02' where s.id = NID;
+    update BENEFITSPACKETS S set STATUSPACK  = '03' where S.ID = BENEFITSPACKETS_ID; --статус ошибка в пакетах реестра
     FL:=1;
 end loop;
 if FL = 1 then

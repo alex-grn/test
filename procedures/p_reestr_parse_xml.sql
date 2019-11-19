@@ -195,22 +195,22 @@ begin
        elsif lower(snode) = 'pay' then
            if attr.sprop = 'paydatefrom' 	      then tBUF[2]:=attr.svalue;
         elsif attr.sprop = 'paydateto' 	      	  then tBUF[3]:=attr.svalue;
-        elsif attr.sprop = 'paysum' 	          then tBUF[4]:=replace(attr.svalue,',','.'); if tBUF[4] = '' then tBUF[4] = '0'; flag:=2; end if; if tBUF[4]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumPay при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'paysum' 	          then tBUF[4]:=replace(attr.svalue,',','.'); if tBUF[4] = '' then tBUF[4] = '0'; flag:=2; end if; if tBUF[4]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumPay при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         end if;
        elsif lower(snode) = 'surcharge' then
            if attr.sprop = 'surchargedatefrom' 	  then tBUF[5]:=attr.svalue;
         elsif attr.sprop = 'surchargedateto' 	  then tBUF[6]:=attr.svalue;
-        elsif attr.sprop = 'surchargesum' 	      then tBUF[7]:=replace(attr.svalue,',','.'); if tBUF[7] = '' then tBUF[7] = '0'; flag:=2; end if; if tBUF[7]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' surchargesum при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'surchargesum' 	      then tBUF[7]:=replace(attr.svalue,',','.'); if tBUF[7] = '' then tBUF[7] = '0'; flag:=2; end if; if tBUF[7]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' surchargesum при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         end if;
        elsif lower(snode) = 'refund' then
            if attr.sprop = 'refunddatefrom' 	  then tBUF[8]:=attr.svalue;
         elsif attr.sprop = 'refunddateto' 	      then tBUF[9]:=attr.svalue;
-        elsif attr.sprop = 'refundsum' 	          then tBUF[10]:=replace(attr.svalue,',','.'); if tBUF[10] = '' then tBUF[10] = '0'; flag:=2; end if; if tBUF[10]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' refundsum при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'refundsum' 	          then tBUF[10]:=replace(attr.svalue,',','.'); if tBUF[10] = '' then tBUF[10] = '0'; flag:=2; end if; if tBUF[10]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' refundsum при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         end if; 
        elsif lower(snode) = 'holddate' then
            if attr.sprop = 'holddatefrom' 	      then tBUF[11]:=attr.svalue;
         elsif attr.sprop = 'holddateto' 	      then tBUF[12]:=attr.svalue;
-        elsif attr.sprop = 'holdsum' 	          then tBUF[13]:=replace(attr.svalue,',','.'); if tBUF[13] = '' then tBUF[13] = '0'; flag:=2; end if; if tBUF[13]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' holdsum при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'holdsum' 	          then tBUF[13]:=replace(attr.svalue,',','.'); if tBUF[13] = '' then tBUF[13] = '0'; flag:=2; end if; if tBUF[13]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' holdsum при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         end if; 
        elsif lower(snode) = 'comment' then
            if attr.sprop = 'comment' 			  then tBUF[1]:=attr.svalue;
@@ -222,16 +222,16 @@ begin
         end if;
      elsif lower(snode) = 'periodpayments' then
      	   if attr.sprop = 'regionalcoefficient'  then tBUF[1]:=attr.svalue;
-        elsif attr.sprop = 'sumtotal' 	  		  then tBUF[2]:=replace(attr.svalue,',','.'); if tBUF[2] = '' then tBUF[2] = '0'; flag:=2; end if; if tBUF[2]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumtotal при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'sumtotal' 	  		  then tBUF[2]:=replace(attr.svalue,',','.'); if tBUF[2] = '' then tBUF[2] = '0'; flag:=2; end if; if tBUF[2]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumtotal при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         elsif attr.sprop = 'datepay' 	  	      then tBUF[3]:=attr.svalue;
-        elsif attr.sprop = 'sumpay' 	  		  then tBUF[4]:=replace(attr.svalue,',','.'); if tBUF[4] = '' then tBUF[4] = '0'; flag:=2; end if; if tBUF[4]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumPay при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'sumpay' 	  		  then tBUF[4]:=replace(attr.svalue,',','.'); if tBUF[4] = '' then tBUF[4] = '0'; flag:=2; end if; if tBUF[4]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumPay при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         elsif attr.sprop = 'date' 				  then tBUF[5]:=attr.svalue;
         elsif attr.sprop = 'dateextra' 			  then tBUF[6]:=attr.svalue;
-        elsif attr.sprop = 'extrapay' 			  then tBUF[7]:=replace(attr.svalue,',','.'); if tBUF[7] = '' then tBUF[7] = '0'; flag:=2; end if; if tBUF[7]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' extrapay при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'extrapay' 			  then tBUF[7]:=replace(attr.svalue,',','.'); if tBUF[7] = '' then tBUF[7] = '0'; flag:=2; end if; if tBUF[7]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' extrapay при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         elsif attr.sprop = 'datereturn' 		  then tBUF[8]:=attr.svalue;
-        elsif attr.sprop = 'sumreturn' 			  then tBUF[9]:=replace(attr.svalue,',','.'); if tBUF[9] = '' then tBUF[9] = '0'; flag:=2;  end if; if tBUF[9]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumreturn при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'sumreturn' 			  then tBUF[9]:=replace(attr.svalue,',','.'); if tBUF[9] = '' then tBUF[9] = '0'; flag:=2;  end if; if tBUF[9]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumreturn при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         elsif attr.sprop = 'dateretention' 		  then tBUF[10]:=attr.svalue;
-        elsif attr.sprop = 'sumretention' 		  then tBUF[11]:=replace(attr.svalue,',','.'); if tBUF[11] = '' then tBUF[11] = '0'; flag:=2; end if; if tBUF[11]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumretention при заполнении должно быть больше нуля. Реестр не загружен!'; end if;
+        elsif attr.sprop = 'sumretention' 		  then tBUF[11]:=replace(attr.svalue,',','.'); if tBUF[11] = '' then tBUF[11] = '0'; flag:=2; end if; if tBUF[11]::numeric <= 0 and flag <> 2 then flag:=0;/*raise using message =*/sERRORS:=sERRORS||chr(13)|| 'Для '||sFIO||' sumretention при заполнении должно быть больше нуля. Реестр не загружен!'; end if;flag:=0;
         end if; 
      end if;
    end loop;
@@ -358,7 +358,7 @@ begin
    --raise using message = sERRORS||' @';
    if sERRORS != '' then 
    	insert into file_imp(stable,col1)	
-    values('ERRORS',sERRORS);
+    values('ERRORS',sERRORS); 
    end if;
    -- рекурсивная обработка дочерних узлов
    for child in

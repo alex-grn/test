@@ -1,0 +1,23 @@
+CREATE OR REPLACE FUNCTION public.t_beneficiariesregisters_before_d (
+)
+RETURNS trigger AS
+$body$
+    DECLARE
+		sSTATUSPACK varchar;
+    BEGIN
+        if (select count(*) from beneficiariesregisters s where s.status = '02' and s.id = old.id) > 0 then
+        	update benefitspackets s set statuspack = '03' where s.id = old.benefitspacketsid;
+        else 
+            update benefitspackets s set statuspack = '02' where s.id = old.benefitspacketsid;
+        end if;
+        RETURN old;
+    END;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.t_beneficiariesregisters_before_d ()
+  OWNER TO postgres;
