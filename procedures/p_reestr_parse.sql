@@ -1455,8 +1455,9 @@ FL:=0;
         return 'Найдены не критические ошибки при загрузке. Реестр загружен с предупреждением!';     
    elsif fl = 2 then
    		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '02' where S.ID = NID;
+        update BENEFITSPACKETS S set STATUSPACK  = '03' where S.ID = BENEFITSPACKETS_ID; --статус ошибка в пакетах реестра
         execute 'delete from '||SNODE||' t where t.benefitstypedirid = '||nID;
-        perform p_action_clear_records(1);
+        --perform p_action_clear_records(1);
         return 'Найдены критические ошибки при загрузке. Реестр не загружен!';
    end if;    
         
@@ -1478,6 +1479,7 @@ FL:=0;
          set WRONGLOADING = TRETURN,
              STATUS       = '02'
        where S.ID = NID;
+       update BENEFITSPACKETS S set STATUSPACK  = '03' where S.ID = BENEFITSPACKETS_ID; --статус ошибка в пакетах реестра
      --insert into WRONGLOADING( benefitspacketsid,wrong,benefitstypenamedirid) values( nPACK,tRETURN,nType);
    end;
   

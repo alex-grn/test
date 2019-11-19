@@ -261,21 +261,22 @@ end if;
                        group by b.benefitsrecipientsid,h.paydate, h.id, p.subjectsdirid
        			   ) 
                    loop
-                   	  for dub in (
-                      			   select b.benefitsrecipientsid, to_char(h.paydate,'dd.mm.yyyy') as ddate,
-                                   		  COALESCE(h.paysum,0) as ssum, p.subjectsdirid
+                   	  if (
+                      			   select count(*)
         	 		  				 from benefit03 b, benefitspackets p, benefit03payment h
        				                where b.benefitsrecipientsid = rec.benefitsrecipientsid
          	   		   				  and p.id = b.benefitspacketsid
                		                  and h.benefit03id = b.id
                                       and h.id != rec.paysID
           	  		                  and p.repyear = nYEAR 
-                                      and (TO_DATE(left(H.PAYDATE, 10), 'dd.mm.yyyy') between REC.DDATE1 and REC.DDATE2 
-                                       or TO_DATE(right(H.PAYDATE, 10), 'dd.mm.yyyy') between REC.DDATE1 and REC.DDATE2 
-                                       or (TO_DATE(left(H.PAYDATE, 10), 'dd.mm.yyyy') >= REC.DDATE1 
-                                           and TO_DATE(right(H.PAYDATE, 10), 'dd.mm.yyyy') <= REC.DDATE2))
-                      			  ) 
-                                  loop
+                                      and (to_date(left(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') <= rec.ddate1
+                                      and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate1
+                                       or to_date(left(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') <= rec.ddate2
+                                      and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate2
+                                      or to_date(left(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate1
+                                      and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') <= rec.ddate2)
+                      			  ) > 0 then
+                                  
                                   	if( select count(*)
                                        from MULTIPLEPAYMENTS m
                                       where m.benefitsrecipientsid = rec.benefitsrecipientsid and m.benefitstypenamedirid = ob.tIR and m.uid = nUID) > 0 then
@@ -285,8 +286,8 @@ end if;
                                             values(nUID,ob.tIR,rec.benefitsrecipientsid) RETURNING MULTIPLEPAYMENTS.id into nPeka; fl:=1;
                                     end if;
                                   	 insert into MULTIPLEPAYMENTSFOOTER(multiplepaymentsid,reason,subjectsdirid,periodpay,sumpay,uid)
-                                         values(nPeka,1,dub.subjectsdirid,dub.ddate, dub.ssum,nuid); fl:=1;
-                                  end loop;
+                                         values(nPeka,1,rec.subjectsdirid,to_char(rec.ddate,'dd.mm.yyyy'), rec.ssum,nuid); fl:=1;
+                                  end if;
                    end loop;
                    
     elsif ob.rnumber = 4 then 
@@ -306,9 +307,8 @@ end if;
                        group by b.benefitsrecipientsid,c.benefitchildid,h.paydate, h.id, p.subjectsdirid,s.docbirthchildnumber, s.docbirthchildserial
        			   ) 
                    loop
-                   	  for dub in (
-                      			   select b.benefitsrecipientsid, to_char(h.paydate,'dd.mm.yyyy') as ddate,
-                                   		  COALESCE(h.paysum,0) as ssum, p.subjectsdirid
+                   	  if (
+                      			   select count(*)
         	 		  				 from benefit04 b, benefitspackets p, benefit04payment h, child04 c, benefitchild s
        				                where b.benefitsrecipientsid = rec.benefitsrecipientsid
          	   		   				  and p.id = b.benefitspacketsid
@@ -325,8 +325,7 @@ end if;
                                       and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate2
                                       or to_date(left(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate1
                                       and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') <= rec.ddate2)
-                      			  ) 
-                                  loop
+                      			  ) > 0 then
                                   	if( select count(*)
                                        from MULTIPLEPAYMENTS m
                                       where m.benefitsrecipientsid = rec.benefitsrecipientsid and m.benefitstypenamedirid = ob.tIR and m.uid = nUID) > 0 then
@@ -335,21 +334,11 @@ end if;
                                       insert into MULTIPLEPAYMENTS(uid,benefitstypenamedirid,benefitsrecipientsid) 
                                             values(nUID,ob.tIR,rec.benefitsrecipientsid) RETURNING MULTIPLEPAYMENTS.id into nPeka; fl:=1;
                                     end if;
-                                  	 if (select count(*)
-                                     	  from MULTIPLEPAYMENTSFOOTER m 
-                                    	 where m.multiplepaymentsid = nPeka 
-                                    	   and m.reason = '1'
-                                           and m.benefitchildid = rec.benefitchildid
-                                           and m.subjectsdirid = dub.subjectsdirid
-                                           and m.periodpay = dub.ddate
-                                           and m.sumpay = dub.ssum and m.uid = nUID) = 0 then 
                                   	 insert into MULTIPLEPAYMENTSFOOTER(multiplepaymentsid,reason,benefitchildid,subjectsdirid,periodpay,sumpay,uid)
-                                         values(nPeka,1,rec.benefitchildid,dub.subjectsdirid,dub.ddate, dub.ssum,nuid); fl:=1;
-                                    end if;
-                                  end loop;
-                        for dub in (
-                      			   select b.benefitsrecipientsid, to_char(h.paydate,'dd.mm.yyyy') as ddate,
-                                   		  COALESCE(h.paysum,0) as ssum, p.subjectsdirid
+                                         values(nPeka,1,rec.benefitchildid,rec.subjectsdirid,to_char(rec.ddate,'dd.mm.yyyy'), rec.ssum,nuid); fl:=1;
+                                  end if;
+                        if (
+                      			   select count(*)
         	 		  				 from benefit04 b, benefitspackets p, benefit04payment h, child04 c, benefitchild s
        				                where p.id = b.benefitspacketsid
                		                  and h.benefit04id = b.id
@@ -366,8 +355,7 @@ end if;
                                       and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate2
                                       or to_date(left(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate1
                                       and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') <= rec.ddate2)
-                      			  ) 
-                                  loop
+                      			  ) > 0 then
                                   	if( select count(*)
                                        from MULTIPLEPAYMENTS m
                                       where m.benefitsrecipientsid = rec.benefitsrecipientsid and m.benefitstypenamedirid = ob.tIR and m.uid = nUID) > 0 then
@@ -375,27 +363,18 @@ end if;
                                     else
                                       insert into MULTIPLEPAYMENTS(uid,benefitstypenamedirid,benefitsrecipientsid) 
                                             values(nUID,ob.tIR,rec.benefitsrecipientsid) RETURNING MULTIPLEPAYMENTS.id into nPeka; fl:=1;
-                                    end if;
-                                  	 if (select count(*)
-                                     	  from MULTIPLEPAYMENTSFOOTER m 
-                                    	 where m.multiplepaymentsid = nPeka 
-                                    	   and m.reason = '1'
-                                           and m.benefitchildid = rec.benefitchildid
-                                           and m.subjectsdirid = dub.subjectsdirid
-                                           and m.periodpay = dub.ddate
-                                           and m.sumpay = dub.ssum) = 0 then 
+                                    end if; 
                                   	 insert into MULTIPLEPAYMENTSFOOTER(multiplepaymentsid,reason,benefitchildid,subjectsdirid,periodpay,sumpay,uid)
-                                         values(nPeka,1,rec.benefitchildid,dub.subjectsdirid,dub.ddate, dub.ssum,nuid); fl:=1;
-                                    end if;
-                                  end loop;
+                                         values(nPeka,1,rec.benefitchildid,rec.subjectsdirid,to_char(rec.ddate,'dd.mm.yyyy'), rec.ssum,nuid); fl:=1;
+                                  end if;
                    end loop;
                    
     elsif ob.rnumber = 5 then 
     
        for rec in (
-       				select b.benefitsrecipientsid, c.benefitchildid, h.id as paysID, p.subjectsdirid, h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/ as ddate,
+       				select b.benefitsrecipientsid, c.benefitchildid, h.id as paysID, p.subjectsdirid, h.paydate as ddate,
                     		COALESCE(h.paysum,0) as ssum, s.docbirthchildnumber, s.docbirthchildserial,
-                           to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') as ddate1, to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') as ddate2
+                           to_date(left(h.paydate,10),'dd.mm.yyyy') as ddate1, to_date(right(h.paydate,10),'dd.mm.yyyy') as ddate2
         	 		  from benefit05 b, benefitspackets p, benefit05payment h, child05 c, benefitchild s
        				 where (b.benefitsrecipientsid = benef or all_fields_h = 1)
          	   		   and p.id = b.benefitspacketsid
@@ -404,31 +383,28 @@ end if;
                		   and (c.benefitchildid = childs or all_fields_c = 1)
           	  		   and p.repyear = nYEAR 
                        and s.id = c.benefitchildid
-                       group by b.benefitsrecipientsid,c.benefitchildid,h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/, h.id, p.subjectsdirid,s.docbirthchildnumber, s.docbirthchildserial
+                       group by b.benefitsrecipientsid,c.benefitchildid,h.paydate, h.id, p.subjectsdirid,s.docbirthchildnumber, s.docbirthchildserial
        			   ) 
                    loop
-                   	  for dub in (
-                      			   select b.benefitsrecipientsid, h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/ as ddate,
-                                   		  COALESCE(h.paysum,0) as ssum, p.subjectsdirid
+                   	  if (
+                      			   select count(*)
         	 		  				 from benefit05 b, benefitspackets p, benefit05payment h, child05 c, benefitchild s
        				                where b.benefitsrecipientsid = rec.benefitsrecipientsid
          	   		   				  and p.id = b.benefitspacketsid
                		                  and h.benefit05id = b.id
                		                  and c.id = h.child05id
-               		                  --and c.benefitchildid = rec.benefitchildid
                                       and s.id = c.benefitchildid
                                      and s.docbirthchildnumber = rec.docbirthchildnumber
                                      and s.docbirthchildserial = rec.docbirthchildserial
                                       and h.id != rec.paysID
           	  		                  and p.repyear = nYEAR 
-                                      and (to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') <= rec.ddate1
-                                      and to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') >= rec.ddate1
-                                       or to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') <= rec.ddate2
-                                      and to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') >= rec.ddate2
-                                      OR to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') >= rec.ddate1
-                                      and to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') <= rec.ddate2)
-                      			  ) 
-                                  loop
+                                      and (to_date(left(h.paydate,10),'dd.mm.yyyy') <= rec.ddate1
+                                      and to_date(right(h.paydate,10),'dd.mm.yyyy') >= rec.ddate1
+                                       or to_date(left(h.paydate,10),'dd.mm.yyyy') <= rec.ddate2
+                                      and to_date(right(h.paydate,10),'dd.mm.yyyy') >= rec.ddate2
+                                      OR to_date(left(h.paydate,10),'dd.mm.yyyy') >= rec.ddate1
+                                      and to_date(right(h.paydate,10),'dd.mm.yyyy') <= rec.ddate2)
+                      			  ) > 0 then
                                   	if( select count(*)
                                        from MULTIPLEPAYMENTS m
                                       where m.benefitsrecipientsid = rec.benefitsrecipientsid and m.benefitstypenamedirid = ob.tIR and m.uid = nUID) > 0 then
@@ -446,30 +422,27 @@ end if;
                                            and m.periodpay = dub.ddate
                                            and m.sumpay = dub.ssum and m.uid = nUID) = 0 then 
                                   	 insert into MULTIPLEPAYMENTSFOOTER(multiplepaymentsid,reason,benefitchildid,subjectsdirid,periodpay,sumpay,uid)
-                                         values(nPeka,1,rec.benefitchildid,dub.subjectsdirid,dub.ddate, dub.ssum,nuid); fl:=1;
+                                         values(nPeka,1,rec.benefitchildid,rec.subjectsdirid,rec.ddate, rec.ssum,nuid); fl:=1;
                                     end if;
-                                  end loop;
-                        for dub in (
-                      			   select b.benefitsrecipientsid, h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/ as ddate,
-                                   		  COALESCE(h.paysum,0) as ssum, p.subjectsdirid
+                                  end if;
+                        if (
+                      			   select count(*)
         	 		  				 from benefit05 b, benefitspackets p, benefit05payment h, child05 c, benefitchild s
        				                where p.id = b.benefitspacketsid
                		                  and h.benefit05id = b.id
                		                  and c.id = h.child05id
-               		                  --and c.benefitchildid = rec.benefitchildid
                                       and s.id = c.benefitchildid
                                      and s.docbirthchildnumber = rec.docbirthchildnumber
                                      and s.docbirthchildserial = rec.docbirthchildserial
                                       and h.id != rec.paysID
           	  		                  and p.repyear = nYEAR 
-                                      and (to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') <= rec.ddate1
-                                      and to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') >= rec.ddate1
-                                       or to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') <= rec.ddate2
-                                      and to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') >= rec.ddate2
-                                      OR to_date(left(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') >= rec.ddate1
-                                      and to_date(right(h.paydate/*COALESCE(h.paydate,h.retentiondate,h.returndate,h.extradate)*/,10),'dd.mm.yyyy') <= rec.ddate2)
-                      			  ) 
-                                  loop
+                                      and (to_date(left(h.paydate,10),'dd.mm.yyyy') <= rec.ddate1
+                                      and to_date(right(h.paydate,10),'dd.mm.yyyy') >= rec.ddate1
+                                       or to_date(left(h.paydate,10),'dd.mm.yyyy') <= rec.ddate2
+                                      and to_date(right(h.paydate,10),'dd.mm.yyyy') >= rec.ddate2
+                                      OR to_date(left(h.paydate,10),'dd.mm.yyyy') >= rec.ddate1
+                                      and to_date(right(h.paydate,10),'dd.mm.yyyy') <= rec.ddate2)
+                      			  ) > 0 then
                                   	if( select count(*)
                                        from MULTIPLEPAYMENTS m
                                       where m.benefitsrecipientsid = rec.benefitsrecipientsid and m.benefitstypenamedirid = ob.tIR and m.uid = nUID) > 0 then
@@ -477,19 +450,10 @@ end if;
                                     else
                                       insert into MULTIPLEPAYMENTS(uid,benefitstypenamedirid,benefitsrecipientsid) 
                                             values(nUID,ob.tIR,rec.benefitsrecipientsid) RETURNING MULTIPLEPAYMENTS.id into nPeka; fl:=1;
-                                    end if;
-                                  	if (select count(*)
-                                     	  from MULTIPLEPAYMENTSFOOTER m 
-                                    	 where m.multiplepaymentsid = nPeka 
-                                    	   and m.reason = '1'
-                                           and m.benefitchildid = rec.benefitchildid
-                                           and m.subjectsdirid = dub.subjectsdirid
-                                           and m.periodpay = dub.ddate
-                                           and m.sumpay = dub.ssum and m.uid = nUID) = 0 then 
+                                    end if; 
                                   	 insert into MULTIPLEPAYMENTSFOOTER(multiplepaymentsid,reason,benefitchildid,subjectsdirid,periodpay,sumpay, uid)
-                                         values(nPeka,1,rec.benefitchildid,dub.subjectsdirid,dub.ddate, dub.ssum,nuid); fl:=1;
-                                    end if;
-                                  end loop;
+                                         values(nPeka,1,rec.benefitchildid,rec.subjectsdirid,rec.ddate, rec.ssum,nuid); fl:=1;
+                                  end if;
                    end loop;    
     
     elsif ob.rnumber = 6 then 
@@ -506,9 +470,8 @@ end if;
                        group by b.benefitsrecipientsid,h.paydate, h.id, p.subjectsdirid
        			   ) 
                    loop
-                   	  for dub in (
-                      			   select b.benefitsrecipientsid, to_char(h.paydate,'dd.mm.yyyy') as ddate,
-                                   		  COALESCE(h.paysum,0) as ssum, p.subjectsdirid
+                   	  if (
+                      			   select count(*)
         	 		  				 from benefit06 b, benefitspackets p, benefit06payment h
        				                where b.benefitsrecipientsid = rec.benefitsrecipientsid
          	   		   				  and p.id = b.benefitspacketsid
@@ -521,8 +484,7 @@ end if;
                                       and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate2
                                       or to_date(left(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') >= rec.ddate1
                                       and to_date(right(to_char(h.paydate,'dd.mm.yyyy')||'-'||to_char(h.paydate,'dd.mm.yyyy'),10),'dd.mm.yyyy') <= rec.ddate2)
-                      			  ) 
-                                  loop
+                      			  ) > 0 then
                                   	if( select count(*)
                                        from MULTIPLEPAYMENTS m
                                       where m.benefitsrecipientsid = rec.benefitsrecipientsid and m.benefitstypenamedirid = ob.tIR and m.uid = nUID) > 0 then
@@ -532,8 +494,8 @@ end if;
                                             values(nUID,ob.tIR,rec.benefitsrecipientsid) RETURNING MULTIPLEPAYMENTS.id into nPeka; fl:=1;
                                     end if;
                                   	 insert into MULTIPLEPAYMENTSFOOTER(multiplepaymentsid,reason,subjectsdirid,periodpay,sumpay,uid)
-                                         values(nPeka,1,dub.subjectsdirid,dub.ddate, dub.ssum,nuid); fl:=1;
-                                  end loop;
+                                         values(nPeka,1,rec.subjectsdirid,to_char(rec.ddate,'dd.mm.yyyy'), rec.ssum,nuid); fl:=1;
+                                  end if;
                    end loop;
                    
     elsif ob.rnumber = 7 then 
