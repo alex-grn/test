@@ -488,7 +488,6 @@
 		<GA id="FL" name="ФЛ" caption="ФЛ">
 			<A id="PHONE" name="Телефон" caption="Телефон" labelwidth="610" type="string" nulls="true" visible="form" local="true"/>
 			<A id="POSTCODE" name="Почтовый индекс" caption="Почтовый индекс" labelwidth="610" type="string" nulls="true" visible="form" local="true"/>
-			<A id="DEPARTMENTDIRID" labelwidth="120"/>
 			<A id="REGIONDIRID" labelwidth="120" nulls="false"/>
 			<A id="SETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="120" type="string" nulls="false" visible="form" local="true"/>
 			<A id="STREET" name="Улица" caption="Улица" labelwidth="120" type="string" nulls="false" visible="form" local="true"/>
@@ -1033,14 +1032,16 @@
 			<A id="CITIZENRYID" parentkey="cascade"/>
 			<A id="HIDEDATE" name="Скрытая дата" caption="Скрытая дата" type="datetime" nulls="true" visible="false" formula="now()" local="true"/>
 			<GA id="EDUCATIONCITYZEN" name="Образование" caption="Образование">
-				<A id="LEVELEDUCATION" caption="Уровень образования" labelwidth="150" nulls="false"/>
-				<A id="SPECIALTYEDUCATIONDIRID" caption="Специальность" labelwidth="150" nulls="true"/>
+				<A id="LEVELEDUCATION" caption="Уровень образования" labelwidth="150" nulls="true"/>
+				<A id="SPECIALTYEDUCATIONDIRID" name="Код специальности" caption="Код специальности" limit="0" labelwidth="150" ret="CODESPE" form="Specialtyeducationdir" visible="form" nulls="true"/>
+				<A id="SPECIALTYEDUCATIONDIRVIRT" name="Специальность" caption="Специальность" limit="0" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMESPEC from SPECIALTYEDUCATIONDIR where ID = @SPECIALTYEDUCATIONDIRID"/>
 				<A id="SPECIALTYEDUCATIONDIROLDID" labelwidth="150"/>
 				<A id="EDUCATIONALINSTITUTION" name="Учебное заведение" caption="Учебное заведение" labelwidth="150" type="string" nulls="true" visible="form" local="true"/>
 				<A id="COMMENT" caption="Комментарий" labelwidth="150" type="text" nulls="true" visible="form" local="true"/>
 			</GA>
 			<GA id="EXPERIENCECITYZEN" name="Опыт работы" caption="Опыт работы">
-				<A id="PROFESSIONDIRID" name="Должность" caption="Должность" labelwidth="150" nulls="true"/>
+				<A id="PROFESSIONDIRID" name="Код по ОКПДТР" limit="0" caption="Код по ОКПДТР" labelwidth="150" ret="CODEPROF" form="Professiondir" visible="form" nulls="true"/>
+				<A id="PROFESSIONDIRVIRT" name="Должность" limit="0" caption="Должность" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAME from PROFESSIONDIR where ID = @PROFESSIONDIRID" local="true"/>
 				<A id="QUALIFICATION" caption="Класс (категория) квалификации" labelwidth="150" type="list" nulls="true" visible="form" local="true">
 					<AI id="1" name="1 разряд"/>
 					<AI id="2" name="2 разряд"/>
@@ -1072,7 +1073,7 @@
 		<TABLE id="DIRECTION" name="Планы заданий">
 			<GA id="DATAFORCITIZENDIRECTION" name="Данные о Гражданине" caption="Данные о Гражданине">
 				<A id="CITIZENRYID" caption="Гражданин" labelwidth="150" parentkey="nocascade" visible="true"/>
-				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="150" width="40" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select x.settlement from CITIZENRY x where x.id = @CITIZENRYID::bigint" local="true"/>
+				<A id="HUMANSETTLEMENT" name="Населенный пункт" caption="Населенный пункт" labelwidth="150" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select x.settlement from CITIZENRY x where x.id = @CITIZENRYID::bigint" local="true"/>
 				<A id="PROFESSIONDIR" name="Профессии" caption="Профессии" labelwidth="150" type="string" visible="form" readonly="true" virtual="true" formula="select p.name from CITIZENRY x, EDUCATIONCIT e, professiondir p where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id and e.professiondirid = p.id and e.hidedate = (select max(hidedate) from EDUCATIONCIT ee where ee.citizenryid = e.citizenryid)"/>
 				<A id="LEVELEDUCATION" name="Образование" caption="Образование" labelwidth="150" type="list" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.leveleducation from CITIZENRY x, EDUCATIONCIT e where x.id = @CITIZENRYID::bigint and e.citizenryid = x.id and e.hidedate = (select max(hidedate) from EDUCATIONCIT ee where ee.citizenryid = e.citizenryid)" local="true">
 					<AI id="1" name="Дошкольное образование"/>
