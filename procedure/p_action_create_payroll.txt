@@ -1,0 +1,194 @@
+CREATE OR REPLACE FUNCTION public.p_action_create_payroll (
+  id bigint,
+  ddocdate date,
+  bpay boolean,
+  bchairman boolean,
+  uid bigint
+)
+RETURNS text AS
+$body$
+declare 
+    IDENT   BIGINT := ID;
+	RC      RECORD;
+	nVED    BIGINT;																--Тип документа "ведомость"
+    UD      BIGINT;																--Уровень доступа текущего пользователя
+    nID     BIGINT;
+    tSQL    TEXT;
+    KOLS    INTEGER;																--Количество ведомостей
+    CR      TEXT:=CHR(13);
+    SQL_BUF TEXT;																--SQL буффер для каждого условия
+    NAL		TEXT;																--Наличка
+    BEZ	    TEXT;																--Безнал
+    N_PR   	TEXT;																--НЕ Председатель
+    PR		TEXT;																--Председатель
+begin
+	--Проверка
+    IF (SELECT COUNT(*) FROM SHEETS S WHERE S.REGISTERID = IDENT) > 0 THEN RAISE USING MESSAGE = 'Ведомость по оплате труда уже сформирована!'; END IF;
+    SELECT D.ID INTO nVED FROM DOCTYPES D WHERE lower(D.CODE) = 'ведомость';
+    SELECT L.ID INTO UD FROM USERS U, LEVACCESS L WHERE U.ID = P_ACTION_CREATE_PAYROLL.UID AND L.ID = U.LEVACCESSID;
+    --Шаблон запроса для заполнения таблицы SHEETDETAILS.
+    tSQL:='SELECT RS.COMMITTEEMANID,
+	      (SELECT SUM(V.SUMPAY) FROM PAYS V, SLCOMPCHARGES T WHERE V.REGISTERLISTID = RS.ID AND T.ID = V.SLCOMPCHARGESID AND UPPER(T.DESCRIPTION) = ''COMPENSATION'') AS SUMCOMP,
+   	      (SELECT SUM(V.SUMPAY) FROM PAYS V, SLCOMPCHARGES T WHERE V.REGISTERLISTID = RS.ID AND T.ID = V.SLCOMPCHARGESID AND UPPER(T.DESCRIPTION) = ''SUMEXTRA12'') AS SUMEXTRA12,
+   	      (SELECT SUM(V.SUMPAY) FROM PAYS V, SLCOMPCHARGES T WHERE V.REGISTERLISTID = RS.ID AND T.ID = V.SLCOMPCHARGESID AND UPPER(T.DESCRIPTION) = ''EXTRAA'') AS EXTRAA,
+          CH.TRPERSONID,
+          CH.PERSONACCID,
+          RS.ID AS REGLISTID
+                    FROM REGISTERLIST RS,										--Члены избирательной комиссии по ведомости=
+                         COMMITTEEMAN CH,										--Члены избирательных комиссий
+                         POSTS P												--Должности
+                   WHERE RS.REGISTERID = '||IDENT||'
+                     AND CH.ID = RS.COMMITTEEMANID 
+                     AND (SELECT SP.SUMPAY FROM PAYS SP, SLCOMPCHARGES SL WHERE SP.REGISTERLISTID = RS.ID AND SL.ID = SP.SLCOMPCHARGESID AND SL.DESCRIPTION = ''SUMALL'') != 0
+                     AND P.ID = CH.POSTSID'||CR;
+                     
+    NAL:='AND CH.PERSONACCID IS NULL'||CR||' AND CH.TRPERSONID IS NULL'||CR;      --Наличка
+    BEZ:='AND CH.PERSONACCID IS NOT NULL'||CR||' AND CH.TRPERSONID IS NOT NULL'||CR; --Безнал
+    N_PR:='AND LOWER(P.CODE) NOT LIKE ''председатель%'''||CR;					--НЕ Председатель
+    PR:='AND LOWER(P.CODE) LIKE ''председатель%'''||CR;							--Председатель
+    
+   	--условия по "Разбить ведомости по виду оплаты (наличный и безналичный)"(BPAY) и "Выделить председателя в отдельную ведомость"(bchairman)    
+    IF BCHAIRMAN AND BPAY THEN 	
+       /*
+      Выделим председателя в отдельную ведомость. 
+      По остальным членам спецификации REGISTERLIST определим есть ли реквизиты перечисления в таблице COMMITTEEMAN
+      по полям PERSONID и PERSONACCID, и выделим в 2 группы. Итого = 3 документа
+      */
+      KOLS:=3;
+    ELSIF NOT BCHAIRMAN AND BPAY THEN
+      /*
+      2 документа: один на председателя, второй-по остальным членам ИК
+      */
+      KOLS:=2;	
+    ELSIF BCHAIRMAN AND NOT BPAY THEN
+      /*
+      2 документа по виду оплаты
+      */
+      KOLS:=2;	
+    ELSIF NOT BCHAIRMAN AND NOT BPAY THEN
+      /*
+      Одна ведомость, в которую включаются все члены по расчетному документу
+      */
+      KOLS:=1;
+    END IF; 
+    
+	
+    FOR I IN 1..KOLS LOOP
+      INSERT INTO SHEETS(
+       				     CODE,
+       				     DOCTYPEID,
+                         DOCPREF,
+                         DOCNUMB,
+                         DOCDATE,
+                         ELECTCAMPAIGNID,
+                         ELECTDATE,
+                         ELECTCOMMINCAMPID,
+                         REGISTERID
+                         )
+       			  SELECT
+                   	     'Ведомость '||TO_CHAR(DDOCDATE,'YYYY')||UD||'-'||(SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||UD AND CID=0)||' от '||to_char(ddocdate,'dd.mm.yyyy'),
+                   	     nVED,
+                         TO_CHAR(DDOCDATE,'YYYY')||'-'||UD,
+                         (SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||UD AND CID=0),
+                         DDOCDATE,
+                         R.ELECTCAMPAIGNID,
+                         (SELECT IK.ELECTDATE FROM ELECTCAMPAIGN IK WHERE IK.ID = R.ELECTCAMPAIGNID),
+                         R.ELECTCOMMINCAMPID,
+                         R.ID
+                    FROM REGISTER R
+                   WHERE R.ID = IDENT
+               RETURNING SHEETS.ID 
+                    INTO nID;
+        IF BCHAIRMAN AND BPAY THEN 	
+           IF I = 1 THEN  --Отдельно председатели
+            SQL_BUF:=tSQL;
+           	SQL_BUF:=SQL_BUF||PR;  --Председатель
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+           ELSIF I = 2 THEN --Без председателей и наличкой
+           	SQL_BUF:=tSQL;
+            SQL_BUF:=SQL_BUF||N_PR;  --НЕ Председатель
+            SQL_BUF:=SQL_BUF||BEZ;   --Безнал
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+           ELSIF I = 3 THEN --Без председателей и безналом
+           	SQL_BUF:=tSQL;
+            SQL_BUF:=SQL_BUF||N_PR;  --НЕ Председатель
+            SQL_BUF:=SQL_BUF||NAL;   --Наличка
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+           END IF;
+        ELSIF NOT BCHAIRMAN AND BPAY THEN
+           IF I = 1 THEN --Наличкой
+           	SQL_BUF:=tSQL;
+            SQL_BUF:=SQL_BUF||NAL;
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;             
+           ELSIF I = 2 THEN --Безналом
+           	SQL_BUF:=tSQL;
+            SQL_BUF:=SQL_BUF||BEZ;
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+           END IF;	
+        ELSIF BCHAIRMAN AND NOT BPAY THEN
+           IF I = 1 THEN --Председатель
+           	SQL_BUF:=tSQL;
+            SQL_BUF:=SQL_BUF||PR;
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+           ELSIF I = 2 THEN --НЕ Председатель
+           	SQL_BUF:=tSQL;
+            SQL_BUF:=SQL_BUF||N_PR;
+            FOR RC IN EXECUTE SQL_BUF
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+           END IF;
+        ELSIF NOT BCHAIRMAN AND NOT BPAY THEN
+           FOR RC IN EXECUTE tSQL
+           	LOOP
+            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
+                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
+            END LOOP;
+        END IF;
+      
+    END LOOP;                
+      
+    RETURN NULL;    
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_create_payroll (id bigint, ddocdate date, bpay boolean, bchairman boolean, uid bigint)
+  OWNER TO magicbox;

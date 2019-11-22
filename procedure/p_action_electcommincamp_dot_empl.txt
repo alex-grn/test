@@ -1,0 +1,128 @@
+CREATE OR REPLACE FUNCTION public.p_action_electcommincamp_dot_empl (
+  id bigint,
+  begindate date,
+  enddate date
+)
+RETURNS void AS
+$body$
+ declare 
+  CAMPID    BIGINT:= ID;
+  BDATE date := BEGINDATE; --неоднозначная ссылка
+  EDATE  date := ENDDATE; --неоднозначная ссылка
+  --LVLCOM TEXT := UPPER(LEVELELCOMMITTEE); --неоднозначная ссылка //убрали параметр levelelcommittee по событию 3829
+  REC    record;
+  IZ     record;
+  RK     record;
+  STEMP  TEXT;
+  NID    BIGINT;
+  COMPIT TEXT := 'Компенсация'; --таблица pays всегда компенсация
+  COMID  BIGINT;
+  REGID  BIGINT;
+  tDOC   bigint;
+  TIK    TEXT := 'territory'; --код ТИК в системе
+begin 
+  for REC in (select S.*
+                from ELECTCOMMINCAMP S
+               where S.ID = CAMPID) loop
+   -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //убрали параметр levelelcommittee по событию 3829
+    if REC.levelelcommittee != TIK then raise using message = 'Документ формируется только для ТИК!'; end if;
+    select s.id
+      into tDOC
+      from DOCTYPES s
+     where lower(S.code) = 'ведомость дот за активную работу членам тик';
+    --проверка 3842
+    /*	
+    	Не создан ли такой документ. Проверку надо поводить по типу документа и периоду работы комиссии
+    */
+    if (select count(*) from register r where r.ELECTCOMMINCAMPid = rec.id and r.doctypeid = tDOC) > 0 then 
+    	raise using message = 'Документ уже существует!';
+    end if;
+   
+    STEMP := tDOC|| '_' || --Код избирательного участка
+             (select COALESCE(TO_CHAR(X.ELECTDATE, 'dd.mm.yyyy'), '')
+                from ELECTCAMPAIGN X
+               where X.ID = REC.ELECTCAMPAIGNID) || '_'; --Дата выборов
+    update ELECTCOMMINCAMP S
+       set msregister = COALESCE(msregister, 0) + 1
+     where S.ID = REC.ID; --апдейтим КОД
+    insert into REGISTER
+      (CODE,
+       doctypeid,
+       STATUS,
+       ELECTCAMPAIGNID,
+       BEGINDATE,
+       ENDDATE,
+       electcommincampid, /* ELECDISTNUMB,*/
+       DATELOADTBL,
+       RESPONSPERSID /*, LEVELELCOMMITTEE ,indicationcircuit,indicationship*/)
+      select STEMP,
+             tDOC,
+             1,
+             REC.ELECTCAMPAIGNID,
+             BDATE,
+             EDATE,
+             REC.ID, /* X.ELECDISTNUMB,*/
+             null,
+             null /*, LVLCOM ,x.INDICATIONCIRCUIT,x.INDICATIONSHIP*/ returning REGISTER.ID
+        into REGID;
+       update REGISTER s set code = s.code||s.id where s.id = REGID;
+       --raise using message = REGID;
+    for IZ in (select R.CODE,
+                      R.ID,
+                      R.POSTSID,
+                      R.PERSONID
+                 from ELECTCOMMITTEE X, COMMITTEEMAN R, POSTS D
+                where X.ID = REC.ELECTCOMMITTEEID
+                  and R.ELECTCOMMITTEEID = X.ID
+                  and D.ID = R.POSTSID
+                  and BDATE between R.POSTBEGINDATE and R.POSTENDDATE
+                  and d.levelelcommittee = TIK
+                  and lower(d.code) != 'председатель тик') loop
+      insert into REGISTERLIST
+        (REGISTERID,
+         CODE,
+         COMMITTEEMANID,
+         MIDDLESALARY,
+         DEPCOEFF,
+         LEVELDCCHAIRMAN /*, WHCOMP, WHEXTRAFULL, WHEXTRANIGHT, WHEXTRAHOL, WHEXTRAWORKDAY*/)
+        select REGID,
+               IZ.CODE,
+               IZ.ID,
+               0,
+               0,
+               TIK /*,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0*/ returning REGISTERLIST.ID
+          into NID;
+      
+      select S.ID
+        into COMID
+        from SLCOMPCHARGES S
+       where LOWER(trim(S.code)) = LOWER('ДОТ за активную работу');
+      insert into PAYS
+        (REGISTERLISTID, SLCOMPCHARGESID)
+      values
+        (NID, COMID);
+      select S.ID
+        into COMID
+        from SLCOMPCHARGES S
+       where LOWER(trim(S.code)) = LOWER('ВСЕГО');
+      insert into PAYS
+        (REGISTERLISTID, SLCOMPCHARGESID)
+      values
+        (NID, COMID);
+    end loop;
+  end loop;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_electcommincamp_dot_empl (id bigint, begindate date, enddate date)
+  OWNER TO magicbox;

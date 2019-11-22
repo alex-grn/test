@@ -1,0 +1,42 @@
+CREATE OR REPLACE FUNCTION public.p_action_sheets_roll_back (
+  idlist text
+)
+RETURNS void AS
+$body$
+DECLARE
+--Действие "Расформировать ведомость" в разделе "Ведомости по оплате труда"
+--vkorytko@rambler.ru
+ rec  record;
+ nid bigint;		--id таблицы заполения;
+BEGIN
+for rec in(
+   select s.id
+     from sheets s
+    where s.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+          )
+     loop
+     update pays p set sheetsid = null where p.sheetsid = rec.id;
+     delete from sheets s where s.id = rec.id;
+/*--Удаляем Реестр перечислений REGISTERSTRANSFERS
+--Список перечислений SLREGTRNPR удаляется каскадом DELETE CASCADE
+      delete from registerstransfers where id in
+      (select sd.REGISTERSTRANSFERSID 
+         from SHEETDETAILS sd 
+        where sdsheetsid = rec.id );
+--обнуляем суммы состава ведомости
+      update SHEETDETAILS s
+         set sumtrn  = null, 
+	     registerstransfersid = null
+       where s.sheetsid = rec.id;
+*/
+ end loop;
+END;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_sheets_roll_back (idlist text)
+  OWNER TO magicbox;

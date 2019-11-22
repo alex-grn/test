@@ -1,0 +1,24 @@
+CREATE OR REPLACE FUNCTION public.p_action_depcoeff_fillingout (
+  idlist text,
+  fed_value numeric,
+  reg_value numeric
+)
+RETURNS void AS
+$body$
+declare
+ rec record;
+begin
+  for REC in (select X.ID from ELECTCOMMITTEE X where X.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+  loop
+   	update ELECTCOMMITTEE s set discoefffed = fed_value, discoefreg = reg_value where s.id = rec.id;
+  end loop; 
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_depcoeff_fillingout (idlist text, fed_value numeric, reg_value numeric)
+  OWNER TO magicbox;

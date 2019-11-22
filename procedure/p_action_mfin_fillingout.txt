@@ -1,0 +1,35 @@
+CREATE OR REPLACE FUNCTION public.p_action_mfin_fillingout (
+  mfin integer,
+  begindate date,
+  idlist text
+)
+RETURNS void AS
+$body$
+DECLARE
+ tMFIN INTEGER:= mfin;  --переменная
+ dBEGINdaTE date:=begindate;
+ rec  record;
+ sp	  record;
+ nDATE date;		--дата начала
+ eDATE date; 		--дата конца
+ nMFIN bigint;		--id таблицы заполения;
+BEGIN
+    for rec IN(
+    			select s.id as ELECTCOMMITTEEID
+                  from ELECTCOMMITTEE s
+                 where s.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+    		 	)
+                loop
+                	update mfin s set enddate = dBEGINdaTE - 1 where s.electcommitteeid = rec.ELECTCOMMITTEEID and (s.begindate<= dBEGINdaTE and (s.enddate>= dBEGINdaTE or s.enddate is NULL));
+                    insert into mfin(electcommitteeid,  mfin, begindate) values(rec.ELECTCOMMITTEEID,  tMFIN, dBEGINdaTE);
+                end loop;
+END;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_mfin_fillingout (mfin integer, begindate date, idlist text)
+  OWNER TO magicbox;

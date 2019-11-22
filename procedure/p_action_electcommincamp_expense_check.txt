@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION public.p_action_electcommincamp_expense_check (
+  idlist text
+)
+RETURNS text AS
+$body$
+declare
+  NID_AGENTACC BIGINT;
+  REC          record;
+begin
+  for REC in (select S.SUMFIN,S.ID,T.CODE
+  				from FINEXP S,
+                	 TYPEEXP T
+ 			   where S.ELECTCOMMINCAMPID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                 AND T.ID = S.TYPEEXPID)
+  loop 
+    if (rec.SUMFIN - p_action_finexp_sumpay(REC.ID)) < 0 then 
+    	RETURN 'Превышены расходы на оплату труда по направлению расходов '||REC.CODE||' на сумму '||ABS(rec.SUMFIN - p_action_finexp_sumpay(REC.ID));
+    end if;
+  end loop;
+  RETURN NULL;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_electcommincamp_expense_check (idlist text)
+  OWNER TO magicbox;

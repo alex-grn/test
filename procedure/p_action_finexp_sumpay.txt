@@ -1,0 +1,60 @@
+CREATE OR REPLACE FUNCTION public.p_action_finexp_sumpay (
+  id bigint
+)
+RETURNS numeric AS
+$body$
+declare
+  NSUM NUMERIC;
+begin
+ /*
+ Расчетное поле.
+ •	SUMPAY (сумма расхода):
+1.	По полю «Направление расхода» (TYPEEXPID) текущей записи, определить выплаты, которые учитываются при определении расхода, по спецификации TYPEEXPSL.
+2.	Найти записи таблицы PAYS, для которой главный родитель «Избирательная комиссия в избирательной кампании» (ELECTCOMMINCAMPID) = родителю текущей записи, 
+	и выплата (SLCOMPCHARGESID) лежит в списке. Определенном на первом шаге.
+3.	По найденным записям найти сумму по полю SUMPAY.
+
+4. Дополнение. Группируем суммы по уровню избирательной комиссии, в которой находится член ИК. 
+Если уровень - УИК, то находим в сведениях о финансировании запись, где в поле включение в смету = смета УИК, 
+для ТИКа - в смету ТИК
+ */
+
+
+
+SELECT SUM(P.SUMPAY)
+  INTO NSUM
+  FROM FINEXP F, --="Сведения о финансировании и расходах">
+       TYPEEXP T,
+       TYPEEXPSL TS,
+       ELECTCOMMINCAMP E,
+	ELECTCOMMITTEE el,
+       REGISTER R,
+       REGISTERLIST RS,
+       PAYS P
+ WHERE F.ID = P_ACTION_FINEXP_SUMPAY.ID
+   AND T.ID = F.TYPEEXPID
+   AND TS.TYPEEXPID = T.ID
+   AND E.ID = F.ELECTCOMMINCAMPID
+   AND T.mestimate = true
+   AND R.ELECTCOMMINCAMPID = E.ID
+   AND RS.REGISTERID = R.ID
+   AND P.REGISTERLISTID = RS.ID
+   AND P.SLCOMPCHARGESID = TS.SLCOMPCHARGESID
+--
+   AND E.electcommitteeid=el.id
+   and F.LEVELESTIMATE = el.LEVELELCOMMITTEE    --"territory"--'Смета ТИК'  Включение в смету
+						--"district" name="Смета УИК"/>
+   ;
+ 
+ return round(NSUM,2);
+ 
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_finexp_sumpay (id bigint)
+  OWNER TO magicbox;

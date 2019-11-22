@@ -1,0 +1,148 @@
+CREATE OR REPLACE FUNCTION public.p_report_register_hours_worked (
+  idlist text,
+  uid bigint,
+  chairman bigint,
+  vicechairman bigint,
+  secretary bigint
+)
+RETURNS text AS
+$body$
+declare
+  NUID 		  BIGINT:=UID;
+  RC          record;
+  PR 		   record;
+  tSQL	      text;
+  nMANS		  integer;
+begin
+
+                  
+DELETE FROM T_REPORT_REGISTER_HOURS_WORKED T WHERE T.UID = NUID;
+--заполняем ФИО
+  	FOR RC IN (
+    			SELECT RS.COMMITTEEMANID,
+                	   row_number() over() as num,
+                       ''''||COALESCE(m.surname,'')||' '||COALESCE(m.firstname,'')||' '||COALESCE(m.middlename,'')||'''' as fio,
+                       RS.ID AS REGLIST_ID
+                  FROM REGISTER R,
+                       REGISTERLIST RS,
+                       COMMITTEEMAN m
+                 WHERE R.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                   AND RS.REGISTERID = R.ID
+                   AND M.ID = RS.COMMITTEEMANID
+    			)
+			LOOP
+            	
+            	if RC.num = 1 then
+                     execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,uid)
+                        				values('||RC.fio||',''fio'','||NUID||');';
+                else
+                     execute 'update t_report_register_hours_worked s set col'||RC.num||'='||RC.fio||' where s.block = ''fio'';';
+                end if;  
+                --собираем часы 
+                FOR PR IN (
+                			SELECT to_char(w.datetbl,'dd.mm.yyyy') as datetbl, 
+                            	   string_agg(COALESCE(to_char(w.timebegintbl::time,'hh24:mi'),'')||'-'||COALESCE(to_char(w.timeendtbl::time,'hh24:mi'),'')||' '||COALESCE((select case w.typepay when 'K' then 'К' when 'D' then 'Д' end),'')||' '||replace((w.whcomp+w.whextrafull)::text,'0',''),chr(13)) as times,
+                                   COALESCE(t.code,'') as type_day
+                              FROM WORKTBL W
+                               left join typeday t on t.id = w.typedayid
+                             WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                            group by w.datetbl,t.code
+                            order by w.datetbl
+                			)
+                		   LOOP
+                           
+                              if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,date,type_day,UID)
+                        				values('''||pr.times||''',''time'','''||pr.datetbl||''','''||pr.type_day||''','||NUID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.times||''' where s.block = ''time'' and s.date = '''||pr.datetbl||''';';
+                			  end if; 
+                              
+                           END LOOP;
+                --Отработано часов, всего
+                FOR PR IN (
+                		    SELECT SUM((COALESCE(w.whcomp,0)+COALESCE(w.whextrafull,0))) AS SUMM FROM WORKTBL W WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                		  )           
+                          LOOP 
+                          	  if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,UID)
+                        				values('''||pr.SUMM||''',''worked_hours'','||NUID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.SUMM||''' where s.block = ''worked_hours'';';
+                			  end if;
+                          END LOOP;   
+                --Для выплаты компенсации
+                FOR PR IN (
+                		    SELECT SUM(COALESCE(w.whcomp,0)) AS SUMM FROM WORKTBL W WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                		  )           
+                          LOOP 
+                          	  if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,UID)
+                        				values('''||pr.SUMM||''',''compensation'','||NUID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.SUMM||''' where s.block = ''compensation'';';
+                			  end if;
+                          END LOOP;   
+                --Для дополнительной оплаты труда (вознаграждения), всего
+                FOR PR IN (
+                		    SELECT SUM(COALESCE(w.whextrafull,0)) AS SUMM FROM WORKTBL W WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                		  )           
+                          LOOP 
+                          	  if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,UID)
+                        				values('''||pr.SUMM||''',''extra_pay'','||NUID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.SUMM||''' where s.block = ''extra_pay'';';
+                			  end if;
+                          END LOOP;     
+                --в том числе:в ночное время
+                FOR PR IN (
+                		    SELECT SUM(COALESCE(w.WHEXTRANIGHT,0)) AS SUMM FROM WORKTBL W WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                		  )           
+                          LOOP 
+                          	  if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,UID)
+                        				values('''||pr.SUMM||''',''night_time'','||NUID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.SUMM||''' where s.block = ''night_time'';';
+                			  end if;
+                          END LOOP;    
+                --в выходные и нерабочие праздничные дни
+                FOR PR IN (
+                		    SELECT SUM(COALESCE(w.WHEXTRAHOL,0)) AS SUMM FROM WORKTBL W WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                		  )           
+                          LOOP 
+                          	  if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,UID)
+                        				values('''||pr.SUMM||''',''weekend_time'','||NUID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.SUMM||''' where s.block = ''weekend_time'';';
+                			  end if;
+                          END LOOP; 
+                --
+                FOR PR IN (
+                		    SELECT SUM((COALESCE(W.WHEXTRAFULL,0)-COALESCE(W.WHEXTRANIGHT,0)-COALESCE(W.WHEXTRAHOL,0))) AS SUMM FROM WORKTBL W WHERE W.REGISTERLISTID = RC.REGLIST_ID
+                		  )           
+                          LOOP 
+                          	  if RC.num = 1 then
+                     				execute 'insert into t_report_register_hours_worked (col'||RC.num||',block,UID)
+                        				values('''||pr.SUMM||''',''others_days'','||UID||');';
+                			  else
+                     				execute 'update t_report_register_hours_worked s set col'||RC.num||'='''||pr.SUMM||''' where s.block = ''others_days'';';
+                			  end if;
+                          END LOOP;
+            END LOOP;
+            
+   
+              
+      return null;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_report_register_hours_worked (idlist text, uid bigint, chairman bigint, vicechairman bigint, secretary bigint)
+  OWNER TO magicbox;

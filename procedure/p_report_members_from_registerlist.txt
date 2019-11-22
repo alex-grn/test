@@ -1,0 +1,63 @@
+CREATE OR REPLACE FUNCTION public.p_report_members_from_registerlist (
+  nreg bigint,
+  num integer,
+  type text
+)
+RETURNS text AS
+$body$
+declare 
+						
+    RC			RECORD;
+    TMP			TEXT;
+    TSQL 		TEXT;
+    
+begin
+/*
+	Достанем информацию из членов избирательно коммисси по одному
+    fio       ФИО
+    post  	  должность
+    bdate	  дата начала
+    edate	  дата окончания	
+    avgsum	  средняя заработкая плата
+*/
+	IF TYPE = 'fio' THEN
+    	TMP:='split_part(string_agg(COALESCE(m.surname,'''')||'' ''||COALESCE(m.firstname,'''')||'' ''||COALESCE(m.middlename,''''),''/''),''/'','||num||')';
+    ELSIF TYPE = 'fio_code' THEN
+    	TMP:='split_part(string_agg(M.CODE,''/''),''/'','||num||')';
+    ELSIF TYPE = 'post' THEN
+    	TMP:='split_part(string_agg(P.POSTPRINT,''/''),''/'','||num||')';
+    ELSIF TYPE = 'bdate' THEN
+    	TMP:='split_part(string_agg(d2s(M.POSTBEGINDATE),''/''),''/'','||num||')';
+    ELSIF TYPE = 'edate' THEN
+		TMP:='split_part(string_agg(d2s(M.POSTENDDATE),''/''),''/'','||num||')';
+	ELSIF TYPE = 'avgsum' THEN
+    	TMP:='';
+    END IF;
+    
+    TSQL:='select '||TMP||' AS VALUE
+  	  		 from registerlist r,
+  	       		  committeeman m,
+                  posts p
+     		where r.registerid = '||nreg||'
+       		  and m.id = r.committeemanid
+              and p.id = m.postsid
+  		 group by r.registerid
+  		 ;';
+    
+    FOR RC IN EXECUTE TSQL
+    	LOOP
+        	TMP:=RC.VALUE;
+        END LOOP;
+
+    RETURN TMP;
+     
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_report_members_from_registerlist (nreg bigint, num integer, type text)
+  OWNER TO magicbox;

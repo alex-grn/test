@@ -1,0 +1,112 @@
+CREATE OR REPLACE FUNCTION public.p_action_unloading_reestr_to_bank (
+  fdate date,
+  ident bigint,
+  id bigint
+)
+RETURNS text AS
+$body$
+declare
+	NID  bigint:=ID;
+    tXML text;				
+    CR   text:=chr(13); 	--enter 
+    TB   text:=chr(9);		--tab
+    RC	record;
+	EMP record;	
+    sERRORS TEXT:='';
+    FL INTEGER;
+begin
+  
+	tXML:='<?xml version="1.0" encoding="UTF-8"?>'||CR;
+    FOR RC IN (SELECT R.ID,
+    				  COALESCE(R.CONTRACTNUMB,'') AS CONTRACTNUMB,
+    				  COALESCE(R.DOCNUMB,'') AS DOCNUMB,
+                      COALESCE(IK.NAME,'') AS NAME_IK,
+                      COALESCE(IK.INN,'') AS INN_IK,
+                      COALESCE(RS.BANKACC,'') AS BANKACC, 
+                      COALESCE(RS.DEPARTMENT::text,'') AS OTDEL,
+                      COALESCE(R.BIC,'') AS BIC
+    								FROM REGISTERSTRANSFERS R 
+    								LEFT JOIN ELECTCOMMINCAMP K ON K.ID = R.ELECTCOMMINCAMPID 
+                                    INNER JOIN ELECTCOMMITTEE IK ON IK.ID = K.ELECTCOMMITTEEID
+                                    LEFT JOIN ELCMTACC RS ON RS.ID = R.ELCMTACCID
+                                    WHERE R.ID = NID) LOOP
+	tXML:=tXML||'<СчетаПК'
+          -- ||' xmlns:xs="http://www.w3.org/2001/XMLSchema"'
+          -- ||' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+          -- ||' xmlns="http://v8.1c.ru/edi/edi_stnd/109"'
+          -- ||' xsi:type="СчетПК"'
+           ||' ДатаФормирования="'||to_char(fdate,'yyyy-mm-dd')||'"'
+           ||' НомерДоговора="'||RC.CONTRACTNUMB||'"'
+          -- ||' ДатаДоговора="2010-11-09"'										--???
+           ||' НаименованиеОрганизации="'||RC.NAME_IK||'"'
+           ||' ИНН="'||RC.INN_IK||'"'
+           ||' РасчетныйСчетОрганизации="'||RC.BANKACC||'"'
+           ||' БИК="'||RC.BIC||'"'
+          -- ||' ИдПервичногоДокумента="'||'?'||'"'								--???
+           ||' НомерРеестра="'||RC.DOCNUMB||'">'||CR;
+          -- ||' ДатаРеестра="'||'?'||'">'||CR;  --Тег <СчетаПК>					  ???
+           
+    tXML:=tXML||'<ЗачислениеЗарплаты>'||CR;
+    
+    	FOR EMP IN (
+        			SELECT ROW_NUMBER() OVER() AS NUM, 
+                    	   COALESCE(C.SURNAME,'') AS SURNAME,
+                           COALESCE(C.FIRSTNAME,'') AS FIRSTNAME,
+                           COALESCE(C.MIDDLENAME,'') AS MIDDLENAME,
+                           COALESCE(A.DEPARTMENT::TEXT,'') AS OTDEL_B,
+                           COALESCE(A.BRANCHOFFICE::TEXT,'') AS FILIAL_B,
+                           COALESCE(A.BANKACC,'') AS ACC_B,
+                           COALESCE(S.SUMTRN,0) AS SUMMA
+                      FROM SLREGTRNPR S
+                INNER JOIN COMMITTEEMAN C ON C.ID = S.COMMITTEEMANID
+                 LEFT JOIN PERSONACC A ON A.ID = S.PERSONACCID
+                     WHERE S.REGISTERSTRANSFERSID = RC.ID
+        			)
+                    LOOP
+                    	IF EMP.OTDEL_B = '' THEN FL:=1; SERRORS:=SERRORS||CR||EMP.SURNAME||' '||EMP.FIRSTNAME||' '||EMP.MIDDLENAME||';'; END IF;
+                     	tXML:=tXML||TB||'<Сотрудник Нпп="'||EMP.NUM||'">'||CR
+			   							||TB||TB||'<Фамилия>'||EMP.SURNAME||'</Фамилия>'||CR
+										||TB||TB||'<Имя>'||EMP.FIRSTNAME||'</Имя>'||CR
+										||TB||TB||'<Отчество>'||EMP.MIDDLENAME||'</Отчество>'||CR
+										||TB||TB||'<ОтделениеБанка>'||EMP.OTDEL_B||'</ОтделениеБанка>'||CR
+										||TB||TB||'<ФилиалОтделенияБанка>'||EMP.FILIAL_B||'</ФилиалОтделенияБанка>'||CR
+										||TB||TB||'<ЛицевойСчет>'||EMP.ACC_B||'</ЛицевойСчет>'||CR
+										||TB||TB||'<Сумма>'||round(EMP.SUMMA,2)||'</Сумма>'||CR
+										--||'<КодВалюты>'||'?'||'</КодВалюты>'||CR --???
+								   ||TB||'</Сотрудник>'||CR;
+                    END LOOP;
+                    
+    tXML:=tXML||'</ЗачислениеЗарплаты>'||CR;  
+    tXML:=tXML||'<ВидЗачисления>01</ВидЗачисления>'||CR; 
+    tXML:=tXML||'<КонтрольныеСуммы>'||CR;
+    
+    	FOR EMP IN (
+        			SELECT COUNT(*) AS KOL_VO, COALESCE(SUM(COALESCE(S.SUMTRN,0)),0) AS SUMMA 
+                    FROM SLREGTRNPR S, COMMITTEEMAN C, PERSONACC A 
+                    WHERE S.REGISTERSTRANSFERSID = RC.ID AND C.ID = S.COMMITTEEMANID AND A.ID = S.PERSONACCID
+                    )
+                    LOOP 
+                    	tXML:=tXML||TB||'<КоличествоЗаписей>'||EMP.KOL_VO||'</КоличествоЗаписей>'||CR
+								  ||TB||'<СуммаИтого>'||round(EMP.SUMMA,2)||'</СуммаИтого>'||CR;
+                    END LOOP;
+                   
+	tXML:=tXML||'</КонтрольныеСуммы>'||CR;                   
+    tXML:=tXML||'</СчетаПК>'||CR;
+     
+    --Чистим буферную таблицу, затем закидываем XML 
+    DELETE FROM FILEBUFFER WHERE CID = IDENT;
+    INSERT INTO FILEBUFFER(CID, FILENAME, BFILE) VALUES (IDENT, COALESCE(RC.OTDEL::text,'')||COALESCE(RC.DOCNUMB,'')||'z.xml', P_SYSTEM_FILE_FROM_TEXT(tXML)); 
+    UPDATE REGISTERSTRANSFERS T SET FILENAME = COALESCE(RC.OTDEL::text,'')||COALESCE(RC.DOCNUMB,'')||'z.xml', FORMDATE = TO_CHAR(FDATE,'dd.mm.yyyy') WHERE T.ID = RC.ID;         
+   END LOOP;
+   IF FL = 1 THEN RAISE USING MESSAGE = 'Не указан номер отделения банка! У физических лиц:'||CR||LTRIM(SERRORS,CR); END IF;
+   return null;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_unloading_reestr_to_bank (fdate date, ident bigint, id bigint)
+  OWNER TO magicbox;
