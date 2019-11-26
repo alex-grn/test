@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="sheet_calculation_uik.xlsx" documentpath="sheet_calculation_uik.xlsx" outputtype="xlsx" outputnamepattern="sheet_calculation_uik.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select reg.name as name_sub,
+									--ik.name as name_ter,
+									(select i.name from ELECTCOMMITTEE i where I.IDGASECOM = IK.IDGASPARECOM) as name_ter,
+								c.officialname as name_cho,
+								ik.ELECDISTNUMB as num_uch,
+								case
+								 when p_tools_dmonth_to_nmonth(c.begindate)-p_tools_dmonth_to_nmonth(c.enddate)!=0 then p_tools_dmonth_to_smonth(c.begindate)||'-'||p_tools_dmonth_to_smonth(c.enddate)
+                                 ELSE p_tools_dmonth_to_smonth(c.begindate)
+                                 end as month,
+								to_char(electdate,'yy') as year
+							from register r,
+									ELECTCOMMINCAMP k,
+								ELECTCAMPAIGN c,
+								ELECTCOMMITTEE ik,
+								REGIONSRF Reg
+							where r.id = ${id}::bigint
+							and k.id = r.electcommincampid
+							and c.id = k.electcampaignid
+							and ik.id = k.electcommitteeid
+							and reg.id = ik.regionsrfid
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							  select row_number() over () as pp, tbl.fio,tbl.post,
+									/*sum(comp)*/'помесячно' as comp,
+									sum(days_worked) as days_worked,
+									sum(compensation) as compensation,
+									max(dop_ot) as dop_ot,
+									max(r_coef) as r_coef,
+									sum(week_days) as week_days,
+									sum(night_days) as night_days,
+									sum(dop_money) as dop_money,
+									max(v_coef) as v_coef,
+									sum(n_sum) as n_sum
+								FROM(
+								select  ch.id,
+								  COALESCE(ch.surname,'')||' '||COALESCE(ch.firstname,'')||' '||COALESCE(ch.middlename,'') as fio,
+								  case p.postprint when 'CHAIRMAN' then 'Председатель' when 'DEPCHAIRMAN' then 'Заместитель председателя' when 'SECRETARY' then 'Секретарь' when 'OTHERCM' then 'Член комиссии' end as post,
+								  COALESCE((select COALESCE(sum(COALESCE(pp.norm,0)),0) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as comp,
+								  COALESCE((select sum(COALESCE(pp.workhours,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as days_worked,
+								  COALESCE((select sum(COALESCE(pp.sumpay,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as compensation,
+								  COALESCE((select sum(COALESCE(pp.norm,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRA1'),0) as dop_ot,
+								  case ik.levelelcampaign
+                                   when 'central' then (select t.discoefffed from ELECTCOMMITTEE t where t.id = i.electcommitteeid)
+                                   when 'region' then (select t.discoefreg from ELECTCOMMITTEE t where t.id = i.electcommitteeid)
+                                  end as r_coef,
+								  COALESCE((select sum(COALESCE(pp.workhours,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRA1'),0) as week_days,
+								  COALESCE((select sum(COALESCE(pp.workhours,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRA2'),0) as night_days,   
+								  COALESCE((select sum(COALESCE(pp.sumpay,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'SUMEXTRA12'),0) as dop_money,        
+								  COALESCE(r.depcoeff,0) as v_coef,
+								  COALESCE((select sum(COALESCE(pp.sumpay,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRAA'),0) as n_sum		
+							  from registerlist r,
+								   COMMITTEEMAN ch,
+								   posts p,
+								   register rr,
+								   ELECTCAMPAIGN ik,
+								   ELECTCOMMINCAMP i
+							 where r.registerid = any(P_SYSTEM_GET_SELECTLIST(${idlist}::text))
+							   and ch.id = r.committeemanid
+							   and p.id = ch.postsid
+							   and rr.id = r.registerid
+							   and ik.id = rr.electcampaignid
+							   and i.id = rr.electcommincampid) tbl
+                               group by tbl.id,tbl.fio,tbl.post
+							   ORDER BY CH.POSTBEGINDATE, P.POSTPRINT;
+   							   
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select sum(tbl.compensation) as sum_compensation,
+									sum(tbl.week_days) as sum_week_days,
+									sum(tbl.night_days) as sum_night_days,
+									sum(tbl.dop_money) as sum_dop_money,
+									sum(tbl.n_sum) as sum_sum,
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${supervisor}::bigint) as ruk, 
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${accountant}::bigint) as buh
+								from (
+								select  
+										COALESCE((select sum(pp.sumpay) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as compensation,
+										COALESCE((select sum(pp.workhours) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRA1'),0) as week_days,
+										COALESCE((select sum(pp.workhours) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRA2'),0) as night_days,   
+										COALESCE((select sum(pp.sumpay) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'SUMEXTRA12'),0) as dop_money, 
+										COALESCE((select sum(pp.sumpay) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRAA'),0) as n_sum
+												
+								from registerlist r,
+										COMMITTEEMAN ch,
+										posts p
+								where r.registerid = any(P_SYSTEM_GET_SELECTLIST(${idlist}::text))
+									and ch.id = r.committeemanid
+									and p.id = ch.postsid) tbl
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

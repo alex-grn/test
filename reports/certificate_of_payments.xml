@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="certificate_of_payments.xls" documentPath="certificate_of_payments.xls" outputType="xls" outputNamePattern="certificate_of_payments.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+			<band name="refer" orientation="H">
+				<queries>
+                     <query name="refer" type="sql">
+                        <script>
+							select ik.elecdistnumb as num_ik,
+									COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'') as fio,
+										(select sum(w.whcomp)+sum(w.whextrafull)
+											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w 
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and w.registerlistid = rs.id) as hours_worked,
+									
+										round((select sum(p.sumpay)
+											from ELECTCAMPAIGN i, register r, registerlist rs, pays p, slcompcharges s
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and p.registerlistid = rs.id
+											and s.id = p.slcompchargesid
+											and upper(s.description) = 'SUMALL'),2) as payout_amount,
+										--    1. Для выплаты компенсации				
+										(select sum(w.whcomp)
+											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and w.registerlistid = rs.id) as comp,
+										--    2. Для дополнительной оплаты труда (вознаграждения), всего				
+										(select sum(w.WHEXTRAFULL)
+											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and w.registerlistid = rs.id) as dop,
+										--   в ночное время				
+										(select sum(w.WHEXTRANIGHT)
+											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and w.registerlistid = rs.id) as night,
+										--   в выходные и нерабочие праздничные дни				
+										(select sum(w.WHEXTRAHOL)
+											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and w.registerlistid = rs.id) as weekend,
+										--    иные (будние дни, оплачиваемые в 1 размере) 				
+										(select sum(w.WHEXTRAWORKDAY)
+											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w
+										where i.id = ${electcampaignid}::bigint 
+											and r.electcampaignid = i.id 
+											and rs.registerid = r.id 
+											and rs.committeemanid = c.id 
+											and w.registerlistid = rs.id) as others, 
+										
+										d2s(case lower(ik.levelelcommittee)
+										when 'district' then   	--УИК
+										(select i.begindate from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
+										when 'territory' then 		--ТИК
+										(select i.begindateter from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
+										end) as begin,
+										
+										d2s(case lower(ik.levelelcommittee)
+										when 'district' then   	--УИК
+										(select i.enddate from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
+										when 'territory' then 		--ТИК
+										(select i.enddateter from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
+										end) as end,
+										
+										(select i.name from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint) as name_choiser,
+										(select COALESCE(cc.surname,'')||' '||COALESCE(cc.firstname,'')||' '||COALESCE(cc.middlename,'') from COMMITTEEMAN cc where cc.id = ${committeemanvirtid}::bigint) as chairman
+								from COMMITTEEMAN c,
+									  ELECTCOMMITTEE ik
+								where c.id = ${id}::bigint
+								and ik.id = c.electcommitteeid
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

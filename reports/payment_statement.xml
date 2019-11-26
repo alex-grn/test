@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="payment_statement.xlsx" documentPath="payment_statement.xlsx" outputType="xlsx" outputNamePattern="payment_statement.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select right(to_char(s.electdate,'yyyy'),2) as year, 
+									c.inn, 
+									${dateform} as datee, 
+									case ik.levelelcommittee
+                                    when 'district' then CASE 
+                                    						when p_tools_dmonth_to_nmonth(i.begindate)-p_tools_dmonth_to_nmonth(i.enddate) != 0 then p_tools_dmonth_to_smonth(i.begindate)||'-'||p_tools_dmonth_to_smonth(i.enddate)--уик
+                                                            else p_tools_dmonth_to_smonth(i.begindate)
+                                                         end
+                                    when  'territory' then CASE 
+                                    						when p_tools_dmonth_to_nmonth(i.begindateter)-p_tools_dmonth_to_nmonth(i.enddateter) != 0 then p_tools_dmonth_to_smonth(i.begindateter)||'-'||p_tools_dmonth_to_smonth(i.enddateter)--уик
+                                                            else p_tools_dmonth_to_smonth(i.begindateter)
+                                                         end --тик
+								   end	as month, 
+								  (select s.name from ELECTCOMMITTEE s where s.id = ${electcommitteeid}::bigint) as institution,
+								  (select s.inn from ELECTCOMMITTEE s where s.id = ${electcommitteeid}::bigint) as inn,
+                                  (select s.kpp from ELECTCOMMITTEE s where s.id = ${electcommitteeid}::bigint) as kpp,
+							      (SELECT S.NAME FROM PERSON S WHERE S.ID = ${supervisor}::bigint) as ruk
+							  from sheets s,
+  							  	   ELECTCOMMINCAMP ik, 
+  							  	   ELECTCOMMITTEE c,
+                                   ELECTCAMPAIGN i
+ 							  where s.id = ${id}::bigint
+  							    and ik.id = s.electcommincampid
+  							    and c.id = ik.electcommitteeid
+								and i.id = s.electcampaignid
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="header2" orientation="H"/>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select row_number() over() as pp, sp.sumcomp+sp.sumextra12+sp.extraa as summ,COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio
+							  from sheets s,
+							       SHEETDETAILS sp,
+ 							       COMMITTEEMAN ik,
+								   posts pp,
+							        person p
+							   where s.id = ${id}::bigint
+							     and sp.sheetsid = s.id 
+							     and ik.id = sp.committeemanid
+							     and p.id = ik.personid
+								 and pp.id = ik.postsid
+                                 order by ik.postbegindate, pp.postprint
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select sum(sp.sumcomp+sp.sumextra12+sp.extraa) as itogo,
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${distributor}::bigint) as r_fio, 
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${composed}::bigint) as s_fio,
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${checked}::bigint) as p_fio
+							  from sheets s,
+							       SHEETDETAILS sp,
+ 							       COMMITTEEMAN ik,
+							        person p
+							   where s.id = ${id}::bigint
+							     and sp.sheetsid = s.id 
+							     and ik.id = sp.committeemanid
+							     and p.id = ik.personid
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

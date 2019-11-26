@@ -17,6 +17,7 @@ $body$
   REGISTERSTRANSFERS_ID BIGINT;
   TIK		bigint:=0;
   DOCTYPE   BIGINT;
+  IZBKOM bigint;
 begin
 /*
 1.	Формируем запись в разделе «Реестры перечислений»
@@ -59,8 +60,8 @@ FOR REC IN(
 	LOOP
     	
     	IF REC.LEVELELCOMMITTEE = 'district' AND TIK = 0 THEN										--УИК
-          SELECT DISTINCT EI.ID
-            INTO TIK  
+          SELECT DISTINCT EI.ID , IK.ID
+            INTO TIK , IZBKOM 
             FROM SHEETS S,
                  ELECTCOMMINCAMP E,
                  ELECTCOMMITTEE I,
@@ -72,12 +73,14 @@ FOR REC IN(
              AND IK.IDGASECOM = I.IDGASPARECOM
              AND EI.ELECTCOMMITTEEID = IK.ID;
         ELSIF REC.LEVELELCOMMITTEE = 'territory' AND TIK = 0 THEN									--ТИК
-          SELECT DISTINCT E.ID
-            INTO TIK 
+          SELECT DISTINCT E.ID , I.ID
+            INTO TIK , IZBKOM
             FROM SHEETS S,
-                 ELECTCOMMINCAMP E
+                 ELECTCOMMINCAMP E,
+                 ELECTCOMMITTEE I
            WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-             AND E.ID = S.ELECTCOMMINCAMPID;
+             AND E.ID = S.ELECTCOMMINCAMPID
+             AND I.ID = E.ELECTCOMMITTEEID;
         END IF;
     
     END LOOP;
@@ -117,6 +120,7 @@ INSERT INTO
              where S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
                and EC.ID = S.ELECTCAMPAIGNID
                and EK.ID = S.ELECTCOMMINCAMPID
+               and K.ID = IZBKOM
                and E.ELECTCOMMITTEEID = K.ID
                and E.BEGINDATE <= DDOCDATE
                and (E.ENDDATE >= DDOCDATE or E.ENDDATE is null)

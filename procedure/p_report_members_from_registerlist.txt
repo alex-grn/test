@@ -25,13 +25,13 @@ begin
     ELSIF TYPE = 'fio_code' THEN
     	TMP:='split_part(string_agg(M.CODE,''/''),''/'','||num||')';
     ELSIF TYPE = 'post' THEN
-    	TMP:='split_part(string_agg(P.POSTPRINT,''/''),''/'','||num||')';
+    	TMP:='split_part(string_agg(case P.POSTPRINT when ''CHAIRMAN'' then ''Председатель'' when ''DEPCHAIRMAN'' then ''Заместитель председателя'' when ''SECRETARY'' then ''Секретарь'' when ''OTHERCM'' then ''Член комиссии'' end,''/''),''/'','||num||')';
     ELSIF TYPE = 'bdate' THEN
     	TMP:='split_part(string_agg(d2s(M.POSTBEGINDATE),''/''),''/'','||num||')';
     ELSIF TYPE = 'edate' THEN
 		TMP:='split_part(string_agg(d2s(M.POSTENDDATE),''/''),''/'','||num||')';
 	ELSIF TYPE = 'avgsum' THEN
-    	TMP:='';
+    	TMP:='split_part(string_agg(COALESCE(r.middlesalary::text,''0''),''/''),''/'','||num||')';
     END IF;
     
     TSQL:='select '||TMP||' AS VALUE

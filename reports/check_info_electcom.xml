@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="check_info_electcom.xls" documentPath="check_info_electcom.xls" outputType="xls" outputNamePattern="check_info_electcom.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select
+								  case ${levelcheck}::bigint
+								    when 1 then 'Проверка времени работы членов ИК в разных кампаниях'
+									when 2 then 'Проверка размера ведомственного коэффициента, установленного на выборы'
+									when 3 then 'Проверка расходов на оплату труда над средствами, выделенными на эти цели'
+								  end as name_check,
+								  to_char(now(),'dd.mm.yyyy') as date_check
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select DISTINCT e.code as iz_kom,
+								case ${levelcheck}::bigint
+								when 3 then p_action_electcommincamp_expense_check(e.id::text)
+								when 2 then p_action_registerlist_check_depcoef(rs.id::text)
+								when 1 then p_action_registerlist_check_runtime(rs.id::text)
+								end as errors
+							from electcommincamp e,
+								 register r,
+								 registerlist rs
+							where e.id = any(P_SYSTEM_GET_SELECTLIST(${idlist}::TEXT))
+							and r.electcommincampid = e.id
+							and rs.registerid = r.id
+							and (${levelcheck}::bigint=3 and p_action_electcommincamp_expense_check(e.id::text) is not NULL
+								or ${levelcheck}::bigint=2 and p_action_registerlist_check_depcoef(rs.id::text) is not null
+								or ${levelcheck}::bigint=1 and p_action_registerlist_check_runtime(rs.id::text) is not null)
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

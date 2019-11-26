@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="transfer_register.xlsx" documentPath="transfer_register.xlsx" outputType="xlsx" outputNamePattern="transfer_register.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select r.docpref||' '||r.docnumb as n_reestr, to_char(r.docdate,'dd.mm.yyyy') as date_reestr, c.name as institution, s.bankacc as payment_account
+							  from REGISTERSTRANSFERS r,
+							  	   ELECTCOMMINCAMP k,
+							  	   ELECTCOMMITTEE c,
+							  	   ELCMTACC s
+							  where r.id = ${id}::bigint
+							  and k.id = r.ELECTCOMMINCAMPid
+							  and c.id = k.ELECTCOMMITTEEid
+							  and s.id = r.ELCMTACCid
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							  select row_number() over() as pp, COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio, sr.sumtrn as summ, acc.bankacc as personal_account
+							  from REGISTERSTRANSFERS r,
+							  	   SLREGTRNPR sr,
+							  	   PERSON p,
+                                   PERSONACC acc
+							  where r.id = ${id}::bigint
+							  and sr.REGISTERSTRANSFERSid = r.id
+							  and p.id = sr.trpersonid
+                              and acc.id = sr.personaccid
+							  order by fio
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select sum(sr.sumtrn) as itogo, p_tools_to_propis(sum(sr.sumtrn)) as summ_prop, 
+								(SELECT S.NAME FROM PERSON S WHERE S.ID = ${supervisor}::bigint) as ruk, 
+								(SELECT S.NAME FROM PERSON S WHERE S.ID = ${accountant}::bigint) as buh
+							  from REGISTERSTRANSFERS r,
+								   SLREGTRNPR sr,
+							  	   PERSON p
+							  where r.id = ${id}::bigint 
+							  and sr.REGISTERSTRANSFERSid = r.id
+							  and p.id = sr.trpersonid
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

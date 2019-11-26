@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="check_info_electcom.xls" documentPath="check_info_electcom.xls" outputType="xls" outputNamePattern="check_info_electcom.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select 
+									--Наименование избирательной комиссии
+									case i.levelelcommittee
+									when 'district' then   	--УИК
+										(select ix.name from electcommittee ix where ix.idgasecom = i.idgasparecom)
+									when 'territory' then 		--ТИК
+										i.name
+									end as name_ik,
+									
+									case i.levelelcommittee
+									when 'district' then   	--УИК
+										(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')
+											from electcommittee ix, committeeman c, posts p 
+										where ix.idgasecom = i.idgasparecom and c.electcommitteeid = ix.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
+									when 'territory' then 		--ТИК
+										(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')
+											from committeeman c, posts p
+										where c.electcommitteeid = i.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
+									end as employer,
+									
+									(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')||', '||lower(p.name)
+											from committeeman c, posts p
+										where c.electcommitteeid = i.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate) as worker,
+										
+									(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')
+											from committeeman c, posts p
+										where c.electcommitteeid = i.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate) as worker2 
+										
+								from electcommincamp e,
+									electcommittee i,
+									electcampaign ik
+								where e.id = ${id}::bigint
+								  and i.id = e.electcommitteeid
+								  and ik.id = e.electcampaignid
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
