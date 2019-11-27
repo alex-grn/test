@@ -322,12 +322,12 @@
 			<!-- <AI id="7" name="Проходит АГС"/> -->
 			<!-- <AI id="8" name="Уволен со службы" readonly="true"/> -->
 			<AI id="1" name="Зарегистрирован"/>
-			<AI id="2" name="Утвержден" readonly="true"/>
-			<AI id="3" name="Проходит АГС"/>
+			<AI id="2" name="Утвержден"/>
+			<AI id="3" name="Проходит АГС" readonly="true"/>
 			<AI id="4" name="Уволен со службы" readonly="true"/>
-			<AI id="5" name="Отказ" readonly="true"/>
+			<AI id="5" name="Отказ"/>
 			<AI id="6" name="Повторное распределение"/>
-			<AI id="7" name="Направлен на АГС"/>
+			<AI id="7" name="Направлен на АГС" readonly="true"/>
 			<AI id="10" name="Редактирование"/>
 		</A>
 		<A id="FAMILYSTATUS" caption="Семейное положение" labelwidth="160" width="50" type="list" nulls="true" visible="form" local="true">
@@ -1460,8 +1460,10 @@
 		<ACTION id="CancelReject" name="Отменить отклонение" type="procedure" procedure="p_action_org_cancelreject"/>
 		<ACTION id="Block" name="Заблокировать" type="procedure" procedure="p_action_org_block"/>
 		<ACTION id="Unlock" name="Разблокировать" type="procedure" procedure="p_action_org_unlock"/>
-		<ACTION id="CelebrateArrival" name="Отметить прибытие" type="procedure" procedure="p_action_cit_celebratearrival"/>
-		<ACTION id="DesmissService" name="Уволить со службы" type="procedure" procedure="p_action_cit_desmissservice"/>
+		<ACTION id="AimedAtAgs" name="Направлен на АГС" type="procedure" procedure="p_action_aimedatags"/>
+		<ACTION id="PassesAgs" name="Проходит АГС" type="procedure" procedure="p_action_passesags"/>
+		<ACTION id="DesmissService" name="Уволен со службы" type="procedure" procedure="p_action_cit_desmissservice"/>
+		<ACTION id="EditingCitiz" name="Редактирование гражданина" type="procedure" procedure="p_action_editing_citiz"/>
 		<ACTION id="Unpin" name="Открепить" type="procedure" procedure="p_action_dir_unpin"/>
 		<ACTION id="ProjectIns" name="Перевести в проект" type="procedure" procedure="p_action_dir_unpin"/>
 		<ACTION id="Confirm" name="Подтвердить" type="procedure" procedure="p_action_dir_confirm"/>
@@ -1479,10 +1481,14 @@
 		<REPORT id="MetaClassReport" name="Отчет по метаданным" procedure="" template="meta_report.xlsx"/>
 		<COMMENT name="Отчеты АГС"/>
 		<REPORT id="PrintCard" name="Печать карточки" procedure="" template="test_actionreport.xlsx"/>
-		<REPORT id="PrintCardCitizen" name="Печать карточки гражданина" procedure="" template=""/>
+		<REPORT id="PrintCardCitizen" name="Печать карточки гражданина" procedure="" template="cart_of_citizery.xls"/>
 		<REPORT id="PrintCardDirection" name="Печать плана заданий" procedure="" template=""/>
-		<REPORT id="PrintCardPlan" name="Печать плана направлений" procedure="" template=""/>
-		<REPORT id="LoadCitizen" name="Загрузка граждан" type="script" actionlist="LoadAndConvertFile">>
+		<REPORT id="PrintCardPlan" name="Печать плана направлений" procedure="" template="unload_directions_plan.xls">
+			<FORM>
+				<A id="REGIONDIRID" labelwidth="120" nulls="false" visible="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="LoadCitizen" name="Загрузка граждан" type="script" actionlist="LoadAndConvertFile">
 			<P id="convname" value="ЗАГРУЗКА ГРАЖДАН"/>
 			<P id="errorone" value="true"/>
 		</REPORT>
@@ -1771,7 +1777,7 @@
 		</FORM>
 		<COMMENT name="Граждане"/>
 		<FORM id="Citizenry" name="Граждане">
-			<GRID id="CITIZENRY" name="Граждане" table="CITIZENRY" actionlist="CelebrateArrival;Reject;Approve;CancelReject;DesmissService" reportlist="PrintCardCitizen;LoadCitizen" readonly="true">
+			<GRID id="CITIZENRY" name="Граждане" table="CITIZENRY" actionlist="Approve;AimedAtAgs;PassesAgs;DesmissService;EditingCitiz" reportlist="PrintCardCitizen;LoadCitizen" readonly="true">
 				<MENU>
 					<MI actionlist="Insert;Update;View;Delete;MoveFolder;ConfigTables"/>
 				</MENU>

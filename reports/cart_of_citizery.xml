@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="cart_of_citizery.xls" documentPath="cart_of_citizery.xls" outputType="xls" outputNamePattern="cart_of_citizery.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select COALESCE(c.lastname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.patronymic,'') as fio,
+								to_char(c.birthdate,'dd.mm.yyyy') as date_r,
+								c.PLACEBIRTH as mesto_r,
+								case c.CITIZENSHIP
+								when '1' then 'РФ'
+								end as grazhd,
+								c.ENLISTMENT as voenkom,
+								c.SERIESP as seria,
+								c.NUMBERP as numb,
+								to_char(c.DATEISSUEP,'dd.mm.yyyy') as date_v,			
+								c.ISSUED as kem_vid,
+								c.NUMBERS as num_ud,
+								c.NUMBERC as num_uch,
+								to_char(c.DATEACCDOC,'dd.mm.yyyy') as date_v_uch,
+								to_char(c.DATEREG,'dd.mm.yyyy') as date_reg,
+								c.SNILS as snils,
+								c.SOMS as soms,
+								c.POSTCODE as index,
+								r.name as region,
+								c.PHONE as telefon,
+								c.SETTLEMENT as nas_punkt,
+								c.STREET as ulica,
+								c.HOUSE as dom,
+								c.HOUSING as korp,
+								c.BUILDING as str,
+								c.FLAT as kv,
+								case c.FAMILYSTATUS 
+								when '1' then 'Вдовец'
+								when '2' then 'Разведен'
+								when '3' then 'Никогда не состоял в браке'
+								when '4' then 'Состоит в зарегистрированном браке'
+								end as sem_pol,
+								c.CHILDREN as deti,
+								case c.SPECIALFAMILYSTATUS2 
+								when '1' then 'Мать (отец) имеет 2 и более детей до 8 лет, воспитываемых без мужа (жены)'
+								when '2' then 'Ближайшие родственники или усыновитель - инвалид 1 или 2 группы'
+								when '3' then 'Ближайшие родственники или усыновитель старше 55 лет - женщины, 60 лет - мужчины'
+								when '4' then 'Ближайшие родственники младше 18 лет'
+								when '5' then 'Наличие ребенка, воспитываемого без матери'
+								when '6' then 'Постоянный уход за ближайшими родственниками или усыновителем'
+								end as osob_sem_pol,
+								n.name as kor_nar,
+								case c.BELIEFS 
+								when '1' then 'Адвентист 7 дня'
+								when '2' then 'Баптист'
+								when '3' then 'Ислам'
+								when '4' then 'Пацифист'
+								when '5' then 'Пятидесятник'
+								when '6' then 'Свидетели Иеговы'
+								when '7' then 'Старовер'
+								when '8' then 'Другое'
+								end as relig,
+								case c.SUITABILITY
+								when '1' then 'А'
+								when '2' then 'Б'
+								when '3' then 'В'
+								when '4' then 'Г'
+								when '5' then 'Д'
+								end as godnost,
+								case c.STATUSCITIZEN 
+								when '1' then 'Зарегистрирован'
+								when '2' then 'Утвержден'
+								when '3' then 'Проходит АГС'
+								when '4' then 'Уволен со службы'
+								when '5' then 'Отказ'
+								when '6' then 'Повторное распределение'
+								when '7' then 'Направлен на АГС'
+								when '10' then 'Редактирование'
+								end as status,
+								case c.CONSCRIPTION
+								when '1' then 'Весна'
+								when '2' then 'Осень'
+								end as per_priz,
+								c.YEARCONSCRIPTION as god,
+								to_char(c.FILLDATE,'dd.mm.yyyy') as date_zap,
+								c.COMMENT as koment
+							from CITIZENRY c
+							left join regiondir r on r.id = c.regiondirid
+							left join NATIVEPEOPLEDIR n on n.id = c.NATIVEPEOPLEDIRID
+							where c.id = ${id}::bigint
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select case e.LEVELEDUCATION 
+									when '1' then 'Дошкольное образование'
+									when '2' then 'Начальное общее образование'
+									when '3' then 'Основное общее образование'
+									when '4' then 'Среднее (полное) общее образование'
+									when '5' then 'Начальное профессиональное образование'
+									when '6' then 'Среднее профессиональное образование'
+									when '7' then 'Неполное высшее образование'
+									when '8' then 'Высшее образование'
+									when '9' then 'Послевузовское образование'
+								end as uroven,
+								s.namespec as spec,
+								e.EDUCATIONALINSTITUTION as uch_zav,
+								e.COMMENT as koment,
+								p.name as post,
+								case e.QUALIFICATION
+									when '1' then '1 разряд'
+									when '2' then '2 разряд'
+									when '3' then '3 разряд'
+									when '4' then '4 разряд'
+									when '5' then '5 разряд'
+									when '6' then '6 разряд'
+									when '7' then '7 разряд'
+									when '8' then '8 разряд'
+									when '9' then '9 разряд'
+									when '10' then '10 разряд'
+								end as kval,
+								sp.namespec as spec2,
+								e.WORKPLACE as mesto_r,
+								e.DURATIONWORK as prod_r,
+								e.comment2 as koment2
+							from EDUCATIONCIT e
+							left join SPECIALTYEDUCATIONDIR s on s.id = e.specialtyeducationdirid
+							left join PROFESSIONDIR p on p.id = e.professiondirid
+							left join SPECIALTYEDUCATIONDIR sp on sp.id = e.specialtyeducationdir2id
+							where e.citizenryid = ${id}::bigint
+							and e.hidedate = (select max(hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

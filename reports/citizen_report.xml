@@ -29,7 +29,8 @@
 									 else
 										'Период неопределен!'
 								   end ||' '||C.yearconscription::text as period_year,
-								   RD.name as reg_out,
+								  /* RD.name as reg_out,*/
+                                   rr.name as reg_out,
 								   RDC.name as reg_in,
 								   pd.name as post_educ,
 								   case C.beliefs
@@ -72,9 +73,12 @@
 								   else
 										''
 								   end as statuscitizen,
-								   DD.name as departmentdir,
-								   OD.name as organizationdir,
-								   PDV.name as post_vac
+								   /*DD.name as departmentdir,*/
+                                   dep.name as departmentdir,
+								   /*OD.name as organizationdir,*/
+                                   org1.name as organizationdir,
+								   /*PDV.name as post_vac*/
+                                   pp.name as post_vac
 							  from 
 							       <!-- планы направления -->
 							       PLANS                       P
@@ -98,6 +102,12 @@
 									left join DEPARTMENTDIR   DD on DD.id = C.DEPARTMENTDIRID
 									<!-- Направления -->
 									left join DIRECTION		   D on D.CITIZENRYID = C.id
+                                    left join ORGANIZATION   org on org.id = d.organizationid
+                                    left join VACANCYORG      vv on vv.id = d.vacancyorgid
+                                    left join PROFESSIONDIR   pp on pp.id = vv.professiondirid
+                                    left join ORGANIZATIONdir org1 on org1.id = org.organizationdirid
+                                    left join REGIONDIR       rr on rr.id = org1.regiondirid
+                                    left join DEPARTMENTDIR  dep on dep.id = org1.departmentdirid
 									<!-- Вакансии -->
 									left join VACANCYORG	   V on V.id = D.VACANCYORGID
 									<!-- Профессии/Должности -->

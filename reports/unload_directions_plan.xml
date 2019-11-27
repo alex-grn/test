@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="payment_statement.xlsx" documentPath="payment_statement.xlsx" outputType="xlsx" outputNamePattern="payment_statement.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select p.yearconscription as god,
+								(select r.name from REGIONDIR r where r.id = ${regiondirid}::bigint) as name_reg
+							from PLANS p
+							where p.id = ANY(P_SYSTEM_GET_SELECTLIST(${idlist}))
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select row_number() over() as num,
+								   COALESCE(c.lastname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.patronymic,'') as fio,
+								   case e.leveleducation 
+									when '1' then 'Дошкольное образование'
+									when '2' then 'Начальное общее образование'
+									when '3' then 'Основное общее образование'
+									when '4' then 'Среднее (полное) общее образование'
+									when '5' then 'Начальное профессиональное образование'
+									when '6' then 'Среднее профессиональное образование'
+									when '7' then 'Неполное высшее образование'
+									when '8' then 'Высшее образование'
+									when '9' then 'Послевузовское образование'
+									end as education,
+									to_char(c.birthdate,'dd.mm.yyyy') as date_burn,
+									(select NAME from PROFESSIONDIR where ID = e.PROFESSIONDIRID) as profession,
+									case c.familystatus 
+									when '1' then 'Вдовец'
+									when '2' then 'Разведен'
+									when '3' then 'Никогда не состоял в браке'
+									when '4' then 'Состоит в зарегистрированном браке'
+									end as marital_status,
+									c.ENLISTMENT as name_vk,
+									r.code||' '||r.name as code_sub,
+									case d.levelsignificance
+										when '1' then 'Федеральный орган исполнительной власти'
+										when '2' then 'Орган исполнительной власти субъектов Российской Федерации'
+									end as name_government,
+									org.inn as okpo,  --??
+									org.name as name_org,
+									r2.code||' '||r2.name as object_rf,
+									pr.codeprof as okpdtr,
+									pr.name as name_profession
+							from PLANS p,
+								ORGANIZATION o,
+								CITIZENRYORG cy,
+								citizenry c,    --гражданы
+								REGIONDIR r,	   --регион
+								EDUCATIONCIT e,  --образование 
+								ORGANIZATIONDIR org, --справочник организаций
+								DEPARTMENTDIR d,
+								REGIONDIR r2,	   --регион юридический
+								VACANCYORG v,
+								professiondir pr
+							where p.id = ANY(P_SYSTEM_GET_SELECTLIST(${idlist}))
+							and o.plansid = p.id
+							and cy.organizationid = o.id
+							and c.id = cy.citizenryid   
+							and e.citizenryid = c.id 
+							and r.id = c.REGIONDIRID
+							and org.id = o.organizationdirid
+							and d.id = org.departmentdirid
+							and r2.id = org.regiondirid
+							and e.hidedate = (select max(hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+							and org.regiondirid = ${regiondirid}::bigint
+							and v.id = cy.vacancyorgid 
+							and pr.id = v.PROFESSIONDIRID
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
