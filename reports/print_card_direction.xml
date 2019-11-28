@@ -7,12 +7,18 @@
         <bands>
 		    <band name="header" orientation="H">
 				<queries>
-                     <query name="spec" type="sql">
+                     <query name="header" type="sql">
                         <script>
-							select p.yearconscription as god,
-								(select r.name from REGIONDIR r where r.id = ${regiondirid}::bigint) as name_reg
-							from PLANS p
-							where p.id = ANY(P_SYSTEM_GET_SELECTLIST(${idlist}))
+							select R.name as name_reg,
+								p.yearconscription as god
+							from DIRECTION d
+							left join ORGANIZATION org on org.id = d.organizationid
+							left join ORGANIZATIONDIR o on o.id = org.organizationdirid
+                            left join regiondir R ON r.id = o.regiondirid
+							left join citizenry c on c.id = d.citizenryid
+							left join PLANS p on p.id = c.plansid
+							where d.id = ANY(P_SYSTEM_GET_SELECTLIST(${idlist}))
+							limit 1
    							   ;
 						</script>
                      </query>
@@ -22,62 +28,91 @@
 				<queries>
                      <query name="spec" type="sql">
                         <script>
-							select row_number() over() as num,
-								   COALESCE(c.lastname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.patronymic,'') as fio,
-								   case e.leveleducation 
-									when '1' then 'Дошкольное образование'
-									when '2' then 'Начальное общее образование'
-									when '3' then 'Основное общее образование'
-									when '4' then 'Среднее (полное) общее образование'
-									when '5' then 'Начальное профессиональное образование'
-									when '6' then 'Среднее профессиональное образование'
-									when '7' then 'Неполное высшее образование'
-									when '8' then 'Высшее образование'
-									when '9' then 'Послевузовское образование'
-									end as education,
+							 select row_number() over() as num,
+									COALESCE(c.lastname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.patronymic,'')  as fio,
 									to_char(c.birthdate,'dd.mm.yyyy') as date_burn,
-									(select NAME from PROFESSIONDIR where ID = e.PROFESSIONDIRID) as profession,
-									case c.familystatus 
-									when '1' then 'Вдовец'
-									when '2' then 'Разведен'
-									when '3' then 'Никогда не состоял в браке'
-									when '4' then 'Состоит в зарегистрированном браке'
-									end as marital_status,
+									case e.LEVELEDUCATION
+										when '1' then 'Дошкольное образование'
+										when '2' then 'Начальное общее образование'
+										when '3' then 'Основное общее образование'
+										when '4' then 'Среднее (полное) общее образование'
+										when '5' then 'Начальное профессиональное образование'
+										when '6' then 'Среднее профессиональное образование'
+										when '7' then 'Неполное высшее образование'
+										when '8' then 'Высшее образование'
+										when '9' then 'Послевузовское образование'
+									end as education,
+									sp.namespec as special,
+									case c.SUITABILITY
+										when '1' then 'А'
+										when '2' then 'Б'
+										when '3' then 'В'
+										when '4' then 'Г'
+										when '5' then 'Д'
+									end as godn,
 									c.ENLISTMENT as name_vk,
-									r.code||' '||r.name as code_sub,
-									case d.levelsignificance
+									r.name as reg_priz,
+									o.inn||', '||o.name as okpo,
+									case dep.levelsignificance
 										when '1' then 'Федеральный орган исполнительной власти'
 										when '2' then 'Орган исполнительной власти субъектов Российской Федерации'
 									end as name_government,
-									org.inn as okpo,  --??
-									org.name as name_org,
-									r2.code||' '||r2.name as object_rf,
-									pr.codeprof as okpdtr,
-									pr.name as name_profession
-							from PLANS p,
-								ORGANIZATION o,
-								CITIZENRYORG cy,
-								citizenry c,    --гражданы
-								REGIONDIR r,	   --регион
-								EDUCATIONCIT e,  --образование 
-								ORGANIZATIONDIR org, --справочник организаций
-								DEPARTMENTDIR d,
-								REGIONDIR r2,	   --регион юридический
-								VACANCYORG v,
-								professiondir pr
-							where p.id = ANY(P_SYSTEM_GET_SELECTLIST(${idlist}))
-							and o.plansid = p.id
-							and cy.organizationid = o.id
-							and c.id = cy.citizenryid   
-							and e.citizenryid = c.id 
-							and r.id = c.REGIONDIRID
-							and org.id = o.organizationdirid
-							and d.id = org.departmentdirid
-							and r2.id = org.regiondirid
-							and e.hidedate = (select max(hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
-							and org.regiondirid = ${regiondirid}::bigint
-							and v.id = cy.vacancyorgid 
-							and pr.id = v.PROFESSIONDIRID
+									COALESCE(r2.code,'')||' '||COALESCE(r2.name,'') as object_rf,
+									COALESCE(o.SETTLEMENT,'')||' '||COALESCE(o.STREET,'')||' '||COALESCE(o.HOUSE,'')||' '||COALESCE(o.HOUSING,'')||' '||COALESCE(o.BUILDING,'') as adr_org,
+									o.PHONEORG as tel_org,
+									case v.housing
+										when '1' then 'Не предосталяется'
+										when '2' then 'Предосталяется'
+									end as zhil,
+									COALESCE(pr.codeprof::text,'')||', '||COALESCE(pr.name,'') as okpdtr,
+									case v.QUALIFICATION
+										when '1' then '1 разряд'
+										when '2' then '2 разряд'
+										when '3' then '3 разряд'
+										when '4' then '4 разряд'
+										when '5' then '5 разряд'
+										when '6' then '6 разряд'
+										when '7' then '7 разряд'
+										when '8' then '8 разряд'
+										when '9' then '9 разряд'
+										when '10' then '10 разряд'
+									end as kval,
+									case v.leveleducation 
+										when '1' then 'Дошкольное образование'
+										when '2' then 'Начальное общее образование'
+										when '3' then 'Основное общее образование'
+										when '4' then 'Среднее (полное) общее образование'
+										when '5' then 'Начальное профессиональное образование'
+										when '6' then 'Среднее профессиональное образование'
+										when '7' then 'Неполное высшее образование'
+										when '8' then 'Высшее образование'
+										when '9' then 'Послевузовское образование'
+									end as education_requirements,
+									case v.TRAINING
+										when '1' then 'Возможность обучения'
+										when '2' then 'Обязательно наличие опыта'
+									end as educ_work,
+									case v.WORKINGCONDITIONS 
+										when '1' then 'Нормальные'
+										when '2' then 'Тяжелые и вредные'
+										when '3' then 'Особо тяжелые и особо вредные'
+									end as working_conditions,
+									m.name as operating_mode,
+									v.MAINFUNCTION as work_description,
+									v.TARIFFRATE as t_stavka
+								from DIRECTION d
+								inner join citizenry c on c.id = d.citizenryid 
+								left join EDUCATIONCIT e on e.citizenryid = c.id and e.hidedate = (select max(x.hidedate) from educationcit x where x.citizenryid = e.citizenryid)
+								left join SPECIALTYEDUCATIONDIR sp on sp.id = e.specialtyeducationdirid
+								left join REGIONDIR r on r.id = c.regiondirid
+								left join ORGANIZATION org on org.id = d.organizationid
+								left join ORGANIZATIONDIR o on o.id = org.organizationdirid
+								left join DEPARTMENTDIR dep on dep.id = o.departmentdirid
+								left join REGIONDIR r2 on r2.id = o.regiondirid 
+								left join VACANCYORG v on v.id = d.vacancyorgid
+								left join PROFESSIONDIR pr on pr.id = v.PROFESSIONDIRID
+								left join MODEWORKDIR m on m.id = v.modeworkdirid
+								where d.id = ANY(P_SYSTEM_GET_SELECTLIST(${idlist}))
    							   ;
 						</script>
                      </query>
