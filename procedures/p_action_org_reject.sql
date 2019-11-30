@@ -4,21 +4,29 @@ CREATE OR REPLACE FUNCTION public.p_action_org_reject (
 )
 RETURNS void AS
 $body$
-declare
- nID bigint := id;
- sql text;	
- st text;   --поле статуса в таблицах
- begin
-   if tablename = 'citizenry' then 
-     st := 'statuscitizen';
-   elsif tablename = 'direction' then
-     st := 'status';
-   else
-     st := 'statusorg';
-   end if;
-   sql:='update '||tablename||' s set '||st||' = 2 where s.id = '|| nID;
-   execute sql;
- end;
+DECLARE
+  NID BIGINT := ID;
+  SQL TEXT;
+  ST  TEXT; --поле статуса в таблицах
+  RC  RECORD;
+BEGIN
+  IF TABLENAME = 'direction' THEN
+    ST := 'status';
+    FOR RC IN (SELECT D.CITIZENRYID,
+                      D.ORGANIZATIONID
+                 FROM DIRECTION D
+                WHERE D.ID = NID)
+    LOOP
+      DELETE FROM CITIZENRYORG C
+       WHERE C.CITIZENRYID = RC.CITIZENRYID
+         AND C.ORGANIZATIONID = RC.ORGANIZATIONID;
+    END LOOP;
+  ELSE
+    ST := 'statusorg';
+  END IF;
+  SQL := 'update ' || TABLENAME || ' s set ' || ST || ' = 2 where s.id = ' || NID;
+  EXECUTE SQL;
+END;
 $body$
 LANGUAGE 'plpgsql'
 VOLATILE
