@@ -5,9 +5,32 @@
     </templates>
     <rootBand name="Root" orientation="H">
         <bands>
-		    <band name="Header" orientation="H">
+			<band name="Header1" orientation="H"/>
+		    <band name="Header2" orientation="H">
 				<queries>
-                     <query name="Header" type="sql">
+                     <query name="Header2" type="sql">
+                        <script>
+							select d.name as names
+										from  MULTIPLEPAYMENTS f,
+											  benefitstypedir d
+									   where d.id = f.benefitstypenamedirid
+										 and f.uid = ${uid}::bigint
+                                         and 1 = (select count(*) over()
+										from  MULTIPLEPAYMENTS f,
+											  benefitstypedir d
+									   where d.id = f.benefitstypenamedirid
+										 and f.uid = ${uid}::bigint
+									group by d.name 
+                                    limit 1)
+									group by d.name limit 1
+								     ; 
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="Header3" orientation="H">
+				<queries>
+                     <query name="Header3" type="sql">
                         <script>
 							select 'за период с '||
 									 case ${repmonthby}::integer
@@ -24,13 +47,7 @@
 									 when 11 then 'ноябрь'
 									 when 12 then 'декабрь'
 									 end
-									 ||' '||${repyear}::text||' года'  as DATEREPORT,
-									 (select d.name 
-										from  MULTIPLEPAYMENTS f,
-											  benefitstypedir d
-									   where d.id = f.benefitstypenamedirid
-										 and f.uid = ${uid}::bigint
-									group by d.name) as names ;
+									 ||' '||${repyear}::text||' года'  as DATEREPORT;
 						</script>
                      </query>
                 </queries>
@@ -42,16 +59,14 @@
 							select COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||COALESCE(s.patronymic,'') as ben,
 								   ss.name||' ('||ff.periodpay||')' as reg, 
 								   COALESCE(c.lastname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.patronymic,'')||' / '||COALESCE(to_char(c.benefitchilddatebirth,'dd.mm.yyyy'),'') as child
-							  from MULTIPLEPAYMENTS f,
-								   MULTIPLEPAYMENTSFOOTER ff,
-								   benefitsrecipients s,
-								   benefitchild c,
-							       subjectsdir ss
-						     where ff.MULTIPLEPAYMENTSid = f.id
-							   and s.id = f.benefitsrecipientsid
-							   and c.id = ff.benefitchildid
-							   and ss.id = ff.subjectsdirid
-   							   and f.uid = ${uid}::bigint;
+							  from MULTIPLEPAYMENTS f
+                         left join MULTIPLEPAYMENTSFOOTER ff on ff.MULTIPLEPAYMENTSid = f.id
+                         left join benefitsrecipients s on s.id = f.benefitsrecipientsid
+                         left join benefitchild c on c.id = ff.benefitchildid
+                         left join subjectsdir ss on ss.id = ff.subjectsdirid
+						     where f.uid = ${uid}::bigint
+							   order by ben,reg,child;
+							   ;
 						</script>
                      </query>
                 </queries>
