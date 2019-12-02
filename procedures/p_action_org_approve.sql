@@ -9,7 +9,7 @@ DECLARE
   NID           BIGINT := ID;
   SQL           TEXT;
   ST            TEXT; --поле статуса в таблицах
-  NCITIZENRYORG BIGINT; -- идентификатор "Организации гражданина"
+  CTZYRG BIGINT; -- идентификатор "Организации гражданина"
   REC           RECORD;
   VL            TEXT := '3';
 BEGIN
@@ -45,11 +45,23 @@ BEGIN
     */
     FOR REC IN (SELECT D.CITIZENRYID,   --id гражданина
                       D.ORGANIZATIONID, --id организации
-                      D.VACANCYORGID    --id вакансии
-                 FROM DIRECTION D
-                WHERE D.ID = NID)
+                      D.VACANCYORGID,   --id вакансии
+                      V.TARIFFRATE 	    --тарифная ставка
+                 FROM DIRECTION D,
+                 	  VACANCYORG V
+                WHERE D.ID = NID
+                  AND V.ID = D.VACANCYORGID)
     LOOP
-      INSERT INTO CITIZENRYORG (CITIZENRYID, ORGANIZATIONID, VACANCYORGID, STATUSCITIZEN) VALUES (REC.CITIZENRYID, REC.ORGANIZATIONID, REC.VACANCYORGID, '7');
+      --Ищем такую же строку
+      SELECT S.ID INTO CTZYRG FROM CITIZENRYORG S 
+      WHERE S.CITIZENRYID = REC.CITIZENRYID AND S.ORGANIZATIONID = REC.ORGANIZATIONID AND S.VACANCYORGID = REC.VACANCYORGID AND S.TARIFFRATE = REC.TARIFFRATE;
+      --Если нет таких строк, то добавляем иначе меняем статус
+      IF CTZYRG IS NULL THEN
+      	INSERT INTO CITIZENRYORG (CITIZENRYID, ORGANIZATIONID, VACANCYORGID, STATUSCITIZEN, TARIFFRATE) VALUES (REC.CITIZENRYID, REC.ORGANIZATIONID, REC.VACANCYORGID, '7', REC.TARIFFRATE);
+      ELSE
+      	UPDATE CITIZENRYORG S SET STATUSCITIZEN = '7' WHERE S.ID = CTZYRG;
+      END IF;
+      CTZYRG:=NULL;
     END LOOP;
   
     -- запись гражданина в подчиненный раздел организаций "Организации гражданина"
