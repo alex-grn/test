@@ -119,7 +119,7 @@ end if;
                          child'||sSQL||' c,
                          benefitspackets p,
                          benefit0'||ob.rnumber||'payment n
-                   where (c.benefitchildid = '||childs||' or '||childs||' = 0 and '||benef||' != 0)
+                   where (c.benefitchildid = '||childs||' or '||childs||' = 0 and '||benef||' != 0 and '||all_fields_c||'=1)
                      and b.id = c.benefit0'||ob.rnumber||'id
                      and p.id = b.benefitspacketsid
                      and n.benefit0'||ob.rnumber||'id = b.id 
