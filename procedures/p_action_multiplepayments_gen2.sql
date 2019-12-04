@@ -60,7 +60,7 @@ if all_fields_h != 1 then
   exception when too_many_rows then raise using message = 'По заданному критерию найдено больше одного получателя пособия!';
   			when no_data_found then benef:=0;
   end;	 --raise using message = benef;
-end if;
+end if; 
 if all_fields_c != 1 then
   begin	
    select c.id
@@ -107,6 +107,7 @@ end if;
        	sSQL:='07';
        end if;
     --   begin
+    --RAISE USING MESSAGE = COALESCE(childs,0)||' '||COALESCE(benef,0);
     if ob.rnumber in (1,4,5) then
       for rec in execute 
       			  'select p.subjectsdirid,
@@ -123,7 +124,7 @@ end if;
                      and p.id = b.benefitspacketsid
                      and n.benefit0'||ob.rnumber||'id = b.id 
                      and n.child0'||ob.rnumber||'id = c.id
-                     and (b.benefitsrecipientsid = '||benef||' or '||benef||' = 0)'
+                     and (b.benefitsrecipientsid = '||benef||' or '||benef||' = 0 and '||childs||' != 0)'
                      
         	loop
                  if nPeka is null then
@@ -147,7 +148,7 @@ end if;
                          benefit0'||ob.rnumber||'payment n
                    where p.id = b.benefitspacketsid
                      and n.benefit0'||ob.rnumber||'id = b.id 
-                     and (b.benefitsrecipientsid = '||benef||' or '||benef||' = 0)'
+                     and (b.benefitsrecipientsid = '||benef||')'
                      
         	loop
                  if nPeka is null then
