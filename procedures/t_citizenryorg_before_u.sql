@@ -10,7 +10,7 @@ BEGIN
   END IF;
   
   --При заполненом "Дата увольнения", статус автоматически устанавливается  на "Уволен со службы"
-  IF NEW.DATEOFDISMISSAL IS NOT NULL THEN 
+  IF (SELECT R.DATEOFDISMISSLA FROM PASSAGEAGSCIT R WHERE R.CITIZENRYID = NEW.CITIZENRYID) IS NOT NULL THEN 
     NEW.STATUSCITIZEN := '4'; --уволен со службы
   END IF;
 
@@ -26,10 +26,3 @@ COST 100;
 
 ALTER FUNCTION public.t_citizenryorg_before_u ()
   OWNER TO magicbox;
-
-CREATE TRIGGER trg_citizenryorg_before_u
-  BEFORE UPDATE 
-  ON public.citizenryorg
-  
-FOR EACH ROW 
-  EXECUTE PROCEDURE public.t_citizenryorg_before_u();
