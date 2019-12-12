@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="organization_report.xls" documentPath="organization_report.xls" outputType="xls" outputNamePattern="organization_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select ${organizationyear} as god
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="razdel1" orientation="H">
+				<queries>
+                     <query name="razdel1" type="sql">
+                        <script>
+							select where ${executivebody} = '1' or ${executivebody} = '' or ${executivebody} is null
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="spec1" orientation="H">
+				<queries>
+                     <query name="spec1" type="sql">
+                        <script>
+							select row_number() over() as num,
+								dor.name as name_org,
+								case dep.LEVELSIGNIFICANCE
+									when '1' then 'Федеральный орган исполнительной власти'
+									when '2' then 'Орган исполнительной власти субъектов Российской Федерации'
+								end as name_sub,
+								trim(COALESCE(dor.settlement,'')||', ул. '||COALESCE(dor.street,'')||', д. '||COALESCE(dor.house,'')||', к. '||COALESCE(dor.housing,'')||', стр. '||COALESCE(dor.building,''),',') as adr_org
+							from ORGANIZATION org
+							inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
+							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
+							where dep.LEVELSIGNIFICANCE = '1' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
+							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
+							  and (select count(*) from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = ${organizationyear}::integer) > 0
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="razdel2" orientation="H">
+				<queries>
+                     <query name="razdel1" type="sql">
+                        <script>
+							select where ${executivebody} = '2' or ${executivebody} = '' or ${executivebody} is null
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="spec2" orientation="H">
+				<queries>
+                     <query name="spec2" type="sql">
+                        <script>
+							select row_number() over() as num,
+								dor.name as name_org,
+								case dep.LEVELSIGNIFICANCE
+									when '1' then 'Федеральный орган исполнительной власти'
+									when '2' then 'Орган исполнительной власти субъектов Российской Федерации'
+								end as name_sub,
+								trim(COALESCE(dor.settlement,'')||', ул. '||COALESCE(dor.street,'')||', д. '||COALESCE(dor.house,'')||', к. '||COALESCE(dor.housing,'')||', стр. '||COALESCE(dor.building,''),',') as adr_org
+							from ORGANIZATION org
+							inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
+							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
+							where dep.LEVELSIGNIFICANCE = '2' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
+							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
+							  and (select count(*) from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = ${organizationyear}::integer) > 0
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

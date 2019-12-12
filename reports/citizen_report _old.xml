@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="citizen_report.xls" documentPath="citizen_report.xls" outputType="xls" outputNamePattern="citizen_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="Header" orientation="H">
+				<queries>
+                     <query name="Header" type="sql">
+                        <script>
+							select 1::text  as HEADREPORT
+						</script>
+                     </query>
+                </queries>
+			</band>
+		    <band name="detail" orientation="H">
+				<queries>
+                     <query name="detail" type="sql">
+                        <script>
+							select case when trim(C.lastname) is not null then trim(C.lastname) else '' end ||' '||
+								   case when trim(C.firstname) is not null then trim(C.firstname) else '' end ||' '||
+								   case when trim(C.patronymic) is not null then trim(C.patronymic) else '' end as fio,
+								   case
+									 when C.conscription = '1' THEN
+										'Весна'
+									 when C.conscription = '2' THEN
+										'Осень'
+									 else
+										'Период неопределен!'
+								   end ||' '||C.yearconscription::text as period_year,
+								  /* RD.name as reg_out,*/
+                                   rr.name as reg_out,
+								   RDC.name as reg_in,
+								   pd.name as post_educ,
+								   case C.beliefs
+									 when '1' then
+									   'Адвентист 7 дня'
+									 when '2' then
+									 'Баптист'
+									 when '3' then
+									 'Ислам'
+									 when '4' then
+									 'Пацифист'
+									 when '5' then
+									 'Пятидесятник'
+									 when '6' then
+									 'Свидетели Иеговы'
+									 when '7' then
+									 'Старовер'
+									 when '8' then
+									   'Другое'
+								   else
+										''
+								   end as beliefs,
+								   case C.statuscitizen
+									 when '1' then
+									   'Зарегистрирован'
+									 when '2' then
+									 'Отказ'
+									 when '3' then
+									 'Утвержден'
+									 when '4' then
+									 'Отсрочка'
+									 when '5' then
+									 'Повторное распределение'
+									 when '6' then
+									 'Направлен на АГС'
+									 when '7' then
+									 'Проходит АГС'
+									 when '8' then
+									   'Уволен со службы'
+								   else
+										''
+								   end as statuscitizen,
+								   /*DD.name as departmentdir,*/
+                                   dep.name as departmentdir,
+								   /*OD.name as organizationdir,*/
+                                   org1.name as organizationdir,
+								   /*PDV.name as post_vac*/
+                                   pp.name as post_vac
+							  from 
+							       <!-- планы направления -->
+							       PLANS                       P
+								   <!-- организации плана-->
+								   inner join ORGANIZATION     O on O.plansid = P.id
+								   <!-- граждане в организаии -->
+								   inner join CITIZENRYORG    CO on CO.organizationid = O.id
+								   <!-- орагнизации -->
+									left join ORGANIZATIONDIR OD on OD.id = O.organizationdirid
+									<!-- регион куда -->
+									left join REGIONDIR	      RD on RD.id = OD.regiondirid
+									<!-- Граждане -->
+									left join CITIZENRY		   C on C.id = CO.citizenryid
+									<!-- регион откуда -->
+									left join REGIONDIR		 RDC on RDC.id = C.regiondirid
+									<!-- образование -->
+									left join EDUCATIONCIT	   E on E.CITIZENRYID = C.id
+									<!-- Профессии/Должности -->
+									left join PROFESSIONDIR	  PD on PD.ID = E.professiondirid
+									<!-- Ведомство -->
+									left join DEPARTMENTDIR   DD on DD.id = C.DEPARTMENTDIRID
+									<!-- Направления -->
+									left join DIRECTION		   D on D.CITIZENRYID = C.id
+                                    left join ORGANIZATION   org on org.id = d.organizationid
+                                    left join VACANCYORG      vv on vv.id = d.vacancyorgid
+                                    left join PROFESSIONDIR   pp on pp.id = vv.professiondirid
+                                    left join ORGANIZATIONdir org1 on org1.id = org.organizationdirid
+                                    left join REGIONDIR       rr on rr.id = org1.regiondirid
+                                    left join DEPARTMENTDIR  dep on dep.id = org1.departmentdirid
+									<!-- Вакансии -->
+									left join VACANCYORG	   V on V.id = D.VACANCYORGID
+									<!-- Профессии/Должности -->
+									left join PROFESSIONDIR	 PDV on PDV.ID = V.professiondirid
+                              where 
+							    <!-- год призыва -->
+								((${yearconscription} = '' or ${yearconscription}::integer is null) or P.yearconscription = ${yearconscription}::integer)
+							    <!-- период призыва -->
+							    and ((${conscription} = '' or ${conscription} is null) or p.conscription = ${conscription})
+								<!-- ведомство -->
+								and ((${departmentdirid} = '' or ${departmentdirid}::bigint is null) or C.DEPARTMENTDIRID = ${departmentdirid}::bigint)
+								<!-- регион призыва -->
+								and ((${regiondirid} = '' or ${regiondirid}::bigint is null) or C.regiondirid = ${regiondirid}::bigint)
+								<!-- профессия должность -->
+								and ((${professiondirid} = '' or ${professiondirid}::bigint is null) or E.professiondirid = ${professiondirid}::bigint)
+								<!-- регион направления -->
+								and ((${regiondir2id} = '' or ${regiondir2id}::bigint is null) or OD.regiondirid = ${regiondir2id}::bigint)
+								<!-- статус -->
+								and ((${statuscitizen} = '' or ${statuscitizen} is null) or C.statuscitizen = ${statuscitizen})
+								<!-- Убеждения/вероисповедания -->
+								and ((${beliefs} = '' or ${beliefs} is null) or C.beliefs = ${beliefs})
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
