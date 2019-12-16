@@ -49,7 +49,7 @@
                     <query name="spec2" type="sql">
                         <script>
                             select 'Общий итог:' as SUBJECTSDIR_1, 
-							coalesce(SUM((SELECT COUNT(*) 
+							coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
                                    FROM BENEFITCHILD DD ,
                                    		CHILD D
                                    WHERE DD.ID = D.benefitchildid 
@@ -65,14 +65,7 @@
 												 AND P.child01id = D.ID
 												 AND DD.benefitchildumber = 1
                                                  and B.ID = D.benefit01id
-                                                 group by d.benefit01id)),0) AS CHILDUMBERVIRT1_SUM_1,
-								   coalesce(SUM((SELECT COUNT(*) 
-										  FROM BENEFITCHILD DD,
-                                   		CHILD D 
-										 WHERE DD.ID = D.benefitchildid 
-										   AND DD.benefitchildumber >= 2
-                                           and B.ID = D.benefit01id
-                                           group by d.benefit01id)),0) AS CHILDUMBERVIRT2_1,
+                                                 group by d.benefit01id)),0) +
 								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
 										       FROM BENEFITCHILD DD,  
 													benefit01payment p,
@@ -82,8 +75,16 @@
 												AND P.child01id = D.ID
 												AND DD.benefitchildumber >= 2
                                                 and B.ID = D.benefit01id
-                                                group by d.benefit01id)),0) AS CHILDUMBERVIRT2_SUM_1,
-                                   coalesce(SUM((SELECT COUNT(*) over()
+                                                group by d.benefit01id)),0) AS benefits_paid1,				 
+								   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
+										  FROM BENEFITCHILD DD,
+                                   		CHILD D 
+										 WHERE DD.ID = D.benefitchildid 
+										   AND DD.benefitchildumber >= 2
+                                           and B.ID = D.benefit01id
+                                           group by d.benefit01id)),0) AS CHILDUMBERVIRT2_1,
+								
+                                   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid)
 										  FROM BENEFITCHILD DD,
                                    			   CHILD D 
 										 WHERE DD.ID = D.benefitchildid
@@ -105,7 +106,7 @@
                             <query name="spec1" type="sql">
                                 <script>
 									select r.name as SUBJECTSDIR1,  
-								   coalesce(SUM((SELECT COUNT(*) 
+								   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
                                    FROM BENEFITCHILD DD ,
                                    		CHILD D
                                    WHERE DD.ID = D.benefitchildid 
@@ -121,15 +122,8 @@
 												 AND P.child01id = D.ID
 												 AND DD.benefitchildumber = 1
                                                  and B.ID = D.benefit01id
-                                                 group by d.benefit01id)),0) AS CHILDUMBERVIRT1_SUM1,
-								   coalesce(SUM((SELECT COUNT(*) 
-										  FROM BENEFITCHILD DD,
-                                   		CHILD D 
-										 WHERE DD.ID = D.benefitchildid 
-										   AND DD.benefitchildumber >= 2
-                                           and B.ID = D.benefit01id
-                                           group by d.benefit01id)),0) AS CHILDUMBERVIRT21,
-								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
+                                                 group by d.benefit01id)),0)+
+									coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
 										       FROM BENEFITCHILD DD,  
 													benefit01payment p,
                                    		CHILD D 
@@ -138,8 +132,16 @@
 												AND P.child01id = D.ID
 												AND DD.benefitchildumber >= 2
                                                 and B.ID = D.benefit01id
-                                                group by d.benefit01id)),0) AS CHILDUMBERVIRT2_SUM1,
-                                   coalesce(SUM((SELECT COUNT(*) over()
+                                                group by d.benefit01id)),0) AS benefits_paid1,			 
+								   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
+										  FROM BENEFITCHILD DD,
+                                   		CHILD D 
+										 WHERE DD.ID = D.benefitchildid 
+										   AND DD.benefitchildumber >= 2
+                                           and B.ID = D.benefit01id
+                                           group by d.benefit01id)),0) AS CHILDUMBERVIRT21,
+								
+                                   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
 										  FROM BENEFITCHILD DD,
                                    			   CHILD D 
 										 WHERE DD.ID = D.benefitchildid
@@ -161,7 +163,7 @@
                     <query name="spec" type="sql">
                         <script>
 						select r.fedreg as SUBJECTSDIR, 
-								   coalesce(SUM((SELECT COUNT(*) 
+								   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
                                    FROM BENEFITCHILD DD ,
                                    		CHILD D
                                    WHERE DD.ID = D.benefitchildid 
@@ -177,15 +179,8 @@
 												 AND P.child01id = D.ID
 												 AND DD.benefitchildumber = 1
                                                  and B.ID = D.benefit01id
-                                                 group by d.benefit01id)),0) AS CHILDUMBERVIRT1_SUM,
-								   coalesce(SUM((SELECT COUNT(*) 
-										  FROM BENEFITCHILD DD,
-                                   		CHILD D 
-										 WHERE DD.ID = D.benefitchildid 
-										   AND DD.benefitchildumber >= 2
-                                           and B.ID = D.benefit01id
-                                           group by d.benefit01id)),0) AS CHILDUMBERVIRT2,
-								coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
+                                                 group by d.benefit01id)),0)+
+									coalesce(SUM((SELECT sum(COALESCE(P.PAYSUM,0))  
 										       FROM BENEFITCHILD DD,  
 													benefit01payment p,
                                    		CHILD D 
@@ -194,8 +189,16 @@
 												AND P.child01id = D.ID
 												AND DD.benefitchildumber >= 2
                                                 and B.ID = D.benefit01id
-                                                group by d.benefit01id)),0) AS CHILDUMBERVIRT2_SUM,
-                                   coalesce(SUM((SELECT COUNT(*) over()
+                                                group by d.benefit01id)),0) AS benefits_paid1,			 
+								   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
+										  FROM BENEFITCHILD DD,
+                                   		CHILD D 
+										 WHERE DD.ID = D.benefitchildid 
+										   AND DD.benefitchildumber >= 2
+                                           and B.ID = D.benefit01id
+                                           group by d.benefit01id)),0) AS CHILDUMBERVIRT2,
+								
+                                   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid)
 										  FROM BENEFITCHILD DD,
                                    			   CHILD D 
 										 WHERE DD.ID = D.benefitchildid

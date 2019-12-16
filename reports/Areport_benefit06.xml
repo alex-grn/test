@@ -48,114 +48,53 @@
 				<queries>
                     <query name="spec" type="sql">
                         <script>
-							select 'Общий итог:' as FED,(select count(xx.id) from benefit06 xx, BENEFITSPACKETS Z, subjectsdir c  where xx.benefitspacketsid = Z.ID  and c.id = z.subjectsdirid
-								and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     									and z.repyear = ${repyear}::INTEGER) as CHISL, sum(rcof) as RASCHET,sum(pay) as POSOB
-							from(select 	 count(b.id) as FED, 
-							 count(b.id)*
-                                (select COALESCE(st.min,0)
-                                from benefitstypedir p,
-                                	 benefitsindexdir t,
-                                	 benefitsindexdirhistory ST
-                               where p.rosternumber = 6
-                                and t.benefitstypenamedirid = p.id 
-                                and st.benefitsindexdirid = t.id
-                                and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id and (z.repyear||'-'||z.repmonth||'-01')::date >= xx.paydatefrom))*
-                                COALESCE(P.coefficient,0) AS RCOF,
-								coalesce(SUM((SELECT sum(COALESCE(vv.PAYSUM,0))  
-												FROM  BENEFIT06PAYMENT vv 
-											   WHERE B.ID = vv.benefit06id
-                                                 and vv.coefficient = p.coefficient)),0) AS PAY,
-								(select COALESCE(st.min,0)
-                                from benefitstypedir p,
-                                	 benefitsindexdir t,
-                                	 benefitsindexdirhistory ST
-                               where p.rosternumber = 6
-                                and t.benefitstypenamedirid = p.id 
-                                and st.benefitsindexdirid = t.id
-                                and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id and (z.repyear||'-'||z.repmonth||'-01')::date >= xx.paydatefrom  )) as norma
-						     from BENEFIT06 B
-					   INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID 
-					   and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     						and z.repyear = ${repyear}::INTEGER
-						left join BENEFIT06PAYMENT p on p.benefit06id = b.id 	
-					   right JOIN subjectsdir R ON Z.subjectsdirID = R.ID
-					   --входной параметр
- 					--	GROUP BY R.fedreg;
-                    GROUP BY r.name,P.coefficient,norma)  r;
+								select 'Общий итог:' as FED,
+                             (select count(DISTINCT x.benefitsrecipientsid)
+                                from BENEFIT06       X,
+                                     BENEFITSPACKETS XX
+                               where XX.ID = X.BENEFITSPACKETSID
+                                 and xx.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+								 and xx.repyear = ${repyear}::INTEGER) as CHISL,
+                             COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as POSOB
+                        from SUBJECTSDIR R
+                        left join BENEFITSPACKETS Z
+                          on R.ID = Z.SUBJECTSDIRID
+                         and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+						 and z.repyear = ${repyear}::INTEGER
+                        left join BENEFIT06 B
+                          on B.BENEFITSPACKETSID = Z.ID;
                         </script>
                     </query>
                 </queries>
             </band>
             <band name="spec1" orientation="H">
 				<bands>
-					<band name="spec3" orientation="H">
-					    <bands>
-							<band name="spec2" orientation="H">
-								<queries>
-									<query name="spec2" type="sql">
-										<script>
-									select  r.name as FED, 
-										    count(b.id) AS CHISL,
-											(select COALESCE(st.min,0) as RASCHET
-									  from benefitstypedir p,
-										   benefitsindexdir t,
-										   benefitsindexdirhistory ST
-                                     where p.rosternumber = 6
-                                       and t.benefitstypenamedirid = p.id 
-									   and st.benefitsindexdirid = t.id
-									   and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id and (z.repyear||'-'||z.repmonth||'-01')::date >= xx.paydatefrom)) as NORMA,
-                                       COALESCE(P.coefficient,0)  AS RCOF,
-								 coalesce(SUM((SELECT sum(COALESCE(vv.PAYSUM,0))  
-												FROM  BENEFIT06PAYMENT vv 
-											   WHERE B.ID = vv.benefit06id
-                                                 and vv.coefficient = p.coefficient)),0) AS POSOB
-								     from BENEFIT06 B
-								INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID 
-								and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     									and z.repyear = ${repyear}::INTEGER  --входной параметр
-								left join BENEFIT06PAYMENT p on p.benefit06id = b.id 		
-							    right JOIN subjectsdir R ON Z.subjectsdirID = R.ID
-										where r.name = ${spec3.FED}
-										group by r.name,P.coefficient,norma
-										order by max(r.code);
-										</script>
-									</query>
-								</queries>
-							</band>
-						</bands>
+					<band name="spec2" orientation="H">
 						<queries>
-                            <query name="spec3" type="sql">
+                            <query name="spec2" type="sql">
                                 <script>
-								 select fed,(select count(xx.id) from benefit06 xx, BENEFITSPACKETS Z, subjectsdir c  where xx.benefitspacketsid = Z.ID  and c.id = z.subjectsdirid and c.name = tt.fed
-								and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     									and z.repyear = ${repyear}::INTEGER) as CHISL, sum(NORMA*RCOF) as RASCHET, sum(POSOB) as POSOB	 	    
-						from   (              select r.name as FED, 
-										    count(b.id) AS CHISL,
-											(select COALESCE(st.min,0) as RASCHET
-									  from benefitstypedir p,
-										   benefitsindexdir t,
-										   benefitsindexdirhistory ST
-                                     where p.rosternumber = 6
-                                       and t.benefitstypenamedirid = p.id 
-									   and st.benefitsindexdirid = t.id
-									   and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id and (z.repyear||'-'||z.repmonth||'-01')::date >= xx.paydatefrom)) as NORMA,
-                                       COALESCE(P.coefficient,0)  AS RCOF,
-								 coalesce(SUM((SELECT sum(COALESCE(vv.PAYSUM,0))  
-												FROM  BENEFIT06PAYMENT vv 
-											   WHERE B.ID = vv.benefit06id
-                                                 and vv.coefficient = p.coefficient)),0) AS POSOB
-								     from BENEFIT06 B
-								INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID 
-								and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     									and z.repyear = ${repyear}::INTEGER  --входной параметр
-								left join BENEFIT06PAYMENT p on p.benefit06id = b.id 		
-							    right JOIN subjectsdir R ON Z.subjectsdirID = R.ID
-										where r.fedreg = ${spec1.FED}
-										group by r.name,P.coefficient,b.id,norma
-										order by max(r.code)
-                                        ) tt
-                              group by fed;
+								 select 
+										R.NAME as FED,
+										R.FEDREG,
+										(select count(DISTINCT x.benefitsrecipientsid)
+											from BENEFIT06       X,
+												BENEFITSPACKETS XX,
+												SUBJECTSDIR     D
+										where XX.ID = X.BENEFITSPACKETSID
+											and D.ID = XX.SUBJECTSDIRID
+											and D.NAME = R.NAME
+											and xx.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+											and xx.repyear = ${repyear}::INTEGER) as CHISL,
+										COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as POSOB
+									from SUBJECTSDIR R
+									left join BENEFITSPACKETS Z
+									on R.ID = Z.SUBJECTSDIRID
+									and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+									and z.repyear = ${repyear}::INTEGER
+									left join BENEFIT06 B
+									on B.BENEFITSPACKETSID = Z.ID
+								where R.FEDREG = ${spec1.FED}
+								group by R.NAME,R.FEDREG;
                                 </script>
                             </query>
                         </queries>
@@ -164,46 +103,26 @@
                 <queries>
                     <query name="spec1" type="sql">
                         <script>
-                            			select fedregg as FED, (select count(xx.id) from benefit06 xx, BENEFITSPACKETS Z, subjectsdir c  where xx.benefitspacketsid = Z.ID  and c.id = z.subjectsdirid and c.fedreg = fedregg
-								and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     									and z.repyear = ${repyear}::INTEGER) as CHISL,sum(COALESCE(RASCHET,0)) as RASCHET,sum(COALESCE(POSOB,0)) as POSOB
-							from(	     select R.fedreg as fedregg,
-             					r.name as namess,
-             					count(b.id) as CHISL, 
-							    count(b.id)*
-                                (select COALESCE(st.min,0)
-                                from benefitstypedir p,
-                                	 benefitsindexdir t,
-                                	 benefitsindexdirhistory ST
-                               where p.rosternumber = 6
-                                and t.benefitstypenamedirid = p.id 
-                                and st.benefitsindexdirid = t.id
-                                and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id and (z.repyear||'-'||z.repmonth||'-01')::date >= xx.paydatefrom  ))*
-                                COALESCE(P.coefficient,0) AS RASCHET,
-								coalesce(SUM((SELECT sum(COALESCE(vv.PAYSUM,0))  
-												FROM  BENEFIT06PAYMENT vv 
-											   WHERE B.ID = vv.benefit06id
-                                                 and vv.coefficient = p.coefficient)),0) AS POSOB,
-								(select COALESCE(st.min,0)
-                                from benefitstypedir p,
-                                	 benefitsindexdir t,
-                                	 benefitsindexdirhistory ST
-                               where p.rosternumber = 6
-                                and t.benefitstypenamedirid = p.id 
-                                and st.benefitsindexdirid = t.id
-                                and st.paydatefrom = (select max(xx.paydatefrom) from benefitsindexdirhistory xx where xx.benefitsindexdirid = t.id and (z.repyear||'-'||z.repmonth||'-01')::date >= xx.paydatefrom  )) as norma
-						     from BENEFIT06 B
-					   INNER JOIN BENEFITSPACKETS Z ON B.benefitspacketsid = Z.ID 
-					   and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
-     						and z.repyear = ${repyear}::INTEGER
-						left join BENEFIT06PAYMENT p on p.benefit06id = b.id 	
-					   right JOIN subjectsdir R ON Z.subjectsdirID = R.ID 
-					   --входной параметр
- 					--	GROUP BY R.fedreg;
-                    GROUP BY r.name,R.fedreg,P.coefficient,norma
-					order by max(r.code))  r
-                    group by fedregg
-					;
+                            select 
+               		  R.FEDREG as FED,
+                     (select count(DISTINCT x.benefitsrecipientsid)
+                        from BENEFIT06       X,
+                             BENEFITSPACKETS XX,
+                             SUBJECTSDIR     D
+                       where XX.ID = X.BENEFITSPACKETSID
+                         and D.ID = XX.SUBJECTSDIRID
+                         and D.FEDREG = R.FEDREG
+                         and xx.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+     			         and xx.repyear = ${repyear}::INTEGER) as CHISL,
+                     COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as POSOB
+                from SUBJECTSDIR R
+                left join BENEFITSPACKETS Z
+                  on R.ID = Z.SUBJECTSDIRID
+                 and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+     			 and z.repyear = ${repyear}::INTEGER
+                left join BENEFIT06 B
+                  on B.BENEFITSPACKETSID = Z.ID
+               group by R.FEDREG;
                         </script>
                     </query>
                 </queries>
