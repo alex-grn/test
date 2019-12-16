@@ -718,11 +718,11 @@ FL:=0;
              DOW.COL3,
              DOW.COL4 ::numeric,
              DOW.COL5 ::date,
-             DOW.COL6 ::date,
+             DOW.COL6 ,
              DOW.COL7 ::numeric,
-             DOW.COL8 ::date,
+             DOW.COL8 ,
              DOW.COL9 ::numeric,
-             DOW.COL10 ::date,
+             DOW.COL10 ,
              DOW.COL11 ::numeric);
          exception when others then
                         			GET STACKED DIAGNOSTICS  
@@ -1273,11 +1273,11 @@ FL:=0;
              DOW.COL2 ::numeric,
              DOW.COL3,
              DOW.COL4 ::numeric,
-             DOW.COL6 ::date,
+             DOW.COL6 ,
              DOW.COL7 ::numeric,
-             DOW.COL8 ::date,
+             DOW.COL8 ,
              DOW.COL9 ::numeric,
-             DOW.COL10 ::date,
+             DOW.COL10 ,
              DOW.COL11 ::numeric,
              OLDBENEFITID);
          exception when others then
