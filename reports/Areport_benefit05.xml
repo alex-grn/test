@@ -9,22 +9,22 @@
 				<queries>
                      <query name="Header" type="sql">
                         <script>
-							select 'за период с '||
+							select 
 									case ${repmonth}::integer
-									 when 1 then '€нвар€'
-									 when 2 then 'феврал€'
-									 when 3 then 'марта'
-									 when 4 then 'апрел€'
-									 when 5 then 'ма€'
-									 when 6 then 'июн€'
-									 when 7 then 'июл€'
-									 when 8 then 'августа'
-									 when 9 then 'сент€бр€'
-									 when 10 then 'окт€бр€'
-									 when 11 then 'но€бр€'
-									 when 12 then 'декабр€'
+									 when 1 then '€нварь'
+									 when 2 then 'февраль'
+									 when 3 then 'март'
+									 when 4 then 'апрель'
+									 when 5 then 'май'
+									 when 6 then 'июнь'
+									 when 7 then 'июль'
+									 when 8 then 'август'
+									 when 9 then 'сент€брь'
+									 when 10 then 'окт€брь'
+									 when 11 then 'но€брь'
+									 when 12 then 'декабрь'
 									 end
-									 ||' по '||
+									 ||'-'||
 									 case ${repmonthby}::integer
 									 when 1 then '€нварь'
 									 when 2 then 'февраль'
@@ -40,89 +40,129 @@
 									 when 12 then 'декабрь'
 									 end
 									 ||' '||${repyear}::text||' года'  as DATEREPORT,
-									 'по данным ј»— –еестр получателей пособий (граждан), имеющих детей на '||to_char(now(), 'dd.mm.yyyy')||'г.' as DATEREPORT1
+									 to_char(now(),'dd.mm.yyyy') as now_date
 						</script>
                      </query>
                 </queries>
-			</band>
-			<band name="totaldata" orientation="H">
+			</band>		
+			<band name="spec" orientation="H">
 				<queries>
-                    <query name="totaldata" type="sql">
+                    <query name="spec" type="sql">
                         <script>
-							select b05r.region,
-								   b05r.pers_count,
-								   b05r.reg_coeff,
-								   b05r.norm_sum,
-								   b05r.norm_sum_by_reg_coeff,
-								   b05r.pers_sum_by_reg_coeff,
-								   b05r.pay_sum,
-								   b05r.dist_sum,
-								   b05r.row_ps1
-							  from benefit05_rep b05r
-							 where b05r.uid = ${uid}::BIGINT
-							   and b05r.row_ps0 = 0
-							 order by b05r.code_area,
-									  b05r.row_ps0,
-									  b05r.code_region,
-									  b05r.row_ps1;
+								select 'ќбщий итог:' as FED,
+                             coalesce((select sum(COALESCE(TBL.COUNTER, 0))
+									from (select (select sum(TBL2.COUNTER)
+													from (select count(distinct X.BENEFITSRECIPIENTSID) as COUNTER
+															from BENEFIT05       X,
+																BENEFITSPACKETS XX,
+																SUBJECTSDIR     D
+															where XX.ID = X.BENEFITSPACKETSID
+															and D.ID = XX.SUBJECTSDIRID
+															and XX.REPMONTH = BN.REPMONTH
+															and XX.REPYEAR = ${repyear}::INTEGER
+															group by D.CODE) as TBL2) as COUNTER
+											from BENEFIT05       B1,
+												BENEFITSPACKETS BN
+											where BN.ID = B1.BENEFITSPACKETSID
+											and BN.REPMONTH ::integer between ${repmonth}::integer and ${repmonthby}::integer
+											and BN.REPYEAR = ${repyear}::INTEGER
+											group by BN.REPMONTH) TBL),0) as CHISL,
+                             COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as POSOB
+                        from SUBJECTSDIR R
+                        left join BENEFITSPACKETS Z
+                          on R.ID = Z.SUBJECTSDIRID
+                         and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+						 and z.repyear = ${repyear}::INTEGER
+                        left join BENEFIT05 B
+                          on B.BENEFITSPACKETSID = Z.ID;
                         </script>
                     </query>
                 </queries>
             </band>
-            <band name="areadata" orientation="H">
+            <band name="spec1" orientation="H">
 				<bands>
-					<band name="regiondata" orientation="H">
+					<band name="spec2" orientation="H">
 						<queries>
-                            <query name="regiondata" type="sql">
+                            <query name="spec2" type="sql">
                                 <script>
-									select b05r.region,
-										   b05r.pers_count,
-										   b05r.reg_coeff,
-										   b05r.norm_sum,
-										   b05r.norm_sum_by_reg_coeff,
-										   b05r.pers_sum_by_reg_coeff,
-										   b05r.pay_sum,
-										   b05r.dist_sum,
-										   b05r.code_area,
-										   b05r.row_ps0,
-										   b05r.code_region,
-										   b05r.row_ps1
-									  from benefit05_rep b05r
-									 where b05r.uid = ${uid}::BIGINT
-									   and b05r.row_ps1 not in (0,1)
-									   and b05r.code_area = ${areadata.code_area}
-									 order by b05r.code_area,
-											  b05r.row_ps0,
-											  b05r.code_region,
-											  b05r.row_ps1;
+								 select 
+										R.NAME as FED,
+										R.FEDREG,
+										coalesce((select sum(COALESCE(tbl.counter,0))
+										from (select 
+												(select sum(tbl2.counter) 
+													from    (select count(DISTINCT x.benefitsrecipientsid) as counter
+															from BENEFIT05       X,
+																	BENEFITSPACKETS XX,
+																	SUBJECTSDIR     D
+															where XX.ID = X.BENEFITSPACKETSID
+																and D.ID = XX.SUBJECTSDIRID
+																and xx.repmonth = bn.repmonth
+																and xx.subjectsdirid = bn.subjectsdirid
+																and xx.repyear = ${repyear}::INTEGER
+																group by d.code) as tbl2) as counter
+									from BENEFIT05       b1,
+										BENEFITSPACKETS bn,
+										subjectsdir sb
+								where bn.ID = b1.BENEFITSPACKETSID
+									and bn.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+									and bn.repyear = ${repyear}::INTEGER
+									and sb.id = bn.subjectsdirid 
+									and sb.name = r.name
+									group by bn.repmonth,bn.subjectsdirid ) tbl),0) as CHISL,
+										COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as POSOB
+									from SUBJECTSDIR R
+									left join BENEFITSPACKETS Z
+									on R.ID = Z.SUBJECTSDIRID
+									and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+									and z.repyear = ${repyear}::INTEGER
+									left join BENEFIT05 B
+									on B.BENEFITSPACKETSID = Z.ID
+								where R.FEDREG = ${spec1.FED}
+								group by R.NAME,R.FEDREG
+								order by min(r.CODE);
                                 </script>
                             </query>
                         </queries>
 					</band>
 				</bands>
                 <queries>
-                    <query name="areadata" type="sql">
+                    <query name="spec1" type="sql">
                         <script>
-							select b05r.region,
-								   b05r.pers_count,
-								   b05r.reg_coeff,
-								   b05r.norm_sum,
-								   b05r.norm_sum_by_reg_coeff,
-								   b05r.pers_sum_by_reg_coeff,
-								   b05r.pay_sum,
-								   b05r.dist_sum,
-								   b05r.code_area,
-								   b05r.row_ps0,
-								   b05r.code_region,
-								   b05r.row_ps1
-							  from benefit05_rep b05r
-							 where b05r.uid = ${uid}::BIGINT
-                               and b05r.row_ps0 = 1
-                               and b05r.row_ps1 = 1
-							 order by b05r.code_area,
-									  b05r.row_ps0,
-									  b05r.code_region,
-									  b05r.row_ps1;
+                            select 
+               		  R.FEDREG as FED,
+                     coalesce((select sum(COALESCE(tbl.counter,0))
+										from (select 
+												(select sum(tbl2.counter) 
+													from    (select count(DISTINCT x.benefitsrecipientsid) as counter
+															from BENEFIT05       X,
+																	BENEFITSPACKETS XX,
+																	SUBJECTSDIR     D
+															where XX.ID = X.BENEFITSPACKETSID
+																and D.ID = XX.SUBJECTSDIRID
+																and xx.repmonth = bn.repmonth
+																and xx.subjectsdirid = bn.subjectsdirid
+																and xx.repyear = ${repyear}::INTEGER
+																group by d.code) as tbl2) as counter
+									from BENEFIT05       b1,
+										BENEFITSPACKETS bn,
+										subjectsdir sb
+								where bn.ID = b1.BENEFITSPACKETSID
+									and bn.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+									and bn.repyear = ${repyear}::INTEGER
+									and sb.id = bn.subjectsdirid 
+									and sb.fedreg = r.fedreg
+									group by bn.repmonth,bn.subjectsdirid ) tbl),0) as CHISL,
+                     COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as POSOB
+                from SUBJECTSDIR R
+                left join BENEFITSPACKETS Z
+                  on R.ID = Z.SUBJECTSDIRID
+                 and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+     			 and z.repyear = ${repyear}::INTEGER
+                left join BENEFIT05 B
+                  on B.BENEFITSPACKETSID = Z.ID
+               group by R.FEDREG
+			   order by min(r.CODE);
                         </script>
                     </query>
                 </queries>

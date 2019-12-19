@@ -13,22 +13,30 @@ declare
 begin
     /* Табличка 
    CREATE TABLE public.t_report_consol (
-  id BIGINT DEFAULT nextval('t_report_consol_id_seq'::regclass) NOT NULL,
+  id BIGSERIAL,
   uid BIGINT,
   list TEXT,
   line TEXT,
   month INTEGER,
   tcol TEXT,
+  tcol2 TEXT,
   col1 NUMERIC(9,2),
   col2 NUMERIC(9,2),
   col3 NUMERIC(9,2),
   col4 NUMERIC(9,2),
   col5 NUMERIC(9,2),
   col6 NUMERIC(9,2),
-  tcol2 TEXT
+  sort TEXT
 ) 
 WITH (oids = false);
-
+CREATE INDEX line_idx ON public.t_report_consol
+  USING btree (line COLLATE pg_catalog."default");
+CREATE INDEX list_idx ON public.t_report_consol
+  USING btree (list COLLATE pg_catalog."default");
+CREATE INDEX month_idx ON public.t_report_consol
+  USING btree (month);
+CREATE INDEX uid_idx ON public.t_report_consol
+  USING btree (uid);
 ALTER TABLE public.t_report_consol
   OWNER TO magicbox;
     */
@@ -40,19 +48,21 @@ ALTER TABLE public.t_report_consol
     LOOP
     --ШШШШШШШШШШШШШШШШШШШШШШШШШ<--BENEFITO1-->ШШШШШШШШШШШШШШШШШШШШШШШШШ
     	IF BEN.NUM = 1 THEN
-        	FOR I IN 1..REPMONTHBY::integer+1
+        	FOR I IN 1..REPMONTHBY::integer
              LOOP
-              IF I != 13 THEN
               --Заполняем первую линию
-        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3,COL4)
-                       (select NUID,BEN.NUM,1,I,
-                         COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
-                                        from BENEFITCHILD DD,
-                                             CHILD        D
-                                       where DD.ID = D.BENEFITCHILDID
-                                         and B.ID = D.BENEFIT01ID
-                                       group by D.BENEFIT01ID)),
-                                  0) as NUMBER_OF_RECIPIENTS1, 
+        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2,COL3,COL4)
+                       (select NUID,BEN.NUM,1,I,min(r.CODE),
+                        COALESCE((select sum(COALESCE(tbl.counter,0))
+                                     from (select count(DISTINCT x.benefitsrecipientsid) as counter
+									  from BENEFIT01       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and xx.repmonth::integer = I
+									  	and xx.repyear = NREPYEAR
+                                   group by d.code) tbl),0)  as NUMBER_OF_RECIPIENTS1, 
                          COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
                                         from BENEFITCHILD DD,
                                              CHILD        D
@@ -101,16 +111,18 @@ ALTER TABLE public.t_report_consol
                       on B.BENEFITSPACKETSID = Z.ID);
                       
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2,COL3,COL4)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2,COL3,COL4)
+               select NUID,BEN.NUM,2,I,min(r.CODE),
                		  R.FEDREG as SUBJECTSDIR,
-                      COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid) 
-                                     from BENEFITCHILD DD,
-                                          CHILD        D
-                                    where DD.ID = D.BENEFITCHILDID
-                                      and B.ID = D.BENEFIT01ID
-                                    group by D.BENEFIT01ID)),
-                               0) as NUMBER_OF_RECIPIENTS1,
+                      (select count(DISTINCT x.benefitsrecipientsid)
+									  from BENEFIT01       X,
+									  	   BENEFITSPACKETS XX,
+									  	   SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and D.FEDREG = R.FEDREG
+									  	and xx.repmonth::integer = i
+									  	and xx.repyear = NREPYEAR) as NUMBER_OF_RECIPIENTS1,
                       COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
                                      from BENEFITCHILD DD,
                                           CHILD        D
@@ -156,19 +168,22 @@ ALTER TABLE public.t_report_consol
                   and Z.REPYEAR = NREPYEAR
                  left join BENEFIT01 B
                    on B.BENEFITSPACKETSID = Z.ID
-                group by R.FEDREG;
+                group by R.FEDREG
+                order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2,COL3,COL4)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2,COL3,COL4)
+              select NUID,BEN.NUM,3,I,min(r.CODE),
               		 R.NAME as SUBJECTSDIR1,
                      R.FEDREG as SUBJECTSDIR,
-                     COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid) 
-                                    from BENEFITCHILD DD,
-                                         CHILD        D
-                                   where DD.ID = D.BENEFITCHILDID
-                                     and B.ID = D.BENEFIT01ID
-                                   group by D.BENEFIT01ID)),
-                              0) as NUMBER_OF_RECIPIENTS1,
+                     (select count(DISTINCT x.benefitsrecipientsid)
+									  from BENEFIT01       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and D.name = R.name
+									  	and xx.repmonth::integer = i
+									  	and xx.repyear = NREPYEAR) as NUMBER_OF_RECIPIENTS1,
                      COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
                                     from BENEFITCHILD DD,
                                          CHILD        D
@@ -216,20 +231,15 @@ ALTER TABLE public.t_report_consol
                 left join BENEFIT01 B
                   on B.BENEFITSPACKETSID = Z.ID
              --  where R.FEDREG = ${SPEC.SUBJECTSDIR}
-               group by R.NAME, R.FEDREG;
+               group by R.NAME, R.FEDREG
+               order by min(r.CODE);
 
-
-            ELSE
+			 END LOOP;
             
-            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3,COL4)
-                       (select NUID,BEN.NUM,1,I,
-                         COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid) 
-                                        from BENEFITCHILD DD,
-                                             CHILD        D
-                                       where DD.ID = D.BENEFITCHILDID
-                                         and B.ID = D.BENEFIT01ID
-                                       group by D.BENEFIT01ID)),
-                                  0) as NUMBER_OF_RECIPIENTS1, 
+            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2,COL3,COL4)
+                       (select NUID,BEN.NUM,1,13,min(r.CODE),
+                         (select count(DISTINCT x.benefitsrecipientsid) from benefit01 x, benefitspackets xx 
+								   where xx.id = x.benefitspacketsid and xx.repmonth::integer between 1 and REPMONTHBY::integer and xx.repyear = NREPYEAR) as NUMBER_OF_RECIPIENTS1, 
                          COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
                                         from BENEFITCHILD DD,
                                              CHILD        D
@@ -272,22 +282,24 @@ ALTER TABLE public.t_report_consol
                     from SUBJECTSDIR R
                     left join BENEFITSPACKETS Z
                       on R.ID = Z.SUBJECTSDIRID
-                     and Z.REPMONTH::integer between 1 and I-1
+                     and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                      and Z.REPYEAR = NREPYEAR
                     left join BENEFIT01 B
                       on B.BENEFITSPACKETSID = Z.ID);
                       
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2,COL3,COL4)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2,COL3,COL4)
+               select NUID,BEN.NUM,2,13,min(r.CODE),
                		  R.FEDREG as SUBJECTSDIR,
-                      COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid) 
-                                     from BENEFITCHILD DD,
-                                          CHILD        D
-                                    where DD.ID = D.BENEFITCHILDID
-                                      and B.ID = D.BENEFIT01ID
-                                    group by D.BENEFIT01ID)),
-                               0) as NUMBER_OF_RECIPIENTS1,
+                      (select count(DISTINCT x.benefitsrecipientsid)
+									  from BENEFIT01       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and D.FEDREG = R.FEDREG
+									  	and xx.repmonth::integer between 1 and REPMONTHBY::integer
+									  	and xx.repyear = NREPYEAR) as NUMBER_OF_RECIPIENTS1,
                       COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
                                      from BENEFITCHILD DD,
                                           CHILD        D
@@ -329,23 +341,26 @@ ALTER TABLE public.t_report_consol
                  from SUBJECTSDIR R
                  left join BENEFITSPACKETS Z
                    on R.ID = Z.SUBJECTSDIRID
-                  and Z.REPMONTH::integer between 1 and I-1
+                  and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                   and Z.REPYEAR = NREPYEAR
                  left join BENEFIT01 B
                    on B.BENEFITSPACKETSID = Z.ID
-                group by R.FEDREG;
+                group by R.FEDREG
+                order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2,COL3,COL4)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2,COL3,COL4)
+              select NUID,BEN.NUM,3,13,min(r.CODE),
               		 R.NAME as SUBJECTSDIR1,
                      R.FEDREG as SUBJECTSDIR,
-                     COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid) 
-                                    from BENEFITCHILD DD,
-                                         CHILD        D
-                                   where DD.ID = D.BENEFITCHILDID
-                                     and B.ID = D.BENEFIT01ID
-                                   group by D.BENEFIT01ID)),
-                              0) as NUMBER_OF_RECIPIENTS1,
+                     (select count(DISTINCT x.benefitsrecipientsid)
+									  from BENEFIT01       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and D.name = R.name
+									  	and xx.repmonth::integer between 1 and REPMONTHBY::integer
+									  	and xx.repyear = NREPYEAR) as NUMBER_OF_RECIPIENTS1,
                      COALESCE(sum((select count(DISTINCT dd.benefitsrecipientsid)
                                     from BENEFITCHILD DD,
                                          CHILD        D
@@ -388,50 +403,60 @@ ALTER TABLE public.t_report_consol
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT01 B
                   on B.BENEFITSPACKETSID = Z.ID
              --  where R.FEDREG = ${SPEC.SUBJECTSDIR}
-               group by R.NAME, R.FEDREG;
+               group by R.NAME, R.FEDREG
+               order by min(r.CODE);*/
             
-            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3,COL4)
-                SELECT NUID,BEN.NUM,1,I,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3),SUM(T.COL4)
+            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3,COL4)
+                SELECT NUID,BEN.NUM,1,13,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3),SUM(T.COL4)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '1';
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2,COL3,COL4)
-                SELECT NUID,BEN.NUM,2,I,TCOL,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3),SUM(T.COL4)
+                SELECT NUID,BEN.NUM,2,13,TCOL,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3),SUM(T.COL4)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '2'
                    GROUP BY TCOL;
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,TCOL2,COL1,COL2,COL3,COL4)
-                SELECT NUID,BEN.NUM,3,I,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3),SUM(T.COL4)
+                SELECT NUID,BEN.NUM,3,13,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3),SUM(T.COL4)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '3'
-                   GROUP BY TCOL,TCOL2;*/
+                   GROUP BY TCOL,TCOL2;
                 
-        	END IF;
-            END LOOP;
+           
     --ШШШШШШШШШШШШШШШШШШШШШШШШШ<--BENEFITO2-->ШШШШШШШШШШШШШШШШШШШШШШШШШ    
         ELSIF BEN.NUM = 2 THEN
-    		FOR I IN 1..REPMONTHBY::integer+1
+    		FOR I IN 1..REPMONTHBY::integer
              LOOP
-              IF I != 13 THEN
+             
               --Заполняем первую линию
-        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
-                             (select count(DISTINCT x.benefitsrecipientsid)
+        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,I,min(r.CODE),
+                            /* (select count(DISTINCT x.benefitsrecipientsid)
                                 from BENEFIT02       X,
                                      BENEFITSPACKETS XX
                                where XX.ID = X.BENEFITSPACKETSID
                                  and XX.REPMONTH::integer = I
-                  		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
+                  		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,*/
+                            COALESCE((select sum(COALESCE(tbl.counter,0))
+                                     from (select count(DISTINCT x.benefitsrecipientsid) as counter
+									  from BENEFIT02       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and xx.repmonth::integer = I
+									  	and xx.repyear = NREPYEAR
+                                   group by d.code) tbl),0) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT02PAYMENT P where B.ID = P.BENEFIT02ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
@@ -442,8 +467,8 @@ ALTER TABLE public.t_report_consol
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,I,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT02       X,
@@ -462,10 +487,11 @@ ALTER TABLE public.t_report_consol
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT02 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,I,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -486,30 +512,31 @@ ALTER TABLE public.t_report_consol
                 left join BENEFIT02 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);
 
-            ELSE
+          END LOOP;
             	
-            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
+            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,13,min(r.CODE),
                              (select count(DISTINCT x.benefitsrecipientsid)
                                 from BENEFIT02       X,
                                      BENEFITSPACKETS XX
                                where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer between 1 and I-1
+                                 and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT02PAYMENT P where B.ID = P.BENEFIT02ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
                           on R.ID = Z.SUBJECTSDIRID
-                         and Z.REPMONTH::integer between 1 and I-1
+                         and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and Z.REPYEAR = NREPYEAR
                         left join BENEFIT02 B
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,13,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT02       X,
@@ -518,20 +545,20 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.FEDREG = R.FEDREG
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT02PAYMENT P where B.ID = P.BENEFIT02ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT02 B
                   on B.BENEFITSPACKETSID = Z.ID
                group by R.FEDREG;
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,13,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -541,57 +568,60 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.NAME = R.NAME
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT02PAYMENT P where B.ID = P.BENEFIT02ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT02 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);*/
             	
-            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                SELECT NUID,BEN.NUM,1,I,SUM(T.COL1),SUM(T.COL2)
+            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
+                SELECT NUID,BEN.NUM,1,13,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '1';
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-                SELECT NUID,BEN.NUM,2,I,TCOL,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,2,13,TCOL,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '2'
                    GROUP BY TCOL;
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,TCOL2,COL1,COL2)
-                SELECT NUID,BEN.NUM,3,I,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,3,13,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '3'
-                   GROUP BY TCOL,TCOL2;*/
-                
-        	END IF;
-            END LOOP;
+                   GROUP BY TCOL,TCOL2;
+           
     
     --ШШШШШШШШШШШШШШШШШШШШШШШШШ<--BENEFITO3-->ШШШШШШШШШШШШШШШШШШШШШШШШШ    
         ELSIF BEN.NUM = 3 THEN
-    		FOR I IN 1..REPMONTHBY::integer+1
+    		FOR I IN 1..REPMONTHBY::integer
              LOOP
-              IF I != 13 THEN
+             
               --Заполняем первую линию
-        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
-                             (select count(DISTINCT x.benefitsrecipientsid)
-                                from BENEFIT03       X,
-                                     BENEFITSPACKETS XX
-                               where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer = I
-                  		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
+        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,I,min(r.CODE),
+                             COALESCE((select sum(COALESCE(tbl.counter,0))
+                                     from (select count(DISTINCT x.benefitsrecipientsid) as counter
+									  from BENEFIT03       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and xx.repmonth::integer = I
+									  	and xx.repyear = NREPYEAR
+                                   group by d.code) tbl),0) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT03PAYMENT P where B.ID = P.BENEFIT03ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
@@ -602,8 +632,8 @@ ALTER TABLE public.t_report_consol
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,I,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT03       X,
@@ -622,10 +652,11 @@ ALTER TABLE public.t_report_consol
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT03 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,I,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -646,30 +677,31 @@ ALTER TABLE public.t_report_consol
                 left join BENEFIT03 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);
 
-            ELSE
+            END LOOP;
             	
-            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
+            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,13,min(r.CODE),
                              (select count(DISTINCT x.benefitsrecipientsid)
                                 from BENEFIT03       X,
                                      BENEFITSPACKETS XX
                                where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer between 1 and I-1
+                                 and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT03PAYMENT P where B.ID = P.BENEFIT03ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
                           on R.ID = Z.SUBJECTSDIRID
-                         and Z.REPMONTH::integer between 1 and I-1
+                         and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and Z.REPYEAR = NREPYEAR
                         left join BENEFIT03 B
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,13,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT03       X,
@@ -678,20 +710,21 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.FEDREG = R.FEDREG
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT03PAYMENT P where B.ID = P.BENEFIT03ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT03 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,13,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -701,57 +734,60 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.NAME = R.NAME
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT03PAYMENT P where B.ID = P.BENEFIT03ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT03 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);*/
             
-            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                SELECT NUID,BEN.NUM,1,I,SUM(T.COL1),SUM(T.COL2)
+            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
+                SELECT NUID,BEN.NUM,1,13,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '1';
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-                SELECT NUID,BEN.NUM,2,I,TCOL,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,2,13,TCOL,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '2'
                    GROUP BY TCOL;
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,TCOL2,COL1,COL2)
-                SELECT NUID,BEN.NUM,3,I,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,3,13,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '3'
-                   GROUP BY TCOL,TCOL2;*/
-                
-        	END IF;
-            END LOOP;
+                   GROUP BY TCOL,TCOL2;
+               
     
     --ШШШШШШШШШШШШШШШШШШШШШШШШШ<--BENEFITO4-->ШШШШШШШШШШШШШШШШШШШШШШШШШ   
         ELSIF BEN.NUM = 4 THEN
-    		FOR I IN 1..REPMONTHBY::integer+1
+    		FOR I IN 1..REPMONTHBY::integer
              LOOP
-              IF I != 13 THEN
+             
               --Заполняем первую линию
-        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3)
-                       select NUID,BEN.NUM,1,I,
-                             (select count(DISTINCT x.benefitsrecipientsid)
-                                from BENEFIT04       X,
-                                     BENEFITSPACKETS XX
-                               where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer = I
-                  		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
+        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2,COL3)
+                       select NUID,BEN.NUM,1,I,min(r.CODE),
+                             COALESCE((select sum(COALESCE(tbl.counter,0))
+                                     from (select count(DISTINCT x.benefitsrecipientsid) as counter
+									  from BENEFIT04       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and xx.repmonth::integer = I
+									  	and xx.repyear = NREPYEAR
+                                   group by d.code) tbl),0) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT04PAYMENT P where B.ID = P.BENEFIT04ID)), 0) as BENEFITS_PAID,
                              sum((select count(DISTINCT c.benefitchildid) from BENEFIT04PAYMENT P, child04 c
                                                                                     where B.ID = P.BENEFIT04ID and c.id = p.child04id
@@ -765,8 +801,8 @@ ALTER TABLE public.t_report_consol
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2,COL3)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2,COL3)
+               select NUID,BEN.NUM,2,I,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT04       X,
@@ -788,10 +824,11 @@ ALTER TABLE public.t_report_consol
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT04 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2,COL3)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2,COL3)
+              select NUID,BEN.NUM,3,I,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -815,17 +852,18 @@ ALTER TABLE public.t_report_consol
                 left join BENEFIT04 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);
 
-            ELSE
+           END LOOP;
             
-            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3)
-                       select NUID,BEN.NUM,1,I,
+            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2,COL3)
+                       select NUID,BEN.NUM,1,13,min(r.CODE),
                              (select count(DISTINCT x.benefitsrecipientsid)
                                 from BENEFIT04       X,
                                      BENEFITSPACKETS XX
                                where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer between 1 and I
+                                 and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT04PAYMENT P where B.ID = P.BENEFIT04ID)), 0) as BENEFITS_PAID,
                              sum((select count(DISTINCT c.benefitchildid) from BENEFIT04PAYMENT P, child04 c
@@ -834,14 +872,14 @@ ALTER TABLE public.t_report_consol
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
                           on R.ID = Z.SUBJECTSDIRID
-                         and Z.REPMONTH::integer between 1 and I-1
+                         and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and Z.REPYEAR = NREPYEAR
                         left join BENEFIT04 B
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2,COL3)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2,COL3)
+               select NUID,BEN.NUM,2,13,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT04       X,
@@ -850,7 +888,7 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.FEDREG = R.FEDREG
-                         and XX.REPMONTH::integer between 1 and I
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT04PAYMENT P where B.ID = P.BENEFIT04ID)), 0) as BENEFITS_PAID,
                      sum((select count(DISTINCT c.benefitchildid) from BENEFIT04PAYMENT P, child04 c
@@ -859,14 +897,15 @@ ALTER TABLE public.t_report_consol
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT04 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2,COL3)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2,COL3)
+              select NUID,BEN.NUM,3,13,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -876,7 +915,7 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.NAME = R.NAME
-                         and XX.REPMONTH::integer between 1 and I
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT04PAYMENT P where B.ID = P.BENEFIT04ID)), 0) as BENEFITS_PAID,
                      sum((select count(DISTINCT c.benefitchildid) from BENEFIT04PAYMENT P, child04 c
@@ -885,52 +924,55 @@ ALTER TABLE public.t_report_consol
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT04 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);*/
             
             
-            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3)
-                SELECT NUID,BEN.NUM,1,I,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3)
+            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2,COL3)
+                SELECT NUID,BEN.NUM,1,13,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '1';
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2,COL3)
-                SELECT NUID,BEN.NUM,2,I,TCOL,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3)
+                SELECT NUID,BEN.NUM,2,13,TCOL,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '2'
                    GROUP BY TCOL;
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,TCOL2,COL1,COL2,COL3)
-                SELECT NUID,BEN.NUM,3,I,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3)
+                SELECT NUID,BEN.NUM,3,13,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2),SUM(T.COL3)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '3'
-                   GROUP BY TCOL,TCOL2;*/
-                
-        	END IF;
-            END LOOP;
+                   GROUP BY TCOL,TCOL2;
+            
     
     --ШШШШШШШШШШШШШШШШШШШШШШШШШ<--BENEFITO5-->ШШШШШШШШШШШШШШШШШШШШШШШШШ    
         ELSIF BEN.NUM = 5 THEN
-    		FOR I IN 1..REPMONTHBY::integer+1
+    		FOR I IN 1..REPMONTHBY::integer
              LOOP
-              IF I != 13 THEN
+             
               --Заполняем первую линию
-        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
-                             (select count(DISTINCT x.benefitsrecipientsid)
-                                from BENEFIT05       X,
-                                     BENEFITSPACKETS XX
-                               where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer = I
-                  		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
+        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,I,min(r.CODE),
+                             COALESCE((select sum(COALESCE(tbl.counter,0))
+                                     from (select count(DISTINCT x.benefitsrecipientsid) as counter
+									  from BENEFIT05       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and xx.repmonth::integer = I
+									  	and xx.repyear = NREPYEAR
+                                   group by d.code) tbl),0) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
@@ -941,8 +983,8 @@ ALTER TABLE public.t_report_consol
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,I,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT05       X,
@@ -961,10 +1003,11 @@ ALTER TABLE public.t_report_consol
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT05 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,I,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -985,30 +1028,31 @@ ALTER TABLE public.t_report_consol
                 left join BENEFIT05 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);
 
-            ELSE
+           END LOOP;
             
-            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
+            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,13,min(r.CODE),
                              (select count(DISTINCT x.benefitsrecipientsid)
                                 from BENEFIT05       X,
                                      BENEFITSPACKETS XX
                                where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer between 1 and I-1
+                                 and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
                           on R.ID = Z.SUBJECTSDIRID
-                         and Z.REPMONTH::integer between 1 and I-1
+                         and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and Z.REPYEAR = NREPYEAR
                         left join BENEFIT05 B
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,13,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT05       X,
@@ -1017,20 +1061,21 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.FEDREG = R.FEDREG
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT05 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,13,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -1040,57 +1085,61 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.NAME = R.NAME
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT05PAYMENT P where B.ID = P.BENEFIT05ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT05 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);*/
             
-            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                SELECT NUID,BEN.NUM,1,I,SUM(T.COL1),SUM(T.COL2)
+            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
+                SELECT NUID,BEN.NUM,1,13,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '1';
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-                SELECT NUID,BEN.NUM,2,I,TCOL,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,2,13,TCOL,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '2'
                    GROUP BY TCOL;
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,TCOL2,COL1,COL2)
-                SELECT NUID,BEN.NUM,3,I,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,3,13,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '3'
-                   GROUP BY TCOL,TCOL2;*/
+                   GROUP BY TCOL,TCOL2;
                 
-        	END IF;
-            END LOOP;
+        	
     
     --ШШШШШШШШШШШШШШШШШШШШШШШШШ<--BENEFITO6-->ШШШШШШШШШШШШШШШШШШШШШШШШШ    
         ELSIF BEN.NUM = 6 THEN
-        	FOR I IN 1..REPMONTHBY::integer+1
+        	FOR I IN 1..REPMONTHBY::integer
              LOOP
-              IF I != 13 THEN
+             
               --Заполняем первую линию
-        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
-                             (select count(DISTINCT x.benefitsrecipientsid)
-                                from BENEFIT06       X,
-                                     BENEFITSPACKETS XX
-                               where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer = I
-                  		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
+        	  INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,I,min(r.CODE),
+                             COALESCE((select sum(COALESCE(tbl.counter,0))
+                                     from (select count(DISTINCT x.benefitsrecipientsid) as counter
+									  from BENEFIT06       X,
+									  		BENEFITSPACKETS XX,
+									  		SUBJECTSDIR     D
+									  where XX.ID = X.BENEFITSPACKETSID
+									  	and D.ID = XX.SUBJECTSDIRID
+									  	and xx.repmonth::integer = I
+									  	and xx.repyear = NREPYEAR
+                                   group by d.code) tbl),0) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
@@ -1101,8 +1150,8 @@ ALTER TABLE public.t_report_consol
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,I,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT06      X,
@@ -1121,10 +1170,11 @@ ALTER TABLE public.t_report_consol
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT06 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,I,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -1145,30 +1195,31 @@ ALTER TABLE public.t_report_consol
                 left join BENEFIT06 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);
 
-            ELSE
+            END LOOP;
             
-            	 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                       select NUID,BEN.NUM,1,I,
+            	 /*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,COL1,COL2)
+                       select NUID,BEN.NUM,1,13,min(r.CODE),
                              (select count(DISTINCT x.benefitsrecipientsid)
                                 from BENEFIT06       X,
                                      BENEFITSPACKETS XX
                                where XX.ID = X.BENEFITSPACKETSID
-                                 and XX.REPMONTH::integer between 1 and I-1
+                                 and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                              COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as BENEFITS_PAID
                         from SUBJECTSDIR R
                         left join BENEFITSPACKETS Z
                           on R.ID = Z.SUBJECTSDIRID
-                         and Z.REPMONTH::integer between 1 and I-1
+                         and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and Z.REPYEAR = NREPYEAR
                         left join BENEFIT06 B
                           on B.BENEFITSPACKETSID = Z.ID;
 
                --Заполняем вторую линию
-               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-               select NUID,BEN.NUM,2,I,
+               INSERT INTO T_REPORT_CONSOL(uid,list,line,month,sort,TCOL,COL1,COL2)
+               select NUID,BEN.NUM,2,13,min(r.CODE),
                		  R.FEDREG as FED,
                      (select count(DISTINCT x.benefitsrecipientsid)
                         from BENEFIT06      X,
@@ -1177,20 +1228,21 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.FEDREG = R.FEDREG
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT06 B
                   on B.BENEFITSPACKETSID = Z.ID
-               group by R.FEDREG;
+               group by R.FEDREG
+               order by min(r.CODE);
               --Заполняем 3 линию
-              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,TCOL,TCOL2,COL1,COL2)
-              select NUID,BEN.NUM,3,I,
+              INSERT INTO T_REPORT_CONSOL(UID,LIST,LINE,MONTH,sort,TCOL,TCOL2,COL1,COL2)
+              select NUID,BEN.NUM,3,13,min(r.CODE),
               		 R.NAME as FED,
                      R.FEDREG,
                      (select count(DISTINCT x.benefitsrecipientsid)
@@ -1200,42 +1252,41 @@ ALTER TABLE public.t_report_consol
                        where XX.ID = X.BENEFITSPACKETSID
                          and D.ID = XX.SUBJECTSDIRID
                          and D.NAME = R.NAME
-                         and XX.REPMONTH::integer between 1 and I-1
+                         and XX.REPMONTH::integer between 1 and REPMONTHBY::integer
                   		 and XX.REPYEAR = NREPYEAR) as NUMBER_OF_RECIPIENTS,
                      COALESCE(sum((select sum(COALESCE(P.PAYSUM, 0)) from BENEFIT06PAYMENT P where B.ID = P.BENEFIT06ID)), 0) as BENEFITS_PAID
                 from SUBJECTSDIR R
                 left join BENEFITSPACKETS Z
                   on R.ID = Z.SUBJECTSDIRID
-                 and Z.REPMONTH::integer between 1 and I-1
+                 and Z.REPMONTH::integer between 1 and REPMONTHBY::integer
                  and Z.REPYEAR = NREPYEAR
                 left join BENEFIT06 B
                   on B.BENEFITSPACKETSID = Z.ID
                --where R.FEDREG = ${SPEC1.FED}
-               group by R.NAME,R.FEDREG;
+               group by R.NAME,R.FEDREG
+               order by min(r.CODE);*/
             
-            	/*INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
-                SELECT NUID,BEN.NUM,1,I,SUM(T.COL1),SUM(T.COL2)
+            	INSERT INTO T_REPORT_CONSOL(uid,list,line,month,COL1,COL2)
+                SELECT NUID,BEN.NUM,1,13,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '1';
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,COL1,COL2)
-                SELECT NUID,BEN.NUM,2,I,TCOL,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,2,13,TCOL,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '2'
                    GROUP BY TCOL;
                 INSERT INTO T_REPORT_CONSOL(uid,list,line,month,TCOL,TCOL2,COL1,COL2)
-                SELECT NUID,BEN.NUM,3,I,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
+                SELECT NUID,BEN.NUM,3,13,TCOL,TCOL2,SUM(T.COL1),SUM(T.COL2)
                   FROM T_REPORT_CONSOL T
                  WHERE T.UID = NUID
                    AND T.LIST = BEN.NUM::TEXT 
                    AND T.LINE = '3'
-                   GROUP BY TCOL,TCOL2;*/
-                
-        	END IF;
-            END LOOP;
+                   GROUP BY TCOL,TCOL2;
+              
         END IF;
     
     END LOOP;

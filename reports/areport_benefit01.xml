@@ -9,22 +9,22 @@
 				<queries>
                      <query name="Header" type="sql">
                         <script>
-							select 'за период с '||
+							select 
 									case ${repmonth}::integer
-									 when 1 then '€нвар€'
-									 when 2 then 'феврал€'
-									 when 3 then 'марта'
-									 when 4 then 'апрел€'
-									 when 5 then 'ма€'
-									 when 6 then 'июн€'
-									 when 7 then 'июл€'
-									 when 8 then 'августа'
-									 when 9 then 'сент€бр€'
-									 when 10 then 'окт€бр€'
-									 when 11 then 'но€бр€'
-									 when 12 then 'декабр€'
+									 when 1 then '€нварь'
+									 when 2 then 'февраль'
+									 when 3 then 'март'
+									 when 4 then 'апрель'
+									 when 5 then 'май'
+									 when 6 then 'июнь'
+									 when 7 then 'июль'
+									 when 8 then 'август'
+									 when 9 then 'сент€брь'
+									 when 10 then 'окт€брь'
+									 when 11 then 'но€брь'
+									 when 12 then 'декабрь'
 									 end
-									 ||' по '||
+									 ||'-'||
 									 case ${repmonthby}::integer
 									 when 1 then '€нварь'
 									 when 2 then 'февраль'
@@ -39,7 +39,8 @@
 									 when 11 then 'но€брь'
 									 when 12 then 'декабрь'
 									 end
-									 ||' '||${repyear}::text||' года'  as DATEREPORT
+									 ||' '||${repyear}::text||' года'  as DATEREPORT,
+									 to_char(now(),'dd.mm.yyyy') as now_date
 						</script>
                      </query>
                 </queries>
@@ -84,17 +85,29 @@
                                            and B.ID = D.benefit01id
                                            group by d.benefit01id)),0) AS CHILDUMBERVIRT2_1,
 								
-                                   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid)
-										  FROM BENEFITCHILD DD,
-                                   			   CHILD D 
-										 WHERE DD.ID = D.benefitchildid
-                                         and B.ID = D.benefit01id 
-                                        group by d.benefit01id)),0) AS SUMMA
+                                   (select sum(COALESCE(TBL.COUNTER, 0))
+									from (select (select sum(TBL2.COUNTER)
+													from (select count(distinct X.BENEFITSRECIPIENTSID) as COUNTER
+															from BENEFIT01       X,
+																BENEFITSPACKETS XX,
+																SUBJECTSDIR     D
+															where XX.ID = X.BENEFITSPACKETSID
+															and D.ID = XX.SUBJECTSDIRID
+															and XX.REPMONTH = BN.REPMONTH
+															and XX.REPYEAR = ${repyear}::INTEGER
+															group by D.CODE) as TBL2) as COUNTER
+											from BENEFIT01       B1,
+												BENEFITSPACKETS BN
+											where BN.ID = B1.BENEFITSPACKETSID
+											and BN.REPMONTH ::integer between ${repmonth}::integer and ${repmonthby}::integer
+											and BN.REPYEAR = ${repyear}::INTEGER
+											group by BN.REPMONTH) TBL) AS SUMMA
 						     from subjectsdir r
 							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid
 							and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
      						and z.repyear = ${repyear}::INTEGER
-							left join BENEFIT01 B on b.benefitspacketsid = z.id;
+							left join BENEFIT01 B on b.benefitspacketsid = z.id
+							;
                         </script>
                     </query>
                 </queries>
@@ -141,19 +154,36 @@
                                            and B.ID = D.benefit01id
                                            group by d.benefit01id)),0) AS CHILDUMBERVIRT21,
 								
-                                   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid) 
-										  FROM BENEFITCHILD DD,
-                                   			   CHILD D 
-										 WHERE DD.ID = D.benefitchildid
-                                         and B.ID = D.benefit01id 
-                                        group by d.benefit01id)),0) AS SUMMA
+                                   coalesce((select sum(COALESCE(tbl.counter,0))
+										from (select 
+												(select sum(tbl2.counter) 
+													from    (select count(DISTINCT x.benefitsrecipientsid) as counter
+															from BENEFIT01       X,
+																	BENEFITSPACKETS XX,
+																	SUBJECTSDIR     D
+															where XX.ID = X.BENEFITSPACKETSID
+																and D.ID = XX.SUBJECTSDIRID
+																and xx.repmonth = bn.repmonth
+																and xx.subjectsdirid = bn.subjectsdirid
+																and xx.repyear = ${repyear}::INTEGER
+																group by d.code) as tbl2) as counter
+									from BENEFIT01       b1,
+										BENEFITSPACKETS bn,
+										subjectsdir sb
+								where bn.ID = b1.BENEFITSPACKETSID
+									and bn.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+									and bn.repyear = ${repyear}::INTEGER
+									and sb.id = bn.subjectsdirid 
+									and sb.name = r.name
+									group by bn.repmonth,bn.subjectsdirid ) tbl),0)  AS SUMMA
 						     from subjectsdir r
 							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid 
 							and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
      						and z.repyear = ${repyear}::INTEGER
 							left join BENEFIT01 B on b.benefitspacketsid = z.id
 										where r.fedreg = ${spec.subjectsdir}
-										group by r.name;
+										group by r.name
+										order by min(r.CODE);
                                 </script>
                             </query>
                         </queries>
@@ -198,18 +228,35 @@
                                            and B.ID = D.benefit01id
                                            group by d.benefit01id)),0) AS CHILDUMBERVIRT2,
 								
-                                   coalesce(SUM((SELECT COUNT(DISTINCT dd.benefitsrecipientsid)
-										  FROM BENEFITCHILD DD,
-                                   			   CHILD D 
-										 WHERE DD.ID = D.benefitchildid
-                                         and B.ID = D.benefit01id 
-                                        group by d.benefit01id)),0) AS SUMMA 
+                                   coalesce((select sum(COALESCE(tbl.counter,0))
+										from (select 
+												(select sum(tbl2.counter) 
+													from    (select count(DISTINCT x.benefitsrecipientsid) as counter
+															from BENEFIT01       X,
+																	BENEFITSPACKETS XX,
+																	SUBJECTSDIR     D
+															where XX.ID = X.BENEFITSPACKETSID
+																and D.ID = XX.SUBJECTSDIRID
+																and xx.repmonth = bn.repmonth
+																and xx.subjectsdirid = bn.subjectsdirid
+																and xx.repyear = ${repyear}::INTEGER
+																group by d.code) as tbl2) as counter
+									from BENEFIT01       b1,
+										BENEFITSPACKETS bn,
+										subjectsdir sb
+								where bn.ID = b1.BENEFITSPACKETSID
+									and bn.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
+									and bn.repyear = ${repyear}::INTEGER
+									and sb.id = bn.subjectsdirid 
+									and sb.fedreg = r.fedreg
+									group by bn.repmonth,bn.subjectsdirid ) tbl),0)  AS SUMMA
 						     from subjectsdir r
 							left JOIN BENEFITSPACKETS Z ON r.id = Z.subjectsdirid 
 							and Z.repmonth::integer between ${repmonth}::integer and ${repmonthby}::integer
      						and z.repyear = ${repyear}::INTEGER
 					left join BENEFIT01 B on b.benefitspacketsid = z.id
- 						GROUP BY R.fedreg;
+ 						GROUP BY R.fedreg
+						order by min(r.CODE);
                         </script>
                     </query>
                 </queries>
