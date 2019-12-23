@@ -30,13 +30,13 @@
 							select row_number() over() as num,
 								dor.name as name_org,
 								dep.name as name_sub,
-								trim(COALESCE(dor.settlement,'')||', ул. '||COALESCE(dor.street,'')||', д. '||COALESCE(dor.house,'')||', к. '||COALESCE(dor.housing,'')||', стр. '||COALESCE(dor.building,''),',') as adr_org
+								p_action_get_adress(dor.id) as adr_org
 							from ORGANIZATION org
 							inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
 							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
 							where dep.LEVELSIGNIFICANCE = '1' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
 							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
-							  and (select count(*) from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = ${organizationyear}::integer) > 0
+							  and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer) 
 						</script>
                      </query>
                 </queries>
@@ -57,13 +57,13 @@
 							select row_number() over() as num,
 								dor.name as name_org,
 								dep.name as name_sub,
-								trim(COALESCE(dor.settlement,'')||', ул. '||COALESCE(dor.street,'')||', д. '||COALESCE(dor.house,'')||', к. '||COALESCE(dor.housing,'')||', стр. '||COALESCE(dor.building,''),',') as adr_org
+								p_action_get_adress(dor.id) as adr_org
 							from ORGANIZATION org
 							inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
 							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
 							where dep.LEVELSIGNIFICANCE = '2' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
 							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
-							  and (select count(*) from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = ${organizationyear}::integer) > 0
+							  and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer)
 						</script>
                      </query>
                 </queries>
