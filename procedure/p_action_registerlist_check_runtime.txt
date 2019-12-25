@@ -14,15 +14,17 @@ begin
             	   W.TIMEBEGINTBL::time, 
             	   W.TIMEENDTBL::time,
                    (SELECT E.CODE FROM REGISTER R, ELECTCAMPAIGN E WHERE R.ID = S.REGISTERID AND E.ID = R.ELECTCAMPAIGNID) AS NAME_COMP,
-                   COALESCE(C.SURNAME,'')||' '||COALESCE(C.FIRSTNAME)||' '||COALESCE(C.MIDDLENAME) as FIO_CH,
+                   COALESCE(P.SURNAME,'')||' '||COALESCE(P.FIRSTNAME)||' '||COALESCE(P.MIDDLENAME) as FIO_CH,
                    TO_CHAR(W.DATETBL,'dd.mm.yyyy') as DATETBL,
                    W.DATETBL AS DATETBLS
               FROM REGISTERLIST S,
               	   WORKTBL W,
-                   COMMITTEEMAN C 
+                   COMMITTEEMAN C,
+                   PERSON P 
              WHERE S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
                AND W.REGISTERLISTID = S.ID 
                AND C.ID = S.COMMITTEEMANID
+               AND P.ID = C.PERSONID
                AND W.TIMEBEGINTBL IS NOT NULL
                AND W.TIMEENDTBL IS NOT NULL
   			)

@@ -1,0 +1,25 @@
+CREATE OR REPLACE FUNCTION public.p_action_check_before_load (
+  id bigint
+)
+RETURNS void AS
+$body$
+declare
+
+	FLAG BOOLEAN:=EXISTS(SELECT 1 FROM REGISTER R WHERE R.ID = P_ACTION_CHECK_BEFORE_LOAD.ID AND R.STATUS = '4'); --сформирована ведомость
+
+begin
+	
+	IF FLAG THEN
+		RAISE USING MESSAGE = 'По расчетному документу сформированы ведомости по оплате труда';
+    END IF;
+
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_check_before_load (id bigint)
+  OWNER TO magicbox;

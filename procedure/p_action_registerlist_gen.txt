@@ -14,10 +14,25 @@ declare
   SUM_LIMIT   numeric; --предельный размер компенсации
   BUF         numeric [ ];
 begin
+IF EXISTS(SELECT 1 FROM WORKTBL W WHERE W.REGISTERLISTID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST)) AND W.ERRWH IS NOT NULL AND W.ERRWH != '') THEN
+	RAISE USING MESSAGE = 'В сведениях фов обнаружены ошибки заполнения времени работы членов ИК. Сформируйте отчёт «Протокол проверки сведений о ФОВ» для расчетного документа и устраните замечания.';
+END IF;
+if 
+exists( select r.id 
+	  from register r, 
+	       REGISTERLIST rl  
+         where rl.registerid= r.id 
+            and r.status='4'
+            and rl.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+      ) then      
+     RAISE EXCEPTION 'Расчет выплат запрещен! Сформированы ведомости по оплате труда!';
+end if;
+		
 for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))LOOP
   for REC in (select S.*,
                      P.ID as PID,
                      P.SLCOMPCHARGESID,
+                     S.MIDDLESALARY,
                      (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
                      P.WORKCALENDARSID,
                      trim(LOWER(SS.CODE)) as SLCOM,
@@ -30,7 +45,8 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
                                                        and SX.WORKCALENDARSID = X.ID)) / 8,
                               0) as SUMM,
                      COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2
+                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2,
+                     CASE WHEN COALESCE(S.MIDDLESALARY,0) > 0 THEN 1 ELSE 0 END AS IFMIDSAL --Заполнена ли средняя зарплата в членах изберательной комиссии
               
                 from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
                where S.ID = allS.ID
@@ -69,11 +85,14 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
        and KK.ID = R.ELECTCOMMINCAMPID
        and K.ID = KK.ELECTCOMMITTEEID
        and SN.REGIONSRFID = K.REGIONSRFID;
+        
+       
+       
     update PAYS S
-       set NORM      = LEAST(SUM_SPRAVKA, SUM_LIMIT) / REC.COUNTWD,
+       set NORM      = LEAST(REC.MIDDLESALARY/*SUM_SPRAVKA*/, SUM_LIMIT) / REC.COUNTWD * /*МАЦ-3955*/REC.IFMIDSAL,
            WORKHOURS = REC.SUMM,
            SUMPAY   =
-           (LEAST(SUM_SPRAVKA, SUM_LIMIT) / REC.COUNTWD) * REC.SUMM
+           (LEAST(REC.MIDDLESALARY/*SUM_SPRAVKA*/, SUM_LIMIT) / REC.COUNTWD) * REC.SUMM
      where S.ID = REC.PID;
     SUM_LIMIT   := 0;
     SUM_SPRAVKA := 0;
@@ -155,8 +174,9 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
       and d.levelelcampaign = i.levelelcampaign; */
     BUF [ 1 ] := SUM_SPRAVKA;
     BUF [ 2 ] := SUM_LIMIT;
+    
     update PAYS S
-       set NORM      = BUF [ 1 ],
+       set NORM      = round(BUF [ 1 ],4),
            WORKHOURS = REC.WORKDAY_SUMM,
            SUMPAY    = BUF [ 1 ] * REC.WORKDAY_SUMM * BUF [ 2 ],
            PROPPAYS  = 'Районный коэффициент = ' || ROUND(BUF [ 2 ], 2)
@@ -272,7 +292,7 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
                  and P.REGISTERLISTID = S.ID
                  and P.SHEETSID is null
                  and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = 'начислено дот за фов')
+                 and trim(LOWER(SS.CODE)) = 'итого дот за фов')
   loop
     update PAYS S
        set NORM      = 0,
@@ -282,7 +302,7 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
      where S.ID = REC.PID;
   -- RAISE USING MESSAGE = COALESCE( BUF [ 1 ],0)||' '||COALESCE(REC.WORKDAY_SUMM,0)||' '||COALESCE(BUF [ 3 ],0)||' '||COALESCE(REC.SUMX2,0)||' '||COALESCE(BUF [ 4 ],0);
     update PAYS S
-       set NORM      = BUF [ 3 ] * 2 + BUF [ 1 ],
+       set NORM      = 0,--BUF [ 3 ] * 2 + BUF [ 1 ],
            WORKHOURS = REC.WORKDAY_SUMM + REC.SUMX2,
            SUMPAY    = BUF [ 1 ] * REC.WORKDAY_SUMM * BUF [ 2 ] + BUF [ 3 ] * 2 * REC.SUMX2 * BUF [ 4 ],
            PROPPAYS  = 'ДОТ за ФОВ в одинарном размере =' || ROUND(BUF [ 1 ] * REC.WORKDAY_SUMM * BUF [ 2 ], 2) || '; ДОТ за ФОВ в двойном размере = ' || ROUND(BUF [ 3 ] * REC.SUMX2 * BUF [ 4 ]*2, 2) || '. РК = ' ||
@@ -332,7 +352,7 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
        and L.COMMITTEEMANID = REC.COMMITTEEMANID
        and P.REGISTERLISTID = L.ID
        and C.ID = P.SLCOMPCHARGESID
-       and LOWER(trim(C.CODE)) = 'начислено дот за фов';
+       and LOWER(trim(C.CODE)) = 'итого дот за фов';
     update PAYS S
        set SUMPAY   = SUM_LIMIT * REC.DEPCOEFF,
            PROPPAYS = 'ДОТ за ФОВ = ' || ROUND(SUM_LIMIT, 2) || ' Ведомственный коэффициент = ' || ROUND(REC.DEPCOEFF, 2)
@@ -376,7 +396,7 @@ for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELEC
      where L.ID = REC.ID
        and P.REGISTERLISTID = L.ID
        and P.SLCOMPCHARGESID = C.ID
-       and trim(C.CODE) in ('Начислено ДОТ за ФОВ', 'Компенсация', 'ДОТ за активную работу');
+       and trim(C.CODE) in ('Итого ДОТ за ФОВ', 'Компенсация', 'ДОТ за активную работу');
   
     update PAYS S set SUMPAY = SUM_LIMIT where S.ID = REC.PID;
     SUM_LIMIT := 0;

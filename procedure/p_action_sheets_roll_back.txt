@@ -6,16 +6,18 @@ $body$
 DECLARE
 --Действие "Расформировать ведомость" в разделе "Ведомости по оплате труда"
 --vkorytko@rambler.ru
+--Изменять статус Расчетного документа (RAGISTER) на 3 после выполнения действия "Расформирровать ведомость по оплате труда"
  rec  record;
  nid bigint;		--id таблицы заполения;
 BEGIN
 for rec in(
-   select s.id
+   select s.id,s.registerid
      from sheets s
     where s.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
           )
      loop
      update pays p set sheetsid = null where p.sheetsid = rec.id;
+     update register set status='3' where id= rec.registerid;
      delete from sheets s where s.id = rec.id;
 /*--Удаляем Реестр перечислений REGISTERSTRANSFERS
 --Список перечислений SLREGTRNPR удаляется каскадом DELETE CASCADE

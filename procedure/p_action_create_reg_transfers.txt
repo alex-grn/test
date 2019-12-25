@@ -48,17 +48,18 @@ IF (SELECT COUNT(*) FROM SHEETS S, SHEETDETAILS D WHERE S.ID = ANY(P_SYSTEM_GET_
 	RAISE USING MESSAGE = 'Реестр перечислений уже сформирован!';
 END IF;
 SELECT S.ID INTO DOCTYPE FROM DOCTYPES S WHERE LOWER(S.CODE) = 'реестр перечислений';
-FOR REC IN(
-		SELECT E.LEVELELCOMMITTEE
+FOR REC IN( 
+		SELECT LOWER(IK.LEVELELCOMMITTEE) AS LEVELELCOMMITTEE
           FROM SHEETS S,
-          	   ELECTCOMMINCAMP E
+          	   ELECTCOMMINCAMP E,
+               ELECTCOMMITTEE IK
          WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
            AND E.ID = S.ELECTCOMMINCAMPID
-         GROUP BY E.LEVELELCOMMITTEE
-         ORDER BY E.LEVELELCOMMITTEE DESC
+           AND IK.ID = E.ELECTCOMMITTEEID
+         GROUP BY IK.LEVELELCOMMITTEE
+         ORDER BY IK.LEVELELCOMMITTEE DESC
          )
 	LOOP
-    	
     	IF REC.LEVELELCOMMITTEE = 'district' AND TIK = 0 THEN										--УИК
           SELECT DISTINCT EI.ID , IK.ID
             INTO TIK , IZBKOM 
@@ -82,8 +83,32 @@ FOR REC IN(
              AND E.ID = S.ELECTCOMMINCAMPID
              AND I.ID = E.ELECTCOMMITTEEID;
         END IF;
-    
     END LOOP;
+ --проверка!
+ IF TIK = 0 or TIK is null then raise using message = 'Неопределенна ТИК'; end if;
+ --проверка!
+ for rec in(
+ 	select K.ID, EC.LEVELELCAMPAIGN
+      from SHEETS S,
+           ELECTCAMPAIGN   EC,--'Избирательные кампании'
+           ELECTCOMMINCAMP EK, --Избирательные комиссии, участвующие в кампании'
+           ELECTCOMMITTEE  K --'Избирательные комиссии';
+     where S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+       and EC.ID = S.ELECTCAMPAIGNID
+       and EK.ID = S.ELECTCOMMINCAMPID
+       and K.ID = IZBKOM
+ )
+ loop
+ 	if not exists(select 1
+     				from ELCMTACC E
+                   where E.BEGINDATE <= DDOCDATE
+                     and (E.ENDDATE >= DDOCDATE or E.ENDDATE is null)
+                     and E.ELECTCOMMITTEEID = REC.ID
+                     and E.LEVELELCAMPAIGN = REC.LEVELELCAMPAIGN) then 
+                      raise using message = 'Расчетный счет избирательный комиссии на дату - '||to_char(ddocdate,'dd.mm.yyyy')||' не определен!';
+                     end if;
+ end loop;
+ --          
 INSERT INTO
  REGISTERSTRANSFERS(
 					CODE,
@@ -134,7 +159,7 @@ INSERT INTO
 FOR REC IN (
 			SELECT D.ID AS SHEETDETAILS_ID,
             	   D.COMMITTEEMANID,
-            	   (D.SUMCOMP + D.SUMEXTRA12 + D.EXTRAA) AS SUMM,
+            	   (COALESCE(D.SUMCOMP,0) + COALESCE(D.SUMEXTRA12,0) + COALESCE(D.EXTRAA,0)) AS SUMM,
                    TRPERSONID,
                    PERSONACCID
               FROM SHEETS S,

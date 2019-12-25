@@ -21,11 +21,13 @@ $body$
   tDOC   bigint;
   TIK    TEXT := 'territory'; --код ТИК в системе
 begin 
-  for REC in (select S.*
-                from ELECTCOMMINCAMP S
-               where S.ID = CAMPID) loop
+  for REC in (select S.*, ik.levelelcommittee as level
+                from ELECTCOMMINCAMP S,
+                     electcommittee ik
+               where S.ID = CAMPID
+                 and ik.id = s.electcommitteeid) loop
    -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //убрали параметр levelelcommittee по событию 3829
-    if REC.levelelcommittee != TIK then raise using message = 'Документ формируется только для ТИК!'; end if;
+    if REC.level != TIK then raise using message = 'Документ формируется только для ТИК!'||REC.level; end if;
     select s.id
       into tDOC
       from DOCTYPES s

@@ -21,21 +21,27 @@ begin
          and NOW() >= S.BEGINDATE
          and (NOW() <= S.ENDDATE or S.ENDDATE is null);
     exception
-      when NO_DATA_FOUND then
+      when NO_DATA_FOUND then NID_AGENTACC:=null;
         GEN_TEXT = (
           select P.code from PERSON P where P.ID = REC.PERSONID) || ';' || CHR(13);
     end;
-    update COMMITTEEMAN S
-       set TRPERSONID  = PERSONID,
-           PERSONACCID = NID_AGENTACC
-     where S.ID = REC.ID;
+    if NID_AGENTACC is not null then
+     update COMMITTEEMAN S
+        set TRPERSONID  = REC.PERSONID,
+            PERSONACCID = NID_AGENTACC
+      where S.ID = REC.ID;
+    end if;
   end loop;
+--Пока отключено - заполняем тем что есть  
+/*
   if GEN_TEXT <> '@'
   then
     GEN_TEXT = 'Не задан действующий лицевой счёт для: ' || GEN_TEXT || '. Введите данные о лицевом счете в словаре Физические лица.';
     raise
       using MESSAGE = GEN_TEXT;
   end if;
+*/
+  
 end;
 $body$
 LANGUAGE 'plpgsql'

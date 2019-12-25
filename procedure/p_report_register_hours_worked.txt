@@ -20,18 +20,20 @@ DELETE FROM T_REPORT_REGISTER_HOURS_WORKED T WHERE T.UID = NUID;
 --заполняем ФИО
   	FOR RC IN (
     			SELECT RS.COMMITTEEMANID,
-                	   row_number() over() as num,
-                       ''''||COALESCE(m.surname,'')||' '||COALESCE(m.firstname,'')||' '||COALESCE(m.middlename,'')||'''' as fio,
+                	   row_number() over(ORDER BY m.POSTBEGINDATE, P.POSTPRINT) as num,
+                       ''''||COALESCE(PP.surname,'')||' '||COALESCE(PP.firstname,'')||' '||COALESCE(PP.middlename,'')||'''' as fio,
                        RS.ID AS REGLIST_ID
                   FROM REGISTER R,
                        REGISTERLIST RS,
-                       COMMITTEEMAN m,
+                       COMMITTEEMAN M,
+                       PERSON PP,
                        POSTS P
                  WHERE R.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
                    AND RS.REGISTERID = R.ID
                    AND M.ID = RS.COMMITTEEMANID
                    AND P.ID = M.POSTSID
-                   ORDER BY IK.POSTBEGINDATE, P.POSTPRINT
+                   AND PP.ID = M.PERSONID
+                   ORDER BY m.POSTBEGINDATE, P.POSTPRINT
     			)
 			LOOP
             	
@@ -44,7 +46,7 @@ DELETE FROM T_REPORT_REGISTER_HOURS_WORKED T WHERE T.UID = NUID;
                 --собираем часы 
                 FOR PR IN (
                 			SELECT to_char(w.datetbl,'dd.mm.yyyy') as datetbl, 
-                            	   string_agg(COALESCE(to_char(w.timebegintbl::time,'hh24:mi'),'')||'-'||COALESCE(to_char(w.timeendtbl::time,'hh24:mi'),'')||' '||COALESCE((select case w.typepay when 'K' then 'К' when 'D' then 'Д' end),'')||' '||replace((w.whcomp+w.whextrafull)::text,'0',''),chr(13)) as times,
+                            	   trim(string_agg(trim(COALESCE(to_char(w.timebegintbl::time,'hh24:mi'),'')||'-'||COALESCE(to_char(w.timeendtbl::time,'hh24:mi'),'')||' '||COALESCE((select case w.typepay when 'K' then 'К' when 'D' then 'Д' end),'')||' '||replace((w.whcomp+w.whextrafull)::text,'0',''),'-'),chr(10)),' '||chr(10)) as times,
                                    COALESCE(t.code,'') as type_day
                               FROM WORKTBL W
                                left join typeday t on t.id = w.typedayid

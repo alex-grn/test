@@ -86,7 +86,7 @@ begin
                          REGISTERID
                          )
        			  SELECT
-                   	     'Ведомость '||TO_CHAR(DDOCDATE,'YYYY')||UD||'-'||(SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||UD AND CID=0)||' от '||to_char(ddocdate,'dd.mm.yyyy'),
+                   	     'Ведомость '||TO_CHAR(DDOCDATE,'YYYY')||'-'||UD||'-'||(SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||UD AND CID=0)||' от '||to_char(ddocdate,'dd.mm.yyyy'),
                    	     nVED,
                          TO_CHAR(DDOCDATE,'YYYY')||'-'||UD,
                          (SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||UD AND CID=0),
@@ -178,8 +178,10 @@ begin
                 UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
             END LOOP;
         END IF;
-      
+      --Проверка на наличие спецификации
+    IF (SELECT COUNT(*) FROM SHEETDETAILS SD WHERE SD.SHEETSID = NID) = 0 THEN DELETE FROM SHEETS S WHERE S.ID = NID; END IF;
     END LOOP;                
+
     UPDATE REGISTER R SET STATUS = '4' WHERE R.ID = IDENT;
     RETURN NULL;    
 end;

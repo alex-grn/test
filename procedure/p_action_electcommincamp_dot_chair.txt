@@ -21,11 +21,13 @@ $body$
   tDOC   bigint;
   TIK    TEXT := 'territory'; --код ТИК в системе
 begin 
-  for REC in (select S.*
-                from ELECTCOMMINCAMP S
-               where S.ID = CAMPID) loop
+  for REC in (select S.*, ik.levelelcommittee as level
+                from ELECTCOMMINCAMP S,
+                	 electcommittee ik
+               where S.ID = CAMPID
+                 and ik.id = s.electcommitteeid) loop
    -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //убрали параметр levelelcommittee по событию 3829
-    if REC.levelelcommittee != TIK then raise using message = 'Документ формируется только для ТИК!'; end if;
+    if REC.level != TIK then raise using message = 'Документ формируется только для ТИК!'; end if;
     select s.id
       into tDOC
       from DOCTYPES s
@@ -75,6 +77,7 @@ begin
                 where X.ID = REC.ELECTCOMMITTEEID
                   AND IK.idgasparecom = X.idgasecom
                   and R.ELECTCOMMITTEEID = IK.ID
+                  and IK.ID in (select s.ELECTCOMMITTEEID from ELECTCOMMINCAMP s where s.electcampaignid = rec.electcampaignid)
                   and D.ID = R.POSTSID
                   and (BDATE between R.POSTBEGINDATE and R.POSTENDDATE
                   OR EDATE between R.POSTBEGINDATE and R.POSTENDDATE
@@ -82,6 +85,16 @@ begin
                   OR R.POSTENDDATE BETWEEN BDATE AND EDATE) 
                   --and d.levelelcommittee = TIK
                   and lower(d.code) = 'председатель уик') loop
+      --Проверка на уровень
+      IF EXISTS(SELECT 1 FROM ELECTCOMMINCAMP S, REGISTER R, DOCTYPES T, REGISTERLIST RS 
+      			 WHERE S.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID
+                   AND R.ELECTCOMMINCAMPID = S.ID
+                   AND T.ID = R.DOCTYPEID
+                   AND LOWER(T.CODE) = 'комплект расчетных форм'
+                   AND RS.COMMITTEEMANID = IZ.ID
+                   AND RS.LEVELDCCHAIRMAN = 'district' --УИК
+                   AND RS.REGISTERID = R.ID) THEN CONTINUE; END IF;
+      --
       insert into REGISTERLIST
         (REGISTERID,
          CODE,

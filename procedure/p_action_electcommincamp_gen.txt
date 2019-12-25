@@ -3,17 +3,18 @@ CREATE OR REPLACE FUNCTION public.p_action_electcommincamp_gen (
   enddate date,
   leveldcchairman text,
   ncount integer,
+  printreport boolean,
   idlist text
 )
 RETURNS void AS
 $body$
-declare
-  BDATE date := BEGINDATE; --неоднозначная ссылка
-  EDATE date := ENDDATE; --неоднозначная ссылка
+DECLARE
+  BDATE DATE := BEGINDATE; --неоднозначная ссылка
+  EDATE DATE := ENDDATE; --неоднозначная ссылка
   --LVLCOM TEXT := UPPER(LEVELELCOMMITTEE); --неоднозначная ссылка //убрали параметр levelelcommittee по событию 3829
-  REC    record;
-  IZ     record;
-  RK     record;
+  REC    RECORD;
+  IZ     RECORD;
+  RK     RECORD;
   STEMP  TEXT;
   NID    BIGINT;
   COMPIT TEXT := 'Компенсация'; --таблица pays всегда компенсация
@@ -22,213 +23,243 @@ declare
   SUBID  BIGINT; --ID субъекта РФ
   TDOC   BIGINT;
   TIK    TEXT := 'territory'; --код ТИК в системе
-begin
-  select R.ID into SUBID from REGIONSRF R where R.NAME = 'Российская Федерация';
-
-  for REC in (select S.*, I.BEGINDATE, I.ENDDATE, I.BEGINDATETER, I.ENDDATETER, UPPER(I.LEVELELCAMPAIGN) as level, IK.REGIONSRFID as REGION
-                from ELECTCOMMINCAMP S, ELECTCAMPAIGN I, ELECTCOMMITTEE IK
-               where S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
-                 and I.ID = S.ELECTCAMPAIGNID
-                 and IK.ID = S.ELECTCOMMITTEEID)
-  loop
-    select S.ID into TDOC from DOCTYPES S where S.CODE = 'Комплект расчетных форм';
+  J		 INTEGER:=1;
+BEGIN
+  SELECT R.ID INTO SUBID FROM REGIONSRF R WHERE R.NAME = 'Российская Федерация';
+  IF NCOUNT NOT IN (1,2) THEN RAISE USING MESSAGE = 'Количество строк для одного календарного дня может принимать значение 1 или 2. Введите одно из значений.'; END IF;
+  FOR REC IN (SELECT S.*,
+  					 LOWER(IK.LEVELELCOMMITTEE) AS LEVELCOM,
+                     I.BEGINDATE,
+                     I.ENDDATE,
+                     I.BEGINDATETER,
+                     I.ENDDATETER,
+                     UPPER(I.LEVELELCAMPAIGN) AS LEVEL,
+                     IK.REGIONSRFID AS REGION
+                FROM ELECTCOMMINCAMP S,
+                     ELECTCAMPAIGN   I,
+                     ELECTCOMMITTEE  IK
+               WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                 AND I.ID = S.ELECTCAMPAIGNID
+                 AND IK.ID = S.ELECTCOMMITTEEID)
+  LOOP
+    SELECT S.ID INTO TDOC FROM DOCTYPES S WHERE S.CODE = 'Комплект расчетных форм';
     --Проверки
-    if (select count(*)
-          from REGISTER S
-         where S.ELECTCOMMINCAMPID = REC.ID and S.DOCTYPEID = TDOC
-           and (BDATE between S.BEGINDATE and S.ENDDATE or EDATE between S.BEGINDATE and S.ENDDATE)) > 0
-    then
-      raise
-        using MESSAGE = 'На периоде ' || TO_CHAR(BDATE, 'dd.mm.yyyy') || ' - ' || TO_CHAR(EDATE, 'dd.mm.yyyy') || ' сформирован комплект расчетных форм!';
-    end if;
-    if REC.LEVELELCOMMITTEE = TIK
-    then
-      if REC.BEGINDATETER > BDATE or REC.BEGINDATETER > EDATE or REC.ENDDATETER < BDATE or REC.ENDDATETER < EDATE
-      then
-        raise
-          using MESSAGE = 'Неверно указан период работы членов избирательной комиссии. Для избирательной кампании период работы членов установлен c ' || TO_CHAR(REC.BEGINDATETER, 'dd.mm.yyyy') || ' по ' || TO_CHAR(REC.ENDDATETER,
+    IF (SELECT COUNT(*)
+          FROM REGISTER S
+         WHERE S.ELECTCOMMINCAMPID = REC.ID
+           AND S.DOCTYPEID = TDOC
+           AND (BDATE BETWEEN S.BEGINDATE AND S.ENDDATE OR EDATE BETWEEN S.BEGINDATE AND S.ENDDATE)) > 0 THEN
+      RAISE
+        USING MESSAGE = 'На периоде ' || TO_CHAR(BDATE, 'dd.mm.yyyy') || ' - ' || TO_CHAR(EDATE, 'dd.mm.yyyy') || ' сформирован комплект расчетных форм!';
+    END IF;
+    IF REC.LEVELCOM = TIK  or REC.LEVELCOM = 'circuit' AND REC.MTERELCOM THEN
+      IF REC.BEGINDATETER > BDATE OR REC.BEGINDATETER > EDATE OR REC.ENDDATETER < BDATE OR REC.ENDDATETER < EDATE THEN
+        RAISE
+          USING MESSAGE = 'Неверно указан период работы членов избирательной комиссии. Для избирательной кампании период работы членов установлен c ' || TO_CHAR(REC.BEGINDATETER, 'dd.mm.yyyy') || ' по ' || TO_CHAR(REC.ENDDATETER,
                                                                                                                                                                                                                       'dd.mm.yyyy');
-      elsif REC.BEGINDATETER is null or REC.ENDDATETER is null
-      then
-        raise
-          using MESSAGE = 'Не задан период работы ТИК в избирательных кампаниях!';
-      end if;
-    else
-      if REC.BEGINDATE > BDATE or REC.BEGINDATE > EDATE or REC.ENDDATE < BDATE or REC.ENDDATE < EDATE
-      then
-        raise
-          using MESSAGE = 'Неверно указан период работы членов избирательной комиссии. Для избирательной кампании период работы членов установлен c ' || TO_CHAR(REC.BEGINDATE, 'dd.mm.yyyy') || ' по ' || TO_CHAR(REC.ENDDATE,
+      ELSIF REC.BEGINDATETER IS NULL OR REC.ENDDATETER IS NULL THEN
+        RAISE
+          USING MESSAGE = 'Не задан период работы ТИК в избирательных кампаниях!';
+      END IF;
+    ELSE
+      IF REC.BEGINDATE > BDATE OR REC.BEGINDATE > EDATE OR REC.ENDDATE < BDATE OR REC.ENDDATE < EDATE THEN
+        RAISE
+          USING MESSAGE = 'Неверно указан период работы членов избирательной комиссии. Для избирательной кампании период работы членов установлен c ' || TO_CHAR(REC.BEGINDATE, 'dd.mm.yyyy') || ' по ' || TO_CHAR(REC.ENDDATE,
                                                                                                                                                                                                                    'dd.mm.yyyy');
-      end if;
-    end if;
+      END IF;
+    END IF;
     --
     -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //убрали параметр levelelcommittee по событию 3829
-    
-    STEMP := TDOC || '_' || --Код избирательного участка
-             (select COALESCE(TO_CHAR(X.ELECTDATE, 'dd.mm.yyyy'), '') from ELECTCAMPAIGN X where X.ID = REC.ELECTCAMPAIGNID) || '_';
-    update ELECTCOMMINCAMP S set MSREGISTER = COALESCE(MSREGISTER, 0) + 1 where S.ID = REC.ID; --апдейтим КОД
   
-    insert into REGISTER
-      (CODE, DOCTYPEID, STATUS, ELECTCAMPAIGNID, BEGINDATE, ENDDATE, ELECTCOMMINCAMPID, /* ELECDISTNUMB,*/ DATELOADTBL, RESPONSPERSID /*, LEVELELCOMMITTEE ,indicationcircuit,indicationship*/)
-      select STEMP, TDOC, 1, REC.ELECTCAMPAIGNID, BDATE, EDATE, REC.ID, /* X.ELECDISTNUMB,*/ null, null /*, LVLCOM ,x.INDICATIONCIRCUIT,x.INDICATIONSHIP*/ returning ID into REGID;
-    update REGISTER S set CODE = CODE || REGID where S.ID = REGID;
-    for IZ in (select R.CODE,
+    STEMP := TDOC || '_' || --Код избирательного участка
+             (SELECT COALESCE(TO_CHAR(X.ELECTDATE, 'dd.mm.yyyy'), '') FROM ELECTCAMPAIGN X WHERE X.ID = REC.ELECTCAMPAIGNID) || '_';
+    UPDATE ELECTCOMMINCAMP S SET MSREGISTER = COALESCE(MSREGISTER, 0) + 1 WHERE S.ID = REC.ID; --апдейтим КОД
+  
+    INSERT INTO REGISTER
+      (CODE, DOCTYPEID, STATUS, ELECTCAMPAIGNID, BEGINDATE, ENDDATE, ELECTCOMMINCAMPID, /* ELECDISTNUMB,*/ DATELOADTBL, RESPONSPERSID, /*, LEVELELCOMMITTEE ,indicationcircuit,indicationship*/ PRINTREPORT)
+      SELECT STEMP,
+             TDOC,
+             1,
+             REC.ELECTCAMPAIGNID,
+             BDATE,
+             EDATE,
+             REC.ID, /* X.ELECDISTNUMB,*/
+             NULL,
+             NULL, /*, LVLCOM ,x.INDICATIONCIRCUIT,x.INDICATIONSHIP*/
+             PRINTREPORT RETURNING ID
+        INTO REGID;
+    UPDATE REGISTER S SET CODE = CODE || REGID WHERE S.ID = REGID;
+    FOR IZ IN (SELECT R.CODE,
                       R.ID,
                       R.POSTSID,
                       R.PERSONID,
-                      case
-                        when '@' || D.NAME || '@' ILIKE '%председатель%' then
+                      CASE
+                        WHEN '@' || D.NAME || '@' ILIKE '%председатель%' THEN
                          LEVELDCCHAIRMAN
                       /* else
                       'district'*/
-                      end as LVLCH
-                 from ELECTCOMMITTEE X, COMMITTEEMAN R, POSTS D
-                where X.ID = REC.ELECTCOMMITTEEID
-                  and R.ELECTCOMMITTEEID = X.ID
-                  and D.ID = R.POSTSID
-                  and ((BDATE between R.POSTBEGINDATE and R.POSTENDDATE or EDATE between R.POSTBEGINDATE and R.POSTENDDATE)
-                  		or (BDATE between R.POSTBEGINDATE and R.POSTENDDATE and EDATE between R.POSTBEGINDATE and R.POSTENDDATE)
-                        or (R.POSTBEGINDATE between BDATE and EDATE and R.POSTENDDATE between BDATE and EDATE))
-               )
-    loop
+                      END AS LVLCH
+                 FROM ELECTCOMMITTEE X,
+                      COMMITTEEMAN   R,
+                      POSTS          D
+                WHERE X.ID = REC.ELECTCOMMITTEEID
+                  AND R.ELECTCOMMITTEEID = X.ID
+                  AND D.ID = R.POSTSID
+                  AND ((BDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE OR EDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE) OR
+                      (BDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE AND EDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE) OR
+                      (R.POSTBEGINDATE BETWEEN BDATE AND EDATE AND R.POSTENDDATE BETWEEN BDATE AND EDATE)))
+    LOOP
       --Наполняем таблицу "члены избирательных комиссий"
-      insert into REGISTERLIST
+      INSERT INTO REGISTERLIST
         (REGISTERID, CODE, COMMITTEEMANID, MIDDLESALARY, DEPCOEFF, LEVELDCCHAIRMAN /*, WHCOMP, WHEXTRAFULL, WHEXTRANIGHT, WHEXTRAHOL, WHEXTRAWORKDAY*/)
-        select REGID,
+        SELECT REGID,
                IZ.CODE,
                IZ.ID,
-               (select P.VALUE
-                  from PERSON S, PERSONSAVSLR P
-                 where S.ID = IZ.PERSONID
-                   and P.PERSONID = S.ID
-                   and P.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID),
+               (SELECT P.VALUE
+                  FROM PERSON       S,
+                       PERSONSAVSLR P
+                 WHERE S.ID = IZ.PERSONID
+                   AND P.PERSONID = S.ID
+                   AND P.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID LIMIT 1),
                0,
                IZ.LVLCH /*,
-                                                         0,
-                                                         0,
-                                                         0,
-                                                         0,
-                                                         0*/ returning ID
-          into NID;
-      if (select S.LEVELELCAMPAIGN from ELECTCAMPAIGN S where S.ID = REC.ELECTCAMPAIGNID) = 'central'
-      then
+                                                                       0,
+                                                                       0,
+                                                                       0,
+                                                                       0,
+                                                                       0*/ RETURNING ID
+          INTO NID;
+      IF (SELECT S.LEVELELCAMPAIGN FROM ELECTCAMPAIGN S WHERE S.ID = REC.ELECTCAMPAIGNID) = 'central' THEN
+      	J:=1;
         --Уровень федеральный 
-        for RK in (select DD, --заполняем таблицу worktbl 
-                          (select D.TYPEDAYID
-                             from WORKCALENDARS W, DAYSWORKCALENDARS D
-                            where D.WORKCALENDARSID = W.ID
-                              and W.REGIONSRFID = SUBID --Российская Федерация
-                              and D.DATEWC = DD) as STYPE
-                     from GENERATE_SERIES(BDATE, EDATE, interval '1 day') as DD)
-        loop
-          for I in 1 .. NCOUNT
-          loop
-            insert into WORKTBL (REGISTERLISTID, DATETBL, TYPEDAYID) values (NID, RK.DD, RK.STYPE);
-          end loop;
-        end loop;
-        for RK in (select (
-                         select W.ID
-                           from WORKCALENDARS W
-                          where W.REGIONSRFID = SUBID
-                            and W.MONTH ::integer = TO_CHAR(DD, 'mm') ::integer) as WID
-                   from GENERATE_SERIES(BDATE, EDATE, interval '1 month') as DD)
-       loop
-        select S.ID into COMID from SLCOMPCHARGES S where LOWER(S.NAME) = LOWER(COMPIT); --находим id компенсации
-        insert into PAYS (REGISTERLISTID, SLCOMPCHARGESID, WORKCALENDARSID) values (NID, COMID, RK.WID);
-       end loop;
-      else
+        FOR RK IN (SELECT DD, --заполняем таблицу worktbl 
+                          (SELECT D.TYPEDAYID
+                             FROM WORKCALENDARS     W,
+                                  DAYSWORKCALENDARS D
+                            WHERE D.WORKCALENDARSID = W.ID
+                              AND W.REGIONSRFID = SUBID --Российская Федерация
+                              AND D.DATEWC = DD) AS STYPE
+                     FROM GENERATE_SERIES(BDATE, EDATE, INTERVAL '1 day') AS DD
+                     ORDER BY DD)
+        LOOP
+          FOR I IN 1 .. NCOUNT
+          LOOP
+            INSERT INTO WORKTBL (REGISTERLISTID, DATETBL, TYPEDAYID, NUMBCALDAY) VALUES (NID, RK.DD, RK.STYPE, J);
+            J:=J+1;
+          END LOOP;
+        END LOOP;
+        FOR RK IN (SELECT (SELECT W.ID
+                             FROM WORKCALENDARS W
+                            WHERE W.REGIONSRFID = SUBID
+                              AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
+                              AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER) AS WID
+                     FROM GENERATE_SERIES(BDATE, EDATE, INTERVAL '1 month') AS DD)
+        LOOP
+          SELECT S.ID INTO COMID FROM SLCOMPCHARGES S WHERE LOWER(S.NAME) = LOWER(COMPIT); --находим id компенсации
+          INSERT INTO PAYS (REGISTERLISTID, SLCOMPCHARGESID, WORKCALENDARSID) VALUES (NID, COMID, RK.WID);
+        END LOOP;
+      ELSE
+      	J:=1;
         --Уровень региональный
-        for RK in (select DD, --заполняем таблицу worktbl 
-                          (select case when (select count(*)
-                             from WORKCALENDARS W, DAYSWORKCALENDARS D
-                            where D.WORKCALENDARSID = W.ID
-                              and W.REGIONSRFID = REC.REGION 
-                              and D.DATEWC = DD)>0 then
-                          (select D.TYPEDAYID
-                             from WORKCALENDARS W, DAYSWORKCALENDARS D
-                            where D.WORKCALENDARSID = W.ID
-                              and W.REGIONSRFID = REC.REGION 
-                              and D.DATEWC = DD) else
-                           (select D.TYPEDAYID
-                             from WORKCALENDARS W, DAYSWORKCALENDARS D
-                            where D.WORKCALENDARSID = W.ID
-                              and W.REGIONSRFID = SUBID --Российская Федерация
-                              and D.DATEWC = DD) end) as STYPE
-                     from GENERATE_SERIES(BDATE, EDATE, interval '1 day') as DD)
-        loop
-          for I in 1 .. NCOUNT
-          loop
-            insert into WORKTBL (REGISTERLISTID, DATETBL, TYPEDAYID) values (NID, RK.DD, RK.STYPE);
-          end loop;
-        end loop;
-        for RK in (select (SELECT CASE WHEN (select COUNT(*)
-                           from WORKCALENDARS W
-                          where W.REGIONSRFID = REC.REGION
-                            and W.MONTH ::integer = TO_CHAR(DD, 'mm') ::integer )>0 THEN
-                         (select W.ID
-                           from WORKCALENDARS W
-                          where W.REGIONSRFID = REC.REGION
-                            and W.MONTH ::integer = TO_CHAR(DD, 'mm') ::integer
-                         )
-                         ELSE
-                         (select W.ID
-                           from WORKCALENDARS W
-                          where W.REGIONSRFID = SUBID
-                            and W.MONTH ::integer = TO_CHAR(DD, 'mm') ::integer
-                         )
-                         END) as WID
-                   from GENERATE_SERIES(BDATE, EDATE + INTERVAL '1 MONTH - 1 DAY', interval '1 month') as DD)
-       loop
-        select S.ID into COMID from SLCOMPCHARGES S where LOWER(S.NAME) = LOWER(COMPIT); --находим id компенсации
-        insert into PAYS (REGISTERLISTID, SLCOMPCHARGESID, WORKCALENDARSID) values (NID, COMID, RK.WID);
-       end loop;
-      end if;
-      
-      insert into PAYS
+        FOR RK IN (SELECT DD, --заполняем таблицу worktbl 
+                          (SELECT CASE
+                                    WHEN (SELECT COUNT(*)
+                                            FROM WORKCALENDARS     W,
+                                                 DAYSWORKCALENDARS D
+                                           WHERE D.WORKCALENDARSID = W.ID
+                                             AND W.REGIONSRFID = REC.REGION
+                                             AND D.DATEWC = DD) > 0 THEN
+                                     (SELECT D.TYPEDAYID
+                                        FROM WORKCALENDARS     W,
+                                             DAYSWORKCALENDARS D
+                                       WHERE D.WORKCALENDARSID = W.ID
+                                         AND W.REGIONSRFID = REC.REGION
+                                         AND D.DATEWC = DD)
+                                    ELSE
+                                     (SELECT D.TYPEDAYID
+                                        FROM WORKCALENDARS     W,
+                                             DAYSWORKCALENDARS D
+                                       WHERE D.WORKCALENDARSID = W.ID
+                                         AND W.REGIONSRFID = SUBID --Российская Федерация
+                                         AND D.DATEWC = DD)
+                                  END) AS STYPE
+                     FROM GENERATE_SERIES(BDATE, EDATE, INTERVAL '1 day') AS DD
+                     ORDER BY DD)
+        LOOP
+          FOR I IN 1 .. NCOUNT
+          LOOP
+            INSERT INTO WORKTBL (REGISTERLISTID, DATETBL, TYPEDAYID, NUMBCALDAY) VALUES (NID, RK.DD, RK.STYPE, J);
+            J:=J+1;
+          END LOOP;
+        END LOOP;
+        FOR RK IN (SELECT (SELECT CASE
+                                    WHEN (SELECT COUNT(*)
+                                            FROM WORKCALENDARS W
+                                           WHERE W.REGIONSRFID = REC.REGION
+                                             AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
+                                             AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER) > 0 THEN
+                                     (SELECT W.ID
+                                        FROM WORKCALENDARS W
+                                       WHERE W.REGIONSRFID = REC.REGION
+                                         AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
+                                         AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER)
+                                    ELSE
+                                     (SELECT W.ID
+                                        FROM WORKCALENDARS W
+                                       WHERE W.REGIONSRFID = SUBID
+                                         AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
+                                         AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER)
+                                  END) AS WID
+                     FROM GENERATE_SERIES(BDATE, EDATE + INTERVAL '1 MONTH - 1 DAY', INTERVAL '1 month') AS DD)
+        LOOP
+          SELECT S.ID INTO COMID FROM SLCOMPCHARGES S WHERE LOWER(S.NAME) = LOWER(COMPIT); --находим id компенсации
+          INSERT INTO PAYS (REGISTERLISTID, SLCOMPCHARGESID, WORKCALENDARSID) VALUES (NID, COMID, RK.WID);
+        END LOOP;
+      END IF;
+    
+      INSERT INTO PAYS
         (REGISTERLISTID, SLCOMPCHARGESID)
-        select NID, S.ID
-          from SLCOMPCHARGES S
-         where LOWER(trim(S.CODE)) in
+        SELECT NID,
+               S.ID
+          FROM SLCOMPCHARGES S
+         WHERE LOWER(TRIM(S.CODE)) IN
                ('дот в одинарном размере', 'дот в двойном размере', 'начислено дот за фов', 'дот за активную работу', 'всего');
-    end loop;
+    END LOOP;
     --заполняем "сведения о финансировании в зависимости от уровня избирательной компании"
-    if REC.LEVEL = 'REGION'
-    then
+    IF REC.LEVEL = 'REGION' THEN
       --Уровень избирательной коммисии региональная
-      for RK in (select T.ID
-                   from TYPEEXP T
-                  where T.MESTIMATE = true
-                    and T.REGIONSRFID = REC.REGION)
-      loop
-      	--Проверяем есть ли записи в таблице.
-        if (select count(*)
-              from FINEXP S
-             where S.TYPEEXPID = RK.ID
-               and S.ELECTCOMMINCAMPID = REC.ID) = 0
-        then
-          insert into FINEXP (TYPEEXPID, ELECTCOMMINCAMPID) values (RK.ID, REC.ID);
-        end if;
-      end loop;
-    elsif REC.LEVEL = 'CENTRAL'
-    then
+      FOR RK IN (SELECT T.ID
+                   FROM TYPEEXP T
+                  WHERE T.MESTIMATE = TRUE
+                    AND T.REGIONSRFID = REC.REGION)
+      LOOP
+        --Проверяем есть ли записи в таблице.
+        IF (SELECT COUNT(*)
+              FROM FINEXP S
+             WHERE S.TYPEEXPID = RK.ID
+               AND S.ELECTCOMMINCAMPID = REC.ID) = 0 THEN
+          INSERT INTO FINEXP (TYPEEXPID, ELECTCOMMINCAMPID) VALUES (RK.ID, REC.ID);
+        END IF;
+      END LOOP;
+    ELSIF REC.LEVEL = 'CENTRAL' THEN
       --Федеральная
-      for RK in (select T.ID, REC.ID
-                   from TYPEEXP T
-                  where T.MESTIMATE = true
-                    and T.REGIONSRFID = SUBID)
-      loop
-        if (select count(*)
-              from FINEXP S
-             where S.TYPEEXPID = RK.ID
-               and S.ELECTCOMMINCAMPID = REC.ID) = 0
-        then
-          insert into FINEXP (TYPEEXPID, ELECTCOMMINCAMPID) values (RK.ID, REC.ID);
-        end if;
-      end loop;
-    end if;
+      FOR RK IN (SELECT T.ID,
+                        REC.ID
+                   FROM TYPEEXP T
+                  WHERE T.MESTIMATE = TRUE
+                    AND T.REGIONSRFID = SUBID)
+      LOOP
+        IF (SELECT COUNT(*)
+              FROM FINEXP S
+             WHERE S.TYPEEXPID = RK.ID
+               AND S.ELECTCOMMINCAMPID = REC.ID) = 0 THEN
+          INSERT INTO FINEXP (TYPEEXPID, ELECTCOMMINCAMPID) VALUES (RK.ID, REC.ID);
+        END IF;
+      END LOOP;
+    END IF;
   
-  end loop;
-end;
+  END LOOP;
+END;
 $body$
 LANGUAGE 'plpgsql'
 VOLATILE
@@ -236,5 +267,5 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
 
-ALTER FUNCTION public.p_action_electcommincamp_gen (begindate date, enddate date, leveldcchairman text, ncount integer, idlist text)
+ALTER FUNCTION public.p_action_electcommincamp_gen (begindate date, enddate date, leveldcchairman text, ncount integer, printreport boolean, idlist text)
   OWNER TO magicbox;

@@ -41,16 +41,17 @@ $body$
     end if;
      tBEGINTIME:=to_char(new.timebegintbl,'hh24')::numeric+buf[0];
      tENDTIME:=to_char(new.timeendtbl,'hh24')::numeric+buf[1];
-     if tBEGINTIME = 0 then tBEGINTIME:=24; end if;
+     --if tBEGINTIME = 0 then tBEGINTIME:=24; end if;
      if tENDTIME = 0 then tENDTIME:=24; end if;
   if tENDTIME < tBEGINTIME then new.errwh := /*raise using message =*/ ' Время конца не может быть меньше, времени начала!!!'; end if;
  -- raise using message = tBEGINTIME||' @ '||tENDTIME;
   new.errwh:=null;
  	if new.typepay = 'K' and new.typedayid is null then
+      --raise using message = (tENDTIME - tBEGINTIME)::text ||' '||tENDTIME||'-'||tBEGINTIME;
     	if tENDTIME - tBEGINTIME = 8 then
         	new.whcomp = 8;new.errwh :='';
         else
-        	new.errwh := 'Ошибка ввода времени по Компенсации!';
+        	new.whcomp := tENDTIME - tBEGINTIME; new.errwh := 'Ошибка ввода времени по Компенсации!';
         end if;
     else new.whcomp := 0;new.errwh :='';
     end if;
@@ -67,19 +68,19 @@ $body$
         elsif 22 <= tBEGINTIME and tBEGINTIME < 24 and 22 < tENDTIME and tENDTIME <= 24 then
         	new.whextranight := tENDTIME - tBEGINTIME;new.errwh :='';
         end if;
-    else new.whextrafull:=0;new.errwh :='';
+    else new.whextrafull:=0;--new.errwh :='';
     end if;
     buf1 := new.whextranight;
     buf2 := new.whextrafull;
     buf1 := buf2 - buf1;
     if new.typepay = 'D' and new.typedayid is not null then
     	new.whextrahol := buf1;new.errwh :='';
-    else new.whextrahol := 0;new.errwh :='';
+    else new.whextrahol := 0;--new.errwh :='';
     end if;
     
     if new.typepay = 'D' and new.typedayid is null then
     	new.whextraworkday := buf1;new.errwh :='';
-    else new.whextraworkday := 0;new.errwh :='';
+    else new.whextraworkday := 0;--new.errwh :='';
     end if;
     
     /*
