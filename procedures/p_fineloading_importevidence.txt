@@ -1,0 +1,61 @@
+CREATE OR REPLACE FUNCTION public.p_fineloading_importevidence (
+  idlist text
+)
+RETURNS text AS
+$body$
+declare
+  
+begin
+--процедура черновик, события нет, информации нет
+    	insert into fine(statuseaf,
+                         personid,
+                         typeoffender,
+                         codeoffender,
+                         offender,
+                         summdoc,
+                         summcancel,
+                         summpay,
+                         ownerid,
+                         doctypeid,
+                         docnumb,
+                         docdate,
+                         upn,
+                         uin,
+                         bkd_id,
+                         enactmentarticleid,
+                         initiatorimposition,
+                         budget_vidid)
+                  select '0', --статус штрафа
+                         personid,
+                         typeoffender,
+                         codeoffender,
+                         offender,
+                         COALESCE(summdoc,0),
+                         0,
+                         0,
+                         ownerid,
+                         doctypeid,
+                         docnumb,
+                         docdate,
+                         upn,
+                         uin,
+                         bkd_id,
+                         enactmentarticleid,
+                         initiatorimposition,
+                         budget_vidid
+                         
+                    from FINELOADING f
+                   where f.id = ANY(P_SYSTEM_GET_SELECTLIST(idlist));
+        
+     RETURN 'Успешно загружено!';
+        
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_fineloading_importevidence (idlist text)
+  OWNER TO magicbox;

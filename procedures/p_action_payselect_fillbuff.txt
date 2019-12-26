@@ -1,0 +1,164 @@
+CREATE OR REPLACE FUNCTION public.p_action_payselect_fillbuff (
+  idlist text,
+  uid bigint,
+  ident bigint,
+  auin boolean,
+  aoffender boolean,
+  asummdoc boolean,
+  anumfine boolean
+)
+RETURNS void AS
+$body$
+declare
+  REC    record;
+  SP     record;
+  NIDENT BIGINT = IDENT;
+  NUID   BIGINT = UID;
+  NID    BIGINT;
+begin
+  --очистим буфер по пользователю
+  DELETE FROM FINEBUFF F WHERE F.UID = NUID;
+  DELETE FROM INFOPAYDOCBUFF I WHERE I.UID = NUID; 
+  --цикл по таблицы администрирование штрафов
+  for REC in (select F.* from FINE F where F.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+  loop
+  
+    insert into FINEBUFF
+      (IDENT, --идентификатор процесса
+       LID, --уровень доступа
+       UID, --идентификация Борна
+       STATUSEAF, --статус
+       OLD_ID,	--старый идентификатор записи
+       INITIATORIMPOSITION, --идентификатор штрафа
+       PERSONID, --инспектор
+       TYPEOFFENDER, --тип правонарушителя
+       CODEOFFENDER, --индектификатор правонарушителя
+       OFFENDER, --наименование правонарушителя
+       SUMMDOC, --сумма документа
+       SUMMCANCEL, --сумма отмены/списания
+       SUMMPAY, --сумма оплаты
+       OWNERID, --принадлежность
+       DOCTYPEID, --тип документа
+       DOCNUMB, --номер документа
+       DOCDATE, --дата документа
+       UPN, --УПН
+       UIN, --УИН
+       BUDGET_VIDID, --Бюджеты
+       BKD_ID, --Классификатор доходов бюджетов
+       ENACTMENTARTICLEID) --Статья
+    values
+      (NIDENT,
+       1,
+       NUID,
+       REC.STATUSEAF,
+       REC.ID,
+       REC.INITIATORIMPOSITION,
+       REC.PERSONID,
+       REC.TYPEOFFENDER,
+       REC.CODEOFFENDER,
+       REC.OFFENDER,
+       COALESCE(REC.SUMMDOC,0),
+       COALESCE(REC.SUMMCANCEL,0),
+       COALESCE(REC.SUMMPAY,0),
+       REC.OWNERID,
+       REC.DOCTYPEID,
+       REC.DOCNUMB,
+       REC.DOCDATE,
+       REC.UPN,
+       REC.UIN,
+       REC.BUDGET_VIDID,
+       REC.BKD_ID,
+       REC.ENACTMENTARTICLEID)
+    RETURNING ID INTO NID;
+    --цикл по таблице оплата штрафов
+    for SP in (select D.*
+                 from INFOPAYDOC D
+                where (NOT AUIN or AUIN and D.UIN = REC.UIN) --ищем по УИН
+                  and (NOT AOFFENDER or AOFFENDER and D.CNAME_PAY like '%' || REC.OFFENDER || '%') --ищем по правонарушителю
+                  and (NOT ASUMMDOC or ASUMMDOC and D.SUMM = REC.SUMMDOC) --ищем по сумме
+                  and (NOT ANUMFINE or ANUMFINE and (select 1 where D.CNAME_PAY like '%' || REC.DOCNUMB || '%' or D.PURPOSE like '%' || REC.DOCNUMB || '%') = 1) --ищем по номеру постановления
+               	  and not exists (select 1 from FINEPAY F where F.INFOPAYDOCID = D.ID)
+               )
+    loop
+      insert into INFOPAYDOCBUFF
+        (IDENT,
+         LID,
+         UID,
+         FINEBUFFID,
+         OLD_ID,
+         STATUSMOVE,
+         OWNERID,
+         DOCTYPEID,
+         DOCNUMB,
+         DOCDATE,
+         CNAME_PAY,
+         PURPOSE,
+         UIN,
+         TYPE_KBK,
+         KBK,
+         SUMM,
+         GUID_PP,
+         NOTE,
+         INN_PAY,
+         KPP_PAY,
+         BS_PAY,
+         BIC_PAY,
+         NAME_BIC_PAY,
+         BS_KS_PAY,
+         ADD_KLASS,
+         OKTMO,
+         DIR_SUM,
+         TYPEPAYDOC,
+         DOC_GUID_ST,
+         DOC_DATE_ST,
+         SIGN_FAIT,
+         DOCZLINK,
+         DATE_EXP)
+      values
+        (NIDENT,
+         1,
+         NUID,
+         NID,
+         SP.ID,
+         '0',
+         SP.OWNERID,
+         SP.DOCTYPEID,
+         SP.DOCNUMB,
+         SP.DOCDATE,
+         SP.CNAME_PAY,
+         SP.PURPOSE,
+         SP.UIN,
+         SP.TYPE_KBK,
+         SP.KBK,
+         SP.SUMM,
+         SP.GUID_PP,
+         SP.NOTE,
+         SP.INN_PAY,
+         SP.KPP_PAY,
+         SP.BS_PAY,
+         SP.BIC_PAY,
+         SP.NAME_BIC_PAY,
+         SP.BS_KS_PAY,
+         SP.ADD_KLASS,
+         SP.OKTMO,
+         SP.DIR_SUM,
+         SP.TYPEPAYDOC,
+         SP.DOC_GUID_ST,
+         SP.DOC_DATE_ST,
+         SP.SIGN_FAIT,
+         SP.DOCZLINK,
+         SP.DATE_EXP);
+    end loop;
+  
+  end loop;
+
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_payselect_fillbuff (idlist text, uid bigint, ident bigint, auin boolean, aoffender boolean, asummdoc boolean, anumfine boolean)
+  OWNER TO magicbox;

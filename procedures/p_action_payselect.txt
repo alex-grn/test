@@ -1,0 +1,47 @@
+CREATE OR REPLACE FUNCTION public.p_action_payselect (
+  ident bigint
+)
+RETURNS text AS
+$body$
+declare
+  NIDENT BIGINT:=IDENT;
+  REC    record;
+  NID 	 BIGINT;
+begin
+
+  insert into FINEPAY
+    (FINEID, DATEVP, UIN, CNAME_PAY, OWNERID, INFOPAYDOCID)
+    select F.OLD_ID,		--ссылка на администрирование штрафов
+           B.DOC_DATE_ST,	--дата выписка
+           B.UIN,			--УИН
+           B.CNAME_PAY,		--наименование плательщика
+           B.OWNERID,		--принадлежность
+           B.OLD_ID			--ссылка на оплату штрафов
+      from FINEBUFF       F,
+           INFOPAYDOCBUFF B
+     where F.IDENT = NIDENT
+       and B.FINEBUFFID = F.ID
+       and B.STATUSMOVE = '1'
+    RETURNING FINEPAY.FINEID INTO NID;  --признак переноса
+      
+    IF NID IS NULL THEN
+    	RETURN NULL;
+   /* ELSE
+    	UPDATE FINE F SET STATUSEAF = '6' WHERE F.ID = NID;*/
+    END IF;
+     
+	DELETE FROM FINEBUFF F WHERE F.IDENT = NIDENT;
+    DELETE FROM INFOPAYDOCBUFF F WHERE F.IDENT = NIDENT;
+    
+    RETURN NULL;
+    
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_payselect (ident bigint)
+  OWNER TO magicbox;

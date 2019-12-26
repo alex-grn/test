@@ -1,0 +1,79 @@
+CREATE OR REPLACE FUNCTION public.p_action_status_change (
+  idlist text,
+  uid bigint,
+  date_fix date,
+  status_from text,
+  status_to text
+)
+RETURNS void AS
+$body$
+declare
+    NUID bigint = uid;
+    stin text = (select case f.statuseaf 
+                         when '0' then 'новый' 
+                         when '1' then 'не вступил в силу' 
+                         when '2' then 'вступил в силу' 
+                         when '3' then 'передан в суд' 
+                         when '4' then 'передан судебным приставам' 
+                         when '5' then 'отменен (списан)' 
+                         when '6' then 'оплачен'
+                        end
+    			   from fine f where f.id = ANY(P_SYSTEM_GET_SELECTLIST(idlist)) LIMIT 1);	--расшифровка статуса строки
+    stout text = (select case status_to 
+                         when '0' then 'новый' 
+                         when '1' then 'не вступил в силу' 
+                         when '2' then 'вступил в силу' 
+                         when '3' then 'передан в суд' 
+                         when '4' then 'передан судебным приставам' 
+                         when '5' then 'отменен (списан)' 
+                         when '6' then 'оплачен'
+                        end);	--расшифровка статуса перехода;
+begin
+/*
+	Процедура перехода статусов в разделе "Администрирование штрафов"
+    Статусы:
+    	0 - новый
+		1 - не вступил в силу
+		2 - вступил в силу
+		3 - передан в суд
+		4 - передан судебным приставам
+		5 - отменен (списан)
+		6 - оплачен
+    Переходы:
+    	0 -> 1;
+    	1 -> 2;
+        2 -> 3,4;
+        3 -> 2;
+    Данные по переходам получаем из входных параметров: status_from, status_to.
+*/
+  --проверка по переходам статуса
+  if not exists (select 1 from FINE F where F.ID = ANY(P_SYSTEM_GET_SELECTLIST(idlist)) and F.STATUSEAF in (select REGEXP_SPLIT_TO_TABLE(STATUS_FROM, ';'))) then
+    raise using MESSAGE = 'Из статуса «' || STIN || '» нельзя выполнить переход в статус «' || STOUT || '».';
+  end if;
+  --проверка на корректность ввода даты во входной параметр
+  if exists (select 1 from FINEHISTORY F where F.FINEID = ANY(P_SYSTEM_GET_SELECTLIST(idlist)) AND F.DATESTART > DATE_FIX) then
+  	raise using MESSAGE = 'Дата изменения статуса не может быть меньше, чем дата последнего изменения!';
+  end if;
+  update FINE F set STATUSEAF = STATUS_TO where F.ID = ANY(P_SYSTEM_GET_SELECTLIST(idlist)) and F.STATUSEAF in (select REGEXP_SPLIT_TO_TABLE(STATUS_FROM, ';'));	
+   insert into FINEHISTORY
+    (UID, FINEID, DATESTART, STATUSEAF, PERSONID, SUMMNEW, OWNERID)
+    select NUID,
+           F.ID,
+           DATE_FIX,
+           STATUS_TO,  --статус
+           F.PERSONID, --новый инспектор
+           F.SUMMDOC,   --сумма документа
+           F.OWNERID
+      from FINE F
+     where F.ID = ANY(P_SYSTEM_GET_SELECTLIST(idlist));
+	
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_status_change (idlist text, uid bigint, date_fix date, status_from text, status_to text)
+  OWNER TO magicbox;

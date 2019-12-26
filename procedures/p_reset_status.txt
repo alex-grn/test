@@ -1,0 +1,28 @@
+CREATE OR REPLACE FUNCTION public.p_reset_status (
+  id bigint
+)
+RETURNS text AS
+$body$
+declare
+  /*
+    Реализовать действия в таблице «Файлы загрузки» (FILELOADING)
+	Сделать действие «Сменить статус на «Новый»  (ID = ResetStatuse, процедура = p_reset_statuse) - при выполнении: 
+		поле «Статус загрузки» (STATUSELOAD) меняет значение на «0» (новый);
+ 		поле «Сообщение об ошибке» (NAME) очищается.
+  */
+  nID  bigint = id;
+begin
+
+	UPDATE FILELOADING F SET STATUSELOAD = '0', NAME = '' WHERE F.ID = NID;
+    RETURN NULL;
+    
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_reset_status (id bigint)
+  OWNER TO magicbox;

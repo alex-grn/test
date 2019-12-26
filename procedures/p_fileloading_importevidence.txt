@@ -1,0 +1,82 @@
+CREATE OR REPLACE FUNCTION public.p_fileloading_importevidence (
+  id bigint
+)
+RETURNS text AS
+$body$
+declare
+  /*
+    Реализовать действия в таблице «Файлы загрузки» (FILELOADING)
+	Сделать действие «Загрузить данные» (ID = FileloadingImport, процедура = p_fileloading_importevidence) - 
+    из файла данные загружаются в раздел «Загрузка штрафов» (таблица Fineloading). 
+    При успешной загрузке поле «Статус загрузки» (STATUSELOAD) меняет значение на «2» (загружено). 
+    При не успешной загрузке: поле «Статус загрузки» (STATUSELOAD) меняет значение на «1» (не загружено); 
+    поле «Сообщение об ошибке» (NAME) заполняется текстом ошибки. 
+    Алгоритм загрузки такой же, как в аналогичном действии в Парусе.
+  */
+  nID  bigint = id;
+  sql  text;
+  RC   RECORD;
+  PR   RECORD;
+  I	   bigint:=1;
+begin
+
+	SQL = 'CREATE TEMPORARY TABLE filelist_rs (
+               files       text,
+               id	       bigint,
+               filename    text,
+               values	   text
+                 ) 
+           WITH (oids = false) ON COMMIT DROP;';
+    EXECUTE SQL;
+
+	COPY FILELIST_RS(FILES)
+	FROM 'C:/Z/FILELIST.TXT'  
+	ENCODING 'WIN1251';
+    UPDATE FILELIST_RS F SET ID = I; I:=I+1; --Обозначим список 
+    
+    --Заполним сначала табличку файлами
+    FOR RC IN (
+    			SELECT 'C:/Z/'||F.FILES AS FILES, F.FILES AS FILENAME
+                  FROM FILELIST_RS F
+    			)
+			   LOOP
+               	 EXECUTE 
+                 'COPY FILELIST_RS(VALUES)
+                  FROM '''||RC.FILES||'''';
+                -- ' ENCODING ''WIN1251'';';
+                 
+                 UPDATE FILELIST_RS F SET ID = I WHERE F.ID is null; I:=I+1;
+                 
+                 FOR PR IN (
+                 			SELECT STRING_AGG(F.VALUES,CHR(10)) AS VALUES, I-1 AS ID
+                              FROM FILELIST_RS F
+                             WHERE F.ID = I-1
+                 			) 
+                 			LOOP
+                            	INSERT INTO FILELIST_RS(ID,FILENAME,VALUES)
+                                     			 VALUES(PR.ID,RC.FILENAME,PR.VALUES);
+                            END LOOP;
+                            
+               END LOOP;
+               
+     DELETE FROM FILELIST_RS F WHERE F.FILENAME IS NULL;
+     
+     -- Для теста 
+     DELETE FROM TABLE_TEST;
+     INSERT INTO table_test 
+     select files,filename,f.id,values
+       from FILELIST_RS f;
+     --  
+       
+     RETURN 'Успешно загружено!';
+        
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_fileloading_importevidence (id bigint)
+  OWNER TO magicbox;
