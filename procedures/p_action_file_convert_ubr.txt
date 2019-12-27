@@ -1,0 +1,57 @@
+CREATE OR REPLACE FUNCTION public.p_action_file_convert_ubr (
+  idlist text,
+  convname text,
+  uid bigint = 1,
+  errorone boolean = true
+)
+RETURNS text AS
+$body$
+ declare 
+   nUID        bigint = uid;
+   nID         bigint;
+  -- nIDENT      bigint = ident;
+   nCONVID     bigint;
+   nNUMB       bigint;
+   bERRORONE   boolean = errorone;
+   ret         text;
+   rec		   record;
+ begin
+   select n.id
+     into nCONVID
+     from conv n
+    where n.name = convname;
+   if nCONVID is null then
+     raise using MESSAGE = 'Алгоритм загрузки "'||coalesce(convname,'')||'" не найден.';
+   end if;
+   select coalesce(max(numb)+1,1)::int into nNUMB from convloads where convid=nCONVID and cid=0;
+   insert into convloads(convid, numb, errorone, uid) values (nCONVID, nNUMB, bERRORONE, nUID) returning id into nID;
+    for rec in(
+    	select f.cid from filebuffer f where f.cid = ANY(P_SYSTEM_GET_SELECTLIST(idlist))
+    )
+    loop 
+     begin 
+      update filebuffer set cid = nID where cid = rec.cid; 
+      ret = P_system_convloads_prepare(nID);
+      ret = p_system_convloads_start(nID, nUID);
+      if substr(ret,1,6) = 'Ошибка' then
+       raise using message = ret;
+      end if;
+     exception 
+     when others then
+       ret = substr(ret,9);
+       update fileloading f set name = ret, statuseload = '1' where f.id = rec.cid;
+     end;
+   end loop;
+   update fileloading f set statuseload = '2' where f.id = rec.cid;
+   delete from convloads where id = nID;
+   return ret;
+ end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_file_convert_ubr (idlist text, convname text, uid bigint, errorone boolean)
+  OWNER TO magicbox;
