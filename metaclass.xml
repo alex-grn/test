@@ -18,15 +18,25 @@
 				<MI name="Роли" formlist="Roles"/>
 			</MENU>
 			<MENU name="Сервисы">
-				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
-				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
-				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
+				<MENU name="Журналы">
+					<MI name="Журнал регистрации сессий" formlist="RegSessions"/>
+					<MI name="Журнал регистрации доступа" formlist="RegUnitAccess"/>
+				</MENU>
 				<MENU name="Конвертер">
 					<MI name="Форматы обмена данными" formlist="Concepts"/>
 					<MI name="Алгоритмы загрузки" formlist="Conv"/>
 					<MI name="Процессы загрузки" formlist="ConvLoads"/>
 					<MI name="Внешние ключи" formlist="ConvKeys"/>
 				</MENU>
+				<MENU name="Файловый обмен">
+					<MI name="Файлы входящие" formlist="Fileinput"/>
+					<MI name="Файлы исходящие" formlist="Fileoutput"/>
+				</MENU>
+				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
+				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
+			</MENU>
+			<MENU name="Отчеты">
+				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MI name="Классы метаданных" formlist="MetaClass"/>
@@ -62,6 +72,7 @@
 					</MENU>
 				</MENU>
 				<MENU name="Классификация расходов бюджетов">
+					<MI name="КРБ Классификатор расходов бюджетов" formlist="Kbr"/>
 					<MI name="Коды главных распорядителей бюджетных средств" formlist="DirRecip"/>
 					<MI name="Коды разделов и подразделов расходов бюджета" formlist="FunClass"/>
 					<MI name="Коды целевых статей расходов бюджета" formlist="PurpArticle"/>
@@ -94,6 +105,7 @@
 			<AI id="string" name="Строка"/>
 			<AI id="text" name="Текст"/>
 			<AI id="int" name="Целое число"/>
+			<AI id="bigint" name="Большое число"/>
 			<AI id="number" name="Действительное число"/>
 			<AI id="date" name="Дата"/>
 			<AI id="time" name="Время"/>
@@ -175,6 +187,8 @@
 			<AI id="query" name="Запрос"/>
 			<AI id="value" name="Значение по умолчанию"/>
 			<AI id="local" name="Локальный"/>
+			<AI id="doclinks_in" name="Связи входящие"/>
+			<AI id="doclinks_out" name="Связи исходящие"/>
 		</A>
 		<A id="FONTCOLOR" name="Цвет шрифта" caption="Цвет шрифта" type="colorlist" nulls="true">
 			<AI id="#E52B50" name="Амарантовый"/>
@@ -259,6 +273,8 @@
 		<A id="STRVALUE" name="Значение(строка)" caption="Значение(строка)" type="string" nulls="true"/>
 		<A id="NUMVALUE" name="Значение(число)" caption="Значение(число)" type="number" len="17.5" nulls="true"/>
 		<A id="DATVALUE" name="Значение(дата)" caption="Значение(дата)" type="date" nulls="true"/>
+		<A id="IDENT" name="Идентификатор действия" caption="Идентификатор действия" type="bigint" nulls="true"/>
+		<A id="DOCUMENT" name="Идентификатор документа" caption="Идентификатор документа" type="bigint" nulls="true"/>
 		<A id="METACLASSID" name="Класс метаданных" caption="Класс метаданных" labelwidth="200" type="ref" table="METACLASS" ret="NAME" form="MetaClass" nulls="false"/>
 		<A id="METACLASSPROPSID" name="Свойство класса метаданных" caption="Свойство класса метаданных" labelwidth="200" type="ref" pid="METACLASSID" table="METACLASSPROPS" ret="PROPNODE_ret" nulls="false"/>
 		<A id="UNITID" name="Объект доступа" caption="Объект доступа" type="ref" table="UNITS" ret="NAME" form="Units" nulls="false"/>
@@ -280,17 +296,18 @@
 		<A id="CONVLOADACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMID_ret" nulls="false"/>
 		<COMMENT name="Ссылки на нормативно-справочную информацию"/>
 		<A id="DIR_RECIPID" name="Главный распорядитель и администратор" caption="Главный распорядитель и администратор" labelwidth="400" type="ref" table="DIR_RECIP" ret="CODE" form="DirRecip" nulls="false"/>
-		<A id="ECON_CLASSID" name="КОСГУ" caption="КОСГУ" labelwidth="400" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass" nulls="false"/>
+		<A id="ECON_CLASS_ID" name="КОСГУ" caption="КОСГУ" labelwidth="400" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass" nulls="false"/>
 		<A id="FUN_CLASSID" name="Раздел, подраздел" caption="Раздел, подраздел" labelwidth="400" type="ref" table="FUN_CLASS" ret="CODE" form="FunClass" nulls="false"/>
 		<A id="PURP_ARTICLEID" name="Целевые статьи" caption="Целевые статьи" labelwidth="300" type="ref" table="PURP_ARTICLE" ret="CODE" form="PurpArticle" nulls="false"/>
 		<A id="EXP_TYPEID" name="Виды расходов" caption="Виды расходов" labelwidth="400" type="ref" table="EXP_TYPE" ret="CODE" form="ExpType" nulls="false"/>
-		<A id="BKD_ID" name="КДБ" caption="Классификатор доходов бюджетов" labelwidth="150" width="50" type="ref" table="BKD" ret="BKD_CODE_VIRT" form="Bkd" nulls="false"/>
-		<A id="INCOM_GROUP_ID" name="Группа доходов" caption="Группа доходов" labelwidth="150" width="50" type="ref" table="INCOM_GROUP" ret="CODE" form="IncomGroup" nulls="false"/>
-		<A id="INCOM_SUB_GROUP_ID" name="Подгруппа доходов" caption="Подгруппа доходов" labelwidth="150" width="50" type="ref" table="INCOM_SUB_GROUP" ret="CODE" form="IncomSubGroup" nulls="false"/>
-		<A id="INCOM_ARTICLE_ID" name="Cтатья доходов" caption="Cтатья доходов" labelwidth="150" width="50" type="ref" table="INCOM_ARTICLE" ret="CODE" form="IncomArticle" nulls="false"/>
-		<A id="INCOM_SUB_ARTICLE_ID" name="Подстатья доходов" caption="Подстатья доходов" labelwidth="150" width="50" type="ref" table="INCOM_SUB_ARTICLE" ret="CODE" form="IncomSubArticle" nulls="false"/>
-		<A id="BUDG_ELEMENT_ID" name="Элемент бюджета" caption="Элемент бюджета" labelwidth="150" width="50" type="ref" table="BUDG_ELEMENT" ret="CODE" form="BudgElement" nulls="false"/>
-		<A id="INCOM_SUB_VID_ID" name="Группа подвида доходов" caption="Группа подвида доходов" labelwidth="150" width="50" type="ref" table="INCOM_SUB_VID" ret="CODE" form="IncomSubVid" nulls="false"/>
+		<A id="BKD_ID" name="КДБ" caption="Классификатор доходов бюджетов" labelwidth="300" type="ref" table="BKD" ret="CODE" form="Bkd" nulls="false"/>
+		<A id="INCOM_GROUP_ID" name="Группа доходов" caption="Группа доходов" labelwidth="150" type="ref" table="INCOM_GROUP" ret="CODE" form="IncomGroup" nulls="false"/>
+		<A id="INCOM_SUB_GROUP_ID" name="Подгруппа доходов" caption="Подгруппа доходов" labelwidth="150" type="ref" table="INCOM_SUB_GROUP" ret="CODE" form="IncomSubGroup" nulls="false"/>
+		<A id="INCOM_ARTICLE_ID" name="Cтатья доходов" caption="Cтатья доходов" labelwidth="150" type="ref" table="INCOM_ARTICLE" ret="CODE" form="IncomArticle" nulls="false"/>
+		<A id="INCOM_SUB_ARTICLE_ID" name="Подстатья доходов" caption="Подстатья доходов" labelwidth="150" type="ref" table="INCOM_SUB_ARTICLE" ret="CODE" form="IncomSubArticle" nulls="false"/>
+		<A id="BUDG_ELEMENT_ID" name="Элемент бюджета" caption="Элемент бюджета" labelwidth="150" type="ref" table="BUDG_ELEMENT" ret="CODE" form="BudgElement" nulls="false"/>
+		<A id="INCOM_SUB_VID_ID" name="Группа подвида доходов" caption="Группа подвида доходов" labelwidth="150" type="ref" table="INCOM_SUB_VID" ret="CODE" form="IncomSubVid" nulls="false"/>
+		<A id="KBR_ID" name="КРБ" caption="Классификатор расходов бюджетов" labelwidth="400" type="ref" table="KBR" ret="" form="Kbr"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Простой справочник"/>
@@ -408,6 +425,18 @@
 			<A id="TABLENAME"/>
 			<A id="DATA" name="Данные" caption="Данные" type="text" nulls="true" visible="false" local="true"/>
 		</TABLE>
+		<TABLE id="DOCLINKS" name="Связи документов">
+			<GA name="Входящий документ" caption="Входящий документ">
+				<A id="TABLEIN" name="Таблица" caption="Таблица" type="string" nulls="false" local="true"/>
+				<A id="KEYIN" name="Идентификатор" caption="Идентификатор" type="bigint" nulls="false" local="true"/>
+			</GA>
+			<GA name="Исходящий документ" caption="Исходящий документ">
+				<A id="TABLEOUT" name="Таблица" caption="Таблица" type="string" nulls="false" local="true"/>
+				<A id="KEYOUT" name="Идентификатор" caption="Идентификатор" type="bigint" nulls="false" local="true"/>
+			</GA>
+			<TI id="DOCLINKS_IN_UK" unique="TABLEIN,KEYIN,TABLEOUT,KEYOUT"/>
+			<TI id="DOCLINKS_OUT_UK" unique="TABLEOUT,KEYOUT,TABLEIN,KEYIN"/>
+		</TABLE>
 		<TABLE id="USERS" name="Пользователи">
 			<A id="LOGIN"/>
 			<A id="PASSWORD"/>
@@ -441,9 +470,37 @@
 			<TI unique="METACLASSID,PROPNODE"/>
 		</TABLE>
 		<TABLE id="UNITS" name="Объекты доступа" hid="NAME">
-			<A id="CLASSNODE" name="Тип" caption="Тип"/>
-			<GA id="Dictionary"/>
-			<A id="METACLASSID"/>
+			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="110" type="list" nulls="false" local="true">
+				<AI id="SYSTEM" name="Система" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="MODULES" name="Модули" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MODULE" name="Модуль" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GROUPS_MENU" name="Группы меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MENU" name="Меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MI" name="Пункт меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ATTRIBUTES" name="Атрибуты" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="A" name="Атрибут" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="AI" name="Значение атрибута" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GROUPS_ATTRIBUTES" name="Группы атрибутов" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GA" name="Группа атрибутов" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABLES" name="Таблицы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABLE" name="Таблица" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TI" name="Табличный индекс" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ACTIONS" name="Действия" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ACTION" name="Действие" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="FORMS" name="Формы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="FORM" name="Форма" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="GRID" name="Грид" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="RECORD" name="Запись" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABS" name="Страницы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TAB" name="Страница" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="REPORTS" name="Отчеты" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="REPORT" name="Отчет" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="COMMENT" name="Коментарий" actionlist="units_clean" readonly="REGACCESS"/>
+			</A>
+			<A id="CODE" labelwidth="110"/>
+			<A id="NAME" labelwidth="110"/>
+			<A id="METACLASSID" labelwidth="110"/>
+			<A id="REGACCESS" name="Регистрация доступа" caption="Регистрация доступа" labelwidth="110" type="boolean" nulls="false" value="false"/>
 			<TI unique="HID,CLASSNODE,CODE"/>
 		</TABLE>
 		<TABLE id="ROLES" name="Роли">
@@ -459,12 +516,40 @@
 			<A id="ACCESS"/>
 			<TI unique="ROLEID,HID,UNITID"/>
 		</TABLE>
+		<TABLE id="REGSESSIONS" name="Журнал регистрации сессий">
+			<A id="USERID"/>
+			<A id="CLIENT" name="IP-адрес" caption="IP-адрес" type="string"/>
+			<A id="LOGIN" name="Время входа" caption="Время входа" width="50" type="datetime" local="true"/>
+			<A id="LOGOUT" name="Время выхода" caption="Время выхода" width="50" type="datetime" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" type="list" value="0" local="true">
+				<AI id="0" name="Открыта"/>
+				<AI id="1" name="Завершена"/>
+				<AI id="2" name="Отказано"/>
+			</A>
+			<TI unique="USERID,LOGIN"/>
+		</TABLE>
+		<TABLE id="REGUNITACCESS" name="Журнал регистрации доступа">
+			<A id="USERID" labelwidth="130"/>
+			<A id="REGTIME" name="Время доступа" caption="Время доступа" labelwidth="130" type="datetime" local="true"/>
+			<A id="OBJECTNAME" name="Объект в базе данных" caption="Объект в базе данных" labelwidth="130" type="string" local="true"/>
+			<A id="UNITID" name="Действие" caption="Действие" labelwidth="130"/>
+			<A id="PARAMS" name="Параметры" caption="Параметры" labelwidth="130" type="text" local="true"/>
+			<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="130" type="text" nulls="true" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="130" type="list" value="0" local="true">
+				<AI id="0" name="Выполнено"/>
+				<AI id="1" name="Ошибка"/>
+				<AI id="2" name="Отказано"/>
+			</A>
+			<TI unique="UNITID,OBJECTNAME,USERID,REGTIME"/>
+		</TABLE>
 		<TABLE id="FILEBUFFER" name="Буфер файлов">
+			<A id="IDENT"/>
+			<A id="DOCUMENT"/>
 			<A id="CODE"/>
 			<A id="TABLENAME"/>
 			<A id="FILENAME"/>
 			<A id="BFILE"/>
-			<TI unique="TABLENAME,CODE,FILENAME"/>
+			<TI unique="IDENT,DOCUMENT,TABLENAME,CODE,FILENAME"/>
 		</TABLE>
 		<TABLE id="OPTIONS" name="Параметры системы">
 			<GA id="Dictionary"/>
@@ -483,8 +568,14 @@
 			<A id="SIZE" name="Размер файла" caption="Размер файла (МБ)" labelwidth="300" type="int" nulls="true" readonly="true" value="0" local="true"/>
 			<A id="DOCDATE" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" local="true"/>
 		</TABLE>
+		<TABLE id="FILEINPUT" name="Файлы входящие">
+			<GA id="FileInformation"/>
+		</TABLE>
+		<TABLE id="FILEOUTPUT" name="Файлы исходящие">
+			<GA id="FileInformation"/>
+		</TABLE>
 		<TABLE id="CONFIGTABLESBUFF" name="Настройки интерфейса таблиц (буфер)">
-			<A id="USERID" visible="false"/>
+			<A id="USERID" parentkey="cascade" visible="false"/>
 			<GA id="ConfigTables"/>
 			<GA caption="Запрос">
 				<A id="GRIDQUERY" name="Запрос" type="text" nulls="true" readonly="true"/>
@@ -497,7 +588,7 @@
 			<TI unique="CONFIGTABLESBUFFID,COLUMNID"/>
 		</TABLE>
 		<TABLE id="CONFIGTABLES" name="Настройки интерфейса таблиц">
-			<A id="USERID" labelwidth="130"/>
+			<A id="USERID" labelwidth="130" parentkey="cascade"/>
 			<GA id="ConfigTables"/>
 			<TI unique="USERID,TABLEID"/>
 		</TABLE>
@@ -542,7 +633,7 @@
 				</A>
 				<A id="ATTR" name="Подтип" caption="Подтип" width="10" type="boolean" nulls="false" value="false" local="true"/>
 			</GA>
-			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, HID, CODE, ITEM_TYPE"/>
+			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, CODE, HID, ITEM_TYPE"/>
 		</TABLE>
 		<TABLE id="CONV" name="Конвертер: Алгоритмы загрузки">
 			<A id="NAME" nulls="false"/>
@@ -661,6 +752,7 @@
 			</GA>
 			<A id="ERRORONE" name="До первой ошибки" caption="Прерывать работу при первой ошибке" type="boolean" value="true" local="true"/>
 			<GA id="FileInformation"/>
+			<A id="FILENAME" name="Имя файла" caption="Имя файла" width="100" type="text" nulls="true" visible="false" local="true"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTS" name="Конвертер: Буфер выполнения (действия)" hid="CONVACTNAMEVIRT">
@@ -825,36 +917,39 @@
 			<TI id="iSOURCE_SUB_VID_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iSOURCE_SUB_VID_ACTIVE" index="ACTIVE"/>
 		</TABLE>
-		<TABLE id="BKD" name="Бюджетный классификатор доходов">
-			<GA id="BKD_CODE_GR" name="Код БКД" caption="Код БКД">
-				<A id="DIR_RECIP_ID" name="Гл.распорядитель" caption="Гл.распорядитель" labelwidth="120" width="30" nulls="true" visible="form"/>
-				<GA id="BKD_VID_KDB" name="Код вида бюджетов" caption="Код вида доходов бюджетов">
-					<A id="INCOM_GROUP_ID" name="Группа" caption="Группа" labelwidth="50" nulls="true" visible="form"/>
-					<A id="INCOM_SUB_GROUP_ID" name="Подгруппа" caption="Подгруппа" labelwidth="70" nulls="true" visible="form"/>
-					<A id="INCOM_ARTICLE_ID" name="Cтатья" caption="Cтатья" labelwidth="50" nulls="true" visible="form"/>
-					<A id="INCOM_SUB_ARTICLE_ID" name="Подстатья" caption="Подстатья" labelwidth="70" nulls="true" visible="form"/>
-					<A id="BUDG_ELEMENT_ID" name="Элемент бюджета" caption="Элемент бюджета" labelwidth="150" nulls="true" visible="form"/>
+		<TABLE id="BKD" name="КДБ  Классификатор доходов бюджетов">
+			<GA id="BKD_CODE_GR" name="Коды классификации доходов бюджетов" caption="Коды классификации доходов бюджетов">
+				<A id="DIR_RECIPID" name="Код главного администратора доходов бюджета" caption="Код главного администратора доходов бюджета" labelwidth="430" width="30" nulls="true" visible="form"/>
+				<GA id="BKD_VID_KDB" name="Вид доходов бюджетов" caption="Вид доходов бюджетов">
+					<A id="INCOM_GROUP_ID" name="Группа" caption="Группа" labelwidth="50" width="50" nulls="true" visible="form"/>
+					<A id="INCOM_SUB_GROUP_ID" name="Подгруппа" caption="Подгруппа" labelwidth="70" width="50" nulls="true" visible="form"/>
+					<A id="INCOM_ARTICLE_ID" name="Cтатья" caption="Cтатья" labelwidth="50" width="50" nulls="true" visible="form"/>
+					<A id="INCOM_SUB_ARTICLE_ID" name="Подстатья" caption="Подстатья" labelwidth="70" width="50" nulls="true" visible="form"/>
+					<A id="BUDG_ELEMENT_ID" name="Код элемента доходов" caption="Код элемента доходов" labelwidth="420" nulls="true" visible="form"/>
 				</GA>
-				<GA id="INCOM_SUB_VID_KDB" name="Код подвида доходов бюджетов" caption="Код подвида доходов бюджетов">
-					<A id="INCOM_SUB_VID_ID" name="Группа подвида доходов" caption="Группа подвида доходов" labelwidth="150" nulls="true" visible="form"/>
-					<A id="ECON_CLASS_ID" name="КОСГУ" caption="КОСГУ" labelwidth="50" type="ref" table="ECON_CLASS" ret="CODE" form="fEconClass" nulls="true" visible="form"/>
+				<GA id="INCOM_SUB_VID_KDB" name="Подвид доходов бюджета" caption="Подвид доходов бюджета">
+					<A id="INCOM_SUB_VID_ID" name="Группа подвида доходов бюджета" caption="Группа подвида доходов бюджета" labelwidth="500" nulls="true" visible="form"/>
+					<A id="ECON_CLASS_ID" name="Аналитическая группа подвида доходов бюджетов" caption="Аналитическая группа подвида доходов бюджетов" labelwidth="500" nulls="true" visible="form"/>
 				</GA>
-				<A id="BKD_CODE_VIRT" name="Код БКД" caption="Код БКД" labelwidth="100" width="100" type="string" nulls="true" readonly="true" virtual="true" formula="0" local="true"/>
+				<A id="CODE" name="Код КДБ" caption="Код классификатора доходов бюджетов" labelwidth="300" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from INCOM_GROUP v where v.id = @INCOM_GROUP_ID),'0')||COALESCE((select  v.CODE from INCOM_SUB_GROUP v where v.id = @INCOM_SUB_GROUP_ID),'00')||COALESCE((select  v.CODE from INCOM_ARTICLE v where v.id = @INCOM_ARTICLE_ID),'00')||COALESCE((select  v.CODE from INCOM_SUB_ARTICLE v where v.id = @INCOM_SUB_ARTICLE_ID),'000')||COALESCE((select  v.CODE from BUDG_ELEMENT v where v.id = @BUDG_ELEMENT_ID),'00')||COALESCE((select  v.CODE from INCOM_SUB_VID v where v.id = @INCOM_SUB_VID_ID),'0000')||COALESCE((select  v.CODE from ECON_CLASS v where v.id = @ECON_CLASS_ID),'000')" local="true"/>
 			</GA>
 			<A id="NAME" labelwidth="100"/>
 			<GA id="DictionaryParam"/>
-			<TI id="iBKD_UK" unique="DIR_RECIP_ID,INCOM_GROUP_ID,INCOM_SUB_GROUP_ID,INCOM_ARTICLE_ID,INCOM_SUB_ARTICLE_ID,BUDG_ELEMENT_ID,INCOM_SUB_VID_ID,ECON_CLASS_ID,ANALIT_GROUP_ID,BEGIN_DATE"/>
-			<TI id="iBKD_DIR_RECIP" index="DIR_RECIP_ID"/>
-			<TI id="iINCOM_GROUP" index="INCOM_GROUP_ID"/>
-			<TI id="iINCOM_SUB_GROUP" index="INCOM_SUB_GROUP_ID"/>
-			<TI id="iINCOM_ARTICLE" index="INCOM_ARTICLE_ID"/>
-			<TI id="iINCOM_SUB_ARTICLE" index="INCOM_SUB_ARTICLE_ID"/>
-			<TI id="iBKD_BUDG_ELEMENT" index="BUDG_ELEMENT_ID"/>
-			<TI id="iINCOM_SUB_VID" index="INCOM_SUB_VID_ID"/>
-			<TI id="iBKD_ECON_CLASS" index="ECON_CLASS_ID"/>
-			<TI id="iANALIT_GROUP" index="ANALIT_GROUP_ID"/>
-			<TI id="iBKD_NAME" index="NAME"/>
+			<TI id="iBKD_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iBKD_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="KBR" name="КРБ Классификатор расходов бюджетов">
+			<GA name="Коды классификации расходов бюджетов" caption="Коды классификации расходов бюджетов">
+				<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500" visible="form"/>
+				<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500" visible="form"/>
+				<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500" visible="form"/>
+				<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500" visible="form"/>
+				<A id="CODE" name="Код КРБ" caption="Код классификации расходов бюджетов" labelwidth="300" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from FUN_CLASS v where v.id = @FUN_CLASSID),'0000')||COALESCE((select  v.CODE from PURP_ARTICLE v where v.id = @PURP_ARTICLEID),'0000000000')||COALESCE((select  v.CODE from EXP_TYPE v where v.id = @EXP_TYPEID),'000')" value="00000000000000000000" local="true"/>
+			</GA>
+			<A id="NAME" labelwidth="100" formula="COALESCE(@NAME,(select  v.NAME from FUN_CLASS v where v.id = @FUN_CLASSID)||'. '||(select v.NAME from PURP_ARTICLE v where v.id = @PURP_ARTICLEID)||'. '||(select v.NAME from EXP_TYPE v where v.id = @EXP_TYPEID))"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iKBR_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iKBR_ACTIVE" index="ACTIVE"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -905,11 +1000,14 @@
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
+		<ACTION id="units_regaccess" name="Включить регистрацию доступа" type="procedure" procedure="p_system_units_regaccess_1"/>
+		<ACTION id="units_noregaccess" name="Отключить регистрацию доступа" type="procedure" procedure="p_system_units_regaccess_0"/>
 		<ACTION id="units_clean" name="Удалить объекты без метаданных" type="procedure" procedure="p_system_units_clean">
 			<FORM>
 				<A id="REMOVE" caption="Удалить каскадно из назначения прав" type="boolean" nulls="false" value="true" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_period="0" schedule_start="15" type="procedure" procedure="p_system_transaction_clear"/>
 		<ACTION id="setLID" name="Установить уровень доступа" type="procedure" procedure="p_system_set_levaccess">
 			<FORM>
 				<A id="LEVACCESSID"/>
@@ -926,24 +1024,12 @@
 				<A id="BFILE"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="loadFilelinks" name="Выгрузить файл" type="java"/>
-		<ACTION id="allFilelinks" name="Загрузить и показать файл" actionlist="uploadFilelinks;loadFilelinks"/>
+		<ACTION id="loadFilelinks" name="Открыть файл" type="java"/>
+		<ACTION id="allFilelinks" name="Загрузить и открыть файл" actionlist="uploadFilelinks;loadFilelinks"/>
 		<ACTION id="FilelinksToFilebuffer" name="Загрузить файл в таблицу" type="java"/>
-		<ACTION id="LoadFileFromFilebuffer" name="Выгрузить файл из таблицы" type="java"/>
-		<ACTION id="ConfigTables" name="Настройка" type="procedure" procedure="p_system_configtables_save">
-			<FORM name="Настройка интерфейса">
-				<GRID name="Таблицы" table="CONFIGTABLESBUFF" readonly="true">
-					<MENU>
-						<MI actionlist="Update;Delete"/>
-					</MENU>
-				</GRID>
-				<GRID name="Колонки" table="CONFIGCOLUMNSBUFF" readonly="true">
-					<MENU>
-						<MI actionlist="Update"/>
-					</MENU>
-				</GRID>
-			</FORM>
-		</ACTION>
+		<ACTION id="FilebufferToFilelinks" name="Выгрузить файл из таблицы" type="java"/>
+		<ACTION id="LoadFileFromFilebuffer" name="Открыть файл из таблицы" type="java"/>
+		<ACTION id="ConfigTables" name="Настройка" type="procedure" formlist="ConfigTablesBuff" procedure="p_system_configtables_save"/>
 		<ACTION id="ConceptLoad" name="Создать формат по образцу файла" type="procedure" procedure="p_system_concept_load">
 			<FORM>
 				<A id="BFILE" nulls="false"/>
@@ -996,7 +1082,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="Units" name="Объекты доступа">
-			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_clean" readonly="true">
+			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_regaccess;units_noregaccess;units_clean" readonly="true">
 				<MENU>
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
@@ -1014,8 +1100,14 @@
 				</MENU>
 			</GRID>
 		</FORM>
-		<FORM id="Filelinks" name="Файлы">
+		<FORM id="Filelinks" name="Файлы загруженные">
 			<GRID id="Filelinks" name="Файлы" table="FILELINKS" actionlist="uploadFilelinks;loadFilelinks"/>
+		</FORM>
+		<FORM id="Fileinput" name="Файлы входящие">
+			<GRID id="Fileinput" name="Файлы входящие" table="FILEINPUT" actionlist="addFilelinks;loadFilelinks"/>
+		</FORM>
+		<FORM id="Fileoutput" name="Файлы исходящие">
+			<GRID id="Fileoutput" name="Файлы исходящие" table="FILEOUTPUT" actionlist="addFilelinks;loadFilelinks"/>
 		</FORM>
 		<FORM id="Options" name="Параметры системы">
 			<GRID id="Options" name="Параметры системы" table="OPTIONS" actionlist="LoadFileOptions" reportlist="MetaClassReport"/>
@@ -1030,6 +1122,32 @@
 				</MENU>
 			</GRID>
 			<GRID name="Колонки" table="CONFIGCOLUMNS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ConfigTablesBuff" name="Настройка интерфейса (буфер)">
+			<GRID name="Таблицы" table="CONFIGTABLESBUFF" readonly="true">
+				<MENU>
+					<MI actionlist="Update;Delete"/>
+				</MENU>
+			</GRID>
+			<GRID name="Колонки" table="CONFIGCOLUMNSBUFF" readonly="true">
+				<MENU>
+					<MI actionlist="Update"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegSessions" name="Журнал регистрации сессий">
+			<GRID name="Журнал регистрации сессий" table="REGSESSIONS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegUnitAccess" name="Журнал регистрации доступа">
+			<GRID name="Журнал регистрации доступа" table="REGUNITACCESS" readonly="true">
 				<MENU>
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
@@ -1133,6 +1251,9 @@
 		</FORM>
 		<FORM id="Source_Sub_Vid" name="Подвиды источников">
 			<GRID id="Source_Sub_Vid" name="Подвиды источников" table="SOURCE_SUB_VID"/>
+		</FORM>
+		<FORM id="Kbr" name="Классификатор расходов бюджетов">
+			<GRID id="Kbr" name="Классификатор расходов бюджетов" table="KBR"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
