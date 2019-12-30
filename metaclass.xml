@@ -18,15 +18,25 @@
 				<MI name="Роли" formlist="Roles"/>
 			</MENU>
 			<MENU name="Сервисы">
-				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
-				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
-				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
+				<MENU name="Журналы">
+					<MI name="Журнал регистрации сессий" formlist="RegSessions"/>
+					<MI name="Журнал регистрации доступа" formlist="RegUnitAccess"/>
+				</MENU>
 				<MENU name="Конвертер">
 					<MI name="Форматы обмена данными" formlist="Concepts"/>
 					<MI name="Алгоритмы загрузки" formlist="Conv"/>
 					<MI name="Процессы загрузки" formlist="ConvLoads"/>
 					<MI name="Внешние ключи" formlist="ConvKeys"/>
 				</MENU>
+				<MENU name="Файловый обмен">
+					<MI name="Файлы входящие" formlist="Fileinput"/>
+					<MI name="Файлы исходящие" formlist="Fileoutput"/>
+				</MENU>
+				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
+				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
+			</MENU>
+			<MENU name="Отчеты">
+				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MI name="Классы метаданных" formlist="MetaClass"/>
@@ -101,6 +111,7 @@
 			<AI id="string" name="Строка"/>
 			<AI id="text" name="Текст"/>
 			<AI id="int" name="Целое число"/>
+			<AI id="bigint" name="Большое число"/>
 			<AI id="number" name="Действительное число"/>
 			<AI id="date" name="Дата"/>
 			<AI id="time" name="Время"/>
@@ -182,6 +193,8 @@
 			<AI id="query" name="Запрос"/>
 			<AI id="value" name="Значение по умолчанию"/>
 			<AI id="local" name="Локальный"/>
+			<AI id="doclinks_in" name="Связи входящие"/>
+			<AI id="doclinks_out" name="Связи исходящие"/>
 		</A>
 		<A id="FONTCOLOR" name="Цвет шрифта" caption="Цвет шрифта" type="colorlist" nulls="true">
 			<AI id="#E52B50" name="Амарантовый"/>
@@ -266,6 +279,8 @@
 		<A id="STRVALUE" name="Значение(строка)" caption="Значение(строка)" type="string" nulls="true"/>
 		<A id="NUMVALUE" name="Значение(число)" caption="Значение(число)" type="number" len="17.5" nulls="true"/>
 		<A id="DATVALUE" name="Значение(дата)" caption="Значение(дата)" type="date" nulls="true"/>
+		<A id="IDENT" name="Идентификатор действия" caption="Идентификатор действия" type="bigint" nulls="true"/>
+		<A id="DOCUMENT" name="Идентификатор документа" caption="Идентификатор документа" type="bigint" nulls="true"/>
 		<A id="METACLASSID" name="Класс метаданных" caption="Класс метаданных" labelwidth="200" type="ref" table="METACLASS" ret="NAME" form="MetaClass" nulls="false"/>
 		<A id="METACLASSPROPSID" name="Свойство класса метаданных" caption="Свойство класса метаданных" labelwidth="200" type="ref" pid="METACLASSID" table="METACLASSPROPS" ret="PROPNODE_ret" nulls="false"/>
 		<A id="UNITID" name="Объект доступа" caption="Объект доступа" type="ref" table="UNITS" ret="NAME" form="Units" nulls="false"/>
@@ -313,14 +328,6 @@
 			<AI id="5" name="Загружен" readonly="true"/>
 		</A>
 		<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="620" type="list" nulls="true" value="1" local="true">
-			<!-- <AI id="1" name="Зарегистрирован"/> -->
-			<!-- <AI id="2" name="Отказ" readonly="true"/> -->
-			<!-- <AI id="3" name="Утвержден" readonly="true"/> -->
-			<!-- <AI id="4" name="Отсрочка"/> -->
-			<!-- <AI id="5" name="Повторное распределение"/> -->
-			<!-- <AI id="6" name="Направлен на АГС"/> -->
-			<!-- <AI id="7" name="Проходит АГС"/> -->
-			<!-- <AI id="8" name="Уволен со службы" readonly="true"/> -->
 			<AI id="1" name="Зарегистрирован"/>
 			<AI id="2" name="Утвержден"/>
 			<AI id="3" name="Проходит АГС" readonly="true"/>
@@ -528,6 +535,18 @@
 			<A id="TABLENAME"/>
 			<A id="DATA" name="Данные" caption="Данные" type="text" nulls="true" visible="false" local="true"/>
 		</TABLE>
+		<TABLE id="DOCLINKS" name="Связи документов">
+			<GA name="Входящий документ" caption="Входящий документ">
+				<A id="TABLEIN" name="Таблица" caption="Таблица" type="string" nulls="false" local="true"/>
+				<A id="KEYIN" name="Идентификатор" caption="Идентификатор" type="bigint" nulls="false" local="true"/>
+			</GA>
+			<GA name="Исходящий документ" caption="Исходящий документ">
+				<A id="TABLEOUT" name="Таблица" caption="Таблица" type="string" nulls="false" local="true"/>
+				<A id="KEYOUT" name="Идентификатор" caption="Идентификатор" type="bigint" nulls="false" local="true"/>
+			</GA>
+			<TI id="DOCLINKS_IN_UK" unique="TABLEIN,KEYIN,TABLEOUT,KEYOUT"/>
+			<TI id="DOCLINKS_OUT_UK" unique="TABLEOUT,KEYOUT,TABLEIN,KEYIN"/>
+		</TABLE>
 		<TABLE id="USERS" name="Пользователи">
 			<A id="LOGIN" labelwidth="150"/>
 			<A id="PASSWORD" labelwidth="150"/>
@@ -568,9 +587,37 @@
 			<TI unique="METACLASSID,PROPNODE"/>
 		</TABLE>
 		<TABLE id="UNITS" name="Объекты доступа" hid="NAME">
-			<A id="CLASSNODE" name="Тип" caption="Тип"/>
-			<GA id="Dictionary"/>
-			<A id="METACLASSID"/>
+			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="110" type="list" nulls="false" local="true">
+				<AI id="SYSTEM" name="Система" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="MODULES" name="Модули" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MODULE" name="Модуль" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GROUPS_MENU" name="Группы меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MENU" name="Меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MI" name="Пункт меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ATTRIBUTES" name="Атрибуты" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="A" name="Атрибут" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="AI" name="Значение атрибута" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GROUPS_ATTRIBUTES" name="Группы атрибутов" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GA" name="Группа атрибутов" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABLES" name="Таблицы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABLE" name="Таблица" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TI" name="Табличный индекс" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ACTIONS" name="Действия" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ACTION" name="Действие" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="FORMS" name="Формы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="FORM" name="Форма" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="GRID" name="Грид" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="RECORD" name="Запись" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABS" name="Страницы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TAB" name="Страница" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="REPORTS" name="Отчеты" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="REPORT" name="Отчет" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="COMMENT" name="Коментарий" actionlist="units_clean" readonly="REGACCESS"/>
+			</A>
+			<A id="CODE" labelwidth="110"/>
+			<A id="NAME" labelwidth="110"/>
+			<A id="METACLASSID" labelwidth="110"/>
+			<A id="REGACCESS" name="Регистрация доступа" caption="Регистрация доступа" labelwidth="110" type="boolean" nulls="false" value="false"/>
 			<TI unique="HID,CLASSNODE,CODE"/>
 		</TABLE>
 		<TABLE id="ROLES" name="Роли">
@@ -586,12 +633,40 @@
 			<A id="ACCESS"/>
 			<TI unique="ROLEID,HID,UNITID"/>
 		</TABLE>
+		<TABLE id="REGSESSIONS" name="Журнал регистрации сессий">
+			<A id="USERID"/>
+			<A id="CLIENT" name="IP-адрес" caption="IP-адрес" type="string"/>
+			<A id="LOGIN" name="Время входа" caption="Время входа" width="50" type="datetime" local="true"/>
+			<A id="LOGOUT" name="Время выхода" caption="Время выхода" width="50" type="datetime" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" type="list" value="0" local="true">
+				<AI id="0" name="Открыта"/>
+				<AI id="1" name="Завершена"/>
+				<AI id="2" name="Отказано"/>
+			</A>
+			<TI unique="USERID,LOGIN"/>
+		</TABLE>
+		<TABLE id="REGUNITACCESS" name="Журнал регистрации доступа">
+			<A id="USERID" labelwidth="130"/>
+			<A id="REGTIME" name="Время доступа" caption="Время доступа" labelwidth="130" type="datetime" local="true"/>
+			<A id="OBJECTNAME" name="Объект в базе данных" caption="Объект в базе данных" labelwidth="130" type="string" local="true"/>
+			<A id="UNITID" name="Действие" caption="Действие" labelwidth="130"/>
+			<A id="PARAMS" name="Параметры" caption="Параметры" labelwidth="130" type="text" local="true"/>
+			<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="130" type="text" nulls="true" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="130" type="list" value="0" local="true">
+				<AI id="0" name="Выполнено"/>
+				<AI id="1" name="Ошибка"/>
+				<AI id="2" name="Отказано"/>
+			</A>
+			<TI unique="UNITID,OBJECTNAME,USERID,REGTIME"/>
+		</TABLE>
 		<TABLE id="FILEBUFFER" name="Буфер файлов">
+			<A id="IDENT"/>
+			<A id="DOCUMENT"/>
 			<A id="CODE"/>
 			<A id="TABLENAME"/>
 			<A id="FILENAME"/>
 			<A id="BFILE"/>
-			<TI unique="TABLENAME,CODE,FILENAME"/>
+			<TI unique="IDENT,DOCUMENT,TABLENAME,CODE,FILENAME"/>
 		</TABLE>
 		<TABLE id="OPTIONS" name="Параметры системы">
 			<GA id="Dictionary"/>
@@ -610,8 +685,14 @@
 			<A id="SIZE" name="Размер файла" caption="Размер файла (МБ)" labelwidth="300" type="int" nulls="true" readonly="true" value="0" local="true"/>
 			<A id="DOCDATE" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" local="true"/>
 		</TABLE>
+		<TABLE id="FILEINPUT" name="Файлы входящие">
+			<GA id="FileInformation"/>
+		</TABLE>
+		<TABLE id="FILEOUTPUT" name="Файлы исходящие">
+			<GA id="FileInformation"/>
+		</TABLE>
 		<TABLE id="CONFIGTABLESBUFF" name="Настройки интерфейса таблиц (буфер)">
-			<A id="USERID" visible="false"/>
+			<A id="USERID" parentkey="cascade" visible="false"/>
 			<GA id="ConfigTables"/>
 			<GA caption="Запрос">
 				<A id="GRIDQUERY" name="Запрос" type="text" nulls="true" readonly="true"/>
@@ -624,7 +705,7 @@
 			<TI unique="CONFIGTABLESBUFFID,COLUMNID"/>
 		</TABLE>
 		<TABLE id="CONFIGTABLES" name="Настройки интерфейса таблиц">
-			<A id="USERID" labelwidth="130"/>
+			<A id="USERID" labelwidth="130" parentkey="cascade"/>
 			<GA id="ConfigTables"/>
 			<TI unique="USERID,TABLEID"/>
 		</TABLE>
@@ -669,7 +750,7 @@
 				</A>
 				<A id="ATTR" name="Подтип" caption="Подтип" width="10" type="boolean" nulls="false" value="false" local="true"/>
 			</GA>
-			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, HID, CODE, ITEM_TYPE"/>
+			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, CODE, HID, ITEM_TYPE"/>
 		</TABLE>
 		<TABLE id="CONV" name="Конвертер: Алгоритмы загрузки">
 			<A id="NAME" nulls="false"/>
@@ -788,6 +869,7 @@
 			</GA>
 			<A id="ERRORONE" name="До первой ошибки" caption="Прерывать работу при первой ошибке" type="boolean" value="true" local="true"/>
 			<GA id="FileInformation"/>
+			<A id="FILENAME" name="Имя файла" caption="Имя файла" width="100" type="text" nulls="true" visible="false" local="true"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTS" name="Конвертер: Буфер выполнения (действия)" hid="CONVACTNAMEVIRT">
@@ -970,8 +1052,7 @@
 				<AI id="1" name="Не предосталяется"/>
 				<AI id="2" name="Предосталяется"/>
 			</A>
-			<!--<A id="STATUSCITIZEN" labelwidth="600" nulls="false"/>-->
-			<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="620" type="list" local="true" nulls="false" formula="case when @ARRIVALDATEACTUALTEST is not null then '3' when @DATEOFDISMISSAL is not null then '4' end">
+			<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="620" type="list" nulls="false" formula="case when @ARRIVALDATEACTUALTEST is not null then '3' when @DATEOFDISMISSAL is not null then '4' end" local="true">
 				<AI id="3" name="Проходит АГС"/>
 				<AI id="4" name="Уволен со службы"/>
 				<AI id="7" name="Направлен на АГС"/>
@@ -1007,7 +1088,7 @@
 						<A id="DATEACCDOC" caption="Дата выдачи учетных документов" labelwidth="600" type="date" nulls="true" visible="form" local="true"/>
 						<A id="FILLDATE" caption="Дата заполнения" labelwidth="600" type="date" nulls="true" visible="form" formula="now()" local="true"/>
 						<A id="PLANSID" labelwidth="130" nulls="false"/>
-						<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="600" readonly="true" visible="true"/>
+						<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="600" visible="true" readonly="true"/>
 					</GA>
 				</TAB>
 				<COMMENT name="Закладка Дополнительные данные"/>
@@ -1048,14 +1129,14 @@
 			<A id="HIDEDATE" name="Скрытая дата" caption="Скрытая дата" type="datetime" nulls="true" visible="false" formula="now()" local="true"/>
 			<GA id="EDUCATIONCITYZEN" name="Образование" caption="Образование">
 				<A id="LEVELEDUCATION" caption="Уровень образования" labelwidth="150" nulls="false"/>
-				<A id="SPECIALTYEDUCATIONDIRID" name="Код специальности" caption="Код специальности" limit="0" labelwidth="150" ret="CODESPE" form="Specialtyeducationdir" visible="form" nulls="true"/>
-				<A id="SPECIALTYEDUCATIONDIRVIRT" name="Специальность" caption="Специальность" limit="0" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMESPEC from SPECIALTYEDUCATIONDIR where ID = @SPECIALTYEDUCATIONDIRID"/>
+				<A id="SPECIALTYEDUCATIONDIRID" name="Код специальности" limit="0" caption="Код специальности" labelwidth="150" ret="CODESPE" form="Specialtyeducationdir" nulls="true" visible="form"/>
+				<A id="SPECIALTYEDUCATIONDIRVIRT" name="Специальность" limit="0" caption="Специальность" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMESPEC from SPECIALTYEDUCATIONDIR where ID = @SPECIALTYEDUCATIONDIRID"/>
 				<A id="SPECIALTYEDUCATIONDIROLDID" labelwidth="150"/>
 				<A id="EDUCATIONALINSTITUTION" name="Учебное заведение" caption="Учебное заведение" labelwidth="150" type="string" nulls="true" visible="form" local="true"/>
 				<A id="COMMENT" caption="Комментарий" labelwidth="150" type="text" nulls="true" visible="form" local="true"/>
 			</GA>
 			<GA id="EXPERIENCECITYZEN" name="Опыт работы" caption="Опыт работы">
-				<A id="PROFESSIONDIRID" name="Код по ОКПДТР" limit="0" caption="Код по ОКПДТР" labelwidth="150" ret="CODEPROF" form="Professiondir" visible="form" nulls="true"/>
+				<A id="PROFESSIONDIRID" name="Код по ОКПДТР" limit="0" caption="Код по ОКПДТР" labelwidth="150" ret="CODEPROF" form="Professiondir" nulls="true" visible="form"/>
 				<A id="PROFESSIONDIRVIRT" name="Должность" limit="0" caption="Должность" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAME from PROFESSIONDIR where ID = @PROFESSIONDIRID" local="true"/>
 				<A id="QUALIFICATION" caption="Класс (категория) квалификации" labelwidth="150" type="list" nulls="true" visible="form" local="true">
 					<AI id="1" name="1 разряд"/>
@@ -1197,7 +1278,7 @@
 				<TAB name="Увольнение со службы">
 					<GA id="DISMISSALCITYZEN" name="Увольнение со службы" caption="Увольнение со службы">
 						<A id="DATEOFDISMISSLA" name="Дата увольнения" caption="Дата увольнения" labelwidth="600" type="date" nulls="true" visible="true" local="true"/>
-						<A id="BASIS4" name="Основание увольнения" caption="Основание увольнения" labelwidth="170" type="list" nulls="true"  visible="form" local="true">
+						<A id="BASIS4" name="Основание увольнения" caption="Основание увольнения" labelwidth="170" type="list" nulls="true" visible="form" local="true">
 							<AI id="1" name="По истечении срока альтернативной гражданской службы"/>
 							<AI id="2" name="В связи с признанием его военно-врачебной комиссией не годным к военной службе или ограниченно годным к военной службе"/>
 							<AI id="3" name="В связи с осуществлением им полномочий члена Совета Федерации, Федерального Собрания РФ, а так же в связи с изберанием его депутатом (см. ФЗ об АГС. Глава 5. Статья 23. Пункт 1."/>
@@ -1395,11 +1476,14 @@
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
+		<ACTION id="units_regaccess" name="Включить регистрацию доступа" type="procedure" procedure="p_system_units_regaccess_1"/>
+		<ACTION id="units_noregaccess" name="Отключить регистрацию доступа" type="procedure" procedure="p_system_units_regaccess_0"/>
 		<ACTION id="units_clean" name="Удалить объекты без метаданных" type="procedure" procedure="p_system_units_clean">
 			<FORM>
 				<A id="REMOVE" caption="Удалить каскадно из назначения прав" type="boolean" nulls="false" value="true" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_period="0" schedule_start="15" type="procedure" procedure="p_system_transaction_clear"/>
 		<ACTION id="setLID" name="Установить уровень доступа" type="procedure" procedure="p_system_set_levaccess">
 			<FORM>
 				<A id="LEVACCESSID"/>
@@ -1416,24 +1500,12 @@
 				<A id="BFILE"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="loadFilelinks" name="Выгрузить файл" type="java"/>
-		<ACTION id="allFilelinks" name="Загрузить и показать файл" actionlist="uploadFilelinks;loadFilelinks"/>
+		<ACTION id="loadFilelinks" name="Открыть файл" type="java"/>
+		<ACTION id="allFilelinks" name="Загрузить и открыть файл" actionlist="uploadFilelinks;loadFilelinks"/>
 		<ACTION id="FilelinksToFilebuffer" name="Загрузить файл в таблицу" type="java"/>
-		<ACTION id="LoadFileFromFilebuffer" name="Выгрузить файл из таблицы" type="java"/>
-		<ACTION id="ConfigTables" name="Настройка" type="procedure" procedure="p_system_configtables_save">
-			<FORM name="Настройка интерфейса">
-				<GRID name="Таблицы" table="CONFIGTABLESBUFF" readonly="true">
-					<MENU>
-						<MI actionlist="Update;Delete"/>
-					</MENU>
-				</GRID>
-				<GRID name="Колонки" table="CONFIGCOLUMNSBUFF" readonly="true">
-					<MENU>
-						<MI actionlist="Update"/>
-					</MENU>
-				</GRID>
-			</FORM>
-		</ACTION>
+		<ACTION id="FilebufferToFilelinks" name="Выгрузить файл из таблицы" type="java"/>
+		<ACTION id="LoadFileFromFilebuffer" name="Открыть файл из таблицы" type="java"/>
+		<ACTION id="ConfigTables" name="Настройка" type="procedure" formlist="ConfigTablesBuff" procedure="p_system_configtables_save"/>
 		<ACTION id="ConceptLoad" name="Создать формат по образцу файла" type="procedure" procedure="p_system_concept_load">
 			<FORM>
 				<A id="BFILE" nulls="false"/>
@@ -1500,7 +1572,6 @@
 			<P id="convname" value="ЗАГРУЗКА ГРАЖДАН"/>
 			<P id="errorone" value="true"/>
 		</REPORT>
-		
 		<COMMENT name="Статистика Профессии"/>
 		<REPORT id="PROFESSIONREPORT" name="Профессии" procedure="" template="profession_report.xls">
 			<FORM>
@@ -1607,7 +1678,7 @@
 		<REPORT id="DIRECTIONAGSREPORT" name="Направление на АГС" procedure="" template="directionags_report.xls">
 			<FORM>
 				<GA id="DIRECTIONAGSREPORT" caption="Фильтр">
-						<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="150" type="list" local="true">
+					<A id="STATUSCITIZEN" name="Статус" caption="Статус" labelwidth="150" type="list" local="true">
 						<AI id="1" name="Зарегистрирован"/>
 						<AI id="2" name="Утвержден" readonly="true"/>
 						<AI id="3" name="Проходит АГС"/>
@@ -1635,7 +1706,7 @@
 						<AI id="2" name="Орган исполнительной власти субъектов Российской Федерации"/>
 					</A>
 					<A id="DEPARTMENTDIRID" labelwidth="150"/>
-					<A id="ORGANIZATIONYEAR" name="Год" caption="Год" labelwidth="650" nulls="false" type="int" local="true"/>
+					<A id="ORGANIZATIONYEAR" name="Год" caption="Год" labelwidth="650" type="int" nulls="false" local="true"/>
 				</GA>
 			</FORM>
 		</REPORT>
@@ -1681,7 +1752,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="Units" name="Объекты доступа">
-			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_clean" readonly="true">
+			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_regaccess;units_noregaccess;units_clean" readonly="true">
 				<MENU>
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
@@ -1699,8 +1770,14 @@
 				</MENU>
 			</GRID>
 		</FORM>
-		<FORM id="Filelinks" name="Файлы">
+		<FORM id="Filelinks" name="Файлы загруженные">
 			<GRID id="Filelinks" name="Файлы" table="FILELINKS" actionlist="uploadFilelinks;loadFilelinks"/>
+		</FORM>
+		<FORM id="Fileinput" name="Файлы входящие">
+			<GRID id="Fileinput" name="Файлы входящие" table="FILEINPUT" actionlist="addFilelinks;loadFilelinks"/>
+		</FORM>
+		<FORM id="Fileoutput" name="Файлы исходящие">
+			<GRID id="Fileoutput" name="Файлы исходящие" table="FILEOUTPUT" actionlist="addFilelinks;loadFilelinks"/>
 		</FORM>
 		<FORM id="Options" name="Параметры системы">
 			<GRID id="Options" name="Параметры системы" table="OPTIONS"/>
@@ -1715,6 +1792,32 @@
 				</MENU>
 			</GRID>
 			<GRID name="Колонки" table="CONFIGCOLUMNS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ConfigTablesBuff" name="Настройка интерфейса (буфер)">
+			<GRID name="Таблицы" table="CONFIGTABLESBUFF" readonly="true">
+				<MENU>
+					<MI actionlist="Update;Delete"/>
+				</MENU>
+			</GRID>
+			<GRID name="Колонки" table="CONFIGCOLUMNSBUFF" readonly="true">
+				<MENU>
+					<MI actionlist="Update"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegSessions" name="Журнал регистрации сессий">
+			<GRID name="Журнал регистрации сессий" table="REGSESSIONS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegUnitAccess" name="Журнал регистрации доступа">
+			<GRID name="Журнал регистрации доступа" table="REGUNITACCESS" readonly="true">
 				<MENU>
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
