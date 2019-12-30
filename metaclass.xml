@@ -18,15 +18,25 @@
 				<MI name="Роли" formlist="Roles"/>
 			</MENU>
 			<MENU name="Сервисы">
-				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
-				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
-				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
+				<MENU name="Журналы">
+					<MI name="Журнал регистрации сессий" formlist="RegSessions"/>
+					<MI name="Журнал регистрации доступа" formlist="RegUnitAccess"/>
+				</MENU>
 				<MENU name="Конвертер">
 					<MI name="Форматы обмена данными" formlist="Concepts"/>
 					<MI name="Алгоритмы загрузки" formlist="Conv"/>
 					<MI name="Процессы загрузки" formlist="ConvLoads"/>
 					<MI name="Внешние ключи" formlist="ConvKeys"/>
 				</MENU>
+				<MENU name="Файловый обмен">
+					<MI name="Файлы входящие" formlist="Fileinput"/>
+					<MI name="Файлы исходящие" formlist="Fileoutput"/>
+				</MENU>
+				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
+				<MI name="Настройки интерфейсов" formlist="ConfigTables"/>
+			</MENU>
+			<MENU name="Отчеты">
+				<MI name="Отчет по метаданным" reportlist="MetaClassReport"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MI name="Классы метаданных" formlist="MetaClass"/>
@@ -128,6 +138,7 @@
 			<AI id="string" name="Строка"/>
 			<AI id="text" name="Текст"/>
 			<AI id="int" name="Целое число"/>
+			<AI id="bigint" name="Большое число"/>
 			<AI id="number" name="Действительное число"/>
 			<AI id="date" name="Дата"/>
 			<AI id="time" name="Время"/>
@@ -209,6 +220,8 @@
 			<AI id="query" name="Запрос"/>
 			<AI id="value" name="Значение по умолчанию"/>
 			<AI id="local" name="Локальный"/>
+			<AI id="doclinks_in" name="Связи входящие"/>
+			<AI id="doclinks_out" name="Связи исходящие"/>
 		</A>
 		<A id="FONTCOLOR" name="Цвет шрифта" caption="Цвет шрифта" type="colorlist" nulls="true">
 			<AI id="#E52B50" name="Амарантовый"/>
@@ -293,6 +306,8 @@
 		<A id="STRVALUE" name="Значение(строка)" caption="Значение(строка)" type="string" nulls="true"/>
 		<A id="NUMVALUE" name="Значение(число)" caption="Значение(число)" type="number" len="17.5" nulls="true"/>
 		<A id="DATVALUE" name="Значение(дата)" caption="Значение(дата)" type="date" nulls="true"/>
+		<A id="IDENT" name="Идентификатор действия" caption="Идентификатор действия" type="bigint" nulls="true"/>
+		<A id="DOCUMENT" name="Идентификатор документа" caption="Идентификатор документа" type="bigint" nulls="true"/>
 		<A id="METACLASSID" name="Класс метаданных" caption="Класс метаданных" labelwidth="200" type="ref" table="METACLASS" ret="NAME" form="MetaClass" nulls="false"/>
 		<A id="METACLASSPROPSID" name="Свойство класса метаданных" caption="Свойство класса метаданных" labelwidth="200" type="ref" pid="METACLASSID" table="METACLASSPROPS" ret="PROPNODE_ret" nulls="false"/>
 		<A id="UNITID" name="Объект доступа" caption="Объект доступа" type="ref" table="UNITS" ret="NAME" form="Units" nulls="false"/>
@@ -367,7 +382,7 @@
 		<A id="PERSON_DOC_ID" name="Документы, удостоверяющие личность" type="ref" table="PERSON_DOC" ret="DOC_VID_CODE_VIRT" form="fPersonDoc"/>
 		<A id="DATA_WORK_ID" name="Данные о работе" type="ref" table="DATA_WORK" ret="DATA_WORK_VIRT2" form="fDataWork" nulls="false"/>
 		<A id="DOC_BIRTH_ID" name="Справка о рождении" type="ref" table="DOC_BIRTH" ret="NUM_ACT" form="fDocBirth"/>
-		<A id="DOC_VID_ID" name="Вид документов" type="ref" table="DOC_VID" ret="CODE" form="fDocVid"/>
+		<A id="DOC_VID_ID" name="Вид документа" type="ref" table="DOC_VID" ret="CODE" form="fDocVid"/>
 		<A id="SPRAWARDSCERTID" name="Награды и удостоверения к ним" type="ref" table="SPRAWARDSCERT"/>
 		<A id="SPRTYPEDOCID" name="Тип заявления" type="ref" table="SPRTYPEDOC" ret="NAMESPR" form="fSprtypedoc"/>
 		<A id="SPRTYPEAPPEALID" name="Тип обращения" type="ref" table="SPRTYPEAPPEAL" ret="NAMESPR" form="fSprtypeappeal"/>
@@ -587,6 +602,18 @@
 			<A id="TABLENAME"/>
 			<A id="DATA" name="Данные" caption="Данные" type="text" nulls="true" visible="false" local="true"/>
 		</TABLE>
+		<TABLE id="DOCLINKS" name="Связи документов">
+			<GA name="Входящий документ" caption="Входящий документ">
+				<A id="TABLEIN" name="Таблица" caption="Таблица" type="string" nulls="false" local="true"/>
+				<A id="KEYIN" name="Идентификатор" caption="Идентификатор" type="bigint" nulls="false" local="true"/>
+			</GA>
+			<GA name="Исходящий документ" caption="Исходящий документ">
+				<A id="TABLEOUT" name="Таблица" caption="Таблица" type="string" nulls="false" local="true"/>
+				<A id="KEYOUT" name="Идентификатор" caption="Идентификатор" type="bigint" nulls="false" local="true"/>
+			</GA>
+			<TI id="DOCLINKS_IN_UK" unique="TABLEIN,KEYIN,TABLEOUT,KEYOUT"/>
+			<TI id="DOCLINKS_OUT_UK" unique="TABLEOUT,KEYOUT,TABLEIN,KEYIN"/>
+		</TABLE>
 		<TABLE id="USERS" name="Пользователи">
 			<A id="LOGIN"/>
 			<A id="PASSWORD"/>
@@ -620,9 +647,37 @@
 			<TI unique="METACLASSID,PROPNODE"/>
 		</TABLE>
 		<TABLE id="UNITS" name="Объекты доступа" hid="NAME">
-			<A id="CLASSNODE" name="Тип" caption="Тип"/>
-			<GA id="Dictionary"/>
-			<A id="METACLASSID"/>
+			<A id="CLASSNODE" name="Тип" caption="Тип" labelwidth="110" type="list" nulls="false" local="true">
+				<AI id="SYSTEM" name="Система" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="MODULES" name="Модули" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MODULE" name="Модуль" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GROUPS_MENU" name="Группы меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MENU" name="Меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="MI" name="Пункт меню" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ATTRIBUTES" name="Атрибуты" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="A" name="Атрибут" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="AI" name="Значение атрибута" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GROUPS_ATTRIBUTES" name="Группы атрибутов" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="GA" name="Группа атрибутов" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABLES" name="Таблицы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABLE" name="Таблица" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TI" name="Табличный индекс" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ACTIONS" name="Действия" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="ACTION" name="Действие" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="FORMS" name="Формы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="FORM" name="Форма" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="GRID" name="Грид" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="RECORD" name="Запись" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TABS" name="Страницы" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="TAB" name="Страница" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="REPORTS" name="Отчеты" actionlist="units_clean" readonly="REGACCESS"/>
+				<AI id="REPORT" name="Отчет" actionlist="units_regaccess;units_noregaccess;units_clean"/>
+				<AI id="COMMENT" name="Коментарий" actionlist="units_clean" readonly="REGACCESS"/>
+			</A>
+			<A id="CODE" labelwidth="110"/>
+			<A id="NAME" labelwidth="110"/>
+			<A id="METACLASSID" labelwidth="110"/>
+			<A id="REGACCESS" name="Регистрация доступа" caption="Регистрация доступа" labelwidth="110" type="boolean" nulls="false" value="false"/>
 			<TI unique="HID,CLASSNODE,CODE"/>
 		</TABLE>
 		<TABLE id="ROLES" name="Роли">
@@ -638,12 +693,40 @@
 			<A id="ACCESS"/>
 			<TI unique="ROLEID,HID,UNITID"/>
 		</TABLE>
+		<TABLE id="REGSESSIONS" name="Журнал регистрации сессий">
+			<A id="USERID"/>
+			<A id="CLIENT" name="IP-адрес" caption="IP-адрес" type="string"/>
+			<A id="LOGIN" name="Время входа" caption="Время входа" width="50" type="datetime" local="true"/>
+			<A id="LOGOUT" name="Время выхода" caption="Время выхода" width="50" type="datetime" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" type="list" value="0" local="true">
+				<AI id="0" name="Открыта"/>
+				<AI id="1" name="Завершена"/>
+				<AI id="2" name="Отказано"/>
+			</A>
+			<TI unique="USERID,LOGIN"/>
+		</TABLE>
+		<TABLE id="REGUNITACCESS" name="Журнал регистрации доступа">
+			<A id="USERID" labelwidth="130"/>
+			<A id="REGTIME" name="Время доступа" caption="Время доступа" labelwidth="130" type="datetime" local="true"/>
+			<A id="OBJECTNAME" name="Объект в базе данных" caption="Объект в базе данных" labelwidth="130" type="string" local="true"/>
+			<A id="UNITID" name="Действие" caption="Действие" labelwidth="130"/>
+			<A id="PARAMS" name="Параметры" caption="Параметры" labelwidth="130" type="text" local="true"/>
+			<A id="ERRORMSG" name="Сообщение об ошибке" caption="Сообщение об ошибке" labelwidth="130" type="text" nulls="true" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="130" type="list" value="0" local="true">
+				<AI id="0" name="Выполнено"/>
+				<AI id="1" name="Ошибка"/>
+				<AI id="2" name="Отказано"/>
+			</A>
+			<TI unique="UNITID,OBJECTNAME,USERID,REGTIME"/>
+		</TABLE>
 		<TABLE id="FILEBUFFER" name="Буфер файлов">
+			<A id="IDENT"/>
+			<A id="DOCUMENT"/>
 			<A id="CODE"/>
 			<A id="TABLENAME"/>
 			<A id="FILENAME"/>
 			<A id="BFILE"/>
-			<TI unique="TABLENAME,CODE,FILENAME"/>
+			<TI unique="IDENT,DOCUMENT,TABLENAME,CODE,FILENAME"/>
 		</TABLE>
 		<TABLE id="OPTIONS" name="Параметры системы">
 			<GA id="Dictionary"/>
@@ -662,8 +745,14 @@
 			<A id="SIZE" name="Размер файла" caption="Размер файла (МБ)" labelwidth="300" type="int" nulls="true" readonly="true" value="0" local="true"/>
 			<A id="DOCDATE" name="Дата создания файла" caption="Дата создания файла" labelwidth="500" type="date" nulls="true" readonly="true" local="true"/>
 		</TABLE>
+		<TABLE id="FILEINPUT" name="Файлы входящие">
+			<GA id="FileInformation"/>
+		</TABLE>
+		<TABLE id="FILEOUTPUT" name="Файлы исходящие">
+			<GA id="FileInformation"/>
+		</TABLE>
 		<TABLE id="CONFIGTABLESBUFF" name="Настройки интерфейса таблиц (буфер)">
-			<A id="USERID" visible="false"/>
+			<A id="USERID" parentkey="cascade" visible="false"/>
 			<GA id="ConfigTables"/>
 			<GA caption="Запрос">
 				<A id="GRIDQUERY" name="Запрос" type="text" nulls="true" readonly="true"/>
@@ -676,7 +765,7 @@
 			<TI unique="CONFIGTABLESBUFFID,COLUMNID"/>
 		</TABLE>
 		<TABLE id="CONFIGTABLES" name="Настройки интерфейса таблиц">
-			<A id="USERID" labelwidth="130"/>
+			<A id="USERID" labelwidth="130" parentkey="cascade"/>
 			<GA id="ConfigTables"/>
 			<TI unique="USERID,TABLEID"/>
 		</TABLE>
@@ -721,7 +810,7 @@
 				</A>
 				<A id="ATTR" name="Подтип" caption="Подтип" width="10" type="boolean" nulls="false" value="false" local="true"/>
 			</GA>
-			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, HID, CODE, ITEM_TYPE"/>
+			<TI id="CONCEPTITEMS_CODE_UK" unique="CONCEPTID, CODE, HID, ITEM_TYPE"/>
 		</TABLE>
 		<TABLE id="CONV" name="Конвертер: Алгоритмы загрузки">
 			<A id="NAME" nulls="false"/>
@@ -840,6 +929,7 @@
 			</GA>
 			<A id="ERRORONE" name="До первой ошибки" caption="Прерывать работу при первой ошибке" type="boolean" value="true" local="true"/>
 			<GA id="FileInformation"/>
+			<A id="FILENAME" name="Имя файла" caption="Имя файла" width="100" type="text" nulls="true" visible="false" local="true"/>
 			<TI id="CONVLOADS_NUMB_UK" unique="CONVID,NUMB"/>
 		</TABLE>
 		<TABLE id="CONVLOADACTS" name="Конвертер: Буфер выполнения (действия)" hid="CONVACTNAMEVIRT">
@@ -1131,6 +1221,7 @@
 		</TABLE>
 		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ - ГЛАВНАЯ ТАБЛИЦА СВЕДЕНИЯ О ГРАЖДАНИНЕ"/>
 		<TABLE id="PERSON" name="Сведения о гражданине">
+			<A id="PERSON_VIRT" labelwidth="150" type="string" virtual="true" formula="select COALESCE(@SUR_NAME,'')||' '||COALESCE(@FIRST_NAME,'')||' '||COALESCE(@MIDDLE_NAME,'')||' ('||COALESCE(to_char(@BIRTH_DATE,'dd.mm.yyyy'),'')||')'"/>
 			<GA name="Общие сведения" caption="Общие сведения">
 				<A id="SUR_NAME" name="Фамилия" caption="Фамилия" width="50" type="string" nulls="false" local="true"/>
 				<A id="FIRST_NAME" name="Имя" caption="Имя" width="50" type="string" nulls="false" local="true"/>
@@ -1142,12 +1233,11 @@
 				<A id="YOUNG" name="Возраст" caption="Возраст" width="30" type="number" nulls="true" visible="true" virtual="true" formula="select date_part('year',age( @BIRTH_DATE::date))"/>
 				<A id="END_DATE" name="Дата смерти" caption="Дата смерти" width="30" type="date" nulls="true" local="true"/>
 			</GA>
-			<A id="SEX" name="Пол" caption="Пол" labelwidth="150" width="50" type="list" nulls="false" local="true">
+			<A id="SEX" name="Пол" caption="Пол" width="50" type="list" nulls="false" local="true">
 				<AI id="1" name="мужской"/>
 				<AI id="2" name="женский"/>
 			</A>
-			<A id="PERSON_VIRT" labelwidth="150" type="string" virtual="true" formula="select COALESCE(@SUR_NAME,'')||' '||COALESCE(@FIRST_NAME,'')||' '||COALESCE(@MIDDLE_NAME,'')||' ('||COALESCE(to_char(@BIRTH_DATE,'dd.mm.yyyy'),'')||')'"/>
-			<A id="COUNTRY_ID" name="Гражданство" caption="Гражданство" labelwidth="150"/>
+			<A id="COUNTRY_ID" name="Гражданство" caption="Гражданство" width="50"/>
 			<GA name="Согласие на обработку персональных данных" caption="Согласие на обработку персональных данных">
 				<A id="IS_PERS_DATA" name="Да" caption="Да" width="24" type="boolean" nulls="true" local="true"/>
 				<A id="IS_NO_TRANSFER" name="Без передачи третьим лицам" caption="Без передачи третьим лицам" width="28" type="boolean" nulls="true" local="true"/>
@@ -1163,18 +1253,18 @@
 		<TABLE id="PERSON_DOC" name="Документы гражданина">
 			<A id="PERSON_ID" parentkey="cascade"/>
 			<GA name="Документы гражданина" caption="Документы гражданина">
+				<A id="DOC_VID_CODE_VIRT" caption="Сведения о документе" labelwidth="210" type="string" nulls="true" virtual="true" formula="select COALESCE(dv.code,'') ||' '|| COALESCE(@SERIES,'')||' '|| COALESCE(@NUM,'') || ' - ' || COALESCE(p.sur_name,'') || ' ' || COALESCE(p.first_name,'') || ' ' || COALESCE(p.middle_name,'') || ' ' ||  COALESCE(p.snils,'') from DOC_VID dv, PERSON P where p.id = @PERSON_ID::bigint and dv.id = @DOC_VID_ID ::bigint"/>
 				<A id="DOC_VID_ID" caption="Вид документа" labelwidth="210" nulls="true"/>
-				<A id="DOC_VID_CODE_VIRT" caption="Вид документа" labelwidth="210" type="string" nulls="true" virtual="true" formula="select COALESCE(dv.code,'') ||' '|| COALESCE(@SERIES,'')||' '|| COALESCE(@NUM,'') || ' - ' || COALESCE(p.sur_name,'') || ' ' || COALESCE(p.first_name,'') || ' ' || COALESCE(p.middle_name,'') || ' ' ||  COALESCE(p.snils,'') from DOC_VID dv, PERSON P where p.id = @PERSON_ID::bigint and dv.id = @DOC_VID_ID ::bigint"/>
 				<A id="SERIES" name="Серия" caption="Серия" labelwidth="210" type="string" nulls="true" local="true"/>
 				<A id="NUM" name="Номер" caption="Номер" labelwidth="210" type="string" nulls="true" local="true"/>
 				<A id="ISSUE_EXTENSIONSDATE" name="Дата выдачи документа" caption="Дата выдачи документа" labelwidth="210" type="date" nulls="true" local="true"/>
 				<A id="GIVEDOCUMENTORG" name="Организация, выдавшая документ" caption="Организация, выдавшая документ" labelwidth="210" type="text" nulls="true" local="true"/>
 			</GA>
 		</TABLE>
-		<TABLE id="PERSON_ADDR" name="Адреса Физ.лиц">
+		<TABLE id="PERSON_ADDR" name="Адрес Физ.лиц">
 			<A id="PERSON_ID" parentkey="cascade"/>
-			<A id="GEO_ID" labelwidth="100" parentkey="cascade"/>
 			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="150" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_Geo_fullname(@GEO_ID ::bigint)" local="true"/>
+			<A id="GEO_ID" labelwidth="80" parentkey="cascade"/>
 			<GA id="PersonAddr" name="Адрес" caption="Адрес"/>
 			<TI id="iPERSON_ADDR_PERSON" index="PERSON_ID"/>
 			<TI id="iPERSON_ADDR_GEO" index="GEO_ID"/>
@@ -1208,7 +1298,7 @@
 			<GA id="DictionaryParam"/>
 			<A id="PERSON_ID" parentkey="cascade"/>
 			<A id="AGENT_BANKS_ID" name="Банк" caption="Банк" labelwidth="150"/>
-			<A id="BANK_ACC" name="Счет" caption="Счет" type="string" len="20" nulls="true" local="true"/>
+			<A id="BANK_ACC" name="Счет" caption="Счет" labelwidth="150" type="string" nulls="true" local="true"/>
 			<TI id="iPERSON_ACC_UK" unique="PERSON_ID,AGENT_BANKS_ID,BANK_ACC,BEGIN_DATE"/>
 			<TI id="iPERSON_ACC_NANE" index="NAME"/>
 			<TI id="iPERSON_ACC_CODE" index="CODE"/>
@@ -1341,7 +1431,7 @@
 		<TABLE id="DATA_WORK" name="Данные о работе">
 			<A id="PERSON_ID" parentkey="cascade"/>
 			<A id="DATA_WORK_VIRT" labelwidth="210" type="string" visible="true" virtual="true" formula="select @ORGANIZATION || ' ' || to_char(@DATEEMPL::date,'dd.mm.yyyy')|| '-' || to_char(@DATEDISMIS ::date,'dd.mm.yyyy') || ',Уволен:' || @REASONDISMIS"/>
-			<A id="DATA_WORK_VIRT2" labelwidth="210" type="string" visible="false" virtual="true" formula="select (select COALESCE(t.code,'')||' '||COALESCE(s.series,'')||' '||COALESCE(s.num,'')||' - '||COALESCE(p.sur_name,'')||' '||COALESCE(p.first_name,'')||' '||COALESCE(p.middle_name,'') from PERSON_DOC s,DOC_VID t,PERSON p where s.id = @PERSON_DOC_ID and t.id = s.doc_vid_id and p.id = s.person_id)||' '||COALESCE(@ORGANIZATION,'') || ' ' || COALESCE(to_char(@DATEEMPL::date,'dd.mm.yyyy'),'')|| '-' || COALESCE(to_char(@DATEDISMIS ::date,'dd.mm.yyyy'),'') || ',Уволен:' || COALESCE(@REASONDISMIS,'')"/>			
+			<A id="DATA_WORK_VIRT2" labelwidth="210" type="string" visible="false" virtual="true" formula="select (select COALESCE(t.code,'')||' '||COALESCE(s.series,'')||' '||COALESCE(s.num,'')||' - '||COALESCE(p.sur_name,'')||' '||COALESCE(p.first_name,'')||' '||COALESCE(p.middle_name,'') from PERSON_DOC s,DOC_VID t,PERSON p where s.id = @PERSON_DOC_ID and t.id = s.doc_vid_id and p.id = s.person_id)||' '||COALESCE(@ORGANIZATION,'') || ' ' || COALESCE(to_char(@DATEEMPL::date,'dd.mm.yyyy'),'')|| '-' || COALESCE(to_char(@DATEDISMIS ::date,'dd.mm.yyyy'),'') || ',Уволен:' || COALESCE(@REASONDISMIS,'')"/>
 			<A id="ORGANIZATION" name="Организация" caption="Организация" labelwidth="210" type="string" nulls="true" local="true"/>
 			<A id="DATEEMPL" name="Дата трудоустройства" caption="Дата трудоустройства" labelwidth="210" type="date" nulls="true" local="true"/>
 			<A id="DATEDISMIS" name="Дата увольнения" caption="Дата увольнения" labelwidth="210" type="date" nulls="true" local="true"/>
@@ -1435,7 +1525,7 @@
 		<COMMENT name="ГЛАВНАЯ ТАБЛИЦА ЛИЧНЫЕ ДЕЛА"/>
 		<TABLE id="PRIVATE_AFFAIR" name="Личные дела">
 			<A id="PERSON_ID" caption="Гражданин" labelwidth="120" nulls="true"/>
-			<A id="PERSONS_VIRT" name="ФИО" caption="ФИО" visible="false" type="text" nulls="true" readonly="true" virtual="true" formula="select COALESCE(s.sur_name,'')||' '||COALESCE(s.first_name,'')||' '||COALESCE(s.middle_name,'')||' ('||COALESCE(to_char(s.birth_date,'dd.mm.yyyy'),'')||', '||COALESCE(p_get_geo_fullname(r.geo_id),'-')||' )' from person s left join person_addr r on r.person_id = s.id and r.is_legal = true where s.id = @PERSON_ID" local="true"/>
+			<A id="PERSONS_VIRT" name="ФИО" caption="ФИО" type="text" nulls="true" visible="false" readonly="true" virtual="true" formula="select COALESCE(s.sur_name,'')||' '||COALESCE(s.first_name,'')||' '||COALESCE(s.middle_name,'')||' ('||COALESCE(to_char(s.birth_date,'dd.mm.yyyy'),'')||', '||COALESCE(p_get_geo_fullname(r.geo_id),'-')||' )' from person s left join person_addr r on r.person_id = s.id and r.is_legal = true where s.id = @PERSON_ID" local="true"/>
 			<A id="ID_VIRT" name="Параметры" caption="Параметры" type="text" nulls="true" readonly="true" virtual="true" formula="select ( COALESCE( (select (case  when sex= '1' then 'муж.' else 'жен.' end) ::text from PERSON where ID = @PERSON_ID::bigint), ' ')||' '|| COALESCE( (select to_char(BIRTH_DATE,'dd.mm.yyyy') ::text  from PERSON where ID = @PERSON_ID::bigint), ' ') ||' ИНН:' || COALESCE( (select inn::text from PERSON where ID = @PERSON_ID::bigint), ' ')   ||' СНИЛС:' ||COALESCE( (select  snils from PERSON where ID = @PERSON_ID::bigint), ' ') ||' Адрес:' ||COALESCE( (select p_get_geo_fullname(geo_id) from person_addr where IS_LEGAL = true and REG_END is null  and PERSON_ID = @PERSON_ID::bigint order by REG_DATE desc limit 1  ), ' '))" local="true"/>
 			<GA name="Общие сведения" caption="Общие сведения">
 				<A id="DOCNUMB" name="№ личного дела" caption="№ личного дела" width="48" type="string" len="80" nulls="true" formula="select coalesce(regexp_replace(max(lpad(replace(docnumb,'-'||to_char(now(),'yyyy'),''),80,' ')), '[^0-9]', '', 'g')::int+1,1)||'-'||to_char(now(),'yyyy') from PRIVATE_AFFAIR where cid=0" local="true"/>
@@ -1492,10 +1582,11 @@
 		</TABLE>
 		<TABLE id="DOC_BIRTH" name="Справка о рождении">
 			<A id="PETITION_ID" parentkey="cascade"/>
-			<A id="PERSON_DOC_ID" caption="Документы, удостоверяющие личность" labelwidth="210" nulls="true"/>
+			<A id="PERSON_DOC_ID" caption="Вид документа" labelwidth="210" nulls="true"/>
 			<A id="NUM_ACT" name="Номер акта о рождении" caption="Номер акта о рождении" labelwidth="500" type="string" nulls="true" local="true"/>
-			<A id="DOCDATE_ACT" name="Дата акта" caption="Дата акта" labelwidth="150" width="50" type="date" nulls="true" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
-			<A id="STATE_REGISTET" name="Орган регистрации акта" caption="Орган регистрации акта" labelwidth="500" type="string" nulls="true" local="true"/>
+			<A id="DOCDATE_ACT" name="Дата акта" caption="Дата акта" labelwidth="500" type="date" nulls="true" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
+			<A id="STATE_REGISTET" name="Орган регистрации акта" caption="Орган регистрации акта" labelwidth="210" type="string" nulls="true" local="true"/>
+			<A id="DOCDATE" name="Дата выдачи" caption="Дата выдачи" labelwidth="500" type="date" nulls="true" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
 		</TABLE>
 		<TABLE id="DOC_PERSON_PETITION" name="Документы удостоверяющие личность">
 			<A id="PETITION_ID" parentkey="cascade"/>
@@ -2079,11 +2170,14 @@
 		<ACTION id="Yandex" name="Перейти на yandex.ru" type="link" href="http://yandex.ru"/>
 		<ACTION id="roleprivs_access" name="Разрешить доступ" type="procedure" procedure="p_system_roleprivs_access_1"/>
 		<ACTION id="roleprivs_noaccess" name="Запретить доступ" type="procedure" procedure="p_system_roleprivs_access_0"/>
+		<ACTION id="units_regaccess" name="Включить регистрацию доступа" type="procedure" procedure="p_system_units_regaccess_1"/>
+		<ACTION id="units_noregaccess" name="Отключить регистрацию доступа" type="procedure" procedure="p_system_units_regaccess_0"/>
 		<ACTION id="units_clean" name="Удалить объекты без метаданных" type="procedure" procedure="p_system_units_clean">
 			<FORM>
 				<A id="REMOVE" caption="Удалить каскадно из назначения прав" type="boolean" nulls="false" value="true" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_period="0" schedule_start="15" type="procedure" procedure="p_system_transaction_clear"/>
 		<ACTION id="setLID" name="Установить уровень доступа" type="procedure" procedure="p_system_set_levaccess">
 			<FORM>
 				<A id="LEVACCESSID"/>
@@ -2100,24 +2194,12 @@
 				<A id="BFILE"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="loadFilelinks" name="Выгрузить файл" type="java"/>
-		<ACTION id="allFilelinks" name="Загрузить и показать файл" actionlist="uploadFilelinks;loadFilelinks"/>
+		<ACTION id="loadFilelinks" name="Открыть файл" type="java"/>
+		<ACTION id="allFilelinks" name="Загрузить и открыть файл" actionlist="uploadFilelinks;loadFilelinks"/>
 		<ACTION id="FilelinksToFilebuffer" name="Загрузить файл в таблицу" type="java"/>
-		<ACTION id="LoadFileFromFilebuffer" name="Выгрузить файл из таблицы" type="java"/>
-		<ACTION id="ConfigTables" name="Настройка" type="procedure" procedure="p_system_configtables_save">
-			<FORM name="Настройка интерфейса">
-				<GRID name="Таблицы" table="CONFIGTABLESBUFF" readonly="true">
-					<MENU>
-						<MI actionlist="Update;Delete"/>
-					</MENU>
-				</GRID>
-				<GRID name="Колонки" table="CONFIGCOLUMNSBUFF" readonly="true">
-					<MENU>
-						<MI actionlist="Update"/>
-					</MENU>
-				</GRID>
-			</FORM>
-		</ACTION>
+		<ACTION id="FilebufferToFilelinks" name="Выгрузить файл из таблицы" type="java"/>
+		<ACTION id="LoadFileFromFilebuffer" name="Открыть файл из таблицы" type="java"/>
+		<ACTION id="ConfigTables" name="Настройка" type="procedure" formlist="ConfigTablesBuff" procedure="p_system_configtables_save"/>
 		<ACTION id="ConceptLoad" name="Создать формат по образцу файла" type="procedure" procedure="p_system_concept_load">
 			<FORM>
 				<A id="BFILE" nulls="false"/>
@@ -2172,7 +2254,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="Units" name="Объекты доступа">
-			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_clean" readonly="true">
+			<GRID id="Units" name="Объекты доступа" table="UNITS" actionlist="units_regaccess;units_noregaccess;units_clean" readonly="true">
 				<MENU>
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
@@ -2190,8 +2272,14 @@
 				</MENU>
 			</GRID>
 		</FORM>
-		<FORM id="Filelinks" name="Файлы">
+		<FORM id="Filelinks" name="Файлы загруженные">
 			<GRID id="Filelinks" name="Файлы" table="FILELINKS" actionlist="uploadFilelinks;loadFilelinks"/>
+		</FORM>
+		<FORM id="Fileinput" name="Файлы входящие">
+			<GRID id="Fileinput" name="Файлы входящие" table="FILEINPUT" actionlist="addFilelinks;loadFilelinks"/>
+		</FORM>
+		<FORM id="Fileoutput" name="Файлы исходящие">
+			<GRID id="Fileoutput" name="Файлы исходящие" table="FILEOUTPUT" actionlist="addFilelinks;loadFilelinks"/>
 		</FORM>
 		<FORM id="Options" name="Параметры системы">
 			<GRID id="Options" name="Параметры системы" table="OPTIONS"/>
@@ -2206,6 +2294,32 @@
 				</MENU>
 			</GRID>
 			<GRID name="Колонки" table="CONFIGCOLUMNS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ConfigTablesBuff" name="Настройка интерфейса (буфер)">
+			<GRID name="Таблицы" table="CONFIGTABLESBUFF" readonly="true">
+				<MENU>
+					<MI actionlist="Update;Delete"/>
+				</MENU>
+			</GRID>
+			<GRID name="Колонки" table="CONFIGCOLUMNSBUFF" readonly="true">
+				<MENU>
+					<MI actionlist="Update"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegSessions" name="Журнал регистрации сессий">
+			<GRID name="Журнал регистрации сессий" table="REGSESSIONS" readonly="true">
+				<MENU>
+					<MI actionlist="View;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="RegUnitAccess" name="Журнал регистрации доступа">
+			<GRID name="Журнал регистрации доступа" table="REGUNITACCESS" readonly="true">
 				<MENU>
 					<MI actionlist="View;ConfigTables"/>
 				</MENU>
@@ -2268,8 +2382,8 @@
 		<FORM id="fPerson" name="Сведения о гражданине">
 			<GRID id="gPerson" name="Сведения о гражданине" table="PERSON"/>
 			<TABS>
-				<TAB name="Адреса">
-					<GRID id="gPersonAddr" name="Адреса" table="PERSON_ADDR">
+				<TAB name="Адрес">
+					<GRID id="gPersonAddr" name="Адрес" table="PERSON_ADDR">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
@@ -2312,11 +2426,6 @@
 					<TABS>
 						<TAB name="Данные о работе">
 							<GRID id="gDataWork" name="Данные о работе" table="DATA_WORK">
-								<MENU>
-									<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
-								</MENU>
-							</GRID>
-							<GRID id="gPersonJobPerf" name="Исполнение должностей" table="PERSON_JOB_PERF">
 								<MENU>
 									<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 								</MENU>
@@ -2424,8 +2533,8 @@
 		<FORM id="fPersonDoc" name="Документы, удостоверяющие личность">
 			<GRID id="gPersonDoc" name="Документы, удостоверяющие личность" table="PERSON_DOC"/>
 		</FORM>
-		<FORM id="fDocVid" name="Виды документов">
-			<GRID id="gDocVid" name="Документы, удостоверяющие личность" table="DOC_VID"/>
+		<FORM id="fDocVid" name="Вид документа">
+			<GRID id="gDocVid" name="Вид документа" table="DOC_VID"/>
 		</FORM>
 		<FORM id="fDocBirth" name="Справка о рождении">
 			<GRID id="gDocBirth" name="Справка о рождении" table="DOC_BIRTH"/>
