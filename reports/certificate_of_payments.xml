@@ -10,7 +10,7 @@
                      <query name="refer" type="sql">
                         <script>
 							select ik.elecdistnumb as num_ik,
-									COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'') as fio,
+									COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'') as fio,
 										(select sum(w.whcomp)+sum(w.whextrafull)
 											from ELECTCAMPAIGN i, register r, registerlist rs, worktbl w 
 										where i.id = ${electcampaignid}::bigint 
@@ -74,6 +74,8 @@
 										(select i.begindate from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
 										when 'territory' then 		--ÒÈÊ
 										(select i.begindateter from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
+										when 'circuit' then			--ÈÊÌÎ
+										(select i.begindateter from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
 										end) as begin,
 										
 										d2s(case lower(ik.levelelcommittee)
@@ -81,14 +83,22 @@
 										(select i.enddate from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
 										when 'territory' then 		--ÒÈÊ
 										(select i.enddateter from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
+										when 'circuit' then			--ÈÊÌÎ
+										(select i.begindateter from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint)
 										end) as end,
 										
 										(select i.name from ELECTCAMPAIGN i where i.id = ${electcampaignid}::bigint) as name_choiser,
-										(select COALESCE(cc.surname,'')||' '||COALESCE(cc.firstname,'')||' '||COALESCE(cc.middlename,'') from COMMITTEEMAN cc where cc.id = ${committeemanvirtid}::bigint) as chairman
-								from COMMITTEEMAN c,
-									  ELECTCOMMITTEE ik
-								where c.id = ${id}::bigint
-								and ik.id = c.electcommitteeid
+										--(select COALESCE(P.surname,'')||' '||COALESCE(P.firstname,'')||' '||COALESCE(P.middlename,'') from RESPONSPERS s, PERSON P 
+                                        --where s.electcommitteeid = ik.id AND P.ID = S.personid and now()::date >= s.postbegindate and (s.postenddate >= now()::date or s.postenddate is null) limit 1) as chairman
+										(select COALESCE(P.surname,'')||' '||COALESCE(P.firstname,'')||' '||COALESCE(P.middlename,'') from person p where p.id = ${supervisor}::bigint) as chairman,
+										p.name as posts,
+										(select n.value from ELECTCAMPAIGN k, NORMSFEDEC n, ELECTCOMMINCAMP i where k.id = ${electcampaignid}::bigint and n.fedeleccampid = k.fedeleccampid and n.postsid = p.id and n.namenorms = 'reward' and i.electcampaignid = k.id and i.electcommitteeid = ik.id and i.mcircuit = n.mcircuit) as extra_charges,
+                                        (select sum(COALESCE(rsp.depcoeff,0)) from ELECTCOMMINCAMP i, REGISTER r, REGISTERLIST rsp where i.electcampaignid = ${electcampaignid}::bigint and r.electcommincampid = i.id and rsp.registerid = r.id and rsp.committeemanid = c.id) as dep_coef
+								from COMMITTEEMAN c
+                           left join ELECTCOMMITTEE ik on ik.id = c.electcommitteeid
+                           left join PERSON pp on pp.id = c.personid
+                           left join posts P on p.id = c.postsid and (c.postbegindate between ik.postbegindate and ik.postenddate or c.postenddate between ik.postbegindate and ik.postenddate)
+                               where c.id = ${id}::bigint
    							   ;
 						</script>
                      </query>

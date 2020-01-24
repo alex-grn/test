@@ -1,414 +1,420 @@
-CREATE OR REPLACE FUNCTION public.p_action_registerlist_gen (
-  idlist text,
-  uid bigint
-)
-RETURNS void AS
-$body$
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_registerlist_gen(idlist  text,  uid  bigint)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
 declare
-  NUID        BIGINT := UID;
-  REC         record;
-  allS		  record;
-  SLCOM       varchar; --ÍÓ‰ ‚˚ÔÎ‡Ú˚
-  ALG         record;
-  SUM_SPRAVKA numeric; --ÒÔ‡‚Í‡ Ó ÒÂ‰ÌÂÏ Á‡‡·ÓÚÍÂ Ò ÓÒÌÓ‚ÌÓ„Ó ÏÂÒÚ‡ ‡·ÓÚ˚
-  SUM_LIMIT   numeric; --ÔÂ‰ÂÎ¸Ì˚È ‡ÁÏÂ ÍÓÏÔÂÌÒ‡ˆËË
-  BUF         numeric [ ];
+    NUID                BIGINT  :=  UID;
+    REC                  record;
+    ALLS                record;
+    SLCOM              varchar;  --–∫–æ–¥  –≤—ã–ø–ª–∞—Ç—ã
+    ALG                  record;
+    SUM_SPRAVKA  numeric;  --—Å–ø—Ä–∞–≤–∫–∞  –æ  —Å—Ä–µ–¥–Ω–µ–º  –∑–∞—Ä–∞–±–æ—Ç–∫–µ  —Å  –æ—Å–Ω–æ–≤–Ω–æ–≥–æ  –º–µ—Å—Ç–∞  —Ä–∞–±–æ—Ç—ã
+    SUM_LIMIT      numeric;  --–ø—Ä–µ–¥–µ–ª—å–Ω—ã–π  —Ä–∞–∑–º–µ—Ä  –∫–æ–º–ø–µ–Ω—Å–∞—Ü–∏–∏
+    BUF                  numeric  [  ];
 begin
-IF EXISTS(SELECT 1 FROM WORKTBL W WHERE W.REGISTERLISTID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST)) AND W.ERRWH IS NOT NULL AND W.ERRWH != '') THEN
-	RAISE USING MESSAGE = '¬ Ò‚Â‰ÂÌËˇı ÙÓ‚ Ó·Ì‡ÛÊÂÌ˚ Ó¯Ë·ÍË Á‡ÔÓÎÌÂÌËˇ ‚ÂÏÂÌË ‡·ÓÚ˚ ˜ÎÂÌÓ‚ » . —ÙÓÏËÛÈÚÂ ÓÚ˜∏Ú ´œÓÚÓÍÓÎ ÔÓ‚ÂÍË Ò‚Â‰ÂÌËÈ Ó ‘Œ¬ª ‰Îˇ ‡Ò˜ÂÚÌÓ„Ó ‰ÓÍÛÏÂÌÚ‡ Ë ÛÒÚ‡ÌËÚÂ Á‡ÏÂ˜‡ÌËˇ.';
-END IF;
-if 
-exists( select r.id 
-	  from register r, 
-	       REGISTERLIST rl  
-         where rl.registerid= r.id 
-            and r.status='4'
-            and rl.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
-      ) then      
-     RAISE EXCEPTION '–‡Ò˜ÂÚ ‚˚ÔÎ‡Ú Á‡ÔÂ˘ÂÌ! —ÙÓÏËÓ‚‡Ì˚ ‚Â‰ÓÏÓÒÚË ÔÓ ÓÔÎ‡ÚÂ ÚÛ‰‡!';
-end if;
-		
-for allS IN (SELECT S.ID FROM REGISTERLIST S WHERE S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))LOOP
-  for REC in (select S.*,
-                     P.ID as PID,
-                     P.SLCOMPCHARGESID,
-                     S.MIDDLESALARY,
-                     (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
-                     P.WORKCALENDARSID,
-                     trim(LOWER(SS.CODE)) as SLCOM,
-                     COALESCE((select sum(K.WHCOMP)
-                                 from WORKTBL K
-                                where K.REGISTERLISTID = S.ID
-                                  and K.DATETBL in (select SX.DATEWC
-                                                      from WORKCALENDARS X, DAYSWORKCALENDARS SX
-                                                     where X.ID = P.WORKCALENDARSID
-                                                       and SX.WORKCALENDARSID = X.ID)) / 8,
-                              0) as SUMM,
-                     COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2,
-                     CASE WHEN COALESCE(S.MIDDLESALARY,0) > 0 THEN 1 ELSE 0 END AS IFMIDSAL --«‡ÔÓÎÌÂÌ‡ ÎË ÒÂ‰Ìˇˇ Á‡ÔÎ‡Ú‡ ‚ ˜ÎÂÌ‡ı ËÁ·Â‡ÚÂÎ¸ÌÓÈ ÍÓÏËÒÒËË
-              
-                from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
-               where S.ID = allS.ID
-                 and P.REGISTERLISTID = S.ID
-                 and P.SHEETSID is null
-                 and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = 'ÍÓÏÔÂÌÒ‡ˆËˇ')
-  loop
-    update PAYS S
-       set NORM      = 0,
-           WORKHOURS = 0,
-           SUMPAY    = 0,
-           PROPPAYS  = null
-     where S.ID = REC.PID;
-  
-    select COALESCE(S.VALUE, 0)
-      into SUM_SPRAVKA
-      from COMMITTEEMAN C, PERSON P, PERSONSAVSLR S
-     where C.ID = REC.COMMITTEEMANID
-       and P.ID = C.PERSONID
-       and S.PERSONID = P.ID
-       and S.BEGINDATE <= NOW()
-       and (S.ENDDATE >= NOW() or S.ENDDATE is null);
-    select COALESCE(SN.VALUE, 0)
-      into SUM_LIMIT
-      from REGISTER        R, --‡Ò˜ÂÚ
-           ELECTCAMPAIGN   I, --ËÁ·Ë‡ÚÂÎ¸Ì‡ˇ Í‡Ï‡ÌËˇ
-           FEDELECCAMP     N, --ÌÓÏ‡ÚË‚Ì˚È ‰ÓÍÛÏÂÌÚ
-           NORMSFEDEC      SN, --ÒÔÂˆËÙËÍ‡ˆËˇ ÌÓÏ‡ÚË‚ÌÓ„Ó ‰ÓÍÛÏÂÌÚ‡: ‡Ò˜ÂÚ ÓÔÎ‡Ú˚ ÚÛ‰‡
-           ELECTCOMMINCAMP KK,
-           ELECTCOMMITTEE  K --ËÁ·Ë‡ÚÂÎ¸Ì‡ˇ ÍÓÏÏËÒËˇ
-     where I.ID = R.ELECTCAMPAIGNID
-       and N.ID = I.FEDELECCAMPID
-       and SN.FEDELECCAMPID = N.ID
-       and SN.NAMENORMS = 'limitcomp'
-       and KK.ID = R.ELECTCOMMINCAMPID
-       and K.ID = KK.ELECTCOMMITTEEID
-       and SN.REGIONSRFID = K.REGIONSRFID;
-        
-       
-       
-    update PAYS S
-       set NORM      = LEAST(REC.MIDDLESALARY/*SUM_SPRAVKA*/, SUM_LIMIT) / REC.COUNTWD * /*Ã¿÷-3955*/REC.IFMIDSAL,
-           WORKHOURS = REC.SUMM,
-           SUMPAY   =
-           (LEAST(REC.MIDDLESALARY/*SUM_SPRAVKA*/, SUM_LIMIT) / REC.COUNTWD) * REC.SUMM
-     where S.ID = REC.PID;
-    SUM_LIMIT   := 0;
-    SUM_SPRAVKA := 0;
-  end loop;
-  for REC in (select S.*,
-                     P.ID as PID,
-                     P.SLCOMPCHARGESID,
-                     (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
-                     P.WORKCALENDARSID,
-                     trim(LOWER(SS.CODE)) as SLCOM,
-                     COALESCE((select sum(K.WHCOMP)
-                                 from WORKTBL K
-                                where K.REGISTERLISTID = S.ID
-                                  and K.DATETBL in (select SX.DATEWC
-                                                      from WORKCALENDARS X, DAYSWORKCALENDARS SX
-                                                     where X.ID = P.WORKCALENDARSID
-                                                       and SX.WORKCALENDARSID = X.ID)) / 8,
-                              0) as SUMM,
-                     COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2
-              
-                from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
-               where S.ID = allS.ID
-                 and P.REGISTERLISTID = S.ID
-                 and P.SHEETSID is null
-                 and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = '‰ÓÚ ‚ Ó‰ËÌ‡ÌÓÏ ‡ÁÏÂÂ')
-  loop
-    update PAYS S
-       set NORM      = 0,
-           WORKHOURS = 0,
-           SUMPAY    = 0,
-           PROPPAYS  = null
-     where S.ID = REC.PID;
-    select COALESCE(SN.VALUE, 0)
-      into SUM_SPRAVKA
-      from REGISTER        R, --‡Ò˜ÂÚ
-           ELECTCAMPAIGN   I, --ËÁ·Ë‡ÚÂÎ¸Ì‡ˇ Í‡Ï‡ÌËˇ
-           FEDELECCAMP     N, --ÌÓÏ‡ÚË‚Ì˚È ‰ÓÍÛÏÂÌÚ
-           NORMSFEDEC      SN, --ÒÔÂˆËÙËÍ‡ˆËˇ ÌÓÏ‡ÚË‚ÌÓ„Ó ‰ÓÍÛÏÂÌÚ‡: ‡Ò˜ÂÚ ÓÔÎ‡Ú˚ ÚÛ‰‡
-           ELECTCOMMINCAMP KK,
-           COMMITTEEMAN    CC,
-           ELECTCOMMITTEE  K --ËÁ·Ë‡ÚÂÎ¸Ì‡ˇ ÍÓÏÏËÒËˇ
-     where I.ID = R.ELECTCAMPAIGNID
-       and N.ID = I.FEDELECCAMPID
-       and SN.FEDELECCAMPID = N.ID
-       and SN.NAMENORMS = 'reward' --‡ÁÏÂ ‰ÓÔÓÎÌËÚÂÎ¸ÌÓÈ ÓÔÎ‡Ú˚ ÚÛÎ‡
-       and KK.ID = R.ELECTCOMMINCAMPID
-       and K.ID = KK.ELECTCOMMITTEEID
-       and SN.MCIRCUIT = K.MCIRCUIT --ÔÓÎÌÓÏÓ˜Ëˇ Œ» 
-       and CC.ID = REC.COMMITTEEMANID
-       and R.ID = REC.REGISTERID
-       and SN.POSTSID = CC.POSTSID;
-  
-    select case I.LEVELELCAMPAIGN
-             when 'central' then
-              K.DISCOEFFFED
-             when 'region' then
-              K.DISCOEFREG
-           end
-      into SUM_LIMIT
-      from REGISTER R, ELECTCAMPAIGN I, ELECTCOMMITTEE K, COMMITTEEMAN C
-     where R.ID = REC.REGISTERID
-       and I.ID = R.ELECTCAMPAIGNID
-       and K.ID = C.ELECTCOMMITTEEID
-       and C.ID = REC.COMMITTEEMANID;
-    /*select COALESCE(d.value)
-     into sum_limit
-     from register r,
-        electcampaign i,
-        electcommittee k,
-          ELECTCOMMINCAMP kk,
-          DISCOEFF d --‡È Í˝Ù
-    where r.id = rec.registerid
-      and i.id = r.electcampaignid
-      and kk.id = r.ELECTCOMMINCAMPID
-      and k.ID = kk.ELECTCOMMITTEEid
-      and d.electcommitteeid = k.id
-      and d.levelelcampaign = i.levelelcampaign; */
-    BUF [ 1 ] := SUM_SPRAVKA;
-    BUF [ 2 ] := SUM_LIMIT;
-    
-    update PAYS S
-       set NORM      = round(BUF [ 1 ],4),
-           WORKHOURS = REC.WORKDAY_SUMM,
-           SUMPAY    = BUF [ 1 ] * REC.WORKDAY_SUMM * BUF [ 2 ],
-           PROPPAYS  = '–‡ÈÓÌÌ˚È ÍÓ˝ÙÙËˆËÂÌÚ = ' || ROUND(BUF [ 2 ], 2)
-     where S.ID = REC.PID;
-    SUM_LIMIT   := 0;
-    SUM_SPRAVKA := 0;
-  end loop;
-  for REC in (select S.*,
-                     P.ID as PID,
-                     P.SLCOMPCHARGESID,
-                     (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
-                     P.WORKCALENDARSID,
-                     trim(LOWER(SS.CODE)) as SLCOM,
-                     COALESCE((select sum(K.WHCOMP)
-                                 from WORKTBL K
-                                where K.REGISTERLISTID = S.ID
-                                  and K.DATETBL in (select SX.DATEWC
-                                                      from WORKCALENDARS X, DAYSWORKCALENDARS SX
-                                                     where X.ID = P.WORKCALENDARSID
-                                                       and SX.WORKCALENDARSID = X.ID)) / 8,
-                              0) as SUMM,
-                     COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2
-              
-                from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
-               where S.ID = allS.ID
-                 and P.REGISTERLISTID = S.ID
-                 and P.SHEETSID is null
-                 and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = '‰ÓÚ ‚ ‰‚ÓÈÌÓÏ ‡ÁÏÂÂ')
-  loop
-    update PAYS S
-       set NORM      = 0,
-           WORKHOURS = 0,
-           SUMPAY    = 0,
-           PROPPAYS  = null
-     where S.ID = REC.PID;
-    select COALESCE(SN.VALUE, 0)
-      into SUM_SPRAVKA
-      from REGISTER        R, --‡Ò˜ÂÚ
-           ELECTCAMPAIGN   I, --ËÁ·Ë‡ÚÂÎ¸Ì‡ˇ Í‡Ï‡ÌËˇ
-           FEDELECCAMP     N, --ÌÓÏ‡ÚË‚Ì˚È ‰ÓÍÛÏÂÌÚ
-           NORMSFEDEC      SN, --ÒÔÂˆËÙËÍ‡ˆËˇ ÌÓÏ‡ÚË‚ÌÓ„Ó ‰ÓÍÛÏÂÌÚ‡: ‡Ò˜ÂÚ ÓÔÎ‡Ú˚ ÚÛ‰‡
-           ELECTCOMMITTEE  K, --ËÁ·Ë‡ÚÂÎ¸Ì‡ˇ ÍÓÏÏËÒËˇ
-           ELECTCOMMINCAMP KK,
-           COMMITTEEMAN    CC
-     where I.ID = R.ELECTCAMPAIGNID
-       and N.ID = I.FEDELECCAMPID
-       and SN.FEDELECCAMPID = N.ID
-       and SN.NAMENORMS = 'reward' --‡ÁÏÂ ‰ÓÔÓÎÌËÚÂÎ¸ÌÓÈ ÓÔÎ‡Ú˚ ÚÛÎ‡
-       and KK.ID = R.ELECTCOMMINCAMPID
-       and K.ID = KK.ELECTCOMMITTEEID
-       and SN.MCIRCUIT = K.MCIRCUIT --ÔÓÎÌÓÏÓ˜Ëˇ Œ» 
-       and CC.ID = REC.COMMITTEEMANID
-       and R.ID = REC.REGISTERID
-       and SN.POSTSID = CC.POSTSID;
-  
-    select case I.LEVELELCAMPAIGN
-             when 'central' then
-              K.DISCOEFFFED
-             when 'region' then
-              K.DISCOEFREG
-           end
-      into SUM_LIMIT
-      from REGISTER R, ELECTCAMPAIGN I, ELECTCOMMITTEE K, COMMITTEEMAN C
-     where R.ID = REC.REGISTERID
-       and I.ID = R.ELECTCAMPAIGNID
-       and K.ID = C.ELECTCOMMITTEEID
-       and C.ID = REC.COMMITTEEMANID;
-    /*select COALESCE(d.value)
-     into sum_limit
-     from register r,
-        electcampaign i,
-        electcommittee k,
-          DISCOEFF d,  --‡È Í˝Ù
-          ELECTCOMMINCAMP kk
-    where r.id = rec.registerid
-      and i.id = r.electcampaignid
-      and kk.id = r.ELECTCOMMINCAMPID
-      and k.ID = kk.ELECTCOMMITTEEid
-      and d.electcommitteeid = k.id
-      and d.levelelcampaign = i.levelelcampaign;*/
-    BUF [ 3 ] := SUM_SPRAVKA;
-    BUF [ 4 ] := SUM_LIMIT;
-    update PAYS S
-       set NORM      = BUF [ 3 ] * 2,
-           WORKHOURS = REC.SUMX2,
-           SUMPAY    = BUF [ 3 ] * 2 * REC.SUMX2 * BUF [ 4 ],
-           PROPPAYS  = '–‡ÈÓÌÌ˚È ÍÓ˝ÙÙËˆËÂÌÚ = ' || ROUND(BUF [ 4 ], 2)
-     where S.ID = REC.PID;
-    SUM_LIMIT   := 0;
-    SUM_SPRAVKA := 0;
-  end loop;
-  for REC in (select S.*,
-                     P.ID as PID,
-                     P.SLCOMPCHARGESID,
-                     (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
-                     P.WORKCALENDARSID,
-                     trim(LOWER(SS.CODE)) as SLCOM,
-                     COALESCE((select sum(K.WHCOMP)
-                                 from WORKTBL K
-                                where K.REGISTERLISTID = S.ID
-                                  and K.DATETBL in (select SX.DATEWC
-                                                      from WORKCALENDARS X, DAYSWORKCALENDARS SX
-                                                     where X.ID = P.WORKCALENDARSID
-                                                       and SX.WORKCALENDARSID = X.ID)) / 8,
-                              0) as SUMM,
-                     COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2
-              
-                from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
-               where S.ID = allS.ID
-                 and P.REGISTERLISTID = S.ID
-                 and P.SHEETSID is null
-                 and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = 'ËÚÓ„Ó ‰ÓÚ Á‡ ÙÓ‚')
-  loop
-    update PAYS S
-       set NORM      = 0,
-           WORKHOURS = 0,
-           SUMPAY    = 0,
-           PROPPAYS  = null
-     where S.ID = REC.PID;
-  -- RAISE USING MESSAGE = COALESCE( BUF [ 1 ],0)||' '||COALESCE(REC.WORKDAY_SUMM,0)||' '||COALESCE(BUF [ 3 ],0)||' '||COALESCE(REC.SUMX2,0)||' '||COALESCE(BUF [ 4 ],0);
-    update PAYS S
-       set NORM      = 0,--BUF [ 3 ] * 2 + BUF [ 1 ],
-           WORKHOURS = REC.WORKDAY_SUMM + REC.SUMX2,
-           SUMPAY    = BUF [ 1 ] * REC.WORKDAY_SUMM * BUF [ 2 ] + BUF [ 3 ] * 2 * REC.SUMX2 * BUF [ 4 ],
-           PROPPAYS  = 'ƒŒ“ Á‡ ‘Œ¬ ‚ Ó‰ËÌ‡ÌÓÏ ‡ÁÏÂÂ =' || ROUND(BUF [ 1 ] * REC.WORKDAY_SUMM * BUF [ 2 ], 2) || '; ƒŒ“ Á‡ ‘Œ¬ ‚ ‰‚ÓÈÌÓÏ ‡ÁÏÂÂ = ' || ROUND(BUF [ 3 ] * REC.SUMX2 * BUF [ 4 ]*2, 2) || '. –  = ' ||
-                       ROUND(BUF [ 4 ], 2)
-     where S.ID = REC.PID;
-    /*'–‡ÈÓÌÌ˚È ÍÓ˝ÙÙËˆËÂÌÚ = '||sum_spravka  where s.id = rec.pid*/
-  end loop;
-  
-  ------‰ÓÚ Á‡ ‡ÍÚË‚ÌÛ˛ ‡·ÓÚÛ
-  for REC in (select S.*,
-                     P.ID as PID,
-                     P.SLCOMPCHARGESID,
-                     (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
-                     P.WORKCALENDARSID,
-                     trim(LOWER(SS.CODE)) as SLCOM,
-                     COALESCE((select sum(K.WHCOMP)
-                                 from WORKTBL K
-                                where K.REGISTERLISTID = S.ID
-                                  and K.DATETBL in (select SX.DATEWC
-                                                      from WORKCALENDARS X, DAYSWORKCALENDARS SX
-                                                     where X.ID = P.WORKCALENDARSID
-                                                       and SX.WORKCALENDARSID = X.ID)) / 8,
-                              0) as SUMM,
-                     COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2
-              
-                from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
-               where S.ID = allS.ID
-                 and P.REGISTERLISTID = S.ID
-                 and P.SHEETSID is null
-                 and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = '‰ÓÚ Á‡ ‡ÍÚË‚ÌÛ˛ ‡·ÓÚÛ')
-  loop
-    update PAYS S
-       set NORM      = 0,
-           WORKHOURS = 0,
-           SUMPAY    = 0,
-           PROPPAYS  = null
-     where S.ID = REC.PID;
-    -- RAISE USING MESSAGE = REC.REGISTERID||' '||REC.COMMITTEEMANID;
-    select sum(P.SUMPAY)
-      into SUM_LIMIT
-      from REGISTER R, REGISTERLIST L, PAYS P, SLCOMPCHARGES C
-     where R.ELECTCAMPAIGNID = (select X.ELECTCAMPAIGNID from REGISTER X where X.ID = REC.REGISTERID)
-       --and R.ELECTCOMMINCAMPID = (select X.ELECTCOMMINCAMPID from REGISTER X where X.ID = REC.REGISTERID)
-       and L.REGISTERID = R.ID
-       and L.COMMITTEEMANID = REC.COMMITTEEMANID
-       and P.REGISTERLISTID = L.ID
-       and C.ID = P.SLCOMPCHARGESID
-       and LOWER(trim(C.CODE)) = 'ËÚÓ„Ó ‰ÓÚ Á‡ ÙÓ‚';
-    update PAYS S
-       set SUMPAY   = SUM_LIMIT * REC.DEPCOEFF,
-           PROPPAYS = 'ƒŒ“ Á‡ ‘Œ¬ = ' || ROUND(SUM_LIMIT, 2) || ' ¬Â‰ÓÏÒÚ‚ÂÌÌ˚È ÍÓ˝ÙÙËˆËÂÌÚ = ' || ROUND(REC.DEPCOEFF, 2)
-     where S.ID = REC.PID;
-    SUM_LIMIT := 0;
-  end loop;
-  ---------
-  for REC in (select S.*,
-                     P.ID as PID,
-                     P.SLCOMPCHARGESID,
-                     (select X.COUNTWD from WORKCALENDARS X where X.ID = P.WORKCALENDARSID) as COUNTWD,
-                     P.WORKCALENDARSID,
-                     trim(LOWER(SS.CODE)) as SLCOM,
-                     COALESCE((select sum(K.WHCOMP)
-                                 from WORKTBL K
-                                where K.REGISTERLISTID = S.ID
-                                  and K.DATETBL in (select SX.DATEWC
-                                                      from WORKCALENDARS X, DAYSWORKCALENDARS SX
-                                                     where X.ID = P.WORKCALENDARSID
-                                                       and SX.WORKCALENDARSID = X.ID)) / 8,
-                              0) as SUMM,
-                     COALESCE((select sum(K.WHEXTRAWORKDAY) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as WORKDAY_SUMM,
-                     COALESCE((select sum(K.WHEXTRANIGHT + K.WHEXTRAHOL) from WORKTBL K where K.REGISTERLISTID = S.ID), 0) as SUMX2
-              
-                from REGISTERLIST S, PAYS P, SLCOMPCHARGES SS
-               where S.ID = allS.ID
-                 and P.REGISTERLISTID = S.ID
-                 and P.SHEETSID is null
-                 and SS.ID = P.SLCOMPCHARGESID
-                 and trim(LOWER(SS.CODE)) = '‚ÒÂ„Ó')
-  loop
-    update PAYS S
-       set NORM      = 0,
-           WORKHOURS = 0,
-           SUMPAY    = 0,
-           PROPPAYS  = null
-     where S.ID = REC.PID;
-    select sum(P.SUMPAY)
-      into SUM_LIMIT
-      from REGISTERLIST L, PAYS P, SLCOMPCHARGES C
-     where L.ID = REC.ID
-       and P.REGISTERLISTID = L.ID
-       and P.SLCOMPCHARGESID = C.ID
-       and trim(C.CODE) in ('»ÚÓ„Ó ƒŒ“ Á‡ ‘Œ¬', ' ÓÏÔÂÌÒ‡ˆËˇ', 'ƒŒ“ Á‡ ‡ÍÚË‚ÌÛ˛ ‡·ÓÚÛ');
-  
-    update PAYS S set SUMPAY = SUM_LIMIT where S.ID = REC.PID;
-    SUM_LIMIT := 0;
-  end loop;
-END LOOP;
-end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
+    if  exists  (select  1
+                from  WORKTBL  W
+              where  W.REGISTERLISTID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                  and  W.ERRWH  is  not  null
+                  and  W.ERRWH  !=  '')  then
+        raise
+            using  MESSAGE  =  '–í  —Å–≤–µ–¥–µ–Ω–∏—è—Ö  —Ñ–æ–≤  –æ–±–Ω–∞—Ä—É–∂–µ–Ω—ã  –æ—à–∏–±–∫–∏  –∑–∞–ø–æ–ª–Ω–µ–Ω–∏—è  –≤—Ä–µ–º–µ–Ω–∏  —Ä–∞–±–æ—Ç—ã  —á–ª–µ–Ω–æ–≤  –ò–ö.  –°—Ñ–æ—Ä–º–∏—Ä—É–π—Ç–µ  –æ—Ç—á—ë—Ç  ¬´–ü—Ä–æ—Ç–æ–∫–æ–ª  –ø—Ä–æ–≤–µ—Ä–∫–∏  —Å–≤–µ–¥–µ–Ω–∏–π  –æ  –§–û–í¬ª  –¥–ª—è  —Ä–∞—Å—á–µ—Ç–Ω–æ–≥–æ  –¥–æ–∫—É–º–µ–Ω—Ç–∞  –∏  —É—Å—Ç—Ä–∞–Ω–∏—Ç–µ  –∑–∞–º–µ—á–∞–Ω–∏—è.';
+    end  if;
+    if  exists  (select  R.ID
+                from  REGISTER          R,
+                          REGISTERLIST  RL
+              where  RL.REGISTERID  =  R.ID
+                  and  R.STATUS  =  '4'
+                  and  RL.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST)))  then
+        raise  exception  '–†–∞—Å—á–µ—Ç  –≤—ã–ø–ª–∞—Ç  –∑–∞–ø—Ä–µ—â–µ–Ω!  –°—Ñ–æ—Ä–º–∏—Ä–æ–≤–∞–Ω—ã  –≤–µ–¥–æ–º–æ—Å—Ç–∏  –ø–æ  –æ–ø–ª–∞—Ç–µ  —Ç—Ä—É–¥–∞!';
+    end  if;
 
-ALTER FUNCTION public.p_action_registerlist_gen (idlist text, uid bigint)
-  OWNER TO magicbox;
+    for  ALLS  in  (select  S.ID  from  REGISTERLIST  S  where  S.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+    loop
+        for  REC  in  (select  S.*,
+                                              P.ID  as  PID,
+                                              P.SLCOMPCHARGESID,
+                                              S.MIDDLESALARY,
+                                              (select  X.COUNTWD  from  WORKCALENDARS  X  where  X.ID  =  P.WORKCALENDARSID)  as  COUNTWD,
+                                              P.WORKCALENDARSID,
+                                              trim(LOWER(SS.CODE))  as  SLCOM,
+                                              COALESCE((select  sum(K.WHCOMP)
+                                                                      from  WORKTBL  K
+                                                                    where  K.REGISTERLISTID  =  S.ID
+                                                                        and  K.DATETBL  in  (select  SX.DATEWC
+                                                                                                                from  WORKCALENDARS          X,
+                                                                                                                          DAYSWORKCALENDARS  SX
+                                                                                                              where  X.ID  =  P.WORKCALENDARSID
+                                                                                                                  and  SX.WORKCALENDARSID  =  X.ID))  /  8,
+                                                                0)  as  SUMM,
+                                              COALESCE((select  sum(K.WHEXTRAWORKDAY)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  WORKDAY_SUMM,
+                                              COALESCE((select  sum(K.WHEXTRANIGHT  +  K.WHEXTRAHOL)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  SUMX2,
+                                              case
+                                                  when  COALESCE(S.MIDDLESALARY,  0)  >  0  then
+                                                    1
+                                                  else
+                                                    0
+                                              end  as  IFMIDSAL  --–ó–∞–ø–æ–ª–Ω–µ–Ω–∞  –ª–∏  —Å—Ä–µ–¥–Ω—è—è  –∑–∞—Ä–ø–ª–∞—Ç–∞  –≤  —á–ª–µ–Ω–∞—Ö  –∏–∑–±–µ—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–æ–º–∏—Å—Å–∏–∏
+                                
+                                    from  REGISTERLIST    S,
+                                              PAYS                    P,
+                                              SLCOMPCHARGES  SS
+                                  where  S.ID  =  ALLS.ID
+                                      and  P.REGISTERLISTID  =  S.ID
+                                      and  P.SHEETSID  is  null
+                                      and  SS.ID  =  P.SLCOMPCHARGESID
+                                      and  UPPER(SS.DESCRIPTION)  =  'COMPENSATION')
+        loop
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  0,
+                          SUMPAY        =  0,
+                          PROPPAYS    =  null
+              where  S.ID  =  REC.PID;
+        
+            select  COALESCE(S.VALUE,  0)
+                into  SUM_SPRAVKA
+                from  COMMITTEEMAN  C,
+                          PERSON              P,
+                          PERSONSAVSLR  S
+              where  C.ID  =  REC.COMMITTEEMANID
+                  and  P.ID  =  C.PERSONID
+                  and  S.PERSONID  =  P.ID
+                  and  S.BEGINDATE  <=  NOW()
+                  and  (S.ENDDATE  >=  NOW()  or  S.ENDDATE  is  null);
+            select  COALESCE(SN.VALUE,  0)
+                into  SUM_LIMIT
+                from  REGISTER                R,  --—Ä–∞—Å—á–µ—Ç
+                          ELECTCAMPAIGN      I,  --–∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–∞—è  –∫–∞–º–∞–Ω–∏—è
+                          FEDELECCAMP          N,  --–Ω–æ—Ä–º–∞—Ç–∏–≤–Ω—ã–π  –¥–æ–∫—É–º–µ–Ω—Ç
+                          NORMSFEDEC            SN,  --—Å–ø–µ—Ü–∏—Ñ–∏–∫–∞—Ü–∏—è  –Ω–æ—Ä–º–∞—Ç–∏–≤–Ω–æ–≥–æ  –¥–æ–∫—É–º–µ–Ω—Ç–∞:  —Ä–∞—Å—á–µ—Ç  –æ–ø–ª–∞—Ç—ã  —Ç—Ä—É–¥–∞
+                          ELECTCOMMINCAMP  KK,
+                          ELECTCOMMITTEE    K  --–∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–∞—è  –∫–æ–º–º–∏—Å–∏—è
+              where  I.ID  =  R.ELECTCAMPAIGNID
+                  and  N.ID  =  I.FEDELECCAMPID
+                  and  SN.FEDELECCAMPID  =  N.ID
+                  and  SN.NAMENORMS  =  'limitcomp'
+                  and  KK.ID  =  R.ELECTCOMMINCAMPID
+                  and  K.ID  =  KK.ELECTCOMMITTEEID
+                  and  SN.REGIONSRFID  =  K.REGIONSRFID;
+        
+            update  PAYS  S
+                  set  NORM            =  LEAST(REC.MIDDLESALARY,  SUM_LIMIT)  /  REC.COUNTWD  *  /*–ú–ê–¶-3955*/
+                                                  REC.IFMIDSAL,
+                          WORKHOURS  =  REC.SUMM,
+                          SUMPAY      =
+                          (LEAST(REC.MIDDLESALARY,  SUM_LIMIT)  /  REC.COUNTWD)  *  REC.SUMM
+              where  S.ID  =  REC.PID;
+            SUM_LIMIT      :=  0;
+            SUM_SPRAVKA  :=  0;
+        end  loop;
+        for  REC  in  (select  S.*,
+                                              P.ID  as  PID,
+                                              P.SLCOMPCHARGESID,
+                                              (select  X.COUNTWD  from  WORKCALENDARS  X  where  X.ID  =  P.WORKCALENDARSID)  as  COUNTWD,
+                                              P.WORKCALENDARSID,
+                                              trim(LOWER(SS.CODE))  as  SLCOM,
+                                              COALESCE((select  sum(K.WHCOMP)
+                                                                      from  WORKTBL  K
+                                                                    where  K.REGISTERLISTID  =  S.ID
+                                                                        and  K.DATETBL  in  (select  SX.DATEWC
+                                                                                                                from  WORKCALENDARS          X,
+                                                                                                                          DAYSWORKCALENDARS  SX
+                                                                                                              where  X.ID  =  P.WORKCALENDARSID
+                                                                                                                  and  SX.WORKCALENDARSID  =  X.ID))  /  8,
+                                                                0)  as  SUMM,
+                                              COALESCE((select  sum(K.WHEXTRAWORKDAY)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  WORKDAY_SUMM,
+                                              COALESCE((select  sum(K.WHEXTRANIGHT  +  K.WHEXTRAHOL)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  SUMX2
+                                
+                                    from  REGISTERLIST    S,
+                                              PAYS                    P,
+                                              SLCOMPCHARGES  SS
+                                  where  S.ID  =  ALLS.ID
+                                      and  P.REGISTERLISTID  =  S.ID
+                                      and  P.SHEETSID  is  null
+                                      and  SS.ID  =  P.SLCOMPCHARGESID
+                                      and  UPPER(SS.DESCRIPTION)  =  'EXTRA1')
+        loop
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  0,
+                          SUMPAY        =  0,
+                          PROPPAYS    =  null
+              where  S.ID  =  REC.PID;
+            select  COALESCE(SN.VALUE,  0)
+                into  SUM_SPRAVKA
+                from  REGISTER                R,  --—Ä–∞—Å—á–µ—Ç
+                          ELECTCAMPAIGN      I,  --–∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–∞—è  –∫–∞–º–∞–Ω–∏—è
+                          FEDELECCAMP          N,  --–Ω–æ—Ä–º–∞—Ç–∏–≤–Ω—ã–π  –¥–æ–∫—É–º–µ–Ω—Ç
+                          NORMSFEDEC            SN,  --—Å–ø–µ—Ü–∏—Ñ–∏–∫–∞—Ü–∏—è  –Ω–æ—Ä–º–∞—Ç–∏–≤–Ω–æ–≥–æ  –¥–æ–∫—É–º–µ–Ω—Ç–∞:  —Ä–∞—Å—á–µ—Ç  –æ–ø–ª–∞—Ç—ã  —Ç—Ä—É–¥–∞
+                          ELECTCOMMINCAMP  KK,
+                          COMMITTEEMAN        CC,
+                          ELECTCOMMITTEE    K  --–∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–∞—è  –∫–æ–º–º–∏—Å–∏—è
+              where  I.ID  =  R.ELECTCAMPAIGNID
+                  and  N.ID  =  I.FEDELECCAMPID
+                  and  SN.FEDELECCAMPID  =  N.ID
+                  and  SN.NAMENORMS  =  'reward'  --—Ä–∞–∑–º–µ—Ä  –¥–æ–ø–æ–ª–Ω–∏—Ç–µ–ª—å–Ω–æ–π  –æ–ø–ª–∞—Ç—ã  —Ç—É—Ä–ª–∞
+                  and  KK.ID  =  R.ELECTCOMMINCAMPID
+                  and  K.ID  =  KK.ELECTCOMMITTEEID
+                  and  SN.MCIRCUIT  =  K.MCIRCUIT  --–ø–æ–ª–Ω–æ–º–æ—á–∏—è  –û–ò–ö
+                  and  CC.ID  =  REC.COMMITTEEMANID
+                  and  R.ID  =  REC.REGISTERID
+                  and  SN.POSTSID  =  CC.POSTSID;
+        
+            select  case  I.LEVELELCAMPAIGN
+                              when  'central'  then
+                                K.DISCOEFFFED
+                              when  'region'  then
+                                K.DISCOEFREG
+                          end
+                into  SUM_LIMIT
+                from  REGISTER              R,
+                          ELECTCAMPAIGN    I,
+                          ELECTCOMMITTEE  K,
+                          COMMITTEEMAN      C
+              where  R.ID  =  REC.REGISTERID
+                  and  I.ID  =  R.ELECTCAMPAIGNID
+                  and  K.ID  =  C.ELECTCOMMITTEEID
+                  and  C.ID  =  REC.COMMITTEEMANID;
+                  
+            BUF  [  1  ]  :=  SUM_SPRAVKA;
+            BUF  [  2  ]  :=  SUM_LIMIT;
+        
+            update  PAYS  S
+                  set  NORM            =  ROUND(BUF  [  1  ],  4),
+                          WORKHOURS  =  REC.WORKDAY_SUMM,
+                          SUMPAY        =  BUF  [  1  ]  *  REC.WORKDAY_SUMM  *  BUF  [  2  ],
+                          PROPPAYS    =  '–†–∞–π–æ–Ω–Ω—ã–π  –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç  =  '  ||  ROUND(BUF  [  2  ],  2)
+              where  S.ID  =  REC.PID;
+            SUM_LIMIT      :=  0;
+            SUM_SPRAVKA  :=  0;
+        end  loop;
+        for  REC  in  (select  S.*,
+                                              P.ID  as  PID,
+                                              P.SLCOMPCHARGESID,
+                                              (select  X.COUNTWD  from  WORKCALENDARS  X  where  X.ID  =  P.WORKCALENDARSID)  as  COUNTWD,
+                                              P.WORKCALENDARSID,
+                                              trim(LOWER(SS.CODE))  as  SLCOM,
+                                              COALESCE((select  sum(K.WHCOMP)
+                                                                      from  WORKTBL  K
+                                                                    where  K.REGISTERLISTID  =  S.ID
+                                                                        and  K.DATETBL  in  (select  SX.DATEWC
+                                                                                                                from  WORKCALENDARS          X,
+                                                                                                                          DAYSWORKCALENDARS  SX
+                                                                                                              where  X.ID  =  P.WORKCALENDARSID
+                                                                                                                  and  SX.WORKCALENDARSID  =  X.ID))  /  8,
+                                                                0)  as  SUMM,
+                                              COALESCE((select  sum(K.WHEXTRAWORKDAY)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  WORKDAY_SUMM,
+                                              COALESCE((select  sum(K.WHEXTRANIGHT  +  K.WHEXTRAHOL)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  SUMX2
+                                
+                                    from  REGISTERLIST    S,
+                                              PAYS                    P,
+                                              SLCOMPCHARGES  SS
+                                  where  S.ID  =  ALLS.ID
+                                      and  P.REGISTERLISTID  =  S.ID
+                                      and  P.SHEETSID  is  null
+                                      and  SS.ID  =  P.SLCOMPCHARGESID
+                                      and  UPPER(SS.DESCRIPTION)  =  'EXTRA2')
+        loop
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  0,
+                          SUMPAY        =  0,
+                          PROPPAYS    =  null
+              where  S.ID  =  REC.PID;
+            select  COALESCE(SN.VALUE,  0)
+                into  SUM_SPRAVKA
+                from  REGISTER                R,  --—Ä–∞—Å—á–µ—Ç
+                          ELECTCAMPAIGN      I,  --–∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–∞—è  –∫–∞–º–∞–Ω–∏—è
+                          FEDELECCAMP          N,  --–Ω–æ—Ä–º–∞—Ç–∏–≤–Ω—ã–π  –¥–æ–∫—É–º–µ–Ω—Ç
+                          NORMSFEDEC            SN,  --—Å–ø–µ—Ü–∏—Ñ–∏–∫–∞—Ü–∏—è  –Ω–æ—Ä–º–∞—Ç–∏–≤–Ω–æ–≥–æ  –¥–æ–∫—É–º–µ–Ω—Ç–∞:  —Ä–∞—Å—á–µ—Ç  –æ–ø–ª–∞—Ç—ã  —Ç—Ä—É–¥–∞
+                          ELECTCOMMITTEE    K,  --–∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–∞—è  –∫–æ–º–º–∏—Å–∏—è
+                          ELECTCOMMINCAMP  KK,
+                          COMMITTEEMAN        CC
+              where  I.ID  =  R.ELECTCAMPAIGNID
+                  and  N.ID  =  I.FEDELECCAMPID
+                  and  SN.FEDELECCAMPID  =  N.ID
+                  and  SN.NAMENORMS  =  'reward'  --—Ä–∞–∑–º–µ—Ä  –¥–æ–ø–æ–ª–Ω–∏—Ç–µ–ª—å–Ω–æ–π  –æ–ø–ª–∞—Ç—ã  —Ç—É—Ä–ª–∞
+                  and  KK.ID  =  R.ELECTCOMMINCAMPID
+                  and  K.ID  =  KK.ELECTCOMMITTEEID
+                  and  SN.MCIRCUIT  =  K.MCIRCUIT  --–ø–æ–ª–Ω–æ–º–æ—á–∏—è  –û–ò–ö
+                  and  CC.ID  =  REC.COMMITTEEMANID
+                  and  R.ID  =  REC.REGISTERID
+                  and  SN.POSTSID  =  CC.POSTSID;
+        
+            select  case  I.LEVELELCAMPAIGN
+                              when  'central'  then
+                                K.DISCOEFFFED
+                              when  'region'  then
+                                K.DISCOEFREG
+                          end
+                into  SUM_LIMIT
+                from  REGISTER              R,
+                          ELECTCAMPAIGN    I,
+                          ELECTCOMMITTEE  K,
+                          COMMITTEEMAN      C
+              where  R.ID  =  REC.REGISTERID
+                  and  I.ID  =  R.ELECTCAMPAIGNID
+                  and  K.ID  =  C.ELECTCOMMITTEEID
+                  and  C.ID  =  REC.COMMITTEEMANID;
+                  
+            BUF  [  3  ]  :=  SUM_SPRAVKA;
+            BUF  [  4  ]  :=  SUM_LIMIT;
+            update  PAYS  S
+                  set  NORM            =  BUF  [  3  ]  *  2,
+                          WORKHOURS  =  REC.SUMX2,
+                          SUMPAY        =  BUF  [  3  ]  *  2  *  REC.SUMX2  *  BUF  [  4  ],
+                          PROPPAYS    =  '–†–∞–π–æ–Ω–Ω—ã–π  –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç  =  '  ||  ROUND(BUF  [  4  ],  2)
+              where  S.ID  =  REC.PID;
+            SUM_LIMIT      :=  0;
+            SUM_SPRAVKA  :=  0;
+        end  loop;
+        for  REC  in  (select  S.*,
+                                              P.ID  as  PID,
+                                              P.SLCOMPCHARGESID,
+                                              (select  X.COUNTWD  from  WORKCALENDARS  X  where  X.ID  =  P.WORKCALENDARSID)  as  COUNTWD,
+                                              P.WORKCALENDARSID,
+                                              trim(LOWER(SS.CODE))  as  SLCOM,
+                                              COALESCE((select  sum(K.WHCOMP)
+                                                                      from  WORKTBL  K
+                                                                    where  K.REGISTERLISTID  =  S.ID
+                                                                        and  K.DATETBL  in  (select  SX.DATEWC
+                                                                                                                from  WORKCALENDARS          X,
+                                                                                                                          DAYSWORKCALENDARS  SX
+                                                                                                              where  X.ID  =  P.WORKCALENDARSID
+                                                                                                                  and  SX.WORKCALENDARSID  =  X.ID))  /  8,
+                                                                0)  as  SUMM,
+                                              COALESCE((select  sum(K.WHEXTRAWORKDAY)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  WORKDAY_SUMM,
+                                              COALESCE((select  sum(K.WHEXTRANIGHT  +  K.WHEXTRAHOL)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  SUMX2
+                                
+                                    from  REGISTERLIST    S,
+                                              PAYS                    P,
+                                              SLCOMPCHARGES  SS
+                                  where  S.ID  =  ALLS.ID
+                                      and  P.REGISTERLISTID  =  S.ID
+                                      and  P.SHEETSID  is  null
+                                      and  SS.ID  =  P.SLCOMPCHARGESID
+                                      and  UPPER(SS.DESCRIPTION)  =  'SUMEXTRA12')
+        loop
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  0,
+                          SUMPAY        =  0,
+                          PROPPAYS    =  null
+              where  S.ID  =  REC.PID;
+              
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  REC.WORKDAY_SUMM  +  REC.SUMX2,
+                          SUMPAY        =  BUF  [  1  ]  *  REC.WORKDAY_SUMM  *  BUF  [  2  ]  +  BUF  [  3  ]  *  2  *  REC.SUMX2  *  BUF  [  4  ],
+                          PROPPAYS    =  '–î–û–¢  –∑–∞  –§–û–í  –≤  –æ–¥–∏–Ω–∞—Ä–Ω–æ–º  —Ä–∞–∑–º–µ—Ä–µ  ='  ||  ROUND(BUF  [  1  ]  *  REC.WORKDAY_SUMM  *  BUF  [  2  ],  2)  
+                                                  ||  ';  –î–û–¢  –∑–∞  –§–û–í  –≤  –¥–≤–æ–π–Ω–æ–º  —Ä–∞–∑–º–µ—Ä–µ  =  '  ||  ROUND(BUF  [  3  ]  *  REC.SUMX2  *  BUF  [  4  ]  *  2,  2)  
+                                                  ||'.  –†–ö  =  '  ||  ROUND(BUF  [  4  ],  2)
+              where  S.ID  =  REC.PID;
+              
+        end  loop;
+    
+        ------–¥–æ—Ç  –∑–∞  –∞–∫—Ç–∏–≤–Ω—É—é  —Ä–∞–±–æ—Ç—É
+        for  REC  in  (select  S.*,
+                                              P.ID  as  PID,
+                                              P.SLCOMPCHARGESID,
+                                              (select  X.COUNTWD  from  WORKCALENDARS  X  where  X.ID  =  P.WORKCALENDARSID)  as  COUNTWD,
+                                              P.WORKCALENDARSID,
+                                              trim(LOWER(SS.CODE))  as  SLCOM,
+                                              COALESCE((select  sum(K.WHCOMP)
+                                                                      from  WORKTBL  K
+                                                                    where  K.REGISTERLISTID  =  S.ID
+                                                                        and  K.DATETBL  in  (select  SX.DATEWC
+                                                                                                                from  WORKCALENDARS          X,
+                                                                                                                          DAYSWORKCALENDARS  SX
+                                                                                                              where  X.ID  =  P.WORKCALENDARSID
+                                                                                                                  and  SX.WORKCALENDARSID  =  X.ID))  /  8,
+                                                                0)  as  SUMM,
+                                              COALESCE((select  sum(K.WHEXTRAWORKDAY)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  WORKDAY_SUMM,
+                                              COALESCE((select  sum(K.WHEXTRANIGHT  +  K.WHEXTRAHOL)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  SUMX2
+                                
+                                    from  REGISTERLIST    S,
+                                              PAYS                    P,
+                                              SLCOMPCHARGES  SS
+                                  where  S.ID  =  ALLS.ID
+                                      and  P.REGISTERLISTID  =  S.ID
+                                      and  P.SHEETSID  is  null
+                                      and  SS.ID  =  P.SLCOMPCHARGESID
+                                      and  UPPER(SS.DESCRIPTION)  =  'EXTRAA')
+        loop
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  0,
+                          SUMPAY        =  0,
+                          PROPPAYS    =  null
+              where  S.ID  =  REC.PID;
+              
+            select  sum(P.SUMPAY)
+                into  SUM_LIMIT
+                from  REGISTER            R,
+                          REGISTERLIST    L,
+                          PAYS                    P,
+                          SLCOMPCHARGES  C
+              where  R.ELECTCAMPAIGNID  =  (select  X.ELECTCAMPAIGNID  from  REGISTER  X  where  X.ID  =  REC.REGISTERID)
+                  and  L.REGISTERID  =  R.ID
+                  and  L.COMMITTEEMANID  =  REC.COMMITTEEMANID
+                  and  P.REGISTERLISTID  =  L.ID
+                  and  C.ID  =  P.SLCOMPCHARGESID
+                  and  UPPER(C.DESCRIPTION)  =  'SUMEXTRA12';
+            update  PAYS  S
+                  set  SUMPAY      =  SUM_LIMIT  *  REC.DEPCOEFF,
+                          PROPPAYS  =  '–î–û–¢  –∑–∞  –§–û–í  =  '  ||  ROUND(SUM_LIMIT,  2)  ||  '  –í–µ–¥–æ–º—Å—Ç–≤–µ–Ω–Ω—ã–π  –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç  =  '  ||  ROUND(REC.DEPCOEFF,  2)
+              where  S.ID  =  REC.PID;
+            SUM_LIMIT  :=  0;
+        end  loop;
+        ---------
+        for  REC  in  (select  S.*,
+                                              P.ID  as  PID,
+                                              P.SLCOMPCHARGESID,
+                                              (select  X.COUNTWD  from  WORKCALENDARS  X  where  X.ID  =  P.WORKCALENDARSID)  as  COUNTWD,
+                                              P.WORKCALENDARSID,
+                                              trim(LOWER(SS.CODE))  as  SLCOM,
+                                              COALESCE((select  sum(K.WHCOMP)
+                                                                      from  WORKTBL  K
+                                                                    where  K.REGISTERLISTID  =  S.ID
+                                                                        and  K.DATETBL  in  (select  SX.DATEWC
+                                                                                                                from  WORKCALENDARS          X,
+                                                                                                                          DAYSWORKCALENDARS  SX
+                                                                                                              where  X.ID  =  P.WORKCALENDARSID
+                                                                                                                  and  SX.WORKCALENDARSID  =  X.ID))  /  8,
+                                                                0)  as  SUMM,
+                                              COALESCE((select  sum(K.WHEXTRAWORKDAY)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  WORKDAY_SUMM,
+                                              COALESCE((select  sum(K.WHEXTRANIGHT  +  K.WHEXTRAHOL)  from  WORKTBL  K  where  K.REGISTERLISTID  =  S.ID),  0)  as  SUMX2
+                                
+                                    from  REGISTERLIST    S,
+                                              PAYS                    P,
+                                              SLCOMPCHARGES  SS
+                                  where  S.ID  =  ALLS.ID
+                                      and  P.REGISTERLISTID  =  S.ID
+                                      and  P.SHEETSID  is  null
+                                      and  SS.ID  =  P.SLCOMPCHARGESID
+                                      and  UPPER(SS.DESCRIPTION)  =  'SUMALL')
+        loop
+            update  PAYS  S
+                  set  NORM            =  0,
+                          WORKHOURS  =  0,
+                          SUMPAY        =  0,
+                          PROPPAYS    =  null
+              where  S.ID  =  REC.PID;
+            select  sum(P.SUMPAY)
+                into  SUM_LIMIT
+                from  REGISTERLIST    L,
+                          PAYS                    P,
+                          SLCOMPCHARGES  C
+              where  L.ID  =  REC.ID
+                  and  P.REGISTERLISTID  =  L.ID
+                  and  P.SLCOMPCHARGESID  =  C.ID
+                  and  UPPER(C.DESCRIPTION)  in  ('SUMEXTRA12',  'COMPENSATION',  'EXTRAA');
+        
+            update  PAYS  S  set  SUMPAY  =  SUM_LIMIT  where  S.ID  =  REC.PID;
+            SUM_LIMIT  :=  0;
+        end  loop;
+    end  loop;
+end;
+$function$
+ 

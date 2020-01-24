@@ -1,54 +1,46 @@
-CREATE OR REPLACE FUNCTION public.p_action_committeeman_fillingout (
-  idlist text
-)
-RETURNS void AS
-$body$
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_committeeman_fillingout(idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
 declare
-  NID_AGENTACC BIGINT;
-  REC          record;
-  GEN_TEXT     TEXT := '@';
+    NID_AGENTACC  BIGINT;
+    REC                    record;
+    GEN_TEXT          TEXT  :=  '@';
 begin
-  for REC in (select S.ID, S.PERSONID
-                from ELECTCOMMITTEE X, COMMITTEEMAN S
-               where S.ELECTCOMMITTEEID = X.ID
-                 and X.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
-  loop
-    begin
-      select S.ID
-        into STRICT NID_AGENTACC
-        from PERSONACC S
-       where S.PERSONID = REC.PERSONID
-         and NOW() >= S.BEGINDATE
-         and (NOW() <= S.ENDDATE or S.ENDDATE is null);
-    exception
-      when NO_DATA_FOUND then NID_AGENTACC:=null;
-        GEN_TEXT = (
-          select P.code from PERSON P where P.ID = REC.PERSONID) || ';' || CHR(13);
-    end;
-    if NID_AGENTACC is not null then
-     update COMMITTEEMAN S
-        set TRPERSONID  = REC.PERSONID,
-            PERSONACCID = NID_AGENTACC
-      where S.ID = REC.ID;
-    end if;
-  end loop;
---Пока отключено - заполняем тем что есть  
+    for  REC  in  (select  S.ID,  S.PERSONID
+                                from  ELECTCOMMITTEE  X,  COMMITTEEMAN  S
+                              where  S.ELECTCOMMITTEEID  =  X.ID
+                                  and  X.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+    loop
+        begin
+            select  S.ID
+                into  STRICT  NID_AGENTACC
+                from  PERSONACC  S
+              where  S.PERSONID  =  REC.PERSONID
+                  and  NOW()  >=  S.BEGINDATE
+                  and  (NOW()  <=  S.ENDDATE  or  S.ENDDATE  is  null);
+        exception
+            when  NO_DATA_FOUND  then  NID_AGENTACC:=null;
+                GEN_TEXT  =  (
+                    select  P.code  from  PERSON  P  where  P.ID  =  REC.PERSONID)  ||  ';'  ||  CHR(13);
+        end;
+        if  NID_AGENTACC  is  not  null  then
+          update  COMMITTEEMAN  S
+                set  TRPERSONID    =  REC.PERSONID,
+                        PERSONACCID  =  NID_AGENTACC
+            where  S.ID  =  REC.ID;
+        end  if;
+    end  loop;
+--РџРѕРєР°  РѕС‚РєР»СЋС‡РµРЅРѕ  -  Р·Р°РїРѕР»РЅСЏРµРј  С‚РµРј  С‡С‚Рѕ  РµСЃС‚СЊ    
 /*
-  if GEN_TEXT <> '@'
-  then
-    GEN_TEXT = 'Не задан действующий лицевой счёт для: ' || GEN_TEXT || '. Введите данные о лицевом счете в словаре Физические лица.';
-    raise
-      using MESSAGE = GEN_TEXT;
-  end if;
+    if  GEN_TEXT  <>  '@'
+    then
+        GEN_TEXT  =  'РќРµ  Р·Р°РґР°РЅ  РґРµР№СЃС‚РІСѓСЋС‰РёР№  Р»РёС†РµРІРѕР№  СЃС‡С‘С‚  РґР»СЏ:  '  ||  GEN_TEXT  ||  '.  Р’РІРµРґРёС‚Рµ  РґР°РЅРЅС‹Рµ  Рѕ  Р»РёС†РµРІРѕРј  СЃС‡РµС‚Рµ  РІ  СЃР»РѕРІР°СЂРµ  Р¤РёР·РёС‡РµСЃРєРёРµ  Р»РёС†Р°.';
+        raise
+            using  MESSAGE  =  GEN_TEXT;
+    end  if;
 */
-  
+    
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_committeeman_fillingout (idlist text)
-  OWNER TO magicbox;
+$function$
+ 

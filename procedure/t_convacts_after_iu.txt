@@ -1,0 +1,17 @@
+ CREATE  OR  REPLACE  FUNCTION  public.t_convacts_after_iu()
+  RETURNS  trigger
+  LANGUAGE  plpgsql
+AS  $function$
+  declare
+    res  text;
+  begin  
+      if  TG_OP  =  'UPDATE'  and  new.CONVUNIT  =  old.CONVUNIT  and  new.CONVUNITTYPE  =  old.CONVUNITTYPE  then
+          null;
+      else
+          delete  from  convactparams  where  convactid  =  new.ID;
+          res  :=  P_SYSTEM_CONVACTPARAMS_FILL('['||new.ID||']');
+      end  if;
+      return  new;
+  end;
+  $function$
+ 

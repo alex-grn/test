@@ -1,42 +1,39 @@
-CREATE OR REPLACE FUNCTION public.p_action_registerlist_check_depcoef (
-  idlist text
-)
-RETURNS text AS
-$body$
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_registerlist_check_depcoef(idlist  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
 declare
-  REC    record;
-  DEPCOF TEXT := 'depcoeffmax'; --œÂ‰ÂÎ¸Ì˚È ‡ÁÏÂ ‚Â‰ÓÏÒÚ‚ÂÌÌÓ„Ó ÍÓ˝ÙÙËˆËÂÌÚ‡ list ‚ Xml
+    REC        record;
+    DEPCOF  TEXT  :=  'depcoeffmax';  --–ü—Ä–µ–¥–µ–ª—å–Ω—ã–π  —Ä–∞–∑–º–µ—Ä  –≤–µ–¥–æ–º—Å—Ç–≤–µ–Ω–Ω–æ–≥–æ  –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç–∞  list  –≤  Xml
 
 begin
-  for REC in (select R.BEGINDATE, 
-  					 R.ENDDATE, 
-                     OP.VALUE as RATIO_LIMIT, 
-                     RS.DEPCOEFF, 
-                     I.CODE, 
-                     COALESCE(P.SURNAME, '') || ' ' || COALESCE(P.FIRSTNAME) || ' ' || COALESCE(P.MIDDLENAME) as FIO_CH
-                from REGISTERLIST RS, REGISTER R, ELECTCAMPAIGN I, FEDELECCAMP N, NORMSFEDEC OP, COMMITTEEMAN CH, PERSON P
-               where RS.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
-                 and R.ID = RS.REGISTERID
-                 and I.ID = R.ELECTCAMPAIGNID
-                 and N.ID = I.FEDELECCAMPID
-                 AND P.ID = CH.PERSONID
-                 and OP.FEDELECCAMPID = N.ID
-                 and OP.NAMENORMS = DEPCOF
-                 and CH.ID = RS.COMMITTEEMANID)
-  loop  
-    if REC.DEPCOEFF > REC.RATIO_LIMIT
-    then 
-      return 'œÂ‚˚¯ÂÌÓ ÁÌ‡˜ÂÌËÂ ‚Â‰ÓÏÒÚ‚ÂÌÌÓ„Ó ÍÓ˝ÙÙËˆËÂÌÚ‡ ÛÒÚ‡ÌÓ‚ÎÂÌÌÓ„Ó Ì‡ ‚˚·Ó˚ ‰Îˇ ' || REC.FIO_CH||'. œÂ‰ÂÎ¸Ì˚È ‡ÁÏÂ ‚Â‰ÓÏÒÚ‚ÂÌÌÓ„Ó ÍÓ˝ÙÙËˆËÂÌÚ‡ = '||REC.RATIO_LIMIT;
-    end if;
-  end loop;
-  return null;
+    for  REC  in  (select  R.BEGINDATE,
+                                          R.ENDDATE,
+                                          OP.VALUE  as  RATIO_LIMIT,
+                                          RS.DEPCOEFF,
+                                          I.CODE,
+                                          COALESCE(P.SURNAME,  '')  ||  '  '  ||  COALESCE(P.FIRSTNAME)  ||  '  '  ||  COALESCE(P.MIDDLENAME)  as  FIO_CH
+                                from  REGISTERLIST    RS,
+                                          REGISTER            R,
+                                          ELECTCAMPAIGN  I,
+                                          FEDELECCAMP      N,
+                                          NORMSFEDEC        OP,
+                                          COMMITTEEMAN    CH,
+                                          PERSON                P
+                              where  RS.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                                  and  R.ID  =  RS.REGISTERID
+                                  and  I.ID  =  R.ELECTCAMPAIGNID
+                                  and  N.ID  =  I.FEDELECCAMPID
+                                  and  P.ID  =  CH.PERSONID
+                                  and  OP.FEDELECCAMPID  =  N.ID
+                                  and  OP.NAMENORMS  =  DEPCOF
+                                  and  CH.ID  =  RS.COMMITTEEMANID)
+    loop
+        if  REC.DEPCOEFF  >  REC.RATIO_LIMIT  then
+            return  '–ü—Ä–µ–≤—ã—à–µ–Ω–æ  –∑–Ω–∞—á–µ–Ω–∏–µ  –≤–µ–¥–æ–º—Å—Ç–≤–µ–Ω–Ω–æ–≥–æ  –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç–∞  —É—Å—Ç–∞–Ω–æ–≤–ª–µ–Ω–Ω–æ–≥–æ  –Ω–∞  –≤—ã–±–æ—Ä—ã  –¥–ª—è  '  ||  REC.FIO_CH  ||  '.  –ü—Ä–µ–¥–µ–ª—å–Ω—ã–π  —Ä–∞–∑–º–µ—Ä  –≤–µ–¥–æ–º—Å—Ç–≤–µ–Ω–Ω–æ–≥–æ  –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç–∞  =  '  ||  REC.RATIO_LIMIT;
+        end  if;
+    end  loop;
+    return  null;
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_registerlist_check_depcoef (idlist text)
-  OWNER TO magicbox;
+$function$
+ 

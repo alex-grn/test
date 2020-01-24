@@ -1,67 +1,57 @@
-CREATE OR REPLACE FUNCTION public.p_report_members_from_registerlist (
-  nreg bigint,
-  num integer,
-  type text
-)
-RETURNS text AS
-$body$
-declare 
-						
-    RC			RECORD;
-    TMP			TEXT;
-    TSQL 		TEXT;
-    result      TEXT;
+ CREATE  OR  REPLACE  FUNCTION  public.p_report_members_from_registerlist(nreg  bigint,  num  integer,  type  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+
+    RC          record;
+    TMP        TEXT;
+    TSQL      TEXT;
+    result  TEXT;
 begin
-/*
-	Достанем информацию из членов избирательно коммисси по одному
-    fio       ФИО
-    post  	  должность
-    bdate	  дата начала
-    edate	  дата окончания	
-    avgsum	  средняя заработкая плата
-*/
-	IF TYPE = 'fio' THEN
-    	TMP:='split_part(string_agg(COALESCE(tbl.surname,'''')||'' ''||COALESCE(tbl.firstname,'''')||'' ''||COALESCE(tbl.middlename,''''),''/''),''/'','||num||')';
-    ELSIF TYPE = 'fio_code' THEN
-    	TMP:='split_part(string_agg(tbl.CODE,''/''),''/'','||num||')';
-    ELSIF TYPE = 'post' THEN
-    	TMP:='split_part(string_agg(case tbl.POSTPRINT when ''CHAIRMAN'' then ''Председатель'' when ''DEPCHAIRMAN'' then ''Заместитель председателя'' when ''SECRETARY'' then ''Секретарь'' when ''ZOTHERCM'' then ''Член комиссии'' end,''/''),''/'','||num||')';
-    ELSIF TYPE = 'bdate' THEN
-    	TMP:='split_part(string_agg(d2s(tbl.POSTBEGINDATE),''/''),''/'','||num||')';
-    ELSIF TYPE = 'edate' THEN
-		TMP:='split_part(string_agg(d2s(tbl.POSTENDDATE),''/''),''/'','||num||')';
-	ELSIF TYPE = 'avgsum' THEN
-    	TMP:='split_part(string_agg(COALESCE(tbl.middlesalary::text,''0''),''/''),''/'','||num||')';
-    END IF;
-    
-    TSQL:='select '||TMP||' AS VALUE
-    	  from(select r.registerid, k.surname, k.firstname, k.middlename, M.CODE, P.POSTPRINT, M.POSTBEGINDATE, M.POSTENDDATE, r.middlesalary
-             from registerlist r,
-                  committeeman m,
-                  posts p,
-                  person k
-            where r.registerid = '||nreg||'
-              and m.id = r.committeemanid
-              and p.id = m.postsid
-              and k.id = m.personid
-              order by m.postbegindate,p.postprint) tbl
-            group by tbl.registerid
-  		 ;';
-    
-    FOR RC IN EXECUTE TSQL
-    	LOOP
-        	RESULT:=RC.VALUE;
-        END LOOP;
+    /*
+        Достанем  информацию  из  членов  избирательно  коммисси  по  одному
+            fio              ФИО
+            post            должность
+            bdate      дата  начала
+            edate      дата  окончания    
+            avgsum        средняя  заработкая  плата
+    */
+    if  type  =  'fio'  then
+        TMP  :=  'split_part(string_agg(COALESCE(tbl.surname,'''')||''  ''||COALESCE(tbl.firstname,'''')||''  ''||COALESCE(tbl.middlename,''''),''/''),''/'','  ||  NUM  ||  ')';
+    elsif  type  =  'fio_code'  then
+        TMP  :=  'split_part(string_agg(tbl.CODE,''/''),''/'','  ||  NUM  ||  ')';
+    elsif  type  =  'post'  then
+        TMP  :=  'split_part(string_agg(case  tbl.POSTPRINT  when  ''CHAIRMAN''  then  ''Председатель''  when  ''DEPCHAIRMAN''  then  ''Заместитель  председателя''  when  ''SECRETARY''  then  ''Секретарь''  when  ''ZOTHERCM''  then  ''Член  комиссии''  end,''/''),''/'','  ||  NUM  ||  ')';
+    elsif  type  =  'bdate'  then
+        TMP  :=  'split_part(string_agg(d2s(tbl.POSTBEGINDATE),''/''),''/'','  ||  NUM  ||  ')';
+    elsif  type  =  'edate'  then
+        TMP  :=  'split_part(string_agg(d2s(tbl.POSTENDDATE),''/''),''/'','  ||  NUM  ||  ')';
+    elsif  type  =  'avgsum'  then
+        TMP  :=  'split_part(string_agg(COALESCE(tbl.middlesalary::text,''0''),''/''),''/'','  ||  NUM  ||  ')';
+    end  if;
 
-    RETURN RESULT;
-     
+    TSQL  :=  'select  '  ||  TMP  ||  '  AS  VALUE
+                from(select  r.registerid,  k.surname,  k.firstname,  k.middlename,  M.CODE,  P.POSTPRINT,  M.POSTBEGINDATE,  M.POSTENDDATE,  r.middlesalary
+                          from  registerlist  r,
+                                    committeeman  m,
+                                    posts  p,
+                                    person  k
+                        where  r.registerid  =  '  ||  NREG  ||  '
+                            and  m.id  =  r.committeemanid
+                            and  p.id  =  m.postsid
+                            and  k.id  =  m.personid
+                            order  by  m.postbegindate,p.postprint)  tbl
+                        group  by  tbl.registerid
+              ;';
+
+    for  RC  in  execute  TSQL
+    loop
+        RESULT  :=  RC.VALUE;
+    end  loop;
+
+    return  RESULT;
+
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_report_members_from_registerlist (nreg bigint, num integer, type text)
-  OWNER TO magicbox;
+$function$
+ 

@@ -1,35 +1,24 @@
-CREATE OR REPLACE FUNCTION public.p_action_mfin_fillingout (
-  mfin integer,
-  begindate date,
-  idlist text
-)
-RETURNS void AS
-$body$
-DECLARE
- tMFIN INTEGER:= mfin;  --переменная
- dBEGINdaTE date:=begindate;
- rec  record;
- sp	  record;
- nDATE date;		--дата начала
- eDATE date; 		--дата конца
- nMFIN bigint;		--id таблицы заполения;
-BEGIN
-    for rec IN(
-    			select s.id as ELECTCOMMITTEEID
-                  from ELECTCOMMITTEE s
-                 where s.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-    		 	)
-                loop
-                	update mfin s set enddate = dBEGINdaTE - 1 where s.electcommitteeid = rec.ELECTCOMMITTEEID and (s.begindate<= dBEGINdaTE and (s.enddate>= dBEGINdaTE or s.enddate is NULL));
-                    insert into mfin(electcommitteeid,  mfin, begindate) values(rec.ELECTCOMMITTEEID,  tMFIN, dBEGINdaTE);
-                end loop;
-END;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_mfin_fillingout (mfin integer, begindate date, idlist text)
-  OWNER TO magicbox;
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_mfin_fillingout(mfin  integer,  begindate  date,  idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    TMFIN            integer  :=  MFIN;  --РїРµСЂРµРјРµРЅРЅР°СЏ
+    DBEGINDATE  date  :=  BEGINDATE;
+    REC                record;
+    SP                  record;
+    NDATE            date;  --РґР°С‚Р°  РЅР°С‡Р°Р»Р°
+    EDATE            date;  --РґР°С‚Р°  РєРѕРЅС†Р°
+    NMFIN            BIGINT;  --id  С‚Р°Р±Р»РёС†С‹  Р·Р°РїРѕР»РµРЅРёСЏ;
+begin
+    for  REC  in  (select  S.ID  as  ELECTCOMMITTEEID  from  ELECTCOMMITTEE  S  where  S.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+    loop
+        update  MFIN  S
+              set  ENDDATE  =  DBEGINDATE  -  1
+          where  S.ELECTCOMMITTEEID  =  REC.ELECTCOMMITTEEID
+              and  (S.BEGINDATE  <=  DBEGINDATE  and  (S.ENDDATE  >=  DBEGINDATE  or  S.ENDDATE  is  null));
+        insert  into  MFIN  (ELECTCOMMITTEEID,  MFIN,  BEGINDATE)  values  (REC.ELECTCOMMITTEEID,  TMFIN,  DBEGINDATE);
+    end  loop;
+end;
+$function$
+ 

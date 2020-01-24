@@ -1,145 +1,120 @@
-CREATE OR REPLACE FUNCTION public.p_action_electcommincamp_dot_chair (
-  id bigint,
-  begindate date,
-  enddate date
-)
-RETURNS void AS
-$body$
- declare 
-  CAMPID    BIGINT:= ID;
-  BDATE date := BEGINDATE; --неоднозначная ссылка
-  EDATE  date := ENDDATE; --неоднозначная ссылка
-  --LVLCOM TEXT := UPPER(LEVELELCOMMITTEE); --неоднозначная ссылка //убрали параметр levelelcommittee по событию 3829
-  REC    record;
-  IZ     record;
-  RK     record;
-  STEMP  TEXT;
-  NID    BIGINT;
-  COMPIT TEXT := 'Компенсация'; --таблица pays всегда компенсация
-  COMID  BIGINT;
-  REGID  BIGINT;
-  tDOC   bigint;
-  TIK    TEXT := 'territory'; --код ТИК в системе
-begin 
-  for REC in (select S.*, ik.levelelcommittee as level
-                from ELECTCOMMINCAMP S,
-                	 electcommittee ik
-               where S.ID = CAMPID
-                 and ik.id = s.electcommitteeid) loop
-   -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //убрали параметр levelelcommittee по событию 3829
-    if REC.level != TIK then raise using message = 'Документ формируется только для ТИК!'; end if;
-    select s.id
-      into tDOC
-      from DOCTYPES s
-     where lower(S.code) = 'ведомость дот за активную работу председателям уик';
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_electcommincamp_dot_chair(id  bigint,  begindate  date,  enddate  date)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+/*Действие:  Сформировать  ведомость  на  ДОТ  за  активную  работу  председателям  УИК*/
+declare
+    CAMPID  BIGINT  :=  ID;
+    BDATE    date  :=  BEGINDATE;  --неоднозначная  ссылка
+    EDATE    date  :=  ENDDATE;  --неоднозначная  ссылка
+    REC        record;
+    IZ          record;
+    RK          record;
+    STEMP    TEXT;
+    NID        BIGINT;
+    COMPIT  TEXT  :=  'Компенсация';  --таблица  pays  всегда  компенсация
+    COMID    BIGINT;
+    REGID    BIGINT;
+    TDOC      BIGINT;
+    TIK        TEXT  :=  'territory';  --код  ТИК  в  системе
+    IKMO      TEXT  :=  'circuit';  --код  ИКМО
+begin
+    for  REC  in  (select  S.*,
+                                          IK.LEVELELCOMMITTEE  as  level
+                                from  ELECTCOMMINCAMP  S,
+                                          ELECTCOMMITTEE    IK
+                              where  S.ID  =  CAMPID
+                                  and  IK.ID  =  S.ELECTCOMMITTEEID)
+    loop
+        
+        if  REC.LEVEL  !=  TIK  AND  REC.LEVEL  !=  IKMO  then
+            raise
+                using  MESSAGE  =  'Документ  формируется  только  для  ТИК!';
+        end  if;
+        
+        select  S.ID  into  TDOC  from  DOCTYPES  S  where  LOWER(S.CODE)  =  'ведомость  дот  за  активную  работу  председателям  уик';
     
-    /*	
-    	Не создан ли такой документ. Проверку надо поводить по типу документа и периоду работы комиссии
-    */
-    if (select count(*) from register r where r.ELECTCOMMINCAMPid = rec.id and r.doctypeid = tDOC) > 0 then 
-    	raise using message = 'Документ уже существует!';
-    end if;
-   
-    STEMP := tDOC|| '_' || --Код избирательного участка
-             (select COALESCE(TO_CHAR(X.ELECTDATE, 'dd.mm.yyyy'), '')
-                from ELECTCAMPAIGN X
-               where X.ID = REC.ELECTCAMPAIGNID) || '_'; --Дата выборов
-    update ELECTCOMMINCAMP S
-       set msregister = COALESCE(msregister, 0) + 1
-     where S.ID = REC.ID; --апдейтим КОД
-    insert into REGISTER
-      (CODE,
-       doctypeid,
-       STATUS,
-       ELECTCAMPAIGNID,
-       BEGINDATE,
-       ENDDATE,
-       electcommincampid, /* ELECDISTNUMB,*/
-       DATELOADTBL,
-       RESPONSPERSID /*, LEVELELCOMMITTEE ,indicationcircuit,indicationship*/)
-      select STEMP,
-             tDOC,
-             1,
-             REC.ELECTCAMPAIGNID,
-             BDATE,
-             EDATE,
-             REC.ID, /* X.ELECDISTNUMB,*/
-             null,
-             null /*, LVLCOM ,x.INDICATIONCIRCUIT,x.INDICATIONSHIP*/ returning REGISTER.ID
-        into REGID;
-       update REGISTER s set code = s.code||s.id where s.id = REGID;
-       --raise using message = REGID;
-    for IZ in (select R.CODE,
-                      R.ID,
-                      R.POSTSID,
-                      R.PERSONID
-                 from ELECTCOMMITTEE X, ELECTCOMMITTEE IK, COMMITTEEMAN R, POSTS D
-                where X.ID = REC.ELECTCOMMITTEEID
-                  AND IK.idgasparecom = X.idgasecom
-                  and R.ELECTCOMMITTEEID = IK.ID
-                  and IK.ID in (select s.ELECTCOMMITTEEID from ELECTCOMMINCAMP s where s.electcampaignid = rec.electcampaignid)
-                  and D.ID = R.POSTSID
-                  and (BDATE between R.POSTBEGINDATE and R.POSTENDDATE
-                  OR EDATE between R.POSTBEGINDATE and R.POSTENDDATE
-                  OR R.POSTBEGINDATE BETWEEN BDATE AND EDATE 
-                  OR R.POSTENDDATE BETWEEN BDATE AND EDATE) 
-                  --and d.levelelcommittee = TIK
-                  and lower(d.code) = 'председатель уик') loop
-      --Проверка на уровень
-      IF EXISTS(SELECT 1 FROM ELECTCOMMINCAMP S, REGISTER R, DOCTYPES T, REGISTERLIST RS 
-      			 WHERE S.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID
-                   AND R.ELECTCOMMINCAMPID = S.ID
-                   AND T.ID = R.DOCTYPEID
-                   AND LOWER(T.CODE) = 'комплект расчетных форм'
-                   AND RS.COMMITTEEMANID = IZ.ID
-                   AND RS.LEVELDCCHAIRMAN = 'district' --УИК
-                   AND RS.REGISTERID = R.ID) THEN CONTINUE; END IF;
-      --
-      insert into REGISTERLIST
-        (REGISTERID,
-         CODE,
-         COMMITTEEMANID,
-         MIDDLESALARY,
-         DEPCOEFF,
-         LEVELDCCHAIRMAN /*, WHCOMP, WHEXTRAFULL, WHEXTRANIGHT, WHEXTRAHOL, WHEXTRAWORKDAY*/)
-        select REGID,
-               IZ.CODE,
-               IZ.ID,
-               0,
-               0,
-               TIK /*,
-                             0,
-                             0,
-                             0,
-                             0,
-                             0*/ returning REGISTERLIST.ID
-          into NID;
-      
-      select S.ID
-        into COMID
-        from SLCOMPCHARGES S
-       where LOWER(trim(S.code)) = LOWER('ДОТ за активную работу');
-      insert into PAYS
-        (REGISTERLISTID, SLCOMPCHARGESID)
-      values
-        (NID, COMID);
-      select S.ID
-        into COMID
-        from SLCOMPCHARGES S
-       where LOWER(trim(S.code)) = LOWER('ВСЕГО');
-      insert into PAYS
-        (REGISTERLISTID, SLCOMPCHARGESID)
-      values
-        (NID, COMID);
-    end loop;
-  end loop;
+        /*    
+            Не  создан  ли  такой  документ.  Проверку  надо  поводить  по  типу  документа  и  периоду  работы  комиссии
+        */
+        if  (select  count(*)
+                    from  REGISTER  R
+                  where  R.ELECTCOMMINCAMPID  =  REC.ID
+                      and  R.DOCTYPEID  =  TDOC)  >  0  then
+            raise
+                using  MESSAGE  =  'Документ  уже  существует!';
+        end  if;
+    
+        STEMP  :=  TDOC  ||  '_'  ||  --Код  избирательного  участка
+                          (select  COALESCE(TO_CHAR(X.ELECTDATE,  'dd.mm.yyyy'),  '')  from  ELECTCAMPAIGN  X  where  X.ID  =  REC.ELECTCAMPAIGNID)  ||  '_';  --Дата  выборов
+        update  ELECTCOMMINCAMP  S  set  MSREGISTER  =  COALESCE(MSREGISTER,  0)  +  1  where  S.ID  =  REC.ID;  --апдейтим  КОД
+        insert  into  REGISTER
+            (CODE,  DOCTYPEID,  STATUS,  ELECTCAMPAIGNID,  BEGINDATE,  ENDDATE,  ELECTCOMMINCAMPID,  DATELOADTBL,  RESPONSPERSID)
+            select  STEMP,
+                          TDOC,
+                          1,
+                          REC.ELECTCAMPAIGNID,
+                          BDATE,
+                          EDATE,
+                          REC.ID,
+                          null,
+                          null  
+      returning  REGISTER.ID
+                into  REGID;
+        update  REGISTER  S  set  CODE  =  S.CODE  ||  S.ID  where  S.ID  =  REGID;
+        
+        for  IZ  in  (select  R.CODE,
+                                            R.ID,
+                                            R.POSTSID,
+                                            R.PERSONID,
+                                            --D.LEVELELCOMMITTEE,
+                                            (SELECT  RS.LEVELDCCHAIRMAN  FROM  ELECTCOMMINCAMP  K,  REGISTER  RR,  REGISTERLIST  RS  WHERE  K.ELECTCOMMITTEEID  =  IK.ID  AND  RR.ELECTCOMMINCAMPID  =  K.ID  AND  RS.REGISTERID  =  RR.ID  AND  RS.COMMITTEEMANID  =  R.ID  LIMIT  1)  AS  LEVELELCOMMITTEE
+                                  from  ELECTCOMMITTEE  X,
+                                            ELECTCOMMITTEE  IK,
+                                            COMMITTEEMAN      R,
+                                            POSTS                    D
+                                where  X.ID  =  REC.ELECTCOMMITTEEID
+                                    and  IK.IDGASPARECOM  =  X.IDGASECOM
+                                    and  R.ELECTCOMMITTEEID  =  IK.ID
+                                    and  IK.ID  in  (select  S.ELECTCOMMITTEEID  from  ELECTCOMMINCAMP  S  where  S.ELECTCAMPAIGNID  =  REC.ELECTCAMPAIGNID)
+                                    and  D.ID  =  R.POSTSID
+                                    and  (BDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE  or  EDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE  or  R.POSTBEGINDATE  between  BDATE  and  EDATE  or  R.POSTENDDATE  between  BDATE  and  EDATE)
+                                    and  D.LEVELELCOMMITTEE  =  'district'  --УИК
+                                    and  UPPER(D.POSTPRINT)  =  'CHAIRMAN')
+        loop
+            --Проверка  на  уровень
+            if  exists  (select  1
+                        from  ELECTCOMMINCAMP  S,
+                                  REGISTER                R,
+                                  DOCTYPES                T,
+                                  REGISTERLIST        RS
+                      where  S.ELECTCAMPAIGNID  =  REC.ELECTCAMPAIGNID
+                          and  R.ELECTCOMMINCAMPID  =  S.ID
+                          and  T.ID  =  R.DOCTYPEID
+                          and  LOWER(T.CODE)  =  'комплект  расчетных  форм'
+                          and  RS.COMMITTEEMANID  =  IZ.ID
+                          and  RS.LEVELDCCHAIRMAN  =  'district'  --УИК
+                          and  RS.REGISTERID  =  R.ID)  then
+                continue;
+            end  if;
+            --
+            insert  into  REGISTERLIST
+                (REGISTERID,  CODE,  COMMITTEEMANID,  MIDDLESALARY,  DEPCOEFF,  LEVELDCCHAIRMAN  /*,  WHCOMP,  WHEXTRAFULL,  WHEXTRANIGHT,  WHEXTRAHOL,  WHEXTRAWORKDAY*/)
+                select  REGID,
+                              IZ.CODE,
+                              IZ.ID,
+                              0,
+                              0,
+                              IZ.LEVELELCOMMITTEE
+          returning  REGISTERLIST.ID
+                    into  NID;
+        
+            select  S.ID  into  COMID  from  SLCOMPCHARGES  S  where  UPPER(trim(S.DESCRIPTION))  =  LOWER('EXTRAA');
+            insert  into  PAYS  (REGISTERLISTID,  SLCOMPCHARGESID)  values  (NID,  COMID);
+            select  S.ID  into  COMID  from  SLCOMPCHARGES  S  where  UPPER(trim(S.DESCRIPTION))  =  LOWER('SUMALL');
+            insert  into  PAYS  (REGISTERLISTID,  SLCOMPCHARGESID)  values  (NID,  COMID);
+        end  loop;
+    end  loop;
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_electcommincamp_dot_chair (id bigint, begindate date, enddate date)
-  OWNER TO magicbox;
+$function$
+ 

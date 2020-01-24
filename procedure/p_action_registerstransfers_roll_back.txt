@@ -1,48 +1,17 @@
-CREATE OR REPLACE FUNCTION public.p_action_registerstransfers_roll_back (
-  idlist text
-)
-RETURNS void AS
-$body$
-DECLARE
---Действие "Расформировать ведомость" в разделе "Реестры перечислений" REGISTERSTRANSFERS
---vkorytko@rambler.ru
-
---в Составе SLREGTRNPR Реестра перечислений REGISTERSTRANSFERS  для Избирательной комиссии ELECTCOMMINCAMPID
---обнуляем Сумма к перечислению SLREGTRNPR.SUMTRN  
---и удаляем SHEETDETAILS для Получателя PERSONID_RET    Ведомости по оплате труда SHEETS
---   Ведомости по оплате труда SHEETS обнуляем сумму 
- rec  record;
- nid bigint;		--id таблицы заполения;
-BEGIN
-UPDATE SHEETDETAILS S SET sumtrn  = null, registerstransfersid = null WHERE S.REGISTERSTRANSFERSID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST));
-DELETE FROM REGISTERSTRANSFERS S WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST)); 
-/*
-for rec in(
-   select s.id
-     from sheets s
-    where s.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-          )
-     loop
---Удаляем Реестр перечислений REGISTERSTRANSFERS
---Список перечислений SLREGTRNPR удаляется каскадом DELETE CASCADE
-      delete from registerstransfers where id in
-      (select sd.REGISTERSTRANSFERSID 
-         from SHEETDETAILS sd 
-        where sdsheetsid = rec.id );
---обнуляем суммы состава ведомости
-      update SHEETDETAILS s
-         set sumtrn  = null, 
-	     registerstransfersid = null
-       where s.sheetsid = rec.id;
-
- end loop;*/
-END;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_registerstransfers_roll_back (idlist text)
-  OWNER TO magicbox;
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_registerstransfers_roll_back(idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    --Действие  "Расформировать  ведомость"  в  разделе  "Реестры  перечислений"  REGISTERSTRANSFERS
+    REC  record;
+    NID  BIGINT;  --id  таблицы  заполения;
+begin
+    update  SHEETDETAILS  S
+          set  SUMTRN                              =  null,
+                  REGISTERSTRANSFERSID  =  null
+      where  S.REGISTERSTRANSFERSID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST));
+    delete  from  REGISTERSTRANSFERS  S  where  S.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST));
+end;
+$function$
+ 

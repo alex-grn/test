@@ -13,16 +13,14 @@
 									r.code as code_doc,
 									k.code as name_choiser,
 									ik.name as electcom
-								from SHEETS s,
-									register r,
+								from register r,
 									electcampaign k,
 									electcommincamp i,
 									electcommittee ik,
 									registerlist rs,
 									committeeman c,
 									worktbl w
-								where s.id = ${id}::bigint
-								and r.id = s.registerid
+								where r.id = ${id}::bigint
 								and k.id = r.electcampaignid
 								and rs.registerid = r.id
 								and c.id = rs.committeemanid
@@ -41,26 +39,26 @@
                      <query name="spec" type="sql">
                         <script>
 								select 
-									COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'') as fio,
-									w.datetbl as dates,
+									COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio,
+									d2s(w.datetbl) as dates,
 									w.errwh as result
-								from SHEETS s,
-									register r,
+								from register r,
 									electcampaign k,
 									electcommincamp i,
 									electcommittee ik,
 									registerlist rs,
 									committeeman c,
+									person p,
 									worktbl w
-								where s.id = ${id}::bigint
-								and r.id = s.registerid
+								where r.id = ${id}::bigint
 								and k.id = r.electcampaignid
 								and rs.registerid = r.id
 								and c.id = rs.committeemanid
 								and w.registerlistid = rs.id
 								and i.id = r.electcommincampid
 								and ik.id = i.electcommitteeid
-								and w.errwh is not null
+								and p.id = c.personid
+								and (w.errwh is not null and w.errwh != '')
 								order by fio,w.datetbl
 								;
 						</script>

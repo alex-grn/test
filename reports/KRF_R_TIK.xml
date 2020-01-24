@@ -1,0 +1,3430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="krf_f_zp_pl_no.xls" documentPath="krf_f_zp_pl_no.xls" outputType="xls" outputNamePattern="krf_f_zp_pl_no.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="option_tik" orientation="H">
+				<queries>
+                     <query name="options_tik" type="sql">
+                        <script>
+								select reg.name as sub_rf,
+									reg.code as id_subrf,
+									case  
+										when ik.levelelcommittee = 'district' then (select kk.name from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
+										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.name 
+									end as ter_kom,
+									case  
+										when ik.levelelcommittee = 'district' then (select kk.code from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
+										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.code 
+									end as id_ter,
+									e.name as name_choice,
+									e.code as id_choise,
+									d2s(e.electdate) as date_of_choice,
+									d2s(r.begindate) as bdate_ik,
+									d2s(r.enddate) as edate_ik,
+									(select xl.COUNTWD from (select w.COUNTWD, row_number() OVER(order by w.code) as sort from (select rrs.* from registerlist rrs where rrs.registerid = r.id limit 1) rs, COMMITTEEMAN cc, pays pl, slcompcharges sl, workcalendars w where cc.id = rs.committeemanid and pl.registerlistid = rs.id and sl.id = pl.slcompchargesid and sl.description = 'COMPENSATION' and w.id = pl.workcalendarsid order by w.code) xl where xl.sort = 1) as work_day1, 
+									(select xl.COUNTWD from (select w.COUNTWD, row_number() OVER(order by w.code) as sort from (select rrs.* from registerlist rrs where rrs.registerid = r.id limit 1) rs, COMMITTEEMAN cc, pays pl, slcompcharges sl, workcalendars w where cc.id = rs.committeemanid and pl.registerlistid = rs.id and sl.id = pl.slcompchargesid and sl.description = 'COMPENSATION' and w.id = pl.workcalendarsid order by w.code) xl where xl.sort = 2) as work_day2,
+									fk.value as compensation, --федеральная, а для региональной название колонки будет compensation_other
+									ik.discoefffed as r_coef, --федеральный коэффициент, для региона discoefreg 
+									fn.value as max_v_coef,   --предельный размер коффициента
+									f1.value as dop_pay_chairman,
+									f2.value as dop_pay_prchairman,
+									f3.value as dop_pay_secret,
+									f4.value as dop_pay_otherman,
+									case (select rs.leveldcchairman from registerlist rs, committeeman cc, posts p where rs.registerid = r.id and cc.id = rs.committeemanid and p.id = cc.postsid and upper(p.postprint) = 'CHAIRMAN' and (p.levelelcommittee = 'territory' or p.levelelcommittee = 'circuit'))
+										when 'territory' then 'ТИК'
+										when 'district' then 'УИК'
+										when 'region' then 'ИКСРФ'
+										when 'circuit' then 'ИКМО с полномочиями ТИК'
+									end as choiser,
+									case  
+										when ik.levelelcommittee = 'district' then (select kk.rnameec from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
+										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.rnameec 
+									end as rod_tik,
+                                    case  
+										when ik.levelelcommittee = 'district' then (select kk.dnameec from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
+										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.dnameec 
+									end as dat_tik,
+                                    case 
+										when ik.levelelcommittee = 'district' then (select kk.tnameec from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
+										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.tnameec 
+									end as tv_tik,
+									r.code as code_doc,
+									r.code as id_doc,
+                                    (select count(*)
+                                    	from registerlist rs,
+                                        	 committeeman c,
+                                             posts p,
+                                             worktbl w
+                                       where rs.registerid = r.id
+                                         and c.id = rs.committeemanid
+                                         and p.id = c.postsid
+                                         and lower(p.postprint) = 'chairman'
+                                         and w.registerlistid = rs.id
+                                         and r.begindate = w.datetbl) as count_w
+								from register r			--Расчетные документы
+									inner join electcommincamp el on el.id = r.electcommincampid	--Избирательные комиссии, участвующие в кампании
+									inner join ELECTCOMMITTEE IK on ik.id = el.electcommitteeid	--Избирательные комиссии
+									inner join electcampaign e on e.id = r.electcampaignid		--Избирательные кампании
+									inner join regionsrf reg on reg.id = ik.regionsrfid		--Субъекты Российской Федерации
+									left join FEDELECCAMP f on f.id = e.fedeleccampid		--Федеральные избирательные кампании
+									left join NORMSFEDEC fk on fk.fedeleccampid = f.id
+															and fk.namenorms = 'limitcomp'  --Предельный размер компенсации за полный месяц работы для региона
+															and fk.regionsrfid = reg.id	--Нормы оплаты труда при проведении федеральных выборов (для компенсации)
+									left join NORMSFEDEC fn on fn.fedeleccampid = f.id
+															and fn.namenorms = 'depcoeffmax'  --Предельный размер компенсации за полный месяц работы для региона
+									left join NORMSFEDEC f1 on f1.fedeleccampid = f.id
+                                                            and f1.namenorms = 'reward'  --Предельный размер компенсации за полный месяц работы для региона
+                                                            and f1.postsid = (select p.id from posts p where upper(p.postprint) = 'CHAIRMAN' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f1.mcircuit = el.mcircuit
+                                    left join NORMSFEDEC f2 on f2.fedeleccampid = f.id
+                                                            and f2.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
+                                                            and f2.postsid = (select p.id from posts p where upper(p.postprint) = 'DEPCHAIRMAN' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f2.mcircuit = el.mcircuit
+                                    left join NORMSFEDEC f3 on  f3.fedeleccampid = f.id
+                                                            and f3.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
+                                                            and f3.postsid = (select p.id from posts p where upper(p.postprint) = 'SECRETARY' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f3.mcircuit = el.mcircuit
+                                    left join NORMSFEDEC f4 on  f4.fedeleccampid = f.id
+                                                            and f4.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
+                                                            and f4.postsid = (select p.id from posts p where upper(p.postprint) = 'ZOTHERCM' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f4.mcircuit = el.mcircuit
+								where r.id = ${id}::bigint
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="option_uik" orientation="H">
+				<queries>
+                     <query name="options_uik" type="sql">
+                        <script>
+								select IK.name as name_ik,
+									IK.CODE AS id_ik,
+									ik.elecdistnumb as num_ik,
+									i.countvtr as count_ik,
+									(select sum(f.sumfin) from finexp f, TYPEEXP ts where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсация%') as sum_all_uik,
+									(select sum(f.sumfin) from finexp f, TYPEEXP ts where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%') as sum_all_uik_dop,
+									p_report_members_from_registerlist(r.id,1,'fio') as fio1,   p_report_members_from_registerlist(r.id,1,'post') AS post1,   p_report_members_from_registerlist(r.id,1,'bdate') as bdate1,   p_report_members_from_registerlist(r.id,1,'edate') as edate1,  p_report_members_from_registerlist(r.id,1,'fio_code') as id_fio1,  (case p_report_members_from_registerlist(r.id,1,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,1,'avgsum') end)::numeric as avg_sum1,  
+									p_report_members_from_registerlist(r.id,2,'fio') as fio2,   p_report_members_from_registerlist(r.id,2,'post') AS post2,   p_report_members_from_registerlist(r.id,2,'bdate') as bdate2,   p_report_members_from_registerlist(r.id,2,'edate') as edate2,  p_report_members_from_registerlist(r.id,2,'fio_code') as id_fio2,  (case p_report_members_from_registerlist(r.id,2,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,2,'avgsum') end)::numeric as avg_sum2,  
+									p_report_members_from_registerlist(r.id,3,'fio') as fio3,   p_report_members_from_registerlist(r.id,3,'post') AS post3,   p_report_members_from_registerlist(r.id,3,'bdate') as bdate3,   p_report_members_from_registerlist(r.id,3,'edate') as edate3,  p_report_members_from_registerlist(r.id,3,'fio_code') as id_fio3,  (case p_report_members_from_registerlist(r.id,3,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,3,'avgsum') end)::numeric as avg_sum3,  
+									p_report_members_from_registerlist(r.id,4,'fio') as fio4,   p_report_members_from_registerlist(r.id,4,'post') AS post4,   p_report_members_from_registerlist(r.id,4,'bdate') as bdate4,   p_report_members_from_registerlist(r.id,4,'edate') as edate4,  p_report_members_from_registerlist(r.id,4,'fio_code') as id_fio4,  (case p_report_members_from_registerlist(r.id,4,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,4,'avgsum') end)::numeric as avg_sum4,  
+									p_report_members_from_registerlist(r.id,5,'fio') as fio5,   p_report_members_from_registerlist(r.id,5,'post') AS post5,   p_report_members_from_registerlist(r.id,5,'bdate') as bdate5,   p_report_members_from_registerlist(r.id,5,'edate') as edate5,  p_report_members_from_registerlist(r.id,5,'fio_code') as id_fio5,  (case p_report_members_from_registerlist(r.id,5,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,5,'avgsum') end)::numeric as avg_sum5,  
+									p_report_members_from_registerlist(r.id,6,'fio') as fio6,   p_report_members_from_registerlist(r.id,6,'post') AS post6,   p_report_members_from_registerlist(r.id,6,'bdate') as bdate6,   p_report_members_from_registerlist(r.id,6,'edate') as edate6,  p_report_members_from_registerlist(r.id,6,'fio_code') as id_fio6,  (case p_report_members_from_registerlist(r.id,6,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,6,'avgsum') end)::numeric as avg_sum6,  
+									p_report_members_from_registerlist(r.id,7,'fio') as fio7,   p_report_members_from_registerlist(r.id,7,'post') AS post7,   p_report_members_from_registerlist(r.id,7,'bdate') as bdate7,   p_report_members_from_registerlist(r.id,7,'edate') as edate7,  p_report_members_from_registerlist(r.id,7,'fio_code') as id_fio7,  (case p_report_members_from_registerlist(r.id,7,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,7,'avgsum') end)::numeric as avg_sum7,  
+									p_report_members_from_registerlist(r.id,8,'fio') as fio8,   p_report_members_from_registerlist(r.id,8,'post') AS post8,   p_report_members_from_registerlist(r.id,8,'bdate') as bdate8,   p_report_members_from_registerlist(r.id,8,'edate') as edate8,  p_report_members_from_registerlist(r.id,8,'fio_code') as id_fio8,  (case p_report_members_from_registerlist(r.id,8,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,8,'avgsum') end)::numeric as avg_sum8,  
+									p_report_members_from_registerlist(r.id,9,'fio') as fio9,   p_report_members_from_registerlist(r.id,9,'post') AS post9,   p_report_members_from_registerlist(r.id,9,'bdate') as bdate9,   p_report_members_from_registerlist(r.id,9,'edate') as edate9,  p_report_members_from_registerlist(r.id,9,'fio_code') as id_fio9,  (case p_report_members_from_registerlist(r.id,9,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,9,'avgsum') end)::numeric as avg_sum9,  
+									p_report_members_from_registerlist(r.id,10,'fio') as fio10, p_report_members_from_registerlist(r.id,10,'post') AS post10, p_report_members_from_registerlist(r.id,10,'bdate') as bdate10, p_report_members_from_registerlist(r.id,10,'edate') as edate10,p_report_members_from_registerlist(r.id,10,'fio_code') as id_fio10,(case p_report_members_from_registerlist(r.id,10,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,10,'avgsum') end)::numeric as avg_sum10,
+									p_report_members_from_registerlist(r.id,11,'fio') as fio11, p_report_members_from_registerlist(r.id,11,'post') AS post11, p_report_members_from_registerlist(r.id,11,'bdate') as bdate11, p_report_members_from_registerlist(r.id,11,'edate') as edate11,p_report_members_from_registerlist(r.id,11,'fio_code') as id_fio11,(case p_report_members_from_registerlist(r.id,11,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,11,'avgsum') end)::numeric as avg_sum11,
+									p_report_members_from_registerlist(r.id,12,'fio') as fio12, p_report_members_from_registerlist(r.id,12,'post') AS post12, p_report_members_from_registerlist(r.id,12,'bdate') as bdate12, p_report_members_from_registerlist(r.id,12,'edate') as edate12,p_report_members_from_registerlist(r.id,12,'fio_code') as id_fio12,(case p_report_members_from_registerlist(r.id,12,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,12,'avgsum') end)::numeric as avg_sum12,
+									p_report_members_from_registerlist(r.id,13,'fio') as fio13, p_report_members_from_registerlist(r.id,13,'post') AS post13, p_report_members_from_registerlist(r.id,13,'bdate') as bdate13, p_report_members_from_registerlist(r.id,13,'edate') as edate13,p_report_members_from_registerlist(r.id,13,'fio_code') as id_fio13,(case p_report_members_from_registerlist(r.id,13,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,13,'avgsum') end)::numeric as avg_sum13,
+									p_report_members_from_registerlist(r.id,14,'fio') as fio14, p_report_members_from_registerlist(r.id,14,'post') AS post14, p_report_members_from_registerlist(r.id,14,'bdate') as bdate14, p_report_members_from_registerlist(r.id,14,'edate') as edate14,p_report_members_from_registerlist(r.id,14,'fio_code') as id_fio14,(case p_report_members_from_registerlist(r.id,14,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,14,'avgsum') end)::numeric as avg_sum14,
+									p_report_members_from_registerlist(r.id,15,'fio') as fio15, p_report_members_from_registerlist(r.id,15,'post') AS post15, p_report_members_from_registerlist(r.id,15,'bdate') as bdate15, p_report_members_from_registerlist(r.id,15,'edate') as edate15,p_report_members_from_registerlist(r.id,15,'fio_code') as id_fio15,(case p_report_members_from_registerlist(r.id,15,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,15,'avgsum') end)::numeric as avg_sum15,
+									p_report_members_from_registerlist(r.id,16,'fio') as fio16, p_report_members_from_registerlist(r.id,16,'post') AS post16, p_report_members_from_registerlist(r.id,16,'bdate') as bdate16, p_report_members_from_registerlist(r.id,16,'edate') as edate16,p_report_members_from_registerlist(r.id,16,'fio_code') as id_fio16,(case p_report_members_from_registerlist(r.id,16,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,16,'avgsum') end)::numeric as avg_sum16,
+									p_report_members_from_registerlist(r.id,17,'fio') as fio17, p_report_members_from_registerlist(r.id,17,'post') AS post17, p_report_members_from_registerlist(r.id,17,'bdate') as bdate17, p_report_members_from_registerlist(r.id,17,'edate') as edate17,p_report_members_from_registerlist(r.id,17,'fio_code') as id_fio17,(case p_report_members_from_registerlist(r.id,17,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,17,'avgsum') end)::numeric as avg_sum17,
+									p_report_members_from_registerlist(r.id,18,'fio') as fio18, p_report_members_from_registerlist(r.id,18,'post') AS post18, p_report_members_from_registerlist(r.id,18,'bdate') as bdate18, p_report_members_from_registerlist(r.id,18,'edate') as edate18,p_report_members_from_registerlist(r.id,18,'fio_code') as id_fio18,(case p_report_members_from_registerlist(r.id,18,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,18,'avgsum') end)::numeric as avg_sum18,
+									ik.rnameec as rod_uik,
+									ik.dnameec as dat_uik,
+									ik.tnameec as tv_uik
+								from register r
+								inner join electcampaign el on el.id = r.electcampaignid
+								inner join electcommincamp i on i.id = r.electcommincampid
+								inner join electcommittee ik on ik.id = i.electcommitteeid 
+								left join mfin m on m.electcommitteeid = ik.id and now() >= m.begindate and (m.enddate >=now() or m.enddate is null) and m.mfin::integer in (1,3)
+								where r.id = ${id}::bigint
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_head" orientation="H">
+				<queries>
+                    <query name="shedule_head" type="sql">
+                        <script>
+								select 25 as templ
+								;
+						</script>
+                    </query>
+                </queries>
+			</band>
+			<band name="shedule_spec1" orientation="H">
+				<queries>
+                     <query name="shedule_spec1" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec2" orientation="H">
+				<queries>
+                     <query name="shedule_spec2" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 2
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec3" orientation="H">
+				<queries>
+                     <query name="shedule_spec3" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 3
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec4" orientation="H">
+				<queries>
+                     <query name="shedule_spec4" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 4
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec5" orientation="H">
+				<queries>
+                     <query name="shedule_spec5" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 5
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec6" orientation="H">
+				<queries>
+                     <query name="shedule_spec6" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 6
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec7" orientation="H">
+				<queries>
+                     <query name="shedule_spec1" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 7
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec8" orientation="H">
+				<queries>
+                     <query name="shedule_spec1" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 8
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec9" orientation="H">
+				<queries>
+                     <query name="shedule_spec9" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 9
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec10" orientation="H">
+				<queries>
+                     <query name="shedule_spec10" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 10
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec11" orientation="H">
+				<queries>
+                     <query name="shedule_spec1" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 11
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec12" orientation="H">
+				<queries>
+                     <query name="shedule_spec12" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 12
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec13" orientation="H">
+				<queries>
+                     <query name="shedule_spec13" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 13
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec14" orientation="H">
+				<queries>
+                     <query name="shedule_spec14" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 14
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec15" orientation="H">
+				<queries>
+                     <query name="shedule_spec15" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 15
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec16" orientation="H">
+				<queries>
+                     <query name="shedule_spec16" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 16
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec17" orientation="H">
+				<queries>
+                     <query name="shedule_spec17" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 17
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec18" orientation="H">
+				<queries>
+                     <query name="shedule_spec18" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 18
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec19" orientation="H">
+				<queries>
+                     <query name="shedule_spec19" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 19
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec20" orientation="H">
+				<queries>
+                     <query name="shedule_spec20" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 20
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec21" orientation="H">
+				<queries>
+                     <query name="shedule_spec21" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 21
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec22" orientation="H">
+				<queries>
+                     <query name="shedule_spec22" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 22
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec23" orientation="H">
+				<queries>
+                     <query name="shedule_spec23" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 23
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec24" orientation="H">
+				<queries>
+                     <query name="shedule_spec24" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 24
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec25" orientation="H">
+				<queries>
+                     <query name="shedule_spec25" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 25
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec26" orientation="H">
+				<queries>
+                     <query name="shedule_spec26" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 26
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec27" orientation="H">
+				<queries>
+                     <query name="shedule_spec27" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 27
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec28" orientation="H">
+				<queries>
+                     <query name="shedule_spec28" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 28
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec29" orientation="H">
+				<queries>
+                     <query name="shedule_spec29" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 29
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec30" orientation="H">
+				<queries>
+                     <query name="shedule_spec30" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 30
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec31" orientation="H">
+				<queries>
+                     <query name="shedule_spec31" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 31
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec32" orientation="H">
+				<queries>
+                     <query name="shedule_spec32" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 32
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec33" orientation="H">
+				<queries>
+                     <query name="shedule_spec33" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 33
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec34" orientation="H">
+				<queries>
+                     <query name="shedule_spec34" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 34
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec35" orientation="H">
+				<queries>
+                     <query name="shedule_spec35" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 35
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec36" orientation="H">
+				<queries>
+                     <query name="shedule_spec36" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 36
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec37" orientation="H">
+				<queries>
+                     <query name="shedule_spec37" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 37
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec38" orientation="H">
+				<queries>
+                     <query name="shedule_spec38" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 38
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec39" orientation="H">
+				<queries>
+                     <query name="shedule_spec39" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 39
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec40" orientation="H">
+				<queries>
+                     <query name="shedule_spec40" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 40
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec41" orientation="H">
+				<queries>
+                     <query name="shedule_spec41" type="sql">
+                        <script>
+							     select d2s(tmp.dates) as date1, tmp.types as type1
+								from (select row_number() over(order by w.datetbl) as num, w.datetbl as  dates, (select t.code from typeday t where t.id = w.typedayid) as types 
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									group by w.datetbl, w.typedayid
+									order by dates) tmp
+									where tmp.num = 41
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_floor" orientation="H">
+				<queries>
+                     <query name="shedule_floor" type="sql">
+                        <script>
+								select '=СУММ(D19:E59)' as formula
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_head" orientation="H"/>
+			<band name="info_fov_spec1" orientation="H">
+				<queries>
+                     <query name="info_fov_spec1" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 1
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec2" orientation="H">
+				<queries>
+                     <query name="info_fov_spec2" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 2
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec3" orientation="H">
+				<queries>
+                     <query name="info_fov_spec3" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 3
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec4" orientation="H">
+				<queries>
+                     <query name="info_fov_spec4" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 4
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec5" orientation="H">
+				<queries>
+                     <query name="info_fov_spec5" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 5
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec6" orientation="H">
+				<queries>
+                     <query name="info_fov_spec6" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 6
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec7" orientation="H">
+				<queries>
+                     <query name="info_fov_spec7" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 7
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec8" orientation="H">
+				<queries>
+                     <query name="info_fov_spec8" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 8
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec9" orientation="H">
+				<queries>
+                     <query name="info_fov_spec9" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 9
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec10" orientation="H">
+				<queries>
+                     <query name="info_fov_spec10" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 10
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec11" orientation="H">
+				<queries>
+                     <query name="info_fov_spec11" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 11
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec12" orientation="H">
+				<queries>
+                     <query name="info_fov_spec12" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 12
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec13" orientation="H">
+				<queries>
+                     <query name="info_fov_spec13" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 13
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec14" orientation="H">
+				<queries>
+                     <query name="info_fov_spec14" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 14
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec15" orientation="H">
+				<queries>
+                     <query name="info_fov_spec15" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 15
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec16" orientation="H">
+				<queries>
+                     <query name="info_fov_spec16" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 16
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec17" orientation="H">
+				<queries>
+                     <query name="info_fov_spec17" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 17
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec18" orientation="H">
+				<queries>
+                     <query name="info_fov_spec18" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 18
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec19" orientation="H">
+				<queries>
+                     <query name="info_fov_spec19" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 19
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec20" orientation="H">
+				<queries>
+                     <query name="info_fov_spec20" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 20
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec21" orientation="H">
+				<queries>
+                     <query name="info_fov_spec21" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 21
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec22" orientation="H">
+				<queries>
+                     <query name="info_fov_spec22" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 22
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec23" orientation="H">
+				<queries>
+                     <query name="info_fov_spec23" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 23
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec24" orientation="H">
+				<queries>
+                     <query name="info_fov_spec24" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 24
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec25" orientation="H">
+				<queries>
+                     <query name="info_fov_spec25" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 25
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec26" orientation="H">
+				<queries>
+                     <query name="info_fov_spec26" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 26
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec27" orientation="H">
+				<queries>
+                     <query name="info_fov_spec27" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 27
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec28" orientation="H">
+				<queries>
+                     <query name="info_fov_spec28" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 28
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec29" orientation="H">
+				<queries>
+                     <query name="info_fov_spec29" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 29
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec30" orientation="H">
+				<queries>
+                     <query name="info_fov_spec30" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 30
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec31" orientation="H">
+				<queries>
+                     <query name="info_fov_spec31" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 31
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec32" orientation="H">
+				<queries>
+                     <query name="info_fov_spec32" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 32
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec33" orientation="H">
+				<queries>
+                     <query name="info_fov_spec33" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 33
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec34" orientation="H">
+				<queries>
+                     <query name="info_fov_spec34" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 34
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec35" orientation="H">
+				<queries>
+                     <query name="info_fov_spec35" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 35
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec36" orientation="H">
+				<queries>
+                     <query name="info_fov_spec36" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 36
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec37" orientation="H">
+				<queries>
+                     <query name="info_fov_spec37" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 37
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec38" orientation="H">
+				<queries>
+                     <query name="info_fov_spec38" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 38
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec39" orientation="H">
+				<queries>
+                     <query name="info_fov_spec39" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 39
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec40" orientation="H">
+				<queries>
+                     <query name="info_fov_spec40" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 40
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec41" orientation="H">
+				<queries>
+                     <query name="info_fov_spec41" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 41
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec42" orientation="H">
+				<queries>
+                     <query name="info_fov_spec42" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 42
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec43" orientation="H">
+				<queries>
+                     <query name="info_fov_spec43" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 43
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec44" orientation="H">
+				<queries>
+                     <query name="info_fov_spec44" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 44
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec45" orientation="H">
+				<queries>
+                     <query name="info_fov_spec45" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 45
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec46" orientation="H">
+				<queries>
+                     <query name="info_fov_spec46" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 46
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec47" orientation="H">
+				<queries>
+                     <query name="info_fov_spec47" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 47
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec48" orientation="H">
+				<queries>
+                     <query name="info_fov_spec48" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 48
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec49" orientation="H">
+				<queries>
+                     <query name="info_fov_spec49" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 49
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec50" orientation="H">
+				<queries>
+                     <query name="info_fov_spec50" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 50
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec51" orientation="H">
+				<queries>
+                     <query name="info_fov_spec51" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 51
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec52" orientation="H">
+				<queries>
+                     <query name="info_fov_spec52" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 52
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec53" orientation="H">
+				<queries>
+                     <query name="info_fov_spec53" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 53
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec54" orientation="H">
+				<queries>
+                     <query name="info_fov_spec54" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 54
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec55" orientation="H">
+				<queries>
+                     <query name="info_fov_spec55" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 55
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec56" orientation="H">
+				<queries>
+                     <query name="info_fov_spec56" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 56
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec57" orientation="H">
+				<queries>
+                     <query name="info_fov_spec57" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 57
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec58" orientation="H">
+				<queries>
+                     <query name="info_fov_spec58" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 58
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec59" orientation="H">
+				<queries>
+                     <query name="info_fov_spec59" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 59
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec60" orientation="H">
+				<queries>
+                     <query name="info_fov_spec60" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 60
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec61" orientation="H">
+				<queries>
+                     <query name="info_fov_spec61" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 61
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec62" orientation="H">
+				<queries>
+                     <query name="info_fov_spec62" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 62
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec63" orientation="H">
+				<queries>
+                     <query name="info_fov_spec63" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 63
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec64" orientation="H">
+				<queries>
+                     <query name="info_fov_spec64" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 64
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec65" orientation="H">
+				<queries>
+                     <query name="info_fov_spec65" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 65
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec66" orientation="H">
+				<queries>
+                     <query name="info_fov_spec66" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 66
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec67" orientation="H">
+				<queries>
+                     <query name="info_fov_spec67" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 67
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec68" orientation="H">
+				<queries>
+                     <query name="info_fov_spec68" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 68
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec69" orientation="H">
+				<queries>
+                     <query name="info_fov_spec69" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 69
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec70" orientation="H">
+				<queries>
+                     <query name="info_fov_spec70" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 70
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec71" orientation="H">
+				<queries>
+                     <query name="info_fov_spec71" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 71
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec72" orientation="H">
+				<queries>
+                     <query name="info_fov_spec72" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 72
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec73" orientation="H">
+				<queries>
+                     <query name="info_fov_spec73" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 73
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec74" orientation="H">
+				<queries>
+                     <query name="info_fov_spec74" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 74
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec75" orientation="H">
+				<queries>
+                     <query name="info_fov_spec75" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 75
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec76" orientation="H">
+				<queries>
+                     <query name="info_fov_spec76" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 76
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec77" orientation="H">
+				<queries>
+                     <query name="info_fov_spec77" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 77
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec78" orientation="H">
+				<queries>
+                     <query name="info_fov_spec78" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 78
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec79" orientation="H">
+				<queries>
+                     <query name="info_fov_spec79" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 79
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec80" orientation="H">
+				<queries>
+                     <query name="info_fov_spec80" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 80
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec81" orientation="H">
+				<queries>
+                     <query name="info_fov_spec81" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 81
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_spec82" orientation="H">
+				<queries>
+                     <query name="info_fov_spec82" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 82
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fov_floor" orientation="H"/>
+			<band name="info_fovpr_head" orientation="H"/>
+			<band name="info_fovpr_spec1" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec1" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 1
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec2" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec2" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 2
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec3" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec3" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 3
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec4" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec4" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 4
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec5" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec5" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 5
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec6" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec6" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 6
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec7" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec7" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 7
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec8" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec8" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 8
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec9" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec9" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 9
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec10" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec10" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 10
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec11" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec11" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 11
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec12" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec12" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 12
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec13" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec13" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 13
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec14" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec14" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 14
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec15" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec15" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 15
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec16" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec16" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 16
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec17" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec17" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 17
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec18" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec18" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 18
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec19" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec19" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 19
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec20" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec20" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 20
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec21" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec21" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 21
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec22" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec22" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 22
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec23" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec23" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 23
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec24" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec24" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 24
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec25" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec25" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 25
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec26" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec26" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 26
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec27" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec27" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 27
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec28" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec28" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 28
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec29" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec29" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 29
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec30" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec30" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 30
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec31" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec31" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 31
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec32" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec32" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 32
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec33" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec33" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 33
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec34" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec34" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 34
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec35" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec35" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 35
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec36" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec36" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 36
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec37" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec37" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 37
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec38" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec38" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 38
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec39" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec39" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 39
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec40" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec40" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 40
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec41" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec41" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 41
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec42" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec42" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 42
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec43" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec43" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 43
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec44" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec44" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 44
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec45" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec45" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 45
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec46" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec46" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 46
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec47" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec47" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 47
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec48" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec48" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 48
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec49" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec49" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 49
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec50" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec50" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 50
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec51" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec51" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 51
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec52" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec52" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 52
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec53" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec53" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 53
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec54" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec54" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 54
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec55" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec55" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 55
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec56" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec56" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 56
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec57" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec57" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 57
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec58" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec58" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 58
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec59" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec59" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 59
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec60" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec60" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 60
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec61" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec61" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 61
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec62" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec62" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 62
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec63" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec63" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 63
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec64" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec64" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 64
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec65" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec65" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 65
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec66" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec66" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 66
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec67" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec67" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 67
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec68" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec68" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 68
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec69" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec69" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 69
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec70" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec70" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 70
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec71" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec71" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 71
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec72" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec72" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 72
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec73" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec73" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 73
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec74" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec74" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 74
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec75" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec75" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 75
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec76" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec76" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 76
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec77" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec77" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 77
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec78" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec78" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 78
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec79" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec79" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 79
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec80" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec80" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 80
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec81" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec81" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 81
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_spec82" orientation="H">
+				<queries>
+                     <query name="info_fovpr_spec82" type="sql">
+                        <script>
+                        SELECT d2s(w.datetbl) as  date1, (select t.code from typeday t where t.id = w.typedayid) as type1,W.numbcalday AS rownumber
+								from (select r.id from registerlist r where r.registerid = ${id}::bigint limit 1) tbl,
+									worktbl w
+									where w.registerlistid = tbl.id
+									  AND W.numbcalday = 82
+									order by date1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="info_fovpr_floor" orientation="H"/>
+			<band name="rachet_ved" orientation="H">
+				<queries>
+                     <query name="estimate_" type="sql">
+                        <script>
+							    select COALESCE((
+											select f.sumfin
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%расходы на связь%'),0)  as rashod,
+											COALESCE((
+											select f.sumfin
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%канцелярские расходы%'),0) as kanc,
+											COALESCE((
+											select f.sumfin
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%командировочные расходы%'),0)  as komand,
+											COALESCE((
+											select f.sumfin
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%расходы на приобретение других материальных ценнностей (материальных запасов)%'),0)  as mat_cen,
+											COALESCE( (
+											select f.sumfin 
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%для сборки, разборки технологического оборудования%'),0) as razbor,
+											COALESCE((
+											select f.sumfin
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%для транспортных и погрузочно-разгрузочных работ%'),0) as tranc,
+											COALESCE((
+											select f.sumfin 
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%для выполнения работ по содержанию помещений%'),0) as uchast,
+											COALESCE((
+											select f.sumfin
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid 
+											and t.id = f.typeexpid and lower(t.code) like '%для выполнения работ, связанных с подготовкой и проведением выборов%'),0) as soderzh,
+                                            COALESCE((
+                                            select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%компенсация%'),'')  as id_comp,
+											COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%вознаграждение%'),'')  as id_dop,
+												COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%расходы на связь'),'')  as id_rashod,
+											COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%канцелярские расходы%'),'') as id_kanc,
+											COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%командировочные расходы%'),'')  as id_komand,
+											COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%расходы на приобретение других материальных ценностей (материальных запасов)%'),'')  as id_mat_cen,
+											COALESCE( (
+											select t.code 
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%для сборки, разборки технологического оборудования%'),'') as id_razbor,
+											COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%для транспортных и погрузочно-разгрузочных работ%'),'') as id_tranc,
+											COALESCE((
+											select t.code 
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%для выполнения работ по содержанию помещений%'),'') as id_uchast,
+											COALESCE((
+											select t.code
+											from FINEXP F, TYPEEXP T 
+											where f.electcommincampid = r.electcommincampid and lower(f.levelestimate) = 'district'
+											and t.id = f.typeexpid and lower(t.code) like '%для выполнения работ, связанных с подготовкой и проведением выборов%'),'') as id_soderzh
+											from REGISTER r
+											where r.id = ${id}::bigint
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="prilozh" orientation="H"/>
+			<band name="decide" orientation="H"/>
+			<band name="v_fov" orientation="H"/>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

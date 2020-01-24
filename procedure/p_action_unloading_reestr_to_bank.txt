@@ -1,112 +1,111 @@
-CREATE OR REPLACE FUNCTION public.p_action_unloading_reestr_to_bank (
-  fdate date,
-  ident bigint,
-  id bigint
-)
-RETURNS text AS
-$body$
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_unloading_reestr_to_bank(fdate  date,  ident  bigint,  id  bigint)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
 declare
-	NID  bigint:=ID;
-    tXML text;				
-    CR   text:=chr(13); 	--enter 
-    TB   text:=chr(9);		--tab
-    RC	record;
-	EMP record;	
-    sERRORS TEXT:='';
-    FL INTEGER;
+    NID          BIGINT  :=  ID;
+    TXML        TEXT;
+    CR            TEXT  :=  CHR(13);  --enter  
+    TB            TEXT  :=  CHR(9);  --tab
+    RC            record;
+    EMP          record;
+    SERRORS  TEXT  :=  '';
+    FL            integer;
 begin
-  
-	tXML:='<?xml version="1.0" encoding="UTF-8"?>'||CR;
-    FOR RC IN (SELECT R.ID,
-    				  COALESCE(R.CONTRACTNUMB,'') AS CONTRACTNUMB,
-    				  COALESCE(R.DOCNUMB,'') AS DOCNUMB,
-                      COALESCE(IK.NAME,'') AS NAME_IK,
-                      COALESCE(IK.INN,'') AS INN_IK,
-                      COALESCE(RS.BANKACC,'') AS BANKACC, 
-                      COALESCE(RS.DEPARTMENT::text,'') AS OTDEL,
-                      COALESCE(R.BIC,'') AS BIC
-    								FROM REGISTERSTRANSFERS R 
-    								LEFT JOIN ELECTCOMMINCAMP K ON K.ID = R.ELECTCOMMINCAMPID 
-                                    INNER JOIN ELECTCOMMITTEE IK ON IK.ID = K.ELECTCOMMITTEEID
-                                    LEFT JOIN ELCMTACC RS ON RS.ID = R.ELCMTACCID
-                                    WHERE R.ID = NID) LOOP
-	tXML:=tXML||'<—˜ÂÚ‡œ '
-          -- ||' xmlns:xs="http://www.w3.org/2001/XMLSchema"'
-          -- ||' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-          -- ||' xmlns="http://v8.1c.ru/edi/edi_stnd/109"'
-          -- ||' xsi:type="—˜ÂÚœ "'
-           ||' ƒ‡Ú‡‘ÓÏËÓ‚‡ÌËˇ="'||to_char(fdate,'yyyy-mm-dd')||'"'
-           ||' ÕÓÏÂƒÓ„Ó‚Ó‡="'||RC.CONTRACTNUMB||'"'
-          -- ||' ƒ‡Ú‡ƒÓ„Ó‚Ó‡="2010-11-09"'										--???
-           ||' Õ‡ËÏÂÌÓ‚‡ÌËÂŒ„‡ÌËÁ‡ˆËË="'||RC.NAME_IK||'"'
-           ||' »ÕÕ="'||RC.INN_IK||'"'
-           ||' –‡Ò˜ÂÚÌ˚È—˜ÂÚŒ„‡ÌËÁ‡ˆËË="'||RC.BANKACC||'"'
-           ||' ¡» ="'||RC.BIC||'"'
-          -- ||' »‰œÂ‚Ë˜ÌÓ„ÓƒÓÍÛÏÂÌÚ‡="'||'?'||'"'								--???
-           ||' ÕÓÏÂ–ÂÂÒÚ‡="'||RC.DOCNUMB||'">'||CR;
-          -- ||' ƒ‡Ú‡–ÂÂÒÚ‡="'||'?'||'">'||CR;  --“Â„ <—˜ÂÚ‡œ >					  ???
-           
-    tXML:=tXML||'<«‡˜ËÒÎÂÌËÂ«‡ÔÎ‡Ú˚>'||CR;
-    
-    	FOR EMP IN (
-        			SELECT ROW_NUMBER() OVER() AS NUM, 
-                    	   COALESCE(C.SURNAME,'') AS SURNAME,
-                           COALESCE(C.FIRSTNAME,'') AS FIRSTNAME,
-                           COALESCE(C.MIDDLENAME,'') AS MIDDLENAME,
-                           COALESCE(A.DEPARTMENT::TEXT,'') AS OTDEL_B,
-                           COALESCE(A.BRANCHOFFICE::TEXT,'') AS FILIAL_B,
-                           COALESCE(A.BANKACC,'') AS ACC_B,
-                           COALESCE(S.SUMTRN,0) AS SUMMA
-                      FROM SLREGTRNPR S
-                INNER JOIN COMMITTEEMAN C ON C.ID = S.COMMITTEEMANID
-                 LEFT JOIN PERSONACC A ON A.ID = S.PERSONACCID
-                     WHERE S.REGISTERSTRANSFERSID = RC.ID
-        			)
-                    LOOP
-                    	IF EMP.OTDEL_B = '' THEN FL:=1; SERRORS:=SERRORS||CR||EMP.SURNAME||' '||EMP.FIRSTNAME||' '||EMP.MIDDLENAME||';'; END IF;
-                     	tXML:=tXML||TB||'<—ÓÚÛ‰ÌËÍ ÕÔÔ="'||EMP.NUM||'">'||CR
-			   							||TB||TB||'<‘‡ÏËÎËˇ>'||EMP.SURNAME||'</‘‡ÏËÎËˇ>'||CR
-										||TB||TB||'<»Ïˇ>'||EMP.FIRSTNAME||'</»Ïˇ>'||CR
-										||TB||TB||'<ŒÚ˜ÂÒÚ‚Ó>'||EMP.MIDDLENAME||'</ŒÚ˜ÂÒÚ‚Ó>'||CR
-										||TB||TB||'<ŒÚ‰ÂÎÂÌËÂ¡‡ÌÍ‡>'||EMP.OTDEL_B||'</ŒÚ‰ÂÎÂÌËÂ¡‡ÌÍ‡>'||CR
-										||TB||TB||'<‘ËÎË‡ÎŒÚ‰ÂÎÂÌËˇ¡‡ÌÍ‡>'||EMP.FILIAL_B||'</‘ËÎË‡ÎŒÚ‰ÂÎÂÌËˇ¡‡ÌÍ‡>'||CR
-										||TB||TB||'<ÀËˆÂ‚ÓÈ—˜ÂÚ>'||EMP.ACC_B||'</ÀËˆÂ‚ÓÈ—˜ÂÚ>'||CR
-										||TB||TB||'<—ÛÏÏ‡>'||round(EMP.SUMMA,2)||'</—ÛÏÏ‡>'||CR
-										--||'< Ó‰¬‡Î˛Ú˚>'||'?'||'</ Ó‰¬‡Î˛Ú˚>'||CR --???
-								   ||TB||'</—ÓÚÛ‰ÌËÍ>'||CR;
-                    END LOOP;
-                    
-    tXML:=tXML||'</«‡˜ËÒÎÂÌËÂ«‡ÔÎ‡Ú˚>'||CR;  
-    tXML:=tXML||'<¬Ë‰«‡˜ËÒÎÂÌËˇ>01</¬Ë‰«‡˜ËÒÎÂÌËˇ>'||CR; 
-    tXML:=tXML||'< ÓÌÚÓÎ¸Ì˚Â—ÛÏÏ˚>'||CR;
-    
-    	FOR EMP IN (
-        			SELECT COUNT(*) AS KOL_VO, COALESCE(SUM(COALESCE(S.SUMTRN,0)),0) AS SUMMA 
-                    FROM SLREGTRNPR S, COMMITTEEMAN C, PERSONACC A 
-                    WHERE S.REGISTERSTRANSFERSID = RC.ID AND C.ID = S.COMMITTEEMANID AND A.ID = S.PERSONACCID
-                    )
-                    LOOP 
-                    	tXML:=tXML||TB||'< ÓÎË˜ÂÒÚ‚Ó«‡ÔËÒÂÈ>'||EMP.KOL_VO||'</ ÓÎË˜ÂÒÚ‚Ó«‡ÔËÒÂÈ>'||CR
-								  ||TB||'<—ÛÏÏ‡»ÚÓ„Ó>'||round(EMP.SUMMA,2)||'</—ÛÏÏ‡»ÚÓ„Ó>'||CR;
-                    END LOOP;
-                   
-	tXML:=tXML||'</ ÓÌÚÓÎ¸Ì˚Â—ÛÏÏ˚>'||CR;                   
-    tXML:=tXML||'</—˜ÂÚ‡œ >'||CR;
-     
-    --◊ËÒÚËÏ ·ÛÙÂÌÛ˛ Ú‡·ÎËˆÛ, Á‡ÚÂÏ Á‡ÍË‰˚‚‡ÂÏ XML 
-    DELETE FROM FILEBUFFER WHERE CID = IDENT;
-    INSERT INTO FILEBUFFER(CID, FILENAME, BFILE) VALUES (IDENT, COALESCE(RC.OTDEL::text,'')||COALESCE(RC.DOCNUMB,'')||'z.xml', P_SYSTEM_FILE_FROM_TEXT(tXML)); 
-    UPDATE REGISTERSTRANSFERS T SET FILENAME = COALESCE(RC.OTDEL::text,'')||COALESCE(RC.DOCNUMB,'')||'z.xml', FORMDATE = TO_CHAR(FDATE,'dd.mm.yyyy') WHERE T.ID = RC.ID;         
-   END LOOP;
-   IF FL = 1 THEN RAISE USING MESSAGE = 'ÕÂ ÛÍ‡Á‡Ì ÌÓÏÂ ÓÚ‰ÂÎÂÌËˇ ·‡ÌÍ‡! ” ÙËÁË˜ÂÒÍËı ÎËˆ:'||CR||LTRIM(SERRORS,CR); END IF;
-   return null;
-end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
 
-ALTER FUNCTION public.p_action_unloading_reestr_to_bank (fdate date, ident bigint, id bigint)
-  OWNER TO magicbox;
+    TXML  :=  '<?xml  version="1.0"  encoding="UTF-8"?>'  ||  CR;
+    for  RC  in  (select  R.ID,
+                                        COALESCE(R.CONTRACTNUMB,  '')  as  CONTRACTNUMB,
+                                        COALESCE(R.DOCNUMB,  '')  as  DOCNUMB,
+                                        COALESCE(IK.NAME,  '')  as  NAME_IK,
+                                        COALESCE(IK.INN,  '')  as  INN_IK,
+                                        COALESCE(RS.BANKACC,  '')  as  BANKACC,
+                                        COALESCE(RS.DEPARTMENT  ::TEXT,  '')  as  OTDEL,
+                                        COALESCE(R.BIC,  '')  as  BIC,
+                                        COALESCE(R.TRANSFERSTYPE,  '')  as  ENROLLMENT
+                              from  REGISTERSTRANSFERS  R
+                              left  join  ELECTCOMMINCAMP  K
+                                  on  K.ID  =  R.ELECTCOMMINCAMPID
+                            inner  join  ELECTCOMMITTEE  IK
+                                  on  IK.ID  =  K.ELECTCOMMITTEEID
+                              left  join  ELCMTACC  RS
+                                  on  RS.ID  =  R.ELCMTACCID
+                            where  R.ID  =  NID)
+    loop
+        TXML  :=  TXML  ||  '<–°—á–µ—Ç–∞–ü–ö'
+                      --  ||'  xmlns:xs="http://www.w3.org/2001/XMLSchema"'
+                      --  ||'  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+                      --  ||'  xmlns="http://v8.1c.ru/edi/edi_stnd/109"'
+                      --  ||'  xsi:type="–°—á–µ—Ç–ü–ö"'
+                        ||  '  –î–∞—Ç–∞–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏—è="'  ||  TO_CHAR(FDATE,  'yyyy-mm-dd')  ||  '"'  ||  '  –ù–æ–º–µ—Ä–î–æ–≥–æ–≤–æ—Ä–∞="'  ||  RC.CONTRACTNUMB  ||  '"'
+                      --  ||'  –î–∞—Ç–∞–î–æ–≥–æ–≤–æ—Ä–∞="2010-11-09"'                                      --???
+                        ||  '  –ù–∞–∏–º–µ–Ω–æ–≤–∞–Ω–∏–µ–û—Ä–≥–∞–Ω–∏–∑–∞—Ü–∏–∏="'  ||  RC.NAME_IK  ||  '"'  ||  '  –ò–ù–ù="'  ||  RC.INN_IK  ||  '"'  ||  '  –†–∞—Å—á–µ—Ç–Ω—ã–π–°—á–µ—Ç–û—Ä–≥–∞–Ω–∏–∑–∞—Ü–∏–∏="'  ||  RC.BANKACC  ||  '"'  ||  '  –ë–ò–ö="'  ||  RC.BIC  ||  '"'
+                      --  ||'  –ò–¥–ü–µ—Ä–≤–∏—á–Ω–æ–≥–æ–î–æ–∫—É–º–µ–Ω—Ç–∞="'||'?'||'"'                              --???
+                        ||  '  –ù–æ–º–µ—Ä–†–µ–µ—Å—Ç—Ä–∞="'  ||  RC.DOCNUMB  ||  '">'  ||  CR;
+                      --  ||'  –î–∞—Ç–∞–†–µ–µ—Å—Ç—Ä–∞="'||'?'||'">'||CR;    --–¢–µ–≥  <–°—á–µ—Ç–∞–ü–ö>                        ???
+    
+        TXML  :=  TXML  ||  '<–ó–∞—á–∏—Å–ª–µ–Ω–∏–µ–ó–∞—Ä–ø–ª–∞—Ç—ã>'  ||  CR;
+    
+        for  EMP  in  (select  ROW_NUMBER()  OVER()  as  NUM,
+                                              COALESCE(P.SURNAME,  '')  as  SURNAME,
+                                              COALESCE(P.FIRSTNAME,  '')  as  FIRSTNAME,
+                                              COALESCE(P.MIDDLENAME,  '')  as  MIDDLENAME,
+                                              COALESCE(A.DEPARTMENT  ::TEXT,  '')  as  OTDEL_B,
+                                              COALESCE(A.BRANCHOFFICE  ::TEXT,  '')  as  FILIAL_B,
+                                              COALESCE(A.BANKACC,  '')  as  ACC_B,
+                                              COALESCE(S.SUMTRN,  0)  as  SUMMA
+                                    from  SLREGTRNPR  S
+                                  inner  join  COMMITTEEMAN  C
+                                        on  C.ID  =  S.COMMITTEEMANID
+                                  inner  join  PERSON  P
+                                        on  P.ID  =  C.PERSONID
+                                    left  join  PERSONACC  A
+                                        on  A.ID  =  S.PERSONACCID
+                                  where  S.REGISTERSTRANSFERSID  =  RC.ID)
+        loop
+            if  EMP.OTDEL_B  =  ''  then
+                FL            :=  1;
+                SERRORS  :=  SERRORS  ||  CR  ||  EMP.SURNAME  ||  '  '  ||  EMP.FIRSTNAME  ||  '  '  ||  EMP.MIDDLENAME  ||  ';';
+            end  if;
+            TXML  :=  TXML  ||  TB  ||  '<–°–æ—Ç—Ä—É–¥–Ω–∏–∫  –ù–ø–ø="'  ||  EMP.NUM  ||  '">'  ||  CR  ||  TB  ||  TB  ||  '<–§–∞–º–∏–ª–∏—è>'  ||  EMP.SURNAME  ||  '</–§–∞–º–∏–ª–∏—è>'  ||  CR  ||  TB  ||  TB  ||  '<–ò–º—è>'  ||  EMP.FIRSTNAME  ||  '</–ò–º—è>'  ||  CR  ||  TB  ||  TB  ||
+                            '<–û—Ç—á–µ—Å—Ç–≤–æ>'  ||  EMP.MIDDLENAME  ||  '</–û—Ç—á–µ—Å—Ç–≤–æ>'  ||  CR  ||  TB  ||  TB  ||  '<–û—Ç–¥–µ–ª–µ–Ω–∏–µ–ë–∞–Ω–∫–∞>'  ||  EMP.OTDEL_B  ||  '</–û—Ç–¥–µ–ª–µ–Ω–∏–µ–ë–∞–Ω–∫–∞>'  ||  CR  ||  TB  ||  TB  ||  '<–§–∏–ª–∏–∞–ª–û—Ç–¥–µ–ª–µ–Ω–∏—è–ë–∞–Ω–∫–∞>'  ||  EMP.FILIAL_B  ||
+                            '</–§–∏–ª–∏–∞–ª–û—Ç–¥–µ–ª–µ–Ω–∏—è–ë–∞–Ω–∫–∞>'  ||  CR  ||  TB  ||  TB  ||  '<–õ–∏—Ü–µ–≤–æ–π–°—á–µ—Ç>'  ||  EMP.ACC_B  ||  '</–õ–∏—Ü–µ–≤–æ–π–°—á–µ—Ç>'  ||  CR  ||  TB  ||  TB  ||  '<–°—É–º–º–∞>'  ||  ROUND(EMP.SUMMA,  2)  ||  '</–°—É–º–º–∞>'  ||  CR
+                          --||'<–ö–æ–¥–í–∞–ª—é—Ç—ã>'||'?'||'</–ö–æ–¥–í–∞–ª—é—Ç—ã>'||CR  --???
+                            ||  TB  ||  '</–°–æ—Ç—Ä—É–¥–Ω–∏–∫>'  ||  CR;
+        end  loop;
+    
+        TXML  :=  TXML  ||  '</–ó–∞—á–∏—Å–ª–µ–Ω–∏–µ–ó–∞—Ä–ø–ª–∞—Ç—ã>'  ||  CR;
+        TXML  :=  TXML  ||  '<–í–∏–¥–ó–∞—á–∏—Å–ª–µ–Ω–∏—è>'  ||  RC.ENROLLMENT  ||  '</–í–∏–¥–ó–∞—á–∏—Å–ª–µ–Ω–∏—è>'  ||  CR;
+        TXML  :=  TXML  ||  '<–ö–æ–Ω—Ç—Ä–æ–ª—å–Ω—ã–µ–°—É–º–º—ã>'  ||  CR;
+    
+        for  EMP  in  (select  count(*)  as  KOL_VO,
+                                              COALESCE(sum(COALESCE(S.SUMTRN,  0)),  0)  as  SUMMA
+                                    from  SLREGTRNPR      S,
+                                              COMMITTEEMAN  C,
+                                              PERSONACC        A
+                                  where  S.REGISTERSTRANSFERSID  =  RC.ID
+                                      and  C.ID  =  S.COMMITTEEMANID
+                                      and  A.ID  =  S.PERSONACCID)
+        loop
+            TXML  :=  TXML  ||  TB  ||  '<–ö–æ–ª–∏—á–µ—Å—Ç–≤–æ–ó–∞–ø–∏—Å–µ–π>'  ||  EMP.KOL_VO  ||  '</–ö–æ–ª–∏—á–µ—Å—Ç–≤–æ–ó–∞–ø–∏—Å–µ–π>'  ||  CR  ||  TB  ||  '<–°—É–º–º–∞–ò—Ç–æ–≥–æ>'  ||  ROUND(EMP.SUMMA,  2)  ||  '</–°—É–º–º–∞–ò—Ç–æ–≥–æ>'  ||  CR;
+        end  loop;
+    
+        TXML  :=  TXML  ||  '</–ö–æ–Ω—Ç—Ä–æ–ª—å–Ω—ã–µ–°—É–º–º—ã>'  ||  CR;
+        TXML  :=  TXML  ||  '</–°—á–µ—Ç–∞–ü–ö>'  ||  CR;
+    
+        --–ß–∏—Å—Ç–∏–º  –±—É—Ñ–µ—Ä–Ω—É—é  —Ç–∞–±–ª–∏—Ü—É,  –∑–∞—Ç–µ–º  –∑–∞–∫–∏–¥—ã–≤–∞–µ–º  XML  
+        delete  from  FILEBUFFER  where  CID  =  IDENT;
+        insert  into  FILEBUFFER  (CID,  FILENAME,  bfile)  values  (IDENT,  COALESCE(RC.OTDEL  ::TEXT,  '')  ||  COALESCE(RC.DOCNUMB,  '')  ||  'z.xml',  P_SYSTEM_FILE_FROM_TEXT(TXML));
+        update  REGISTERSTRANSFERS  T
+              set  FILENAME  =  COALESCE(RC.OTDEL  ::TEXT,  '')  ||  COALESCE(RC.DOCNUMB,  '')  ||  'z.xml',
+                      FORMDATE  =  TO_CHAR(FDATE,  'dd.mm.yyyy')
+          where  T.ID  =  RC.ID;
+    end  loop;
+    if  FL  =  1  then
+        raise
+            using  MESSAGE  =  '–ù–µ  —É–∫–∞–∑–∞–Ω  –Ω–æ–º–µ—Ä  –æ—Ç–¥–µ–ª–µ–Ω–∏—è  –±–∞–Ω–∫–∞!  –£  —Ñ–∏–∑–∏—á–µ—Å–∫–∏—Ö  –ª–∏—Ü:'  ||  CR  ||  LTRIM(SERRORS,  CR);
+    end  if;
+    return  null;
+end;
+$function$
+ 

@@ -1,0 +1,104 @@
+ CREATE  OR  REPLACE  FUNCTION  public.t_worktbl_before_u()
+  RETURNS  trigger
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    DSPDATE        date;
+    HH6                timestamp;
+    HH22              timestamp;
+    HH24              timestamp;
+    BUF1              numeric;
+    BUF2              numeric;
+    BUF                numeric  [  ];
+    TENDTIME      numeric(17,  2);
+    TBEGINTIME  numeric(17,  2);
+    PAY_ORD        TEXT  :=  'K';  --порядок  оплаты  компенсация
+begin
+
+    if  TO_CHAR(NEW.TIMEBEGINTBL,  'mi')  ::numeric  =  0  then
+        BUF  [  0  ]  :=  0;
+    else
+        BUF  [  0  ]  :=  (1  /  (60  /  TO_CHAR(NEW.TIMEBEGINTBL,  'mi')  ::numeric));
+    end  if;
+    if  TO_CHAR(NEW.TIMEENDTBL,  'mi')  ::numeric  =  0  then
+        BUF  [  1  ]  :=  0;
+    else
+        BUF  [  1  ]  :=  (1  /  (60  /  TO_CHAR(NEW.TIMEENDTBL,  'mi')  ::numeric));
+    end  if;
+    TBEGINTIME  :=  TO_CHAR(NEW.TIMEBEGINTBL,  'hh24')  ::numeric  +  BUF  [  0  ];
+    TENDTIME      :=  TO_CHAR(NEW.TIMEENDTBL,  'hh24')  ::numeric  +  BUF  [  1  ];
+
+    if  TENDTIME  =  0  then
+        TENDTIME  :=  24;
+    end  if;
+    if  TENDTIME  <  TBEGINTIME  then
+        NEW.ERRWH  :=  '  Время  конца  не  может  быть  меньше,  времени  начала!!!';
+    end  if;
+
+    NEW.ERRWH  :=  null;
+    if  NEW.TYPEPAY  =  'K'  and  NEW.TYPEDAYID  is  null  then
+    
+        if  TENDTIME  -  TBEGINTIME  =  8  then
+            NEW.WHCOMP  =  8;
+            NEW.ERRWH  :=  '';
+        else
+            NEW.WHCOMP  :=  TENDTIME  -  TBEGINTIME;
+            NEW.ERRWH    :=  'Ошибка  ввода  времени  по  Компенсации!';
+        end  if;
+    else
+        NEW.WHCOMP  :=  0;
+        NEW.ERRWH    :=  '';
+    end  if;
+    if  NEW.TYPEPAY  =  'D'  then
+        NEW.WHEXTRAFULL  =  TENDTIME  -  TBEGINTIME;
+        if  TENDTIME  <=  6  and  TBEGINTIME  <=  6  then
+            NEW.WHEXTRANIGHT  :=  TENDTIME  -  TBEGINTIME;
+            NEW.ERRWH                :=  '';
+        elsif  TBEGINTIME  <=  6  and  6  <  TENDTIME  and  TENDTIME  <  22  then
+            NEW.WHEXTRANIGHT  :=  6  -  TBEGINTIME;
+            NEW.ERRWH                :=  '';
+        elsif  6  <=  TBEGINTIME  and  TBEGINTIME  <=  22  and  6  <=  TENDTIME  and  TENDTIME  <=  22  then
+            NEW.WHEXTRANIGHT  :=  0;
+            NEW.ERRWH                :=  '';
+        elsif  6  <=  TBEGINTIME  and  TBEGINTIME  <=  22  and  22  <  TENDTIME  and  TENDTIME  <=  24  then
+            NEW.WHEXTRANIGHT  :=  TENDTIME  -  22;
+            NEW.ERRWH                :=  '';
+        elsif  22  <=  TBEGINTIME  and  TBEGINTIME  <  24  and  22  <  TENDTIME  and  TENDTIME  <=  24  then
+            NEW.WHEXTRANIGHT  :=  TENDTIME  -  TBEGINTIME;
+            NEW.ERRWH                :=  '';
+        end  if;
+    else
+        NEW.WHEXTRAFULL  :=  0;
+    end  if;
+    BUF1  :=  NEW.WHEXTRANIGHT;
+    BUF2  :=  NEW.WHEXTRAFULL;
+    BUF1  :=  BUF2  -  BUF1;
+    if  NEW.TYPEPAY  =  'D'  and  NEW.TYPEDAYID  is  not  null  then
+        NEW.WHEXTRAHOL  :=  BUF1;
+        NEW.ERRWH            :=  '';
+    else
+        NEW.WHEXTRAHOL  :=  0;
+    end  if;
+
+    if  NEW.TYPEPAY  =  'D'  and  NEW.TYPEDAYID  is  null  then
+        NEW.WHEXTRAWORKDAY  :=  BUF1;
+        NEW.ERRWH                    :=  '';
+    else
+        NEW.WHEXTRAWORKDAY  :=  0;
+    end  if;
+
+    /*
+      3826  проверки  ввода  значений  в  сведених  фов
+    */
+    if  NEW.TYPEPAY  =  PAY_ORD  and  NEW.TYPEDAYID  is  not  null  then
+        NEW.ERRWH  :=  'Выплата  компенсации  в  выходной  и  нерабочий  праздничный  день  запрещена!';  
+    elsif  NEW.TYPEPAY  =  PAY_ORD  and  NEW.WHCOMP  !=  8  then
+        NEW.ERRWH  :=  'Нарушен  порядок  работы  при  выплате  компенсации.  Количество  отработанных  часов  должно  равняться  8!';  
+    elsif  NEW.TYPEPAY  =  PAY_ORD  and  NEW.TYPEDAYID  is  null  and  NEW.WHCOMP  =  8  and  (NEW.TIMEBEGINTBL  ::time  >  '14:00'  ::time  or  NEW.TIMEENDTBL  ::time  <  '14:00'  ::time)  then
+        NEW.ERRWH  :=  'Ошибка  ввода  времени  работы  при  выплате  компенсации:  укажите  любые  8  рабочих  часов  в  день  в  период  с  6.00  до  22.00';  
+    end  if;
+    --
+    return  new;
+end;
+$function$
+ 
