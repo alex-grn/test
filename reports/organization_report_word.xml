@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <report name="report">
     <templates>
-        <template code="DEFAULT" documentName="organization_report.xls" documentPath="organization_report.xls" outputType="doc" outputNamePattern="organization_report.doc"/>
+        <template code="DEFAULT" documentName="organization_report_word.docx" documentPath="organization_report_word.docx" outputType="docx" outputNamePattern="organization_report_word.docx"/>
     </templates>
     <rootBand name="Root" orientation="H">
         <bands>
@@ -56,7 +56,8 @@
                      <query name="spec2" type="sql">
                         <script>
 							select   row_number() over(order by sort,name_sub) as num, tbl.name_org, tbl.name_sub, tbl.adr_org,tbl.sort
-							 FROM(select 
+							FROM(
+							select 
 								dor.name as name_org,
 								dep.name as name_sub,
 								p_action_get_adress(dor.id) as adr_org,
@@ -74,7 +75,7 @@
 							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
 							where dep.LEVELSIGNIFICANCE = '2' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
 							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
-							  and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer)) tbl
+							  and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer))tbl
 							order by sort,name_sub
 						</script>
                      </query>
