@@ -1,0 +1,1090 @@
+<SYSTEM id="81" name="АИС Социальный регистр населения">
+	<MODULES id="Modules" name="Модули">
+		<MODULE id="AIS_SPN" name="АИС социальная поддержка населения" menu="mAIS_SPN"/>
+		<MODULE id="AIS_NSR" name="Нормативно справочный раздел" menu="mAIS_NSR"/>
+	</MODULES>
+	<GROUPS_MENU name="Группы меню">
+		<MENU id="mAIS_SPN" name="АИС социальная поддержка населения">
+			<MENU name="Файл">
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
+				<MI name="Параметры" formlist="Options"/>
+				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
+				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Операции">
+				<MI name="Заявления и обращения" formlist="fPetition"/>
+				<MI name="Личные дела" formlist="fPrivateAffair"/>
+			</MENU>
+			<MENU name="Справочники">
+				<MENU name="Агенты">
+					<MI name="Организации" formlist="fAgent"/>
+					<MI name="Банковские учреждения" formlist="fAgentBanks"/>
+					<MI name="Типы банковских счетов" formlist="fBankAccTypes"/>
+					<MI name="Банковские счета" formlist="fAgentAcc"/>
+				</MENU>
+				<MENU name="Граждане">
+					<MI name="Физ.лица" formlist="fPerson"/>
+					<MI name="Сотрудники" formlist="fStaff"/>
+					<MI name="Личное дело гражданина" formlist="fPersonCard"/>
+					<MI name="Пенсионное дело гражданина" formlist="fPersonPfrCard"/>
+				</MENU>
+				<MI name="Географические понятия" formlist="fGeo"/>
+				<MI name="Типы географических понятий" formlist="fGeoType"/>
+				<MI name="Подразделения" formlist="fDepart"/>
+				<MI name="Должности" formlist="fJob"/>
+				<MI name="Таблиы ЕАИС МО" formlist="fEaisTable"/>
+			</MENU>
+		</MENU>
+		<MENU id="mAIS_NSR" name="Нормативно справочный раздел">
+			<MENU name="Файл">
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
+				<MI name="Параметры" formlist="Options"/>
+				<MI name="Загрузка шаблонов отчетов" actionlist="uploadReports"/>
+				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Справочники">
+				<MENU name="Граждане">
+					<MI name="Виды родства" formlist="fRelatType"/>
+					<MI name="Cтепени родства" formlist="fRelatDegree"/>
+					<MI name="Удостоверяющие документы" formlist="fPersonDocVid"/>
+				</MENU>
+				<MENU name="Инвалидность">
+					<MI name="Причины инвалидности" formlist="fInvalidReasons"/>
+					<MI name="Группа инвалидности" formlist="fInvalidGroup"/>
+				</MENU>
+				<MENU name="Соц.услуги">
+					<MI name="Социальные услуги " formlist="fSocServ"/>
+					<MI name="Социальные услуги - типы" formlist="fSocType"/>
+					<MI name="Социальные услуги - типы владения" formlist="fSocTypeOwn"/>
+					<MI name="Социальные услуги - признаки" formlist="fSocSign"/>
+					<MI name="Социальные услуги - номенклатура" formlist="fNomen"/>
+				</MENU>
+				<MENU name="Бюджет">
+					<MI name="Тип бюджета" formlist="fBudgetType"/>
+					<MI name="Виды дохода" formlist="fTypeIncome"/>
+					<MI name="Финансовая величина" formlist="fFinanceUnit"/>
+				</MENU>
+				<MENU name="Заявки">
+					<MI name="Заявки - Статаус" formlist="fPetitStatus"/>
+					<MI name="Заявки - Тип" formlist="fPetitType"/>
+					<MI name="Причины снятия с учета" formlist="fReasonOutReg"/>
+				</MENU>
+				<MENU name="ПФР">
+					<MI name="ПФР алгоритмы начислений" formlist="fPprCalcAlgoritm"/>
+					<MI name="Причины снятия с учета" formlist="fReasonOutReg"/>
+				</MENU>
+			</MENU>
+		</MENU>
+	</GROUPS_MENU>
+	<ATTRIBUTES name="Атрибуты">
+		<A id="COD_ID" name="Код" caption="Код" labelwidth="150" type="string" len="18" nulls="false" readonly="true" virtual="true" formula="select @ID::text"/>
+		<A id="GEO_TYPE_ID" name="Тип гео.обьекта" caption="Тип географ.обьекта" labelwidth="100" type="ref" table="GEO_TYPE" ret="CODE" form="fGeoType" nulls="false"/>
+		<A id="GEO_ID" name="Адрес" caption="Адрес" labelwidth="50" type="ref" table="GEO" ret="CODE" form="fGeo" nulls="false"/>
+		<A id="COUNTRY_ID" name="Страна" caption="Страна" labelwidth="100" type="ref" table="GEO" ret="CODE" form="fGeo" nulls="true"/>
+		<A id="AGENT_BANKS_ID" name="Финансовые учреждения" caption="Финансовые учреждения" labelwidth="150" type="ref" table="AGENT_BANKS" ret="NAME" form="fAgentBanks" nulls="true"/>
+		<A id="AGENT_ID" name="Организации" caption="Организации" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="false"/>
+		<A id="BANK_ACC_TYPES_ID" name="Типы счета" caption="Типы счета" labelwidth="150" type="ref" table="BANK_ACC_TYPES" ret="CODE" form="fBankAccTypes" nulls="true"/>
+		<A id="AGENT_ACC_ID" name="Счета" caption="Счета" labelwidth="150" type="ref" table="AGENT_ACC" ret="BANK_ACC" form="fAgentAcc" nulls="true"/>
+		<A id="CORR_AGENT_ACC_ID" name="Реквизиты банка-корреспондента" caption="Реквизиты банка-корреспондента" labelwidth="150" type="ref" table="AGENT_ACC" ret="BANK_ACC" form="fAgentAcc" nulls="true"/>
+		<A id="PERSON_ID" name="Физ.лицо" caption="Физ.лицо" labelwidth="150" type="ref" table="PERSON" ret="ID" form="fPerson" nulls="false"/>
+		<A id="PERSON_NAME_VIRT" name="Физ.лицо" caption="Физ.лицо" labelwidth="150" type="text" nulls="true" virtual="true" formula="select p_get_person_name(@ID)::text"/>
+		<A id="PERSON_CARD_ID" name="Личное дело гражданина" caption="Личное дело гражданина" labelwidth="150" type="ref" table="PERSON_CARD" ret="ID" form="fPersonCard" nulls="false"/>
+		<A id="SUR_NAME_ID" name="Фамилия" caption="Фамилия" labelwidth="150" type="ref" table="PERSON_SUR_NAME" ret="NAME" form="fPersonSurName" nulls="false"/>
+		<A id="FIRST_NAME_ID" name="Имя" caption="Имя" labelwidth="150" type="ref" table="PERSON_FIRST_NAME" ret="NAME" form="fPersonFirstName" nulls="false"/>
+		<A id="MIDDLE_NAME_ID" name="Отчество" caption="Отчество" labelwidth="150" type="ref" table="PERSON_MIDDLE_NAME" ret="NAME" form="fPersonMiddleName" nulls="false"/>
+		<A id="JOB_ID" name="Должность" caption="Должность" labelwidth="150" type="ref" table="JOB" ret="CODE" form="fJob" nulls="false"/>
+		<A id="JOB_GROUP_ID" name="Группы должностей" caption="Группы должностей" labelwidth="150" type="ref" table="JOB_GROUP" ret="CODE" form="fJobGroup" nulls="false"/>
+		<COMMENT id="Dic" name="Справочники"/>
+		<A id="DEPART_ID" name="Подразделения" caption="Подразделения" labelwidth="150" width="50" type="ref" table="DEPART" ret="CODE" form="fDepart" nulls="false"/>
+		<A id="DEPART_JOB_PERF_ID" name="Руководство подразделением" caption="Руководство подразделением" labelwidth="150" type="ref" pid="DEPART_ID" table="DEPART_JOB_PERF" ret="CODE" form="fDepartJobPerf" nulls="false"/>
+		<A id="RELAT_TYPE_ID" name="Виды родства" caption="Виды родства" labelwidth="150" width="50" type="ref" table="RELAT_TYPE" ret="CODE" form="fRelatType" nulls="false"/>
+		<A id="RELAT_DEGREE_ID" name="Cтепени родства" caption="Cтепени родства" labelwidth="150" width="50" type="ref" table="RELAT_DEGREE" ret="CODE" form="fRelatDegree" nulls="false"/>
+		<A id="TYPE_INCOME_ID" name="Виды дохода" caption="Виды дохода" labelwidth="150" width="50" type="ref" table="TYPE_INCOME" ret="CODE" form="fTypeIncome" nulls="false"/>
+		<A id="INVALID_REASONS_ID" name="Причины инвалидности" caption="Причины инвалидности" labelwidth="150" width="50" type="ref" table="INVALID_REASONS" ret="CODE" form="fInvalidReasons" nulls="false"/>
+		<A id="INVALID_GROUP_ID" name="Группа инвалидности" caption="Группа инвалидности" labelwidth="150" width="50" type="ref" table="INVALID_GROUP" ret="CODE" form="fInvalidGroup" nulls="false"/>
+		<A id="SOC_SERV_ID" name="Социальные услуги" caption="Социальные услуги" labelwidth="150" width="50" type="ref" table="SOC_SERV" ret="CODE" form="fSocServ" nulls="false"/>
+		<A id="SOC_TYPE_ID" name="Социальные услуги - типы" caption="Социальные услуги - типы" labelwidth="150" width="50" type="ref" table="SOC_TYPE" ret="CODE" form="fSocType" nulls="false"/>
+		<A id="SOC_TYPE_OWN_ID" name="Социальные услуги - типы владения" caption="Социальные услуги - типы владения" labelwidth="150" width="50" type="ref" table="SOC_TYPE" ret="CODE" form="fSocType" nulls="false"/>
+		<A id="SOC_SIGN_ID" name="Социальные услуги - признаки" caption="Социальные услуги - типы" labelwidth="150" width="50" type="ref" table="SOC_SIGN" ret="CODE" form="fSocSign" nulls="false"/>
+		<A id="BUDGET_TYPE_ID" name="Тип бюджета" caption="Тип бюджета" labelwidth="150" width="50" type="ref" table="BUDGET_TYPE" ret="CODE" form="fBudgetType" nulls="false"/>
+		<A id="PERSON_DOC_VID_ID" name="Удостоверяющие документы" caption="Удостоверяющие документы" labelwidth="150" width="50" type="ref" table="PERSON_DOC_VID" ret="CODE" form="fPersonDocVid" nulls="false"/>
+		<A id="NOMEN_ID" name="Социальные услуги - номенклатура" caption="Социальные услуги - номенклатура" labelwidth="150" width="50" type="ref" table="NOMEN" ret="CODE" form="fNomen" nulls="false"/>
+		<A id="PETITION_STATUS_ID" name="Заявки - Статаус" caption="Заявки - Статаус" labelwidth="150" width="50" type="ref" table="PETITION_STATUS" ret="CODE" form="fPetitionStatus" nulls="false"/>
+		<A id="PETITION_TYPE_ID" name="Заявки - Тип" caption="Заявки - Тип" labelwidth="150" width="50" type="ref" table="PETITION_TYPE" ret="CODE" form="fPetitionType" nulls="false"/>
+		<A id="REASON_OUT_REG_ID" name="Причины снятия с учета" caption="Причины снятия с учета" labelwidth="150" width="50" type="ref" table="REASON_OUT_REG" ret="CODE" form="fReasonOutReg" nulls="false"/>
+		<A id="PPR_CALC_ALGORITM_ID" name="ПФР алгоритмы начислений" caption="ПФР алгоритмы начислений" labelwidth="150" width="50" type="ref" table="PPR_CALC_ALGORITM" ret="CODE" form="fPprCalcAlgoritm" nulls="false"/>
+		<A id="FINANCE_UNIT_ID" name="Финансовая величина" caption="Финансовая величина" labelwidth="150" width="50" type="ref" table="FINANCE_UNIT" ret="CODE" form="fFinanceUnit" nulls="false"/>
+		<A id="FINANCE_VALUE_ID" name="Фин.величина-значение" caption="Фин.величина-значение" labelwidth="150" width="50" type="ref" pid="FINANCE_UNIT_ID" table="FINANCE_VALUE" ret="VALUE" form="fFinanceValue" nulls="false"/>
+	</ATTRIBUTES>
+	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		<GA id="Validity" name="Период действия" caption="Период действия">
+			<A id="BEGIN_DATE" name="Дата начала" caption="Дата начала" labelwidth="150" width="50" type="date" nulls="true" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')"/>
+			<A id="CLOSED" name="Закрыто" caption="Закрыто" labelwidth="150" width="50" type="boolean" nulls="false" value="false"/>
+		</GA>
+		<GA id="ValidityExt" name="Период действия" caption="Период действия">
+			<A id="BEGIN_DATE" name="Дата начала действия" caption="Дата начала действия" labelwidth="150" width="50" type="date" nulls="true" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')"/>
+			<A id="END_DATE" name="Дата окончания" caption="Дата окончания" labelwidth="150" width="50" type="date" nulls="true"/>
+			<A id="CLOSED" name="Закрыто" caption="Закрыто" labelwidth="150" width="50" type="boolean" nulls="false" value="true"/>
+		</GA>
+		<GA id="GeoParam" name="Параметры территории" caption="Параметры территории">
+			<A id="OKATO" name="ОКАТО" caption="ОКАТО" labelwidth="100" width="20" type="string" len="11" nulls="true"/>
+			<A id="OKTMO" name="ОКТМО" caption="ОКТМО" labelwidth="100" width="20" type="string" len="20" nulls="true"/>
+			<A id="POST" name="Индекс" caption="Индекс" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="COD_AGENT" name="Код Субьект РФ" caption="Код Субьекта РФ" labelwidth="100" width="20" type="string" nulls="true"/>
+			<A id="COD_GAI" name="Код ГАИ" caption="Код ГАИ" labelwidth="100" width="20" type="string" nulls="true"/>
+			<A id="COD_ISO" name="Код ISO" caption="Код ISO" labelwidth="100" width="20" type="string" nulls="true"/>
+		</GA>
+		<GA id="GeoFias" name="Федеральная Информационная Адресная Система" caption=" Федеральная Информационная Адресная Система">
+			<A id="AO_GUID" name="GUID кода ФИАС" caption="GUID кода ФИАС" labelwidth="150" width="50" type="string" nulls="true"/>
+			<A id="AO_ID" name="Код ФИАС" caption="Код ФИАС" labelwidth="150" width="50" type="string" nulls="true"/>
+			<A id="KLADR" name="Код КЛАДР" caption="Код КЛАДР" labelwidth="150" width="50" type="string" nulls="true"/>
+			<A id="HOUSE_GUID" name="GUID дома кода ФИАС" caption="GUID дома кода ФИАС" labelwidth="150" width="50" type="string" nulls="true"/>
+			<A id="HOUSE" name="Код дома ФИАС" caption="Код дома ФИАС" labelwidth="150" width="50" type="string" nulls="true"/>
+			<A id="FIAS_OBJ" name="Имя адр.объекта ФИАС" caption="Код ФИАС" labelwidth="150" width="50" type="string" nulls="true"/>
+			<A id="ACTIVE" name="Активен" caption="Активен" labelwidth="150" width="50" type="boolean" nulls="false" value="true"/>
+		</GA>
+		<GA id="AgentAddr" name="Адрес" caption="Адрес">
+			<A id="HOUSE" name="Дом" caption="Дом" labelwidth="100" width="50" type="string" len="10"/>
+			<A id="BUILDING" name="Корпус,строение" caption="Корпус,строение" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="ROOM" name="Офис" caption="Офис" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="POST" name="Индекс" caption="Индекс" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="IS_LEGAL" name="Юридический адрес" caption="Юридический адрес" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_PRIMARY" name="Основной адрес" caption="Основной адрес" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_MAIL" name="Адрес почтового перевода" caption="Адрес почтового перевода" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_REAL" name="Адрес реального нахождения" caption="Адрес реального нахождения" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_REG" name="Адрес временного нахождения" caption="Адрес временного нахождения" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="REG_DATE" name="Дата регистрации" caption="Дата регистрации" labelwidth="100" width="20" type="date" nulls="false" value="false"/>
+			<A id="REG_END" name="Дата окончания регистрации" caption="Дата окончания регистрации" labelwidth="100" width="20" type="date" nulls="true"/>
+		</GA>
+		<GA id="AgentParam" name="Параметры" caption="Параметры">
+			<A id="INN" name="ИНН" caption="ИНН" labelwidth="50" width="50" type="string" len="12" nulls="true" visible="form"/>
+			<A id="OKPO" name="ОКПО" caption="ОКПО" labelwidth="50" width="50" type="string" len="14" nulls="true" visible="form"/>
+			<A id="KPP" name="КПП" caption="КПП" labelwidth="50" width="50" type="string" len="9" nulls="true" visible="form"/>
+			<A id="OGRN" name="ОГРН" caption="ОГРН" labelwidth="50" width="50" type="string" len="15" nulls="true" visible="form"/>
+			<A id="OKATO" name="ОКАТО" caption="ОКАТО" labelwidth="50" width="50" type="string" len="11" nulls="true" visible="form"/>
+			<A id="IFNS" name="Инспекц.Федюр.налог.службы " caption="ИФНС" labelwidth="150" width="50" type="string" len="150" nulls="true"/>
+			<A id="DFNS" name="Дата постановки на учет в ФНС" caption="Дата ФНС" labelwidth="150" width="250" type="date" nulls="true" visible="form"/>
+			<A id="OKOPF" name="ОКОПФ" caption="ОКОПФ" labelwidth="50" width="50" type="string" len="20" nulls="true" visible="form"/>
+			<A id="OKFS" name="ОКФС" caption="ОКФС" labelwidth="50" width="50" type="string" len="20" nulls="true" visible="form"/>
+			<A id="OKTMO" name="ОКТМО" caption="ОКТМО" labelwidth="50" width="50" type="string" len="20" nulls="true" visible="form"/>
+		</GA>
+		<GA id="PersonAddr" name="Адрес" caption="Адрес">
+			<A id="HOUSE" name="Дом" caption="Дом" labelwidth="100" width="20" type="string" len="10"/>
+			<A id="BUILDING" name="Корпус,строение" caption="Корпус,строение" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="ROOM" name="Квартира,офис" caption="Квартира,офис" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="POST" name="Индекс" caption="Индекс" labelwidth="100" width="20" type="string" len="10" nulls="true"/>
+			<A id="IS_PRIMARY" name="Основной адрес" caption="Основной адрес" labelwidth="150" type="boolean" nulls="false" value="false"/>
+			<A id="IS_REAL" name="Адрес реального проживания" caption="Адрес реального проживания" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_MAIL" name="Адрес почтового перевода" caption="Адрес почтового перевода" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_BIRTH" name="Адрес рождения" caption="Адрес рождения" labelwidth="100" type="boolean" nulls="false" value="false"/>
+			<A id="IS_REG" name="Адрес временной регистрации" caption="Адрес временной регистрации" labelwidth="150" type="boolean" nulls="false" value="false"/>
+			<A id="REG_DATE" name="Дата регистрации" caption="Дата регистрации" labelwidth="100" width="20" type="date" nulls="false" value="false"/>
+			<A id="REG_END" name="Дата окончания регистрации" caption="Дата окончания регистрации" labelwidth="100" width="20" type="date" nulls="true"/>
+		</GA>
+		<GA id="ContactParam" name="Контакты" caption="Контакты">
+			<A id="PHONE" name="Номер телефона" caption="Телефон" labelwidth="150" type="string" nulls="true"/>
+			<A id="WEBSITE" name="Web-сайт" caption="Web-сайт" labelwidth="150" type="string" nulls="true"/>
+			<A id="EMAIL" name="E-Mail" caption="E-Mail" labelwidth="150" type="string" nulls="true"/>
+			<A id="NOTE"/>
+		</GA>
+		<GA id="ChangeUser" name="Автор" caption="Автор">
+			<A id="USER_INS" name="Создал" caption="Создал" type="ref" table="USERS" ret="LOGIN" nulls="false" readonly="true" local="true"/>
+			<A id="DATE_INS" name="Дата создания" caption="Дата создания" type="date" nulls="false" readonly="true" local="true"/>
+			<A id="USER_UPD" name="Изменил" caption="Изменил" type="ref" table="USERS" ret="LOGIN" nulls="false" readonly="true" local="true"/>
+			<A id="DATE_UPD" name="Дата изменения" caption="Дата изменения" type="date" nulls="false" readonly="true" local="true"/>
+		</GA>
+	</GROUPS_ATTRIBUTES>
+	<TABLES name="Таблицы">
+		<TABLE id="EAIS_TABLE" name="Таблицы ЕАИС МО">
+			<A id="NUMB" name="N" caption="N" type="int" nulls="true" formula="select coalesce(max(numb)+1,1)::int from EAIS_TABLE  where cid=0" local="true"/>
+			<A id="CODE"/>
+			<A id="NAME"/>
+			<A id="TABLE_NAME" name="Таблица" caption="Таблица" labelwidth="150" type="string" nulls="true" local="true"/>
+			<A id="PARENT_NAME" name="Родитель" caption="Родитель" labelwidth="150" type="string" nulls="true" local="true"/>
+			<TI id="iEAIS_TABLE_NUMB" index="NUMB"/>
+			<TI id="iEAIS_TABLE_CODE" index="CODE"/>
+			<TI id="iEAIS_TABLE_NAME" index="NAME"/>
+			<TI id="iEAIS_TABLE_TN" index="TABLE_NAME"/>
+			<TI id="iEAIS_TABLE_PN" index="PARENT_NAME"/>
+		</TABLE>
+		<TABLE id="AGENT" name="Организации">
+			<GA id="DictionaryNote"/>
+			<GA id="AgentParam"/>
+			<A id="ELB_ID" name="N реестр.записи" caption="N реестр.записи" labelwidth="150" type="string" len="20" nulls="true" local="true"/>
+			<A id="ELB_CODE" name="N орг.Эл.Бюджета" caption="N орг.Эл.Бюджета" labelwidth="150" type="string" len="8" nulls="true" local="true"/>
+			<A id="KOD_UBP" name="Код свод.реестра" caption="Код свод.реестра" labelwidth="150" type="string" len="8" nulls="true" local="true"/>
+			<A id="COD_ID_VIRT" name="Код Id" caption="Код Id" labelwidth="150" type="string" len="18" nulls="true" readonly="true" virtual="true" formula="select @ID::text" local="true"/>
+			<TI id="iAGENT_UK" unique="CODE,NAME"/>
+			<TI id="iAGENT_NAME" index="NAME"/>
+			<TI id="iAGENT_ELB_ID" index="ELB_ID"/>
+			<TI id="iAGENT_ELB_CODE" index="ELB_CODE"/>
+			<TI id="iAGENT_KOD_UBP" index="KOD_UBP"/>
+			<TI id="iAGENT_INN" index="INN"/>
+			<TI id="iAGENT_OKPO" index="OKPO"/>
+			<TI id="iAGENT_KPP" index="KPP"/>
+			<TI id="iAGENT_OGRN" index="OGRN"/>
+			<TI id="iAGENT_OKATO" index="OKATO"/>
+			<TI id="iAGENT_IFNS" index="IFNS"/>
+			<TI id="iAGENT_DFNS" index="DFNS"/>
+			<TI id="iAGENT_OKOPF" index="OKOPF"/>
+			<TI id="iAGENT_OKFS" index="OKFS"/>
+			<TI id="iAGENT_OKTMO" index="OKTMO"/>
+		</TABLE>
+		<TABLE id="AGENT_ADDR" name="Адрес организации">
+			<A id="AGENT_ID" labelwidth="100" parentkey="cascade"/>
+			<A id="GEO_ID" labelwidth="100" parentkey="cascade"/>
+			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="100" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_Geo_fullname(@GEO_ID ::bigint  )" local="true"/>
+			<GA id="AgentAddr"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iAGENT_ADDR_AGENT" index="AGENT_ID"/>
+			<TI id="iAGENT_ADDR_GEO" index="GEO_ID"/>
+			<TI id="iAGENT_ADDR_HOUSE" index="HOUSE"/>
+			<TI id="iAGENT_ADDR_REG_DATE" index="REG_DATE"/>
+			<TI id="iAGENT_ADDR_REG_END" index="REG_END"/>
+			<TI id="iAGENT_ADDR_BUILDING" index="BUILDING"/>
+			<TI id="iAGENT_ADDR_ROOM" index="ROOM"/>
+			<TI id="iAGENT_ADDR_POST" index="POST"/>
+			<TI id="iAGENT_ADDR_IS_LEGAL" index="IS_LEGAL"/>
+			<TI id="iAGENT_ADDR_IS_PRIMARY" index="IS_PRIMARY"/>
+			<TI id="iAGENT_ADDR_IS_MAIL" index="IS_MAIL"/>
+			<TI id="iAGENT_ADDR_IS_REAL" index="IS_REAL"/>
+			<TI id="iAGENT_ADDR_IS_REG" index="IS_REG"/>
+		</TABLE>
+		<TABLE id="AGENT_CONTACT" name="Контакты организации">
+			<A id="AGENT_ID" parentkey="cascade"/>
+			<GA id="ContactParam"/>
+			<GA id="ValidityExt"/>
+			<TI id="iAGENT_CONTACT_AGENT" index="AGENT_ID"/>
+			<TI id="iAGENT_CONTACT_PHONE" index="PHONE"/>
+			<TI id="iAGENT_CONTACT_WEBSITE" index="WEBSITE"/>
+			<TI id="iAGENT_CONTACT_EMAIL" index="EMAIL"/>
+			<TI id="iAGENT_CONTACT_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iAGENT_CONTACT_END_DATE" index="END_DATE"/>
+			<TI id="iAGENT_CONTACT_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="AGENT_BANKS" name="Финансовые учреждения">
+			<A id="AGENT_ID" name="Организация" caption="Организация"/>
+			<GA id="DictionaryNote"/>
+			<A id="BIC" name="БИК(МФО)" caption="БИК(МФО)" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
+			<A id="SWIFT" name="S.W.I.F.T" caption="S.W.I.F.T" labelwidth="150" type="string" len="40" nulls="true" local="true"/>
+			<A id="BANK_ACC" name="Счет" caption="Счет" type="string" len="40" nulls="true" local="true"/>
+			<GA id="ValidityExt"/>
+			<TI id="iAGENT_BANKS_UK" unique="AGENT_ID,BIC,BANK_ACC"/>
+			<TI id="iAGENT_BANKS_AGENT" index="AGENT_ID"/>
+			<TI id="iAGENT_BANKS_BIC" index="BIC"/>
+			<TI id="iAGENT_BANKS_SWIFT" index="SWIFT"/>
+			<TI id="iAGENT_BANKS_ACC" index="BANK_ACC"/>
+			<TI id="iAGENT_BANKS_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iAGENT_BANKS_END_DATE" index="END_DATE"/>
+			<TI id="iAGENT_BANKS_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="AGENT_ACC" name="Счета">
+			<GA id="DictionaryNote"/>
+			<A id="AGENT_ID" name="Организация" labelwidth="150" parentkey="cascade"/>
+			<A id="BANK_ACC" name="Счет" caption="Счет" type="string" len="40" nulls="true" local="true"/>
+			<A id="AGENT_BANKS_ID" labelwidth="200"/>
+			<A id="BANK_ACC_TYPES_ID" caption="Тип счета" labelwidth="200"/>
+			<A id="BEGIN_DATE" name="Дата открытия счета" caption="Дата открытия счета" labelwidth="200" nulls="true"/>
+			<A id="END_DATE" name="Дата закрытия счета" caption="Дата окончания" labelwidth="200" nulls="true"/>
+			<A id="CORR_AGENT_ACC_ID" name="Банк корреспондент" labelwidth="200" nulls="true"/>
+			<A id="GEO_ID" labelwidth="100" parentkey="cascade" nulls="true"/>
+			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="100" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_geo_fullname(@GEO_ID ::bigint  )" local="true"/>
+			<A id="BIC" name="БИК(МФО)" caption="БИК(МФО)" labelwidth="100" type="string" len="40" nulls="true" local="true"/>
+			<A id="SWIFT" name="S.W.I.F.T" caption="S.W.I.F.T" labelwidth="100" type="string" len="40" nulls="true" local="true"/>
+			<TI id="iAGENT_ACC_CODE" index="CODE"/>
+			<TI id="iAGENT_ACC_UK" unique="CODE,AGENT_ID,BANK_ACC"/>
+			<TI id="iAGENT_ACC_NANE" index="NAME"/>
+			<TI id="iAGENT_ACC_AGENT" index="AGENT_ID"/>
+			<TI id="iAGENT_ACC_BANK_ACC" index="BANK_ACC"/>
+			<TI id="iAGENT_ACC_BANK_ACC_TYPES" index="BANK_ACC_TYPES_ID"/>
+			<TI id="iAGENT_ACC_CORR_AGENT_ACC" index="CORR_AGENT_ACC_ID"/>
+			<TI id="iAGENT_ACC_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iAGENT_ACC_END_DATE" index="END_DATE"/>
+			<TI id="iAGENT_ACC_GEO" index="GEO_ID"/>
+			<TI id="iAGENT_ACC_BIC" index="BIC"/>
+			<TI id="iAGENT_ACC_SWIFT" index="SWIFT"/>
+		</TABLE>
+		<TABLE id="BANK_ACC_TYPES" name="Типы счетов">
+			<GA id="Dictionary"/>
+			<TI id="iBankAccTypesUK" unique="CODE,NAME"/>
+			<TI id="iBankAccTypesCODE" index="CODE"/>
+			<TI id="iBankAccTypesNAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="GEO_TYPE" name="Типы гео.понятий" hid="CODE">
+			<GA id="Dictionary"/>
+			<TI id="iGeoTypeUK" unique="CODE,NAME"/>
+			<TI id="iGeoTypeCODE" index="CODE"/>
+			<TI id="iGeoTypeNAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="GEO" name="Географические понятия" hid="Code">
+			<GA id="Dictionary"/>
+			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="150" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_geo_fullname(@ID ::bigint  )" local="true"/>
+			<A id="COUNTRY_ID" labelwidth="150" nulls="true"/>
+			<A id="GEO_TYPE_ID" labelwidth="150" nulls="false"/>
+			<GA id="GeoParam"/>
+			<GA id="GeoFias"/>
+			<TI id="iGEO_CODE" index="CODE"/>
+			<TI id="iGEO_NAME" index="NAME"/>
+			<TI id="iGEO_POST" index="POST"/>
+			<TI id="iGEO_COUNTRY" index="COUNTRY_ID"/>
+			<TI id="iGEO_GEO_TYPE" index="GEO_TYPE_ID"/>
+			<TI id="iGEO_KLADR" index="KLADR"/>
+			<TI id="iGEO_OKATO" index="OKATO"/>
+			<TI id="iGEO_OKTMO" index="OKTMO"/>
+			<TI id="iGEO_COD_AGENT" index="COD_AGENT"/>
+			<TI id="iGEO_COD_ISO" index="COD_ISO"/>
+			<TI id="iGEO_COD_GAI" index="COD_GAI"/>
+			<TI id="iGEO_AO_GUID" index="AO_GUID"/>
+			<TI id="iGEO_AO_ID" index="AO_ID"/>
+			<TI id="iGEO_ACTIVE" index="ACTIVE"/>
+			<TI id="iGEO_FIAS_OBJ" index="FIAS_OBJ"/>
+			<TI id="iGEO_HOUSE" index="HOUSE"/>
+			<TI id="iGEO_HOUSE_GUID" index="HOUSE_GUID"/>
+		</TABLE>
+		<TABLE id="GEO_HOUSE" name="Дома геопонятий">
+			<A id="GEO_ID" parentkey="cascade"/>
+			<A id="POST"/>
+			<A id="CODE"/>
+			<TI id="iGEO_HOUSE_GEO" index="GEO_ID"/>
+			<TI id="iGEO_HOUSE_CODE" index="CODE"/>
+			<TI id="iGEO_HOUSE_POST" index="POST"/>
+		</TABLE>
+		<COMMENT id="PERSON SECTION" name="Граждане"/>
+		<TABLE id="PERSON_SUR_NAME" name="Фамилия">
+			<A id="NAME" name="Фамилия" caption="Фамилия" labelwidth="150" type="string" len="250" nulls="false" local="true"/>
+			<A id="DATIVE_NAME" name="Дательный падеж" caption="Дательный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="GENITIVE_NAME" name="Родительный падеж" caption="Родительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="ACCUSATIVE_NAME" name="Винительный падеж" caption="Винительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="ABLATIVE_NAME" name="Творительный падеж" caption="Творительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="PREPOSIT_NAME" name="Предлог" caption="Предлог" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<TI id="iPERSON_SUR_NAME_UK" unique="NAME"/>
+			<TI id="iPERSON_SUR_NAME_DATIVE_NAME" index="DATIVE_NAME"/>
+			<TI id="iPERSON_SUR_NAME_GENITIVE_NAME" index="GENITIVE_NAME"/>
+			<TI id="iPERSON_SUR_NAME_ACCUSATIVE_NAME" index="ACCUSATIVE_NAME"/>
+			<TI id="iPERSON_SUR_NAME_ABLATIVE_NAME" index="ABLATIVE_NAME"/>
+			<TI id="iPERSON_SUR_NAME_PREPOSIT_NAME" index="PREPOSIT_NAME"/>
+		</TABLE>
+		<TABLE id="PERSON_FIRST_NAME" name="Имена">
+			<A id="NAME" name="Имя" caption="Имя" labelwidth="150" type="string" len="250" nulls="false" local="true"/>
+			<A id="DATIVE_NAME" name="Дательный падеж" caption="Дательный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="GENITIVE_NAME" name="Родительный падеж" caption="Родительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="ACCUSATIVE_NAME" name="Винительный падеж" caption="Винительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="ABLATIVE_NAME" name="Творительный падеж" caption="Творительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="PREPOSIT_NAME" name="Предлог" caption="Предлог" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<TI id="iPERSON_FIRST_NAME_UK" unique="NAME"/>
+			<TI id="iPERSON_FIRST_NAME_DATIVE_NAME" index="DATIVE_NAME"/>
+			<TI id="iPERSON_FIRST_NAME_GENITIVE_NAME" index="GENITIVE_NAME"/>
+			<TI id="iPERSON_FIRST_NAME_ACCUSATIVE_NAME" index="ACCUSATIVE_NAME"/>
+			<TI id="iPERSON_FIRST_NAME_ABLATIVE_NAME" index="ABLATIVE_NAME"/>
+			<TI id="iPERSON_FIRST_NAME_PREPOSIT_NAME" index="PREPOSIT_NAME"/>
+		</TABLE>
+		<TABLE id="PERSON_MIDDLE_NAME" name="Отчества">
+			<A id="NAME" name="Отчество" caption="Отчество" labelwidth="150" type="string" len="250" nulls="false" local="true"/>
+			<A id="DATIVE_NAME" name="Дательный падеж" caption="Дательный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="GENITIVE_NAME" name="Родительный падеж" caption="Родительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="ACCUSATIVE_NAME" name="Винительный падеж" caption="Винительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="ABLATIVE_NAME" name="Творительный падеж" caption="Творительный падеж" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<A id="PREPOSIT_NAME" name="Предлог" caption="Предлог" labelwidth="150" type="string" len="250" nulls="true" local="true"/>
+			<TI id="iPERSON_MIDDLE_NAME_UK" unique="NAME"/>
+			<TI id="iPERSON_MIDDLE_NAME_DATIVE_NAME" index="DATIVE_NAME"/>
+			<TI id="iPERSON_MIDDLE_NAME_GENITIVE_NAME" index="GENITIVE_NAME"/>
+			<TI id="iPERSON_MIDDLE_NAME_ACCUSATIVE_NAME" index="ACCUSATIVE_NAME"/>
+			<TI id="iPERSON_MIDDLE_NAME_ABLATIVE_NAME" index="ABLATIVE_NAME"/>
+			<TI id="iPERSON_MIDDLE_NAME_PREPOSIT_NAME" index="PREPOSIT_NAME"/>
+		</TABLE>
+		<TABLE id="PERSON" name="Физические лица">
+			<A id="COD_ID"/>
+			<GA name="Основные сведения" caption="Основные сведения">
+				<A id="SUR_NAME_ID" name="Фамилия" caption="Фамилия" nulls="true"/>
+				<A id="FIRST_NAME_ID" name="Имя" caption="Имя" nulls="true"/>
+				<A id="MIDDLE_NAME_ID" name="Отчество" caption="Отчество" nulls="true"/>
+				<A id="SEX" name="Пол" caption="Пол" labelwidth="150" width="50" type="list" nulls="false" local="true">
+					<AI id="0" name="не задан "/>
+					<AI id="1" name="мужской"/>
+					<AI id="2" name="женский"/>
+				</A>
+				<A id="BIRTH_DATE" name="Дата рождения" caption="Дата рождения" labelwidth="150" width="30" type="date" nulls="true" local="true"/>
+				<A id="PLACE_BIRTH_ID" name="Место рождения" caption="Место рождения" labelwidth="150" type="ref" table="GEO" ret="CODE" form="fGeo" nulls="true" local="true"/>
+				<A id="END_DATE" name="Дата смерти" caption="Дата смерти" labelwidth="150" width="30" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Коды" caption="Коды">
+				<A id="INN" name="ИНН" caption="ИНН" labelwidth="150" type="string" len="12" nulls="true" local="true"/>
+				<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="150" type="string" len="12" nulls="true" local="true"/>
+			</GA>
+			<A id="NOTE"/>
+			<GA id="ChangeUser"/>
+			<GA id="Validity"/>
+			<TI id="iPERSON_UK" unique="SUR_NAME_ID,FIRST_NAME_ID,MIDDLE_NAME_ID,INN,SNILS,BIRTH_DATE,PLACE_BIRTH_ID"/>
+			<TI id="iPERSON_SUR_NAME" index="SUR_NAME_ID"/>
+			<TI id="iPERSON_FIRST_NAME" index="FIRST_NAME_ID"/>
+			<TI id="iPERSON_MIDDLE_NAME" index="MIDDLE_NAME_ID"/>
+			<TI id="iPERSON_SEX" index="SEX"/>
+			<TI id="iPERSON_BIRTH_DATE" index="BIRTH_DATE"/>
+			<TI id="iPERSON_PLACE_BIRTH_ID" index="PLACE_BIRTH_ID"/>
+			<TI id="iPERSON_END_DATE" index="END_DATE"/>
+			<TI id="iPERSON_INN" index="INN"/>
+			<TI id="iPERSON_SNILS" index="SNILS"/>
+			<TI id="iPERSON_USER_INS" index="USER_INS"/>
+			<TI id="iPERSON_DATE_INS" index="DATE_INS"/>
+			<TI id="iPERSON_USER_UPD" index="USER_UPD"/>
+			<TI id="iPERSON_DATE_UPD" index="DATE_UPD"/>
+		</TABLE>
+		<TABLE id="PERSON_CARD" name="Личное дело гражданина">
+			<A id="COD_ID"/>
+			<A id="PERSON_ID" parentkey="cascade"/>
+			<A id="PERSON_NAME_VIRT"/>
+			<GA name="Основные сведения" caption="Основные сведения">
+				<A id="PERSON_DEAL" name="Недееспособен" caption="Недееспособен" labelwidth="150" width="24" type="boolean" nulls="true" local="true"/>
+			</GA>
+			<GA name="Коды" caption="Коды">
+				<A id="SOCIALID" name="Социальный номер" caption="Социальный номер" labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="CODE_FML" name="Код по базе FML" caption="Код по базе FML" labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="CODE_SZ" name="Код по базе SZ" caption="Код по базе SZ" labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="CODE_CP" name="Код по базе детских пособий" caption="Код по базе детских пособий" labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="REG_OFF_DATE" name="Дата снятия с учета" caption="Дата снятия с учета" labelwidth="100" type="date" nulls="true" local="true"/>
+				<A id="ARCHIV" name="Личное дело в архиве" caption="Личное дело в архиве" labelwidth="150" width="24" type="boolean" nulls="true" local="true"/>
+			</GA>
+			<GA name="Согласие на обработку персональных данных" caption="Согласие на обработку персональных данных">
+				<A id="PERSON_DATA_YES" name="Да" caption="Да" labelwidth="150" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="PERSON_DATA_NO" name="Нет" caption="Нет" labelwidth="150" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="PERSON_DATA_NO_TRANSFER" name="Без передачи третьим лицам" caption="Без передачи третьим лицам" labelwidth="150" width="28" type="boolean" nulls="true" local="true"/>
+			</GA>
+			<A id="NOTE"/>
+			<GA id="ChangeUser"/>
+			<GA id="Validity"/>
+			<TI id="iPERSON_CARD_PERSON_DEAL" index="PERSON_DEAL"/>
+			<TI id="iPERSON_CARD_SOCIALID" index="SOCIALID"/>
+			<TI id="iPERSON_CARD_CODE_FML" index="CODE_FML"/>
+			<TI id="iPERSON_CARD_CODE_SZ" index="CODE_SZ"/>
+			<TI id="iPERSON_CARD_CODE_CP" index="CODE_CP"/>
+			<TI id="iPERSON_CARD_REG_OFF_DATE" index="REG_OFF_DATE"/>
+			<TI id="iPERSON_CARD_ARCHIV" index="ARCHIV"/>
+			<TI id="iPERSON_CARD_PERSON_DATA_YES" index="PERSON_DATA_YES"/>
+			<TI id="iPERSON_CARD_PERSON_DATA_NO" index="PERSON_DATA_NO"/>
+			<TI id="iPERSON_CARD_NO_TRANSFER" index="PERSON_DATA_NO_TRANSFER"/>
+			<TI id="iPERSON_CARD_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iPERSON_CARD_CLOSED" index="CLOSED"/>
+			<TI id="iPERSON_CARD_USER_INS" index="USER_INS"/>
+			<TI id="iPERSON_CARD_DATE_INS" index="DATE_INS"/>
+			<TI id="iPERSON_CARD_USER_UPD" index="USER_UPD"/>
+			<TI id="iPERSON_CARD_DATE_UPD" index="DATE_UPD"/>
+		</TABLE>
+		<TABLE id="PERSON_PFR_CARD" name="Пенсионное дело гражданина">
+			<A id="COD_ID"/>
+			<A id="PERSON_ID" parentkey="cascade"/>
+			<A id="PERSON_NAME_VIRT"/>
+			<GA name="Основные сведения" caption="Основные сведения">
+				<A id="SIGN_PFR" name="Признак получения пенсии в ПФР" caption="Признак получения пенсии в ПФР" labelwidth="150" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="SUM_PS" name="Общая сумма установленной ежемесячной денежной выплаты" caption="Общая сумма установленной ежемесячной денежной выплаты" labelwidth="350" type="int" nulls="true" local="true"/>
+				<A id="PDN" name="Номер дела получателя ежемесячной денежной выплаты" caption="Номер дела получателя ежемесячной денежной выплаты" labelwidth="350" type="string" nulls="false" local="true"/>
+				<A id="REGION_CODE" name="Код региона из классификатора территорий ПФР" caption="Код региона из классификатора территорий ПФР" labelwidth="350" type="string" nulls="false" local="true"/>
+				<A id="DIST_CODE" name="Код района из классификатора территорий ПФР" caption="Код района из классификатора территорий ПФР" labelwidth="350" type="string" nulls="false" local="true"/>
+				<A id="GCC" name="Код категории ГСП" caption="Код категории ГСП" labelwidth="350" type="int" nulls="true" local="true"/>
+				<A id="GSP_CC2" name="Код категории ГСП2" caption="Код категории ГСП2" labelwidth="350" type="int" nulls="true" local="true"/>
+			</GA>
+			<GA name="Соц.услуги" caption="Соц.услуги">
+				<A id="GSP_ACC" name="Признак предоставления (отказа) набора соц.услуг" caption="Признак предоставления (отказа) набора соц.услуг" labelwidth="350" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="GSP_ACC1" name="Признак предоставления (отказа) набора соц.услуг № 1" caption="Признак предоставления (отказа) набора соц.услуг № 1" labelwidth="350" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="GSP_ACC2" name="Признак предоставления (отказа) набора соц.услуг № 2" caption="Признак предоставления (отказа) набора соц.услуг № 2" labelwidth="350" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="FR_ON_DATE" name="Дата включения в федеральный регистр" caption="Дата включения в федеральный регистр" labelwidth="150" type="date" nulls="true" local="true"/>
+				<A id="FR_OFF_DATE" name="Дата исключения из федерального регистра" caption="Дата исключения из федерального регистра" labelwidth="150" type="date" nulls="true" local="true"/>
+				<A id="FR_SEG_ON_DATE" name="Дата вкл.в рег.сегмент федер.регистра" caption="Дата вкл.в рег.сегмент федер.регистра" labelwidth="150" type="date" nulls="true" local="true"/>
+				<A id="FR_SEG_OFF_DATE" name="Дата искл.в рег.сегмент федер.регистра" caption="Дата искл.в рег.сегмент федер.регистра" labelwidth="150" type="date" nulls="true" local="true"/>
+				<A id="CHCD_CODE" name="Код изменения" caption="Код изменения" labelwidth="150" type="text" len="250" nulls="false" local="true"/>
+				<A id="SIGN_IN_AQQ" name="Признак получения заявления на предоставление (отказа) набора соц.услуг №1" caption="Признак получения заявления на предоставление (отказа) набора соц.услуг №1" labelwidth="350" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="SIGN_INC_AQQ" name="Признак получения заявления на предоставление (отказа) набора соц.услуг №2" caption="Признак получения заявления на предоставление (отказа) набора соц.услуг №2" labelwidth="350" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="SIGN_INC_ACC3" name="Признак получения заявления на предоставление (отказа) набора соц.услуг:" caption="Признак получения заявления на предоставление (отказа) набора соц.услуг:" labelwidth="350" width="24" type="boolean" nulls="true" local="true"/>
+				<A id="CODE_ACC3" name="Код изменения набора соц.услуг" caption="Код изменения набора соц.услуг" labelwidth="150" type="text" len="250" nulls="false" local="true"/>
+			</GA>
+			<GA name="Прочее" caption="Прочее">
+				<A id="SNILS_RES" name="Резерв (временно старый СНИЛС)" caption="Резерв (временно старый СНИЛС)" labelwidth="350" type="string" nulls="false" local="true"/>
+				<A id="CODE_LD" name="Идентификатор Личного дела в ЕСРН" caption="Идентификатор Личного дела в ЕСРН" labelwidth="350" type="string" nulls="false" local="true"/>
+				<A id="CODE_TASK" name="Признак задачи" caption="Признак задачи" labelwidth="150" type="string" len="250" nulls="false" local="true"/>
+				<A id="RESULT_ID" name="Результат идентификации" caption="Результат идентификации" labelwidth="150" type="int" nulls="true" local="true"/>
+				<A id="TRUST_LEVEL" name="Уровень доверия" caption="Уровень доверия" labelwidth="150" type="int" nulls="true" local="true"/>
+			</GA>
+			<A id="NOTE"/>
+			<GA id="Validity"/>
+			<GA id="ChangeUser"/>
+			<TI id="iPERSON_PFR_CARD_SIGN_PFR" index="SIGN_PFR"/>
+			<TI id="iPERSON_PFR_CARD_SUM_PS" index="SUM_PS"/>
+			<TI id="iPERSON_PFR_CARD_PDN" index="PDN"/>
+			<TI id="iPERSON_PFR_CARD_REGION_CODE" index="REGION_CODE"/>
+			<TI id="iPERSON_PFR_CARD_DIST_CODE" index="DIST_CODE"/>
+			<TI id="iPERSON_PFR_CARD_GCC" index="GCC"/>
+			<TI id="iPERSON_PFR_CARD_GSP_CC2" index="GSP_CC2"/>
+			<TI id="iPERSON_PFR_CARD_GSP_ACC" index="GSP_ACC"/>
+			<TI id="iPERSON_PFR_CARD_GSP_ACC1" index="GSP_ACC1"/>
+			<TI id="iPERSON_PFR_CARD_GSP_ACC2" index="GSP_ACC2"/>
+			<TI id="iPERSON_PFR_CARD_FR_ON_DATE" index="FR_ON_DATE"/>
+			<TI id="iPERSON_PFR_CARD_FR_OFF_DATE" index="FR_OFF_DATE"/>
+			<TI id="iPERSON_PFR_CARD_FR_SEG_ON_DATE" index="FR_SEG_ON_DATE"/>
+			<TI id="iPERSON_PFR_CARD_FR_SEG_OFF_DATE" index="FR_SEG_OFF_DATE"/>
+			<TI id="iPERSON_PFR_CARD_CHCD_CODE" index="CHCD_CODE"/>
+			<TI id="iPERSON_PFR_CARD_SIGN_IN_AQQ" index="SIGN_IN_AQQ"/>
+			<TI id="iPERSON_PFR_CARD_SIGN_INC_ACC3" index="SIGN_INC_ACC3"/>
+			<TI id="iPERSON_PFR_CARD_CODE_ACC3" index="CODE_ACC3"/>
+			<TI id="iPERSON_PFR_CARD_SNILS_RES" index="SNILS_RES"/>
+			<TI id="iPERSON_PFR_CARD_CODE_LD" index="CODE_LD"/>
+			<TI id="iPERSON_PFR_CARD_RESULT_ID" index="RESULT_ID"/>
+			<TI id="iPERSON_PFR_CARD_TRUST_LEVEL" index="TRUST_LEVEL"/>
+			<TI id="iPERSON_PFR_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iPERSON_PFR_CLOSED" index="CLOSED"/>
+			<TI id="iPERSON_PFR_CARD_USER_INS" index="USER_INS"/>
+			<TI id="iPERSON_PFR_CARD_DATE_INS" index="DATE_INS"/>
+			<TI id="iPERSON_PFR_CARD_USER_UPD" index="USER_UPD"/>
+			<TI id="iPERSON_PFR_CARD_DATE_UPD" index="DATE_UPD"/>
+		</TABLE>
+		<TABLE id="PERSON_CONTACT" name="Контакты гражданина">
+			<A id="PERSON_CARD_ID" parentkey="cascade"/>
+			<GA id="ContactParam" name="Контакты" caption="Контакты"/>
+			<GA id="ValidityExt"/>
+			<TI id="iPERSON_CONTACT_PERSON_CARD" index="PERSON_CARD_ID"/>
+			<TI id="iPERSON_CONTACT_PHONE" index="PHONE"/>
+			<TI id="iPERSON_CONTACT_WEBSITE" index="WEBSITE"/>
+			<TI id="iPERSON_CONTACT_EMAIL" index="EMAIL"/>
+			<TI id="iPERSON_CONTACT_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iPERSON_CONTACT_END_DATE" index="END_DATE"/>
+			<TI id="iPERSON_CONTACT_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="PERSON_ADDR" name="Адреса">
+			<A id="PERSON_CARD_ID" parentkey="cascade"/>
+			<A id="GEO_ID" labelwidth="100" parentkey="cascade"/>
+			<A id="GEO_FULL_NAME_VIRT" name="Полный адрес" caption="Полный адрес" labelwidth="150" type="string" len="4096" nulls="true" readonly="true" virtual="true" formula="select p_get_geo_fullname(@GEO_ID ::bigint  )" local="true"/>
+			<GA id="PersonAddr" name="Адрес" caption="Адрес"/>
+			<GA id="ValidityExt"/>
+			<TI id="iPERSON_ADDR_PERSON_CARD" index="PERSON_CARD_ID"/>
+			<TI id="iPERSON_ADDR_GEO" index="GEO_ID"/>
+			<TI id="iPERSON_ADDR_HOUSE" index="HOUSE"/>
+			<TI id="iPERSON_ADDR_REG_DATE" index="REG_DATE"/>
+			<TI id="iPERSON_ADDR_REG_END" index="REG_END"/>
+			<TI id="iPERSON_ADDR_BUILDING" index="BUILDING"/>
+			<TI id="iPERSON_ADDR_ROOM" index="ROOM"/>
+			<TI id="iPERSON_ADDR_POST" index="POST"/>
+			<TI id="iPERSON_ADDR_IS_REG" index="IS_REG"/>
+			<TI id="iPERSON_ADDR_IS_PRIMARY" index="IS_PRIMARY"/>
+			<TI id="iPERSON_ADDR_IS_REAL" index="IS_REAL"/>
+			<TI id="iPERSON_ADDR_IS_MAIL" index="IS_MAIL"/>
+			<TI id="iPERSON_ADDR_IS_BIRTH" index="IS_BIRTH"/>
+			<TI id="iPERSON_ADDR_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iPERSON_ADDR_END_DATE" index="END_DATE"/>
+			<TI id="iPERSON_ADDR_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="STAFF" name="Сотрудники">
+			<A id="PERSON_ID" parentkey="cascade"/>
+			<A id="PERSON_NAME_VIRT"/>
+			<GA id="Validity"/>
+			<TI id="iSTAFF_PERSON_ID" index="PERSON_ID"/>
+			<TI id="iSTAFF_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iSTAFF_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="DEPART" name="Подразделения">
+			<GA id="DictionaryNote"/>
+			<GA id="ValidityExt"/>
+			<A id="COD_ID_VIRT" name="Код Id" caption="Код Id" labelwidth="150" type="string" len="18" nulls="true" readonly="true" virtual="true" formula="select @ID::text" local="true"/>
+			<TI id="iDEPART_UK" unique="CODE,NAME"/>
+			<TI id="iDEPART_CODE" index="CODE"/>
+			<TI id="iDEPART_NAME" index="NAME"/>
+			<TI id="iDEPART_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iDEPART_END_DATE" index="END_DATE"/>
+			<TI id="iDEPART_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="DEPART_JOB_PERF" name="Руководство подразделением">
+			<A id="DEPART_ID" parentkey="cascade"/>
+			<A id="PERSON_ID" parentkey="cascade"/>
+			<A id="PERSON_NAME_VIRT"/>
+			<A id="JOB_ID" parentkey="cascade"/>
+			<A id="JOB_GROUP_ID" parentkey="cascade"/>
+			<GA id="ValidityExt"/>
+			<TI id="iDEPART_JOB_PERF_PRN" index="DEPART_ID"/>
+			<TI id="iDEPART_JOB_PERF_PERSON" index="PERSON_ID"/>
+			<TI id="iDEPART_JOB_PERF_JOB" index="JOB_ID"/>
+			<TI id="iDEPART_JOB_PERF_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iDEPART_JOB_PERF_END_DATE" index="END_DATE"/>
+			<TI id="iDEPART_JOB_PERF_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="JOB" name="Должности">
+			<GA id="DictionaryNote"/>
+			<TI id="iJOB_UK" unique="CODE,NAME"/>
+			<TI id="iJOB_CODE" index="CODE"/>
+			<TI id="iJOB_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="JOB_GROUP" name="Группы должностей">
+			<GA id="DictionaryNote"/>
+			<TI id="iJOB_GROUP_UK" unique="CODE,NAME"/>
+			<TI id="iJOB_GROUP_CODE" index="CODE"/>
+			<TI id="iJOB_GROUP_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="AGENT_JOB_PERF" name="Руководство">
+			<A id="AGENT_ID" parentkey="cascade"/>
+			<A id="PERSON_ID" parentkey="cascade"/>
+			<A id="PERSON_NAME_VIRT"/>
+			<A id="JOB_ID" parentkey="cascade"/>
+			<A id="NOTE"/>
+			<GA id="ValidityExt"/>
+			<TI id="iAGENT_JOB_PERF_AGENT" index="AGENT_ID"/>
+			<TI id="iAGENT_JOB_PERF_PERSON" index="PERSON_ID"/>
+			<TI id="iAGENT_JOB_PERF_JOB" index="JOB_ID"/>
+			<TI id="iAGENT_JOB_PERF_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iAGENT_JOB_PERF_END_DATE" index="END_DATE"/>
+			<TI id="iAGENT_JOB_PERF_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="PERSON_JOB_PERF" name="Исполнение должностей гражданина">
+			<A id="PERSON_CARD_ID" parentkey="cascade"/>
+			<A id="JOB_ID" parentkey="cascade"/>
+			<A id="NOTE"/>
+			<GA id="ValidityExt"/>
+			<TI id="iPERSON_JOB_PERF_PERSON_CARD" index="PERSON_CARD_ID"/>
+			<TI id="iPERSON_JOB_PERF_JOB" index="JOB_ID"/>
+			<TI id="iPERSON_JOB_PERF_BEGIN_DATE" index="BEGIN_DATE"/>
+			<TI id="iPERSON_JOB_PERF_END_DATE" index="END_DATE"/>
+			<TI id="iPERSON_JOB_PERF_CLOSED" index="CLOSED"/>
+		</TABLE>
+		<TABLE id="RELAT_TYPE" name="Виды родства">
+			<GA id="DictionaryNote"/>
+			<TI id="iRELAT_TYPE_UK" unique="CODE,NAME"/>
+			<TI id="iRELAT_TYPE_CODE" index="CODE"/>
+			<TI id="iRELAT_TYPE_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="RELAT_DEGREE" name="Cтепени родства">
+			<GA id="DictionaryNote"/>
+			<TI id="iRELAT_DEGREE_UK" unique="CODE,NAME"/>
+			<TI id="iRELAT_DEGREE_CODE" index="CODE"/>
+			<TI id="iRELAT_DEGREE_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="TYPE_INCOME" name="Виды дохода">
+			<GA id="DictionaryNote"/>
+			<TI id="iTYPE_INCOME_UK" unique="CODE,NAME"/>
+			<TI id="iTYPE_INCOME_CODE" index="CODE"/>
+			<TI id="iTYPE_INCOME_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="INVALID_REASONS" name="Причины инвалидности">
+			<GA id="DictionaryNote"/>
+			<TI id="iINVALID_REASONS_UK" unique="CODE,NAME"/>
+			<TI id="iINVALID_REASONS_CODE" index="CODE"/>
+			<TI id="iINVALID_REASONS_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="INVALID_GROUP" name="Группа инвалидности" hid="CODE">
+			<GA id="DictionaryNote"/>
+			<TI id="iINVALID_GROUP_UK" unique="CODE,NAME"/>
+			<TI id="iINVALID_GROUP_CODE" index="CODE"/>
+			<TI id="iINVALID_GROUP_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="SOC_SERV" name="Социальные услуги">
+			<GA id="DictionaryNote"/>
+			<TI id="iSOC_SERV_UK" unique="CODE,NAME"/>
+			<TI id="iSOC_SERV_CODE" index="CODE"/>
+			<TI id="iSOC_SERV_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="SOC_TYPE" name="Социальные услуги - типы">
+			<GA id="DictionaryNote"/>
+			<TI id="iSOC_TYPE_UK" unique="CODE,NAME"/>
+			<TI id="iSOC_TYPE_CODE" index="CODE"/>
+			<TI id="iSOC_TYPE_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="SOC_TYPE_OWN" name="Социальные услуги - типы владения">
+			<GA id="DictionaryNote"/>
+			<TI id="iSOC_TYPE_OWN_UK" unique="CODE,NAME"/>
+			<TI id="iSOC_TYPE_OWN_CODE" index="CODE"/>
+			<TI id="iSOC_TYPE_OWN_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="SOC_SIGN" name="Социальные услуги - признаки">
+			<GA id="DictionaryNote"/>
+			<TI id="iSOC_SIGN_UK" unique="CODE,NAME"/>
+			<TI id="iSOC_SIGN_CODE" index="CODE"/>
+			<TI id="iSOC_SIGN_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="NOMEN" name="Социальные услуги - номенклатура">
+			<GA id="DictionaryNote"/>
+			<TI id="iNOMEN_UK" unique="CODE,NAME"/>
+			<TI id="iNOMEN_CODE" index="CODE"/>
+			<TI id="iNOMEN_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="NOMEN_TYPE" name="Типы услуг">
+			<GA id="DictionaryNote"/>
+			<TI id="iNOMEN_TYPE_UK" unique="CODE,NAME"/>
+			<TI id="iNOMEN_TYPE_CODE" index="CODE"/>
+			<TI id="iNOMEN_TYPE_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="BUDGET_TYPE" name="Тип бюджета">
+			<GA id="DictionaryNote"/>
+			<TI id="iBUDGET_TYPE_UK" unique="CODE,NAME"/>
+			<TI id="iBUDGET_TYPE_CODE" index="CODE"/>
+			<TI id="iBUDGET_TYPE_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="PERSON_DOC_VID" name="Удостоверяющие документы" hid="CODE">
+			<GA id="DictionaryNote"/>
+			<TI id="iPERSON_DOC_VID_UK" unique="CODE,NAME"/>
+			<TI id="iPERSON_DOC_VID_CODE" index="CODE"/>
+			<TI id="iPERSON_DOC_VID_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="PETIT_TYPE" name="Заявки - Тип">
+			<GA id="DictionaryNote"/>
+			<TI id="iPETIT_TYPE_UK" unique="CODE,NAME"/>
+			<TI id="iPETIT_TYPE_CODE" index="CODE"/>
+			<TI id="iPETIT_TYPE_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="PETIT_STATUS" name="Заявки - Статаус">
+			<GA id="DictionaryNote"/>
+			<TI id="iPETIT_STATUS_UK" unique="CODE,NAME"/>
+			<TI id="iPETIT_STATUS_CODE" index="CODE"/>
+			<TI id="iPETIT_STATUS_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="REASON_OUT_REG" name="Причины снятия с учета">
+			<GA id="DictionaryNote"/>
+			<TI id="iREASON_OUT_REG_UK" unique="CODE,NAME"/>
+			<TI id="iREASON_OUT_REG_CODE" index="CODE"/>
+			<TI id="iREASON_OUT_REG_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="PPR_CALC_ALGORITM" name="ПФР алгоритмы начислений">
+			<GA id="DictionaryNote"/>
+			<A id="FORMULA" name="Формула" caption="Формула" type="text" nulls="true"/>
+			<A id="FORMULA_SQL" name="Формула SQL" caption="Формула SQL" type="text" nulls="true"/>
+			<TI id="iPPR_CALC_ALGORITM_UK" unique="CODE,NAME"/>
+			<TI id="iPPR_CALC_ALGORITM_CODE" index="CODE"/>
+			<TI id="iPPR_CALC_ALGORITM_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="FINANCE_UNIT" name="Финансовая величина">
+			<GA id="DictionaryNote"/>
+			<TI id="iFINANCE_UNIT_UK" unique="CODE,NAME"/>
+			<TI id="iFINANCE_UNIT_CODE" index="CODE"/>
+			<TI id="iFINANCE_UNIT_NAME" index="NAME"/>
+		</TABLE>
+		<TABLE id="FINANCE_VALUE" name="Фин.величина-значение">
+			<A id="FINANCE_UNIT_ID" parentkey="cascade"/>
+			<A id="VALUE" name="Значение" caption="Значение" type="number" len="17.2" nulls="false" value="0" local="true"/>
+			<GA id="ValidityExt"/>
+			<GA id="ChangeUser"/>
+			<TI id="iFINANCE_VALUE_UK" unique="FINANCE_UNIT_ID,VALUE,BEGIN_DATE,END_DATE"/>
+			<TI id="iFINANCE_VALUE_VAL" index="VALUE"/>
+			<TI id="iFINANCE_VALUE_BEGIN_DATE" index="BEGIN_DATE"/>
+		</TABLE>
+	</TABLES>
+	<ACTIONS name="Действия">
+	</ACTIONS>
+	<REPORTS name="Отчеты">
+	</REPORTS>
+	<FORMS id="Forms" name="Формы">
+		<FORM id="fEaisTable" name="Таблицы ЕАИС МО">
+			<GRID id="gEaisTable" name="Таблиы ЕАИС МО" table="EAIS_TABLE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fJob" name="Должности">
+			<GRID id="gJob" name="Должности" table="JOB">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fJobGroup" name="Группы должностей">
+			<GRID id="gJobGroup" name="Группы должностей" table="JOB">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fGeoType" name="Типы географических понятий">
+			<GRID id="gGeoType" name="Типы географических понятий" table="GEO_TYPE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fGeo" name="Географические понятия">
+			<GRID id="gGeo" name="Географические понятия" table="GEO">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fAgent" name="Организации">
+			<GRID id="gAgent" name="Организации" table="AGENT">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<TABS>
+				<TAB name="Адреса">
+					<GRID id="gAgentAddr" name="Адреса" table="AGENT_ADDR">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Контакты Юр.лиц">
+					<GRID id="gАgentСontact" name="Контакты" table="AGENT_CONTACT">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Банковские счета">
+					<GRID id="gAgentBankAttr" name="Банковские счета" table="AGENT_ACC">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Руководство">
+					<GRID id="gAgentJobPerf" name="Исполнение должностей" table="AGENT_JOB_PERF">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="fPersonSurName" name="Фамилия ">
+			<GRID id="gPersonSurName" name="Фамилия" table="PERSON_SUR_NAME">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPersonFirstName" name="Имя ">
+			<GRID id="gPersonFirstName" name="Имя " table="PERSON_FIRST_NAME">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPersonMiddleName" name="Отчество">
+			<GRID id="gPersonSurName" name="Отчество" table="PERSON_MIDDLE_NAME">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPerson" name="Физические лица">
+			<GRID id="gPerson" name="Физические лица" table="PERSON">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fStaff" name="Сотрудники">
+			<GRID id="gStaff" name="Сотрудники" table="STAFF">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPersonCard" name="Личное дело гражданина">
+			<GRID id="gPersonCard" name="Личное дело гражданина" table="PERSON_CARD">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<TABS>
+				<TAB name="Должности ">
+					<GRID id="gPersonJobPerf" name="Исполнение должностей" table="PERSON_JOB_PERF">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+			<TABS>
+				<TAB name="Адреса">
+					<GRID id="gPersonAddr" name="Адреса" table="PERSON_ADDR">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Контакты ">
+					<GRID id="gPersonСontact" name="Контакты " table="PERSON_CONTACT">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="fPersonPfrCard" name="Пенсионное дело гражданина">
+			<GRID id="gPersonPfrCard" name="Пенсионное дело гражданина" table="PERSON_PFR_CARD">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fBankAccTypes" name="Типы счетов">
+			<GRID id="gBankAccTypes" name="Типы банковских счетов" table="BANK_ACC_TYPES">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fAgentBanks" name="Финансовые учреждения">
+			<GRID id="gAgentBanks" name="Финансовые учреждения" table="AGENT_BANKS">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fAgentAcc" name="Счета">
+			<GRID id="gAgentAcc " name="Счета" table="AGENT_ACC">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fDepart" name="Подразделения">
+			<GRID id="gDepart" name="Подразделения" table="DEPART">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="gDepartJobPerf" name="Руководство подразделением" table="DEPART_JOB_PERF">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fDepartJobPerf" name="Руководство подразделением">
+			<GRID id="gDepartJobPerf" name="Руководство подразделением" table="DEPART_JOB_PERF">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fRelatType" name="Виды родства">
+			<GRID id="gRelatType" name="Виды родства" table="RELAT_TYPE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fRelatDegree" name="Cтепени родства">
+			<GRID id="gRelatDegree" name="Cтепени родства" table="RELAT_DEGREE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fTypeIncome" name="Виды дохода">
+			<GRID id="gTypeIncome" name="Виды дохода" table="TYPE_INCOME">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fInvalidReasons" name="Причины инвалидности">
+			<GRID id="gInvalidReasons" name="Причины инвалидности" table="INVALID_REASONS">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fInvalidGroup" name="Группа инвалидности">
+			<GRID id="gInvalidGroup" name="Группа инвалидности" table="INVALID_GROUP">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fSocServ" name="Социальные услуги">
+			<GRID id="gSocServ" name="Социальные услуги" table="SOC_SERV">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fSocType" name="Социальные услуги - типы">
+			<GRID id="gSocType" name="Социальные услуги - типы" table="SOC_TYPE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fSocTypeOwn" name="Социальные услуги - типы владения">
+			<GRID id="gSocTypeOwn" name="Социальные услуги - типы" table="SOC_TYPE_OWN">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fSocSign" name="Социальные услуги - признаки">
+			<GRID id="gSocSign" name="Социальные услуги - признаки" table="SOC_SIGN">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fNomen" name="Социальные услуги - номенклатура">
+			<GRID id="gNomen" name="Социальные услуги - номенклатура" table="NOMEN">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fBudgetType" name="Тип бюджета">
+			<GRID id="gBudgetType" name="Тип бюджета" table="BUDGET_TYPE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPersonDocVid" name="Удостоверяющие документы">
+			<GRID id="gPersonDocVid" name="Удостоверяющие документы" table="PERSON_DOC_VID">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPetitStatus" name="Заявки - Статаус">
+			<GRID id="gPetitionStatus" name="Заявки - Статаус" table="PETIT_STATUS">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPetitType" name="Заявки - Тип">
+			<GRID id="gPetitType" name="Заявки - Тип" table="PETIT_TYPE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fReasonOutReg" name="Причины снятия с учета">
+			<GRID id="gReasonOutReg" name="Причины снятия с учета" table="REASON_OUT_REG">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fPprCalcAlgoritm" name="ПФР алгоритмы начислений">
+			<GRID id="gPprCalcAlgoritm" name="ПФР алгоритмы начислений" table="PPR_CALC_ALGORITM">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fFinanceUnit" name="Финансовая величина">
+			<GRID id="gFinanceUnit" name="Финансовая величина" table="FINANCE_UNIT">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="gFinanceValue" name="Фин.величина-значение" table="FINANCE_VALUE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="fFinanceValue" name="Фин.величина-значение">
+			<GRID id="gFinanceValue" name="Фин.величина-значение" table="FINANCE_VALUE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+	</FORMS>
+</SYSTEM>
