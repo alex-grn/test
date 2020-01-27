@@ -16,26 +16,32 @@
 										(select ix.name from electcommittee ix where ix.idgasecom = i.idgasparecom)
 									when 'territory' then 		--ТИК
 										i.name
+									when 'circuit' then
+										i.name
 									end as name_ik,
 									
 									case i.levelelcommittee
 									when 'district' then   	--УИК
-										(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')
-											from electcommittee ix, committeeman c, posts p 
-										where ix.idgasecom = i.idgasparecom and c.electcommitteeid = ix.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
+										(select COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'')
+											from electcommittee ix, committeeman c, posts p , person pp
+										where ix.idgasecom = i.idgasparecom and pp.id = c.personid and c.electcommitteeid = ix.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
 									when 'territory' then 		--ТИК
-										(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')
-											from committeeman c, posts p
-										where c.electcommitteeid = i.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
+										(select COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'')
+											from committeeman c, posts p, person pp
+										where c.electcommitteeid = i.id and pp.id = c.personid and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
+									when 'circuit' then 		--ТИК
+										(select COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'')
+											from committeeman c, posts p, person pp
+										where c.electcommitteeid = i.id and pp.id = c.personid and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate)
 									end as employer,
 									
-									(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')||', '||lower(p.name)
-											from committeeman c, posts p
-										where c.electcommitteeid = i.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate) as worker,
+									(select COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'')||', '||lower(p.name)
+											from committeeman c, posts p, person pp
+										where c.electcommitteeid = i.id and pp.id = c.personid and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate) as worker,
 										
-									(select COALESCE(c.surname,'')||' '||COALESCE(c.firstname,'')||' '||COALESCE(c.middlename,'')
-											from committeeman c, posts p
-										where c.electcommitteeid = i.id and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate) as worker2 
+									(select COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'')
+											from committeeman c, posts p, person pp
+										where c.electcommitteeid = i.id and pp.id = c.personid and p.id = c.postsid and upper(p.postprint) = 'CHAIRMAN' and ik.electdate >= c.postbegindate and c.postenddate >= ik.electdate) as worker2 
 										
 								from electcommincamp e,
 									electcommittee i,

@@ -1,271 +1,279 @@
-CREATE OR REPLACE FUNCTION public.p_action_electcommincamp_gen (
-  begindate date,
-  enddate date,
-  leveldcchairman text,
-  ncount integer,
-  printreport boolean,
-  idlist text
-)
-RETURNS void AS
-$body$
-DECLARE
-  BDATE DATE := BEGINDATE; --ÌÂÓ‰ÌÓÁÌ‡˜Ì‡ˇ ÒÒ˚ÎÍ‡
-  EDATE DATE := ENDDATE; --ÌÂÓ‰ÌÓÁÌ‡˜Ì‡ˇ ÒÒ˚ÎÍ‡
-  --LVLCOM TEXT := UPPER(LEVELELCOMMITTEE); --ÌÂÓ‰ÌÓÁÌ‡˜Ì‡ˇ ÒÒ˚ÎÍ‡ //Û·‡ÎË Ô‡‡ÏÂÚ levelelcommittee ÔÓ ÒÓ·˚ÚË˛ 3829
-  REC    RECORD;
-  IZ     RECORD;
-  RK     RECORD;
-  STEMP  TEXT;
-  NID    BIGINT;
-  COMPIT TEXT := ' ÓÏÔÂÌÒ‡ˆËˇ'; --Ú‡·ÎËˆ‡ pays ‚ÒÂ„‰‡ ÍÓÏÔÂÌÒ‡ˆËˇ
-  COMID  BIGINT;
-  REGID  BIGINT;
-  SUBID  BIGINT; --ID ÒÛ·˙ÂÍÚ‡ –‘
-  TDOC   BIGINT;
-  TIK    TEXT := 'territory'; --ÍÓ‰ “»  ‚ ÒËÒÚÂÏÂ
-  J		 INTEGER:=1;
-BEGIN
-  SELECT R.ID INTO SUBID FROM REGIONSRF R WHERE R.NAME = '–ÓÒÒËÈÒÍ‡ˇ ‘Â‰Â‡ˆËˇ';
-  IF NCOUNT NOT IN (1,2) THEN RAISE USING MESSAGE = ' ÓÎË˜ÂÒÚ‚Ó ÒÚÓÍ ‰Îˇ Ó‰ÌÓ„Ó Í‡ÎÂÌ‰‡ÌÓ„Ó ‰Ìˇ ÏÓÊÂÚ ÔËÌËÏ‡Ú¸ ÁÌ‡˜ÂÌËÂ 1 ËÎË 2. ¬‚Â‰ËÚÂ Ó‰ÌÓ ËÁ ÁÌ‡˜ÂÌËÈ.'; END IF;
-  FOR REC IN (SELECT S.*,
-  					 LOWER(IK.LEVELELCOMMITTEE) AS LEVELCOM,
-                     I.BEGINDATE,
-                     I.ENDDATE,
-                     I.BEGINDATETER,
-                     I.ENDDATETER,
-                     UPPER(I.LEVELELCAMPAIGN) AS LEVEL,
-                     IK.REGIONSRFID AS REGION
-                FROM ELECTCOMMINCAMP S,
-                     ELECTCAMPAIGN   I,
-                     ELECTCOMMITTEE  IK
-               WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-                 AND I.ID = S.ELECTCAMPAIGNID
-                 AND IK.ID = S.ELECTCOMMITTEEID)
-  LOOP
-    SELECT S.ID INTO TDOC FROM DOCTYPES S WHERE S.CODE = ' ÓÏÔÎÂÍÚ ‡Ò˜ÂÚÌ˚ı ÙÓÏ';
-    --œÓ‚ÂÍË
-    IF (SELECT COUNT(*)
-          FROM REGISTER S
-         WHERE S.ELECTCOMMINCAMPID = REC.ID
-           AND S.DOCTYPEID = TDOC
-           AND (BDATE BETWEEN S.BEGINDATE AND S.ENDDATE OR EDATE BETWEEN S.BEGINDATE AND S.ENDDATE)) > 0 THEN
-      RAISE
-        USING MESSAGE = 'Õ‡ ÔÂËÓ‰Â ' || TO_CHAR(BDATE, 'dd.mm.yyyy') || ' - ' || TO_CHAR(EDATE, 'dd.mm.yyyy') || ' ÒÙÓÏËÓ‚‡Ì ÍÓÏÔÎÂÍÚ ‡Ò˜ÂÚÌ˚ı ÙÓÏ!';
-    END IF;
-    IF REC.LEVELCOM = TIK  or REC.LEVELCOM = 'circuit' AND REC.MTERELCOM THEN
-      IF REC.BEGINDATETER > BDATE OR REC.BEGINDATETER > EDATE OR REC.ENDDATETER < BDATE OR REC.ENDDATETER < EDATE THEN
-        RAISE
-          USING MESSAGE = 'ÕÂ‚ÂÌÓ ÛÍ‡Á‡Ì ÔÂËÓ‰ ‡·ÓÚ˚ ˜ÎÂÌÓ‚ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ ÍÓÏËÒÒËË. ƒÎˇ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ Í‡ÏÔ‡ÌËË ÔÂËÓ‰ ‡·ÓÚ˚ ˜ÎÂÌÓ‚ ÛÒÚ‡ÌÓ‚ÎÂÌ c ' || TO_CHAR(REC.BEGINDATETER, 'dd.mm.yyyy') || ' ÔÓ ' || TO_CHAR(REC.ENDDATETER,
-                                                                                                                                                                                                                      'dd.mm.yyyy');
-      ELSIF REC.BEGINDATETER IS NULL OR REC.ENDDATETER IS NULL THEN
-        RAISE
-          USING MESSAGE = 'ÕÂ Á‡‰‡Ì ÔÂËÓ‰ ‡·ÓÚ˚ “»  ‚ ËÁ·Ë‡ÚÂÎ¸Ì˚ı Í‡ÏÔ‡ÌËˇı!';
-      END IF;
-    ELSE
-      IF REC.BEGINDATE > BDATE OR REC.BEGINDATE > EDATE OR REC.ENDDATE < BDATE OR REC.ENDDATE < EDATE THEN
-        RAISE
-          USING MESSAGE = 'ÕÂ‚ÂÌÓ ÛÍ‡Á‡Ì ÔÂËÓ‰ ‡·ÓÚ˚ ˜ÎÂÌÓ‚ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ ÍÓÏËÒÒËË. ƒÎˇ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ Í‡ÏÔ‡ÌËË ÔÂËÓ‰ ‡·ÓÚ˚ ˜ÎÂÌÓ‚ ÛÒÚ‡ÌÓ‚ÎÂÌ c ' || TO_CHAR(REC.BEGINDATE, 'dd.mm.yyyy') || ' ÔÓ ' || TO_CHAR(REC.ENDDATE,
-                                                                                                                                                                                                                   'dd.mm.yyyy');
-      END IF;
-    END IF;
-    --
-    -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //Û·‡ÎË Ô‡‡ÏÂÚ levelelcommittee ÔÓ ÒÓ·˚ÚË˛ 3829
-  
-    STEMP := TDOC || '_' || -- Ó‰ ËÁ·Ë‡ÚÂÎ¸ÌÓ„Ó Û˜‡ÒÚÍ‡
-             (SELECT COALESCE(TO_CHAR(X.ELECTDATE, 'dd.mm.yyyy'), '') FROM ELECTCAMPAIGN X WHERE X.ID = REC.ELECTCAMPAIGNID) || '_';
-    UPDATE ELECTCOMMINCAMP S SET MSREGISTER = COALESCE(MSREGISTER, 0) + 1 WHERE S.ID = REC.ID; --‡Ô‰ÂÈÚËÏ  Œƒ
-  
-    INSERT INTO REGISTER
-      (CODE, DOCTYPEID, STATUS, ELECTCAMPAIGNID, BEGINDATE, ENDDATE, ELECTCOMMINCAMPID, /* ELECDISTNUMB,*/ DATELOADTBL, RESPONSPERSID, /*, LEVELELCOMMITTEE ,indicationcircuit,indicationship*/ PRINTREPORT)
-      SELECT STEMP,
-             TDOC,
-             1,
-             REC.ELECTCAMPAIGNID,
-             BDATE,
-             EDATE,
-             REC.ID, /* X.ELECDISTNUMB,*/
-             NULL,
-             NULL, /*, LVLCOM ,x.INDICATIONCIRCUIT,x.INDICATIONSHIP*/
-             PRINTREPORT RETURNING ID
-        INTO REGID;
-    UPDATE REGISTER S SET CODE = CODE || REGID WHERE S.ID = REGID;
-    FOR IZ IN (SELECT R.CODE,
-                      R.ID,
-                      R.POSTSID,
-                      R.PERSONID,
-                      CASE
-                        WHEN '@' || D.NAME || '@' ILIKE '%ÔÂ‰ÒÂ‰‡ÚÂÎ¸%' THEN
-                         LEVELDCCHAIRMAN
-                      /* else
-                      'district'*/
-                      END AS LVLCH
-                 FROM ELECTCOMMITTEE X,
-                      COMMITTEEMAN   R,
-                      POSTS          D
-                WHERE X.ID = REC.ELECTCOMMITTEEID
-                  AND R.ELECTCOMMITTEEID = X.ID
-                  AND D.ID = R.POSTSID
-                  AND ((BDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE OR EDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE) OR
-                      (BDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE AND EDATE BETWEEN R.POSTBEGINDATE AND R.POSTENDDATE) OR
-                      (R.POSTBEGINDATE BETWEEN BDATE AND EDATE AND R.POSTENDDATE BETWEEN BDATE AND EDATE)))
-    LOOP
-      --Õ‡ÔÓÎÌˇÂÏ Ú‡·ÎËˆÛ "˜ÎÂÌ˚ ËÁ·Ë‡ÚÂÎ¸Ì˚ı ÍÓÏËÒÒËÈ"
-      INSERT INTO REGISTERLIST
-        (REGISTERID, CODE, COMMITTEEMANID, MIDDLESALARY, DEPCOEFF, LEVELDCCHAIRMAN /*, WHCOMP, WHEXTRAFULL, WHEXTRANIGHT, WHEXTRAHOL, WHEXTRAWORKDAY*/)
-        SELECT REGID,
-               IZ.CODE,
-               IZ.ID,
-               (SELECT P.VALUE
-                  FROM PERSON       S,
-                       PERSONSAVSLR P
-                 WHERE S.ID = IZ.PERSONID
-                   AND P.PERSONID = S.ID
-                   AND P.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID LIMIT 1),
-               0,
-               IZ.LVLCH /*,
-                                                                       0,
-                                                                       0,
-                                                                       0,
-                                                                       0,
-                                                                       0*/ RETURNING ID
-          INTO NID;
-      IF (SELECT S.LEVELELCAMPAIGN FROM ELECTCAMPAIGN S WHERE S.ID = REC.ELECTCAMPAIGNID) = 'central' THEN
-      	J:=1;
-        --”Ó‚ÂÌ¸ ÙÂ‰Â‡Î¸Ì˚È 
-        FOR RK IN (SELECT DD, --Á‡ÔÓÎÌˇÂÏ Ú‡·ÎËˆÛ worktbl 
-                          (SELECT D.TYPEDAYID
-                             FROM WORKCALENDARS     W,
-                                  DAYSWORKCALENDARS D
-                            WHERE D.WORKCALENDARSID = W.ID
-                              AND W.REGIONSRFID = SUBID --–ÓÒÒËÈÒÍ‡ˇ ‘Â‰Â‡ˆËˇ
-                              AND D.DATEWC = DD) AS STYPE
-                     FROM GENERATE_SERIES(BDATE, EDATE, INTERVAL '1 day') AS DD
-                     ORDER BY DD)
-        LOOP
-          FOR I IN 1 .. NCOUNT
-          LOOP
-            INSERT INTO WORKTBL (REGISTERLISTID, DATETBL, TYPEDAYID, NUMBCALDAY) VALUES (NID, RK.DD, RK.STYPE, J);
-            J:=J+1;
-          END LOOP;
-        END LOOP;
-        FOR RK IN (SELECT (SELECT W.ID
-                             FROM WORKCALENDARS W
-                            WHERE W.REGIONSRFID = SUBID
-                              AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
-                              AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER) AS WID
-                     FROM GENERATE_SERIES(BDATE, EDATE, INTERVAL '1 month') AS DD)
-        LOOP
-          SELECT S.ID INTO COMID FROM SLCOMPCHARGES S WHERE LOWER(S.NAME) = LOWER(COMPIT); --Ì‡ıÓ‰ËÏ id ÍÓÏÔÂÌÒ‡ˆËË
-          INSERT INTO PAYS (REGISTERLISTID, SLCOMPCHARGESID, WORKCALENDARSID) VALUES (NID, COMID, RK.WID);
-        END LOOP;
-      ELSE
-      	J:=1;
-        --”Ó‚ÂÌ¸ Â„ËÓÌ‡Î¸Ì˚È
-        FOR RK IN (SELECT DD, --Á‡ÔÓÎÌˇÂÏ Ú‡·ÎËˆÛ worktbl 
-                          (SELECT CASE
-                                    WHEN (SELECT COUNT(*)
-                                            FROM WORKCALENDARS     W,
-                                                 DAYSWORKCALENDARS D
-                                           WHERE D.WORKCALENDARSID = W.ID
-                                             AND W.REGIONSRFID = REC.REGION
-                                             AND D.DATEWC = DD) > 0 THEN
-                                     (SELECT D.TYPEDAYID
-                                        FROM WORKCALENDARS     W,
-                                             DAYSWORKCALENDARS D
-                                       WHERE D.WORKCALENDARSID = W.ID
-                                         AND W.REGIONSRFID = REC.REGION
-                                         AND D.DATEWC = DD)
-                                    ELSE
-                                     (SELECT D.TYPEDAYID
-                                        FROM WORKCALENDARS     W,
-                                             DAYSWORKCALENDARS D
-                                       WHERE D.WORKCALENDARSID = W.ID
-                                         AND W.REGIONSRFID = SUBID --–ÓÒÒËÈÒÍ‡ˇ ‘Â‰Â‡ˆËˇ
-                                         AND D.DATEWC = DD)
-                                  END) AS STYPE
-                     FROM GENERATE_SERIES(BDATE, EDATE, INTERVAL '1 day') AS DD
-                     ORDER BY DD)
-        LOOP
-          FOR I IN 1 .. NCOUNT
-          LOOP
-            INSERT INTO WORKTBL (REGISTERLISTID, DATETBL, TYPEDAYID, NUMBCALDAY) VALUES (NID, RK.DD, RK.STYPE, J);
-            J:=J+1;
-          END LOOP;
-        END LOOP;
-        FOR RK IN (SELECT (SELECT CASE
-                                    WHEN (SELECT COUNT(*)
-                                            FROM WORKCALENDARS W
-                                           WHERE W.REGIONSRFID = REC.REGION
-                                             AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
-                                             AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER) > 0 THEN
-                                     (SELECT W.ID
-                                        FROM WORKCALENDARS W
-                                       WHERE W.REGIONSRFID = REC.REGION
-                                         AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
-                                         AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER)
-                                    ELSE
-                                     (SELECT W.ID
-                                        FROM WORKCALENDARS W
-                                       WHERE W.REGIONSRFID = SUBID
-                                         AND W.MONTH ::INTEGER = TO_CHAR(DD, 'mm') ::INTEGER
-                                         AND W.YEAR = TO_CHAR(DD, 'yyyy') ::INTEGER)
-                                  END) AS WID
-                     FROM GENERATE_SERIES(BDATE, EDATE + INTERVAL '1 MONTH - 1 DAY', INTERVAL '1 month') AS DD)
-        LOOP
-          SELECT S.ID INTO COMID FROM SLCOMPCHARGES S WHERE LOWER(S.NAME) = LOWER(COMPIT); --Ì‡ıÓ‰ËÏ id ÍÓÏÔÂÌÒ‡ˆËË
-          INSERT INTO PAYS (REGISTERLISTID, SLCOMPCHARGESID, WORKCALENDARSID) VALUES (NID, COMID, RK.WID);
-        END LOOP;
-      END IF;
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_electcommincamp_gen(begindate  date,  enddate  date,  leveldcchairman  text,  ncount  integer,  printreport  boolean,  idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+/*–î–µ–π—Å—Ç–≤–∏–µ:  –°—Ñ–æ—Ä–º–∏—Ä–æ–≤–∞—Ç—å  –∫–æ–º–ø–ª–µ–∫—Ç—ã  —Ä–∞—Å—á–µ—Ç–Ω—ã—Ö  —Ñ–æ—Ä–º*/
+declare
+    BDATE    date  :=  BEGINDATE;  --–Ω–µ–æ–¥–Ω–æ–∑–Ω–∞—á–Ω–∞—è  —Å—Å—ã–ª–∫–∞
+    EDATE    date  :=  ENDDATE;  --–Ω–µ–æ–¥–Ω–æ–∑–Ω–∞—á–Ω–∞—è  —Å—Å—ã–ª–∫–∞
+    REC        record;
+    IZ          record;
+    RK          record;
+    STEMP    TEXT;
+    NID        BIGINT;
+    COMPIT  TEXT  :=  '–ö–æ–º–ø–µ–Ω—Å–∞—Ü–∏—è';  --—Ç–∞–±–ª–∏—Ü–∞  pays  –≤—Å–µ–≥–¥–∞  –∫–æ–º–ø–µ–Ω—Å–∞—Ü–∏—è
+    COMID    BIGINT;
+    REGID    BIGINT;
+    SUBID    BIGINT;  --ID  —Å—É–±—ä–µ–∫—Ç–∞  –†–§
+    TDOC      BIGINT;
+    TIK        TEXT  :=  'territory';  --–∫–æ–¥  –¢–ò–ö  –≤  —Å–∏—Å—Ç–µ–º–µ
+    IKMO      TEXT  :=  'circuit';  --–∫–æ–¥  –ò–ö–ú–û
+    J            integer  :=  1;
+begin
+                                                                                                        --–ü–ï–†–ï–î–ï–õ–ê–¢–¨  ‚Üì
+    select  R.ID  into  SUBID  from  REGIONSRF  R  where  R.IDGASREGIONSRF  =  '00';    --–†–æ—Å—Å–∏–π—Å–∫–∞—è  –§–µ–¥–µ—Ä–∞—Ü–∏—è
     
-      INSERT INTO PAYS
-        (REGISTERLISTID, SLCOMPCHARGESID)
-        SELECT NID,
-               S.ID
-          FROM SLCOMPCHARGES S
-         WHERE LOWER(TRIM(S.CODE)) IN
-               ('‰ÓÚ ‚ Ó‰ËÌ‡ÌÓÏ ‡ÁÏÂÂ', '‰ÓÚ ‚ ‰‚ÓÈÌÓÏ ‡ÁÏÂÂ', 'Ì‡˜ËÒÎÂÌÓ ‰ÓÚ Á‡ ÙÓ‚', '‰ÓÚ Á‡ ‡ÍÚË‚ÌÛ˛ ‡·ÓÚÛ', '‚ÒÂ„Ó');
-    END LOOP;
-    --Á‡ÔÓÎÌˇÂÏ "Ò‚Â‰ÂÌËˇ Ó ÙËÌ‡ÌÒËÓ‚‡ÌËË ‚ Á‡‚ËÒËÏÓÒÚË ÓÚ ÛÓ‚Ìˇ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ ÍÓÏÔ‡ÌËË"
-    IF REC.LEVEL = 'REGION' THEN
-      --”Ó‚ÂÌ¸ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ ÍÓÏÏËÒËË Â„ËÓÌ‡Î¸Ì‡ˇ
-      FOR RK IN (SELECT T.ID
-                   FROM TYPEEXP T
-                  WHERE T.MESTIMATE = TRUE
-                    AND T.REGIONSRFID = REC.REGION)
-      LOOP
-        --œÓ‚ÂˇÂÏ ÂÒÚ¸ ÎË Á‡ÔËÒË ‚ Ú‡·ÎËˆÂ.
-        IF (SELECT COUNT(*)
-              FROM FINEXP S
-             WHERE S.TYPEEXPID = RK.ID
-               AND S.ELECTCOMMINCAMPID = REC.ID) = 0 THEN
-          INSERT INTO FINEXP (TYPEEXPID, ELECTCOMMINCAMPID) VALUES (RK.ID, REC.ID);
-        END IF;
-      END LOOP;
-    ELSIF REC.LEVEL = 'CENTRAL' THEN
-      --‘Â‰Â‡Î¸Ì‡ˇ
-      FOR RK IN (SELECT T.ID,
-                        REC.ID
-                   FROM TYPEEXP T
-                  WHERE T.MESTIMATE = TRUE
-                    AND T.REGIONSRFID = SUBID)
-      LOOP
-        IF (SELECT COUNT(*)
-              FROM FINEXP S
-             WHERE S.TYPEEXPID = RK.ID
-               AND S.ELECTCOMMINCAMPID = REC.ID) = 0 THEN
-          INSERT INTO FINEXP (TYPEEXPID, ELECTCOMMINCAMPID) VALUES (RK.ID, REC.ID);
-        END IF;
-      END LOOP;
-    END IF;
-  
-  END LOOP;
-END;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_electcommincamp_gen (begindate date, enddate date, leveldcchairman text, ncount integer, printreport boolean, idlist text)
-  OWNER TO magicbox;
+    if  NCOUNT  not  in  (1,  2)  then
+        raise
+            using  MESSAGE  =  '–ö–æ–ª–∏—á–µ—Å—Ç–≤–æ  —Å—Ç—Ä–æ–∫  –¥–ª—è  –æ–¥–Ω–æ–≥–æ  –∫–∞–ª–µ–Ω–¥–∞—Ä–Ω–æ–≥–æ  –¥–Ω—è  –º–æ–∂–µ—Ç  –ø—Ä–∏–Ω–∏–º–∞—Ç—å  –∑–Ω–∞—á–µ–Ω–∏–µ  1  –∏–ª–∏  2.  –í–≤–µ–¥–∏—Ç–µ  –æ–¥–Ω–æ  –∏–∑  –∑–Ω–∞—á–µ–Ω–∏–π.';
+    end  if;
+    for  REC  in  (select  S.*,
+                                          LOWER(IK.LEVELELCOMMITTEE)  as  LEVELCOM,
+                                          I.BEGINDATE,
+                                          I.ENDDATE,
+                                          I.BEGINDATETER,
+                                          I.ENDDATETER,
+                                          UPPER(I.LEVELELCAMPAIGN)  as  level,
+                                          IK.REGIONSRFID  as  REGION,
+                                          I.ELECTDATE
+                                from  ELECTCOMMINCAMP  S,
+                                          ELECTCAMPAIGN      I,
+                                          ELECTCOMMITTEE    IK
+                              where  S.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                                  and  I.ID  =  S.ELECTCAMPAIGNID
+                                  and  IK.ID  =  S.ELECTCOMMITTEEID)
+    loop
+                                                                                                  --–ü–ï–†–ï–î–ï–õ–ê–¢–¨  ‚Üì
+        select  S.ID  into  TDOC  from  DOCTYPES  S  where  LOWER(S.CODE)  =  '–∫–æ–º–ø–ª–µ–∫—Ç  —Ä–∞—Å—á–µ—Ç–Ω—ã—Ö  —Ñ–æ—Ä–º';
+    
+        --–ü—Ä–æ–≤–µ—Ä–∫–∏
+        if  (select  count(*)
+                    from  REGISTER  S
+                  where  S.ELECTCOMMINCAMPID  =  REC.ID
+                      and  S.DOCTYPEID  =  TDOC
+                      and  (BDATE  between  S.BEGINDATE  and  S.ENDDATE  or  EDATE  between  S.BEGINDATE  and  S.ENDDATE))  >  0  then
+            raise
+                using  MESSAGE  =  '–ù–∞  –ø–µ—Ä–∏–æ–¥–µ  '  ||  TO_CHAR(BDATE,  'dd.mm.yyyy')  ||  '  -  '  ||  TO_CHAR(EDATE,  'dd.mm.yyyy')  ||  '  —Å—Ñ–æ—Ä–º–∏—Ä–æ–≤–∞–Ω  –∫–æ–º–ø–ª–µ–∫—Ç  —Ä–∞—Å—á–µ—Ç–Ω—ã—Ö  —Ñ–æ—Ä–º!';
+        end  if;
+        if  (REC.LEVELCOM  =  TIK  or  REC.LEVELCOM  =  IKMO)  and  REC.MTERELCOM  then
+            if  REC.BEGINDATETER  >  BDATE  or  REC.BEGINDATETER  >  EDATE  or  REC.ENDDATETER  <  BDATE  or  REC.ENDDATETER  <  EDATE  then
+                raise
+                    using  MESSAGE  =  '–ù–µ–≤–µ—Ä–Ω–æ  —É–∫–∞–∑–∞–Ω  –ø–µ—Ä–∏–æ–¥  —Ä–∞–±–æ—Ç—ã  —á–ª–µ–Ω–æ–≤  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–æ–º–∏—Å—Å–∏–∏.  –î–ª—è  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–∞–º–ø–∞–Ω–∏–∏  –ø–µ—Ä–∏–æ–¥  —Ä–∞–±–æ—Ç—ã  —á–ª–µ–Ω–æ–≤  —É—Å—Ç–∞–Ω–æ–≤–ª–µ–Ω  c  '  ||  TO_CHAR(REC.BEGINDATETER,  'dd.mm.yyyy')  ||  '  –ø–æ  '  ||  D2S(REC.ENDDATETER);
+            elsif  REC.BEGINDATETER  is  null  or  REC.ENDDATETER  is  null  then
+                raise
+                    using  MESSAGE  =  '–ù–µ  –∑–∞–¥–∞–Ω  –ø–µ—Ä–∏–æ–¥  —Ä–∞–±–æ—Ç—ã  –¢–ò–ö  –≤  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω—ã—Ö  –∫–∞–º–ø–∞–Ω–∏—è—Ö!';
+            end  if;
+        else
+            if  REC.BEGINDATE  >  BDATE  or  REC.BEGINDATE  >  EDATE  or  REC.ENDDATE  <  BDATE  or  REC.ENDDATE  <  EDATE  then
+                raise
+                    using  MESSAGE  =  '–ù–µ–≤–µ—Ä–Ω–æ  —É–∫–∞–∑–∞–Ω  –ø–µ—Ä–∏–æ–¥  —Ä–∞–±–æ—Ç—ã  —á–ª–µ–Ω–æ–≤  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–æ–º–∏—Å—Å–∏–∏.  –î–ª—è  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–∞–º–ø–∞–Ω–∏–∏  –ø–µ—Ä–∏–æ–¥  —Ä–∞–±–æ—Ç—ã  —á–ª–µ–Ω–æ–≤  —É—Å—Ç–∞–Ω–æ–≤–ª–µ–Ω  c  '  ||  TO_CHAR(REC.BEGINDATE,  'dd.mm.yyyy')  ||  '  –ø–æ  '  ||  D2S(REC.ENDDATE);
+            end  if;
+        end  if;
+        --–ü—Ä–æ–≤–µ—Ä–∫–∞  –ø–æ  —Å–æ–±—ã—Ç–∏—é  –ú–ê–¶-4011
+        --1.  –î–∞—Ç–∞  –æ–∫–æ–Ω—á–∞–Ω–∏—è  –¥–µ–π—Å—Ç–≤–∏—è  –ø–æ–ª–Ω–æ–º–æ—á–∏–π  –Ω–µ  –∑–∞–¥–∞–Ω–∞
+        if  exists  (select  1
+                    from  ELECTCOMMITTEE  X
+                  where  X.ID  =  REC.ELECTCOMMITTEEID
+                      and  X.POSTENDDATE  is  null)  then
+            raise
+                using  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –∫–æ–º–ø–ª–µ–∫—Ç–∞  —Ä–∞—Å—á–µ—Ç–Ω—ã—Ö  —Ñ–æ—Ä–º  –∑–∞–ø—Ä–µ—â–µ–Ω–æ.  –ù–µ  –∑–∞–¥–∞–Ω–∞  –¥–∞—Ç–∞  –æ–∫–æ–Ω—á–∞–Ω–∏—è  –¥–µ–π—Å—Ç–≤–∏—è  –ø–æ–ª–Ω–æ–º–æ—á–∏–π.';
+        end  if;
+        --2.  –î–∞—Ç–∞  –æ–∫–æ–Ω—á–∞–Ω–∏—è  –¥–µ–π—Å—Ç–≤–∏—è  –ø–æ–ª–Ω–æ–º–æ—á–∏–π  –º–µ–Ω—å—à–µ  –¥–∞—Ç—ã  –≥–æ–ª–æ—Å–æ–≤–∞–Ω–∏—è
+        if  exists  (select  1
+                    from  ELECTCOMMITTEE  X
+                  where  X.ID  =  REC.ELECTCOMMITTEEID
+                      and  X.POSTENDDATE  <  REC.ELECTDATE)  then
+            raise
+                using  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –∫–æ–º–ø–ª–µ–∫—Ç–∞  —Ä–∞—Å—á–µ—Ç–Ω—ã—Ö  —Ñ–æ—Ä–º  –∑–∞–ø—Ä–µ—â–µ–Ω–æ.  –ü–æ–ª–Ω–æ–º–æ—á–∏—è  –∫–æ–º–∏—Å—Å–∏–∏  –Ω–∞  –¥–µ–Ω—å  –≥–æ–ª–æ—Å–æ–≤–∞–Ω–∏—è  –ø—Ä–µ–∫—Ä–∞—â–µ–Ω—ã.';
+        end  if;
+        --3.  –î–∞—Ç–∞  –Ω–∞—á–∞–ª–∞  –¥–µ–π—Å—Ç–≤–∏—è  –ø–æ–ª–Ω–æ–º–æ—á–∏–π  –±–æ–ª—å—à–µ  –¥–∞—Ç—ã  –≥–æ–ª–æ—Å–æ–≤–∞–Ω–∏—è  
+        if  exists  (select  1
+                    from  ELECTCOMMITTEE  X
+                  where  X.ID  =  REC.ELECTCOMMITTEEID
+                      and  X.POSTBEGINDATE  >  REC.ELECTDATE)  then
+            raise
+                using  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –∫–æ–º–ø–ª–µ–∫—Ç–∞  —Ä–∞—Å—á–µ—Ç–Ω—ã—Ö  —Ñ–æ—Ä–º  –∑–∞–ø—Ä–µ—â–µ–Ω–æ.  –ü–æ–ª–Ω–æ–º–æ—á–∏—è  –∫–æ–º–∏—Å—Å–∏–∏  –Ω–∞  –¥–µ–Ω—å  –≥–æ–ª–æ—Å–æ–≤–∞–Ω–∏—è  –Ω–µ  —É—Å—Ç–∞–Ω–æ–≤–ª–µ–Ω—ã.';
+        end  if;
+    
+        STEMP  :=  TDOC  ||  '_'  ||  --–ö–æ–¥  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–≥–æ  —É—á–∞—Å—Ç–∫–∞
+                          (select  COALESCE(TO_CHAR(X.ELECTDATE,  'dd.mm.yyyy'),  '')  from  ELECTCAMPAIGN  X  where  X.ID  =  REC.ELECTCAMPAIGNID)  ||  '_';
+        update  ELECTCOMMINCAMP  S  set  MSREGISTER  =  COALESCE(MSREGISTER,  0)  +  1  where  S.ID  =  REC.ID;  --–∞–ø–¥–µ–π—Ç–∏–º  –ö–û–î
+    
+        insert  into  REGISTER
+            (CODE,  DOCTYPEID,  STATUS,  ELECTCAMPAIGNID,  BEGINDATE,  ENDDATE,  ELECTCOMMINCAMPID,  DATELOADTBL,  RESPONSPERSID,  PRINTREPORT)
+            select  STEMP,
+                          TDOC,
+                          1,
+                          REC.ELECTCAMPAIGNID,
+                          BDATE,
+                          EDATE,
+                          REC.ID,
+                          null,
+                          null,
+                          PRINTREPORT  returning  ID
+                into  REGID;
+        update  REGISTER  S  set  CODE  =  CODE  ||  REGID  where  S.ID  =  REGID;
+        for  IZ  in  (select  R.CODE,
+                                            R.ID,
+                                            R.POSTSID,
+                                            R.PERSONID,
+                                            case
+                                                when  D.POSTPRINT  ILIKE  'CHAIRMAN'  then
+                                                  LEVELDCCHAIRMAN
+                                            end  as  LVLCH
+                                  from  ELECTCOMMITTEE  X,
+                                            COMMITTEEMAN      R,
+                                            POSTS                    D
+                                where  X.ID  =  REC.ELECTCOMMITTEEID
+                                    and  R.ELECTCOMMITTEEID  =  X.ID
+                                    and  D.ID  =  R.POSTSID
+                                    and  ((BDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE  or  EDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE)  or
+                                            (BDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE  and  EDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE)  or
+                                            (R.POSTBEGINDATE  between  BDATE  and  EDATE  and  R.POSTENDDATE  between  BDATE  and  EDATE)))
+        loop
+            --–ù–∞–ø–æ–ª–Ω—è–µ–º  —Ç–∞–±–ª–∏—Ü—É  "—á–ª–µ–Ω—ã  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω—ã—Ö  –∫–æ–º–∏—Å—Å–∏–π"
+            insert  into  REGISTERLIST
+                (REGISTERID,  CODE,  COMMITTEEMANID,  MIDDLESALARY,  DEPCOEFF,  LEVELDCCHAIRMAN)
+                select  REGID,
+                              IZ.CODE,
+                              IZ.ID,
+                              (select  P.VALUE
+                                    from  PERSON              S,
+                                              PERSONSAVSLR  P
+                                  where  S.ID  =  IZ.PERSONID
+                                      and  P.PERSONID  =  S.ID
+                                      and  P.ELECTCAMPAIGNID  =  REC.ELECTCAMPAIGNID  limit  1),
+                              0,
+                              IZ.LVLCH  returning  ID
+                    into  NID;
+            if  (select  S.LEVELELCAMPAIGN  from  ELECTCAMPAIGN  S  where  S.ID  =  REC.ELECTCAMPAIGNID)  =  'central'  then
+                J  :=  1;
+                --–£—Ä–æ–≤–µ–Ω—å  —Ñ–µ–¥–µ—Ä–∞–ª—å–Ω—ã–π  
+                for  RK  in  (select  DD,  --–∑–∞–ø–æ–ª–Ω—è–µ–º  —Ç–∞–±–ª–∏—Ü—É  worktbl  
+                                                    (select  D.TYPEDAYID
+                                                          from  WORKCALENDARS          W,
+                                                                    DAYSWORKCALENDARS  D
+                                                        where  D.WORKCALENDARSID  =  W.ID
+                                                            and  W.REGIONSRFID  =  SUBID  --–†–æ—Å—Å–∏–π—Å–∫–∞—è  –§–µ–¥–µ—Ä–∞—Ü–∏—è
+                                                            and  D.DATEWC  =  DD)  as  STYPE
+                                          from  GENERATE_SERIES(BDATE,  EDATE,  interval  '1  day')  as  DD
+                                        order  by  DD)
+                loop
+                    for  I  in  1  ..  NCOUNT
+                    loop
+                        insert  into  WORKTBL  (REGISTERLISTID,  DATETBL,  TYPEDAYID,  NUMBCALDAY)  values  (NID,  RK.DD,  RK.STYPE,  J);
+                        J  :=  J  +  1;
+                    end  loop;
+                end  loop;
+                for  RK  in  (select  (select  W.ID
+                                                          from  WORKCALENDARS  W
+                                                        where  W.REGIONSRFID  =  SUBID
+                                                            and  W.MONTH  ::integer  =  TO_CHAR(DD,  'mm')  ::integer
+                                                            and  W.YEAR  =  TO_CHAR(DD,  'yyyy')  ::integer)  as  WID
+                                          from  GENERATE_SERIES(BDATE,  DATE_TRUNC('month',  EDATE)  +  interval  '1  MONTH  -  1  DAY',  interval  '1  month')  as  DD)
+                loop
+                    select  S.ID  into  COMID  from  SLCOMPCHARGES  S  where  LOWER(S.NAME)  =  LOWER(COMPIT);  --–Ω–∞—Ö–æ–¥–∏–º  id  –∫–æ–º–ø–µ–Ω—Å–∞—Ü–∏–∏
+                    insert  into  PAYS  (REGISTERLISTID,  SLCOMPCHARGESID,  WORKCALENDARSID)  values  (NID,  COMID,  RK.WID);
+                end  loop;
+            else
+                J  :=  1;
+                --–£—Ä–æ–≤–µ–Ω—å  —Ä–µ–≥–∏–æ–Ω–∞–ª—å–Ω—ã–π
+                for  RK  in  (select  DD,  --–∑–∞–ø–æ–ª–Ω—è–µ–º  —Ç–∞–±–ª–∏—Ü—É  worktbl  
+                                                    (select  case
+                                                                        when  (select  count(*)
+                                                                                        from  WORKCALENDARS          W,
+                                                                                                  DAYSWORKCALENDARS  D
+                                                                                      where  D.WORKCALENDARSID  =  W.ID
+                                                                                          and  W.REGIONSRFID  =  REC.REGION
+                                                                                          and  D.DATEWC  =  DD)  >  0  then
+                                                                          (select  D.TYPEDAYID
+                                                                                from  WORKCALENDARS          W,
+                                                                                          DAYSWORKCALENDARS  D
+                                                                              where  D.WORKCALENDARSID  =  W.ID
+                                                                                  and  W.REGIONSRFID  =  REC.REGION
+                                                                                  and  D.DATEWC  =  DD)
+                                                                        else
+                                                                          (select  D.TYPEDAYID
+                                                                                from  WORKCALENDARS          W,
+                                                                                          DAYSWORKCALENDARS  D
+                                                                              where  D.WORKCALENDARSID  =  W.ID
+                                                                                  and  W.REGIONSRFID  =  SUBID  --–†–æ—Å—Å–∏–π—Å–∫–∞—è  –§–µ–¥–µ—Ä–∞—Ü–∏—è
+                                                                                  and  D.DATEWC  =  DD)
+                                                                    end)  as  STYPE
+                                          from  GENERATE_SERIES(BDATE,  EDATE,  interval  '1  day')  as  DD
+                                        order  by  DD)
+                loop
+                    for  I  in  1  ..  NCOUNT
+                    loop
+                        insert  into  WORKTBL  (REGISTERLISTID,  DATETBL,  TYPEDAYID,  NUMBCALDAY)  values  (NID,  RK.DD,  RK.STYPE,  J);
+                        J  :=  J  +  1;
+                    end  loop;
+                end  loop;
+                for  RK  in  (select  (select  case
+                                                                        when  (select  count(*)
+                                                                                        from  WORKCALENDARS  W
+                                                                                      where  W.REGIONSRFID  =  REC.REGION
+                                                                                          and  W.MONTH  ::integer  =  TO_CHAR(DD,  'mm')  ::integer
+                                                                                          and  W.YEAR  =  TO_CHAR(DD,  'yyyy')  ::integer)  >  0  then
+                                                                          (select  W.ID
+                                                                                from  WORKCALENDARS  W
+                                                                              where  W.REGIONSRFID  =  REC.REGION
+                                                                                  and  W.MONTH  ::integer  =  TO_CHAR(DD,  'mm')  ::integer
+                                                                                  and  W.YEAR  =  TO_CHAR(DD,  'yyyy')  ::integer)
+                                                                        else
+                                                                          (select  W.ID
+                                                                                from  WORKCALENDARS  W
+                                                                              where  W.REGIONSRFID  =  SUBID
+                                                                                  and  W.MONTH  ::integer  =  TO_CHAR(DD,  'mm')  ::integer
+                                                                                  and  W.YEAR  =  TO_CHAR(DD,  'yyyy')  ::integer)
+                                                                    end)  as  WID
+                                          from  GENERATE_SERIES(BDATE,  DATE_TRUNC('month',  EDATE)  +  interval  '1  MONTH  -  1  DAY',  interval  '1  month')  as  DD)
+                loop
+                    select  S.ID  into  COMID  from  SLCOMPCHARGES  S  where  LOWER(S.NAME)  =  LOWER(COMPIT);  --–Ω–∞—Ö–æ–¥–∏–º  id  –∫–æ–º–ø–µ–Ω—Å–∞—Ü–∏–∏
+                    insert  into  PAYS  (REGISTERLISTID,  SLCOMPCHARGESID,  WORKCALENDARSID)  values  (NID,  COMID,  RK.WID);
+                end  loop;
+            end  if;
+        
+            insert  into  PAYS
+                (REGISTERLISTID,  SLCOMPCHARGESID)
+                select  NID,
+                              S.ID
+                    from  SLCOMPCHARGES  S
+                  where  UPPER(trim(S.DESCRIPTION))  in  ('EXTRA1',  'EXTRA2',  'SUMEXTRA12',  'EXTRAA',  'SUMALL');
+        end  loop;
+        --–∑–∞–ø–æ–ª–Ω—è–µ–º  "—Å–≤–µ–¥–µ–Ω–∏—è  –æ  —Ñ–∏–Ω–∞–Ω—Å–∏—Ä–æ–≤–∞–Ω–∏–∏  –≤  –∑–∞–≤–∏—Å–∏–º–æ—Å—Ç–∏  –æ—Ç  —É—Ä–æ–≤–Ω—è  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–æ–º–ø–∞–Ω–∏–∏"
+        if  REC.LEVEL  =  'REGION'  then
+            --–£—Ä–æ–≤–µ–Ω—å  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–æ–º–º–∏—Å–∏–∏  —Ä–µ–≥–∏–æ–Ω–∞–ª—å–Ω–∞—è
+            for  RK  in  (select  T.ID
+                                      from  TYPEEXP  T
+                                    where  T.MESTIMATE  =  true
+                                        and  T.REGIONSRFID  =  REC.REGION)
+            loop
+                --–ü—Ä–æ–≤–µ—Ä—è–µ–º  –µ—Å—Ç—å  –ª–∏  –∑–∞–ø–∏—Å–∏  –≤  —Ç–∞–±–ª–∏—Ü–µ.
+                if  (select  count(*)
+                            from  FINEXP  S
+                          where  S.TYPEEXPID  =  RK.ID
+                              and  S.ELECTCOMMINCAMPID  =  REC.ID)  =  0  then
+                    insert  into  FINEXP  (TYPEEXPID,  ELECTCOMMINCAMPID)  values  (RK.ID,  REC.ID);
+                end  if;
+            end  loop;
+        elsif  REC.LEVEL  =  'CENTRAL'  then
+            --–§–µ–¥–µ—Ä–∞–ª—å–Ω–∞—è
+            for  RK  in  (select  T.ID,
+                                                REC.ID
+                                      from  TYPEEXP  T
+                                    where  T.MESTIMATE  =  true
+                                        and  T.REGIONSRFID  =  SUBID)
+            loop
+                if  (select  count(*)
+                            from  FINEXP  S
+                          where  S.TYPEEXPID  =  RK.ID
+                              and  S.ELECTCOMMINCAMPID  =  REC.ID)  =  0  then
+                    insert  into  FINEXP  (TYPEEXPID,  ELECTCOMMINCAMPID)  values  (RK.ID,  REC.ID);
+                end  if;
+            end  loop;
+        end  if;
+    end  loop;
+end;
+$function$
+ 

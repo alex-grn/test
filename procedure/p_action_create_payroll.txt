@@ -1,196 +1,291 @@
-CREATE OR REPLACE FUNCTION public.p_action_create_payroll (
-  id bigint,
-  ddocdate date,
-  bpay boolean,
-  bchairman boolean,
-  uid bigint
-)
-RETURNS text AS
-$body$
-declare 
-    IDENT   BIGINT := ID;
-	RC      RECORD;
-	nVED    BIGINT;																--“ËÔ ‰ÓÍÛÏÂÌÚ‡ "‚Â‰ÓÏÓÒÚ¸"
-    UD      BIGINT;																--”Ó‚ÂÌ¸ ‰ÓÒÚÛÔ‡ ÚÂÍÛ˘Â„Ó ÔÓÎ¸ÁÓ‚‡ÚÂÎˇ
-    nID     BIGINT;
-    tSQL    TEXT;
-    KOLS    INTEGER;																-- ÓÎË˜ÂÒÚ‚Ó ‚Â‰ÓÏÓÒÚÂÈ
-    CR      TEXT:=CHR(13);
-    SQL_BUF TEXT;																--SQL ·ÛÙÙÂ ‰Îˇ Í‡Ê‰Ó„Ó ÛÒÎÓ‚Ëˇ
-    NAL		TEXT;																--Õ‡ÎË˜Í‡
-    BEZ	    TEXT;																--¡ÂÁÌ‡Î
-    N_PR   	TEXT;																--Õ≈ œÂ‰ÒÂ‰‡ÚÂÎ¸
-    PR		TEXT;																--œÂ‰ÒÂ‰‡ÚÂÎ¸
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_create_payroll(id  bigint,  ddocdate  date,  bpay  boolean,  bchairman  boolean,  uid  bigint)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare  
+        IDENT      BIGINT  :=  ID;
+	RC            RECORD;
+        TYP          RECORD;
+	nVED        BIGINT;																--–¢–∏–ø  –¥–æ–∫—É–º–µ–Ω—Ç–∞  "–≤–µ–¥–æ–º–æ—Å—Ç—å"
+        UD            BIGINT;																--–£—Ä–æ–≤–µ–Ω—å  –¥–æ—Å—Ç—É–ø–∞  —Ç–µ–∫—É—â–µ–≥–æ  –ø–æ–ª—å–∑–æ–≤–∞—Ç–µ–ª—è
+        nID          BIGINT;
+        tSQL        TEXT;
+        KOLS        INTEGER;																--–ö–æ–ª–∏—á–µ—Å—Ç–≤–æ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π
+        CR            TEXT:=CHR(13);
+        SQL_BUF  TEXT;																--SQL  –±—É—Ñ—Ñ–µ—Ä  –¥–ª—è  –∫–∞–∂–¥–æ–≥–æ  —É—Å–ª–æ–≤–∏—è
+        NAL		TEXT;																--–ù–∞–ª–∏—á–∫–∞
+        BEZ	        TEXT;																--–ë–µ–∑–Ω–∞–ª
+        N_PR      	TEXT;																--–ù–ï  –ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+        PR		TEXT;																--–ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+        FL		BOOLEAN:=FALSE;														--FLAG
+        PAYS        TEXT[];                                                                                                                              --–£—Å–ª–æ–≤–∏—è  –ø–æ  –≤—ã–ø–ª–∞—Ç–∞–º
+        
 begin
-	--œÓ‚ÂÍ‡
-    IF (SELECT COUNT(*) FROM SHEETS S WHERE S.REGISTERID = IDENT) > 0 THEN RAISE USING MESSAGE = '¬Â‰ÓÏÓÒÚ¸ ÔÓ ÓÔÎ‡ÚÂ ÚÛ‰‡ ÛÊÂ ÒÙÓÏËÓ‚‡Ì‡!'; END IF;
-    SELECT D.ID INTO nVED FROM DOCTYPES D WHERE lower(D.CODE) = '‚Â‰ÓÏÓÒÚ¸';
-    SELECT L.ID INTO UD FROM USERS U, LEVACCESS L WHERE U.ID = P_ACTION_CREATE_PAYROLL.UID AND L.ID = U.LEVACCESSID;
-    --ÿ‡·ÎÓÌ Á‡ÔÓÒ‡ ‰Îˇ Á‡ÔÓÎÌÂÌËˇ Ú‡·ÎËˆ˚ SHEETDETAILS.
-    tSQL:='SELECT RS.COMMITTEEMANID,
-	      (SELECT SUM(V.SUMPAY) FROM PAYS V, SLCOMPCHARGES T WHERE V.REGISTERLISTID = RS.ID AND T.ID = V.SLCOMPCHARGESID AND UPPER(T.DESCRIPTION) = ''COMPENSATION'') AS SUMCOMP,
-   	      (SELECT SUM(V.SUMPAY) FROM PAYS V, SLCOMPCHARGES T WHERE V.REGISTERLISTID = RS.ID AND T.ID = V.SLCOMPCHARGESID AND UPPER(T.DESCRIPTION) = ''SUMEXTRA12'') AS SUMEXTRA12,
-   	      (SELECT SUM(V.SUMPAY) FROM PAYS V, SLCOMPCHARGES T WHERE V.REGISTERLISTID = RS.ID AND T.ID = V.SLCOMPCHARGESID AND UPPER(T.DESCRIPTION) = ''EXTRAA'') AS EXTRAA,
-          CH.TRPERSONID,
-          CH.PERSONACCID,
-          RS.ID AS REGLISTID
-                    FROM REGISTERLIST RS,										--◊ÎÂÌ˚ ËÁ·Ë‡ÚÂÎ¸ÌÓÈ ÍÓÏËÒÒËË ÔÓ ‚Â‰ÓÏÓÒÚË=
-                         COMMITTEEMAN CH,										--◊ÎÂÌ˚ ËÁ·Ë‡ÚÂÎ¸Ì˚ı ÍÓÏËÒÒËÈ
-                         POSTS P												--ƒÓÎÊÌÓÒÚË
-                   WHERE RS.REGISTERID = '||IDENT||'
-                     AND CH.ID = RS.COMMITTEEMANID 
-                     AND (SELECT SP.SUMPAY FROM PAYS SP, SLCOMPCHARGES SL WHERE SP.REGISTERLISTID = RS.ID AND SL.ID = SP.SLCOMPCHARGESID AND SL.DESCRIPTION = ''SUMALL'') != 0
-                     AND P.ID = CH.POSTSID'||CR;
-                     
-    NAL:='AND CH.PERSONACCID IS NULL'||CR||' AND CH.TRPERSONID IS NULL'||CR;      --Õ‡ÎË˜Í‡
-    BEZ:='AND CH.PERSONACCID IS NOT NULL'||CR||' AND CH.TRPERSONID IS NOT NULL'||CR; --¡ÂÁÌ‡Î
-    N_PR:='AND LOWER(P.CODE) NOT LIKE ''ÔÂ‰ÒÂ‰‡ÚÂÎ¸%'''||CR;					--Õ≈ œÂ‰ÒÂ‰‡ÚÂÎ¸
-    PR:='AND LOWER(P.CODE) LIKE ''ÔÂ‰ÒÂ‰‡ÚÂÎ¸%'''||CR;							--œÂ‰ÒÂ‰‡ÚÂÎ¸
-    
-   	--ÛÒÎÓ‚Ëˇ ÔÓ "–‡Á·ËÚ¸ ‚Â‰ÓÏÓÒÚË ÔÓ ‚Ë‰Û ÓÔÎ‡Ú˚ (Ì‡ÎË˜Ì˚È Ë ·ÂÁÌ‡ÎË˜Ì˚È)"(BPAY) Ë "¬˚‰ÂÎËÚ¸ ÔÂ‰ÒÂ‰‡ÚÂÎˇ ‚ ÓÚ‰ÂÎ¸ÌÛ˛ ‚Â‰ÓÏÓÒÚ¸"(bchairman)    
-    IF BCHAIRMAN AND BPAY THEN 	
-       /*
-      ¬˚‰ÂÎËÏ ÔÂ‰ÒÂ‰‡ÚÂÎˇ ‚ ÓÚ‰ÂÎ¸ÌÛ˛ ‚Â‰ÓÏÓÒÚ¸. 
-      œÓ ÓÒÚ‡Î¸Ì˚Ï ˜ÎÂÌ‡Ï ÒÔÂˆËÙËÍ‡ˆËË REGISTERLIST ÓÔÂ‰ÂÎËÏ ÂÒÚ¸ ÎË ÂÍ‚ËÁËÚ˚ ÔÂÂ˜ËÒÎÂÌËˇ ‚ Ú‡·ÎËˆÂ COMMITTEEMAN
-      ÔÓ ÔÓÎˇÏ PERSONID Ë PERSONACCID, Ë ‚˚‰ÂÎËÏ ‚ 2 „ÛÔÔ˚. »ÚÓ„Ó = 3 ‰ÓÍÛÏÂÌÚ‡
-      */
-      KOLS:=3;
-    ELSIF NOT BCHAIRMAN AND BPAY THEN
-      /*
-      2 ‰ÓÍÛÏÂÌÚ‡: Ó‰ËÌ Ì‡ ÔÂ‰ÒÂ‰‡ÚÂÎˇ, ‚ÚÓÓÈ-ÔÓ ÓÒÚ‡Î¸Ì˚Ï ˜ÎÂÌ‡Ï » 
-      */
-      KOLS:=2;	
-    ELSIF BCHAIRMAN AND NOT BPAY THEN
-      /*
-      2 ‰ÓÍÛÏÂÌÚ‡ ÔÓ ‚Ë‰Û ÓÔÎ‡Ú˚
-      */
-      KOLS:=2;	
-    ELSIF NOT BCHAIRMAN AND NOT BPAY THEN
-      /*
-      Œ‰Ì‡ ‚Â‰ÓÏÓÒÚ¸, ‚ ÍÓÚÓÛ˛ ‚ÍÎ˛˜‡˛ÚÒˇ ‚ÒÂ ˜ÎÂÌ˚ ÔÓ ‡Ò˜ÂÚÌÓÏÛ ‰ÓÍÛÏÂÌÚÛ
-      */
-      KOLS:=1;
-    END IF; 
-    
-	
-    FOR I IN 1..KOLS LOOP
-      INSERT INTO SHEETS(
-       				     CODE,
-       				     DOCTYPEID,
-                         DOCPREF,
-                         DOCNUMB,
-                         DOCDATE,
-                         ELECTCAMPAIGNID,
-                         ELECTDATE,
-                         ELECTCOMMINCAMPID,
-                         REGISTERID
-                         )
-       			  SELECT
-                   	     '¬Â‰ÓÏÓÒÚ¸ '||TO_CHAR(DDOCDATE,'YYYY')||'-'||UD||'-'||(SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||UD AND CID=0)||' ÓÚ '||to_char(ddocdate,'dd.mm.yyyy'),
-                   	     nVED,
-                         TO_CHAR(DDOCDATE,'YYYY')||'-'||UD,
-                         (SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM SHEETS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||UD AND CID=0),
-                         DDOCDATE,
-                         R.ELECTCAMPAIGNID,
-                         (SELECT IK.ELECTDATE FROM ELECTCAMPAIGN IK WHERE IK.ID = R.ELECTCAMPAIGNID),
-                         R.ELECTCOMMINCAMPID,
-                         R.ID
-                    FROM REGISTER R
-                   WHERE R.ID = IDENT
-               RETURNING SHEETS.ID 
-                    INTO nID;
-        IF BCHAIRMAN AND BPAY THEN 	
-           IF I = 1 THEN  --ŒÚ‰ÂÎ¸ÌÓ ÔÂ‰ÒÂ‰‡ÚÂÎË
-            SQL_BUF:=tSQL;
-           	SQL_BUF:=SQL_BUF||PR;  --œÂ‰ÒÂ‰‡ÚÂÎ¸
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-           ELSIF I = 2 THEN --¡ÂÁ ÔÂ‰ÒÂ‰‡ÚÂÎÂÈ Ë Ì‡ÎË˜ÍÓÈ
-           	SQL_BUF:=tSQL;
-            SQL_BUF:=SQL_BUF||N_PR;  --Õ≈ œÂ‰ÒÂ‰‡ÚÂÎ¸
-            SQL_BUF:=SQL_BUF||BEZ;   --¡ÂÁÌ‡Î
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-           ELSIF I = 3 THEN --¡ÂÁ ÔÂ‰ÒÂ‰‡ÚÂÎÂÈ Ë ·ÂÁÌ‡ÎÓÏ
-           	SQL_BUF:=tSQL;
-            SQL_BUF:=SQL_BUF||N_PR;  --Õ≈ œÂ‰ÒÂ‰‡ÚÂÎ¸
-            SQL_BUF:=SQL_BUF||NAL;   --Õ‡ÎË˜Í‡
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-           END IF;
-        ELSIF NOT BCHAIRMAN AND BPAY THEN
-           IF I = 1 THEN --Õ‡ÎË˜ÍÓÈ
-           	SQL_BUF:=tSQL;
-            SQL_BUF:=SQL_BUF||NAL;
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;             
-           ELSIF I = 2 THEN --¡ÂÁÌ‡ÎÓÏ
-           	SQL_BUF:=tSQL;
-            SQL_BUF:=SQL_BUF||BEZ;
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-           END IF;	
-        ELSIF BCHAIRMAN AND NOT BPAY THEN
-           IF I = 1 THEN --œÂ‰ÒÂ‰‡ÚÂÎ¸
-           	SQL_BUF:=tSQL;
-            SQL_BUF:=SQL_BUF||PR;
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-           ELSIF I = 2 THEN --Õ≈ œÂ‰ÒÂ‰‡ÚÂÎ¸
-           	SQL_BUF:=tSQL;
-            SQL_BUF:=SQL_BUF||N_PR;
-            FOR RC IN EXECUTE SQL_BUF
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-           END IF;
-        ELSIF NOT BCHAIRMAN AND NOT BPAY THEN
-           FOR RC IN EXECUTE tSQL
-           	LOOP
-            	INSERT INTO SHEETDETAILS(SHEETSID,COMMITTEEMANID,   SUMCOMP,   SUMEXTRA12,   EXTRAA,   TRPERSONID,   PERSONACCID)
-                      			  VALUES(NID,     RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
-                UPDATE PAYS P SET SHEETSID = NID WHERE P.REGISTERLISTID = RC.REGLISTID; 
-            END LOOP;
-        END IF;
-      --œÓ‚ÂÍ‡ Ì‡ Ì‡ÎË˜ËÂ ÒÔÂˆËÙËÍ‡ˆËË
-    IF (SELECT COUNT(*) FROM SHEETDETAILS SD WHERE SD.SHEETSID = NID) = 0 THEN DELETE FROM SHEETS S WHERE S.ID = NID; END IF;
-    END LOOP;                
-
-    UPDATE REGISTER R SET STATUS = '4' WHERE R.ID = IDENT;
-    RETURN NULL;    
+	--–ü—Ä–æ–≤–µ—Ä–∫–∞
+        IF  (SELECT  COUNT(*)  FROM  SHEETS  S  WHERE  S.REGISTERID  =  IDENT)  >  0  THEN  RAISE  USING  MESSAGE  =  '–í–µ–¥–æ–º–æ—Å—Ç—å  –ø–æ  –æ–ø–ª–∞—Ç–µ  —Ç—Ä—É–¥–∞  —É–∂–µ  —Å—Ñ–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∞!';  END  IF;
+        IF  (SELECT  COALESCE(SUM(COALESCE(V.SUMPAY,0)),0)
+                                  FROM  REGISTERLIST  RS,
+                                            PAYS  V,  
+                                            SLCOMPCHARGES  T
+                                WHERE  V.REGISTERLISTID  =  RS.ID  
+                                    AND  T.ID  =  V.SLCOMPCHARGESID  
+                                    AND  UPPER(T.DESCRIPTION)  =  'SUMALL'
+                            )  =  0  THEN  RAISE  USING  MESSAGE  =  '–ù–µ—Ç  –¥–∞–Ω–Ω—ã—Ö  –¥–ª—è  —Ñ–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏—è!'||tSQL;
+        END  IF;
+        SELECT  D.ID  INTO  nVED  FROM  DOCTYPES  D  WHERE  lower(D.CODE)  =  '–≤–µ–¥–æ–º–æ—Å—Ç—å';
+        SELECT  L.ID  INTO  UD  FROM  USERS  U,  LEVACCESS  L  WHERE  U.ID  =  P_ACTION_CREATE_PAYROLL.UID  AND  L.ID  =  U.LEVACCESSID;
+        --—Å–¥–µ–ª–∞—Ç—å  —Ü–∏–∫–ª  2  .  –∏  —Ç–∞–º  —Å–¥–µ–ª–∞—Ç—å  if  –≥–¥–µ  –±—É–¥–µ—Ç  –º–µ–Ω—è—Ç—å—Å—è  –∑–Ω–∞—á–µ–Ω–∏–µ
+      FOR  PA  in  1..2
+      loop  
+      if  PA  =  1  then  
+            PAYS[0]:='AND  (SELECT  SUM(COALESCE(V.SUMPAY,0))  FROM  PAYS  V,  SLCOMPCHARGES  T  WHERE  V.REGISTERLISTID  =  RS.ID  AND  T.ID  =  V.SLCOMPCHARGESID  AND  UPPER(T.DESCRIPTION)  =  ''COMPENSATION'')  >  0';  
+            PAYS[1]:='(SELECT  SUM(COALESCE(V.SUMPAY,0))  FROM  PAYS  V,  SLCOMPCHARGES  T  WHERE  V.REGISTERLISTID  =  RS.ID  AND  T.ID  =  V.SLCOMPCHARGESID  AND  UPPER(T.DESCRIPTION)  =  ''COMPENSATION'')  AS  SUMCOMP,';
+            PAYS[2]:='0.0  AS  SUMEXTRA12,';
+            PAYS[3]:='0.0  AS  EXTRAA,';
+      else
+            PAYS[0]:='AND  (SELECT  SUM(COALESCE(V.SUMPAY,0))  FROM  PAYS  V,  SLCOMPCHARGES  T  WHERE  V.REGISTERLISTID  =  RS.ID  AND  T.ID  =  V.SLCOMPCHARGESID  AND  (UPPER(T.DESCRIPTION)  =  ''SUMEXTRA12''  OR  UPPER(T.DESCRIPTION)  =  ''EXTRAA''))  >  0';
+            PAYS[1]:='0.0  AS  SUMCOMP,';
+            PAYS[2]:='(SELECT  SUM(COALESCE(V.SUMPAY,0))  FROM  PAYS  V,  SLCOMPCHARGES  T  WHERE  V.REGISTERLISTID  =  RS.ID  AND  T.ID  =  V.SLCOMPCHARGESID  AND  UPPER(T.DESCRIPTION)  =  ''SUMEXTRA12'')  AS  SUMEXTRA12,';
+            PAYS[3]:='(SELECT  SUM(COALESCE(V.SUMPAY,0))  FROM  PAYS  V,  SLCOMPCHARGES  T  WHERE  V.REGISTERLISTID  =  RS.ID  AND  T.ID  =  V.SLCOMPCHARGESID  AND  UPPER(T.DESCRIPTION)  =  ''EXTRAA'')  AS  EXTRAA,';
+      end  if;
+        --–®–∞–±–ª–æ–Ω  –∑–∞–ø—Ä–æ—Å–∞  –¥–ª—è  –∑–∞–ø–æ–ª–Ω–µ–Ω–∏—è  —Ç–∞–±–ª–∏—Ü—ã  SHEETDETAILS.
+        tSQL:='SELECT  RS.COMMITTEEMANID,
+                    '||CR||PAYS[1]||CR||PAYS[2]||CR||PAYS[3]||CR||'
+                    CH.TRPERSONID,
+                    CH.PERSONACCID,
+                    RS.ID  AS  REGLISTID,
+                    (SELECT  F.MFIN  FROM  MFIN  F  WHERE  F.ELECTCOMMITTEEID  =  I.ID  AND  F.BEGINDATE  <=  NOW()  AND  (F.ENDDATE  >=  NOW()  OR  F.ENDDATE  IS  NULL))::INTEGER  AS  MFIN
+                    /*
+                            1  -  "—É—á–∞—Å—Ç–Ω–∏–∫  –∑–∞—Ä–ø–ª–∞—Ç–Ω–æ–≥–æ  –ø—Ä–æ–µ–∫—Ç–∞"
+                        2  -  "–Ω–µ  —É—á–∞—Å—Ç–Ω–∏–∫  –∑–∞—Ä–ø–ª–∞—Ç–Ω–æ–≥–æ  –ø—Ä–æ–µ–∫—Ç–∞"
+                        3  -  "—É—á–∞—Å—Ç–Ω–∏–∫  –∑–∞—Ä–ø–ª–∞—Ç–Ω–æ–≥–æ  –ø—Ä–æ–µ–∫—Ç–∞  –∏  –ø–æ–¥–æ—Ç—á–µ—Ç–Ω–æ–µ  –ª–∏—Ü–æ"
+                    */
+                                        FROM  REGISTERLIST  RS,                                                                                /*–ß–ª–µ–Ω—ã  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–π  –∫–æ–º–∏—Å—Å–∏–∏  –ø–æ  –≤–µ–¥–æ–º–æ—Å—Ç–∏*/
+                                                  COMMITTEEMAN  CH,                                                                                /*–ß–ª–µ–Ω—ã  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω—ã—Ö  –∫–æ–º–∏—Å—Å–∏–π*/
+                                                  POSTS  P,                                                                                                /*–î–æ–ª–∂–Ω–æ—Å—Ç–∏*/
+                                                  /*–¥–æ–±–∞–≤–ª–µ–Ω–æ  –ø–æ  —Å–æ–±—ã—Ç–∏—é  –ú–ê–¶-3993*/
+                                                  REGISTER  R,                                                                                        /*–†–∞—Å—á–µ—Ç–Ω—ã–µ  –¥–æ–∫—É–º–µ–Ω—Ç—ã*/
+                                                  ELECTCOMMINCAMP  IK,                                                                        /*–ò–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω—ã–µ  –∫–æ–º–∏—Å—Å–∏–∏*/
+                                                  ELECTCOMMITTEE  I                                                                                /*–ò–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω—ã–µ  –∫–æ–º–∏—Å—Å–∏–∏  –∏  –∏—Ö  —Å–æ—Å—Ç–∞–≤*/
+                                      WHERE  RS.REGISTERID  =  '||IDENT||'
+                                          AND  CH.ID  =  RS.COMMITTEEMANID  
+                                          AND  R.ID  =  RS.REGISTERID
+                                          AND  IK.ID  =  R.ELECTCOMMINCAMPID
+                                          AND  I.ID  =  IK.ELECTCOMMITTEEID'||CR||PAYS[0]||CR||'
+                                          AND  (SELECT  SP.SUMPAY  FROM  PAYS  SP,  SLCOMPCHARGES  SL  WHERE  SP.REGISTERLISTID  =  RS.ID  AND  SL.ID  =  SP.SLCOMPCHARGESID  AND  SL.DESCRIPTION  =  ''SUMALL'')  !=  0
+                                          AND  P.ID  =  CH.POSTSID'||CR;
+                                          
+        NAL:='AND  CH.PERSONACCID  IS  NULL'||CR||'  AND  CH.TRPERSONID  IS  NULL'||CR;            --–ù–∞–ª–∏—á–∫–∞
+        BEZ:='AND  CH.PERSONACCID  IS  NOT  NULL'||CR||'  AND  CH.TRPERSONID  IS  NOT  NULL'||CR;  --–ë–µ–∑–Ω–∞–ª
+        N_PR:='AND  UPPER(P.POSTPRINT)  !=  ''CHAIRMAN'''||CR;                                        --–ù–ï  –ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+        PR:='AND  UPPER(P.POSTPRINT)  =  ''CHAIRMAN'''||CR;                                                        --–ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+        
+              --—É—Å–ª–æ–≤–∏—è  –ø–æ  "–†–∞–∑–±–∏—Ç—å  –≤–µ–¥–æ–º–æ—Å—Ç–∏  –ø–æ  –≤–∏–¥—É  –æ–ø–ª–∞—Ç—ã  (–Ω–∞–ª–∏—á–Ω—ã–π  –∏  –±–µ–∑–Ω–∞–ª–∏—á–Ω—ã–π)"(BPAY)  –∏  "–í—ã–¥–µ–ª–∏—Ç—å  –ø—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—è  –≤  –æ—Ç–¥–µ–ª—å–Ω—É—é  –≤–µ–¥–æ–º–æ—Å—Ç—å"(bchairman)        
+        IF  BCHAIRMAN  AND  BPAY  THEN          
+              /*
+            –í—ã–¥–µ–ª–∏–º  –ø—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—è  –≤  –æ—Ç–¥–µ–ª—å–Ω—É—é  –≤–µ–¥–æ–º–æ—Å—Ç—å.  
+            –ü–æ  –æ—Å—Ç–∞–ª—å–Ω—ã–º  —á–ª–µ–Ω–∞–º  —Å–ø–µ—Ü–∏—Ñ–∏–∫–∞—Ü–∏–∏  REGISTERLIST  –æ–ø—Ä–µ–¥–µ–ª–∏–º  –µ—Å—Ç—å  –ª–∏  —Ä–µ–∫–≤–∏–∑–∏—Ç—ã  –ø–µ—Ä–µ—á–∏—Å–ª–µ–Ω–∏—è  –≤  —Ç–∞–±–ª–∏—Ü–µ  COMMITTEEMAN
+            –ø–æ  –ø–æ–ª—è–º  PERSONID  –∏  PERSONACCID,  –∏  –≤—ã–¥–µ–ª–∏–º  –≤  2  –≥—Ä—É–ø–ø—ã.  –ò—Ç–æ–≥–æ  =  3  –¥–æ–∫—É–º–µ–Ω—Ç–∞
+            */
+            KOLS:=3;
+        ELSIF  NOT  BCHAIRMAN  AND  BPAY  THEN
+            /*
+            2  –¥–æ–∫—É–º–µ–Ω—Ç–∞:  –æ–¥–∏–Ω  –Ω–∞  –ø—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—è,  –≤—Ç–æ—Ä–æ–π-–ø–æ  –æ—Å—Ç–∞–ª—å–Ω—ã–º  —á–ª–µ–Ω–∞–º  –ò–ö
+            */
+            KOLS:=2;        
+        ELSIF  BCHAIRMAN  AND  NOT  BPAY  THEN
+            /*
+            2  –¥–æ–∫—É–º–µ–Ω—Ç–∞  –ø–æ  –≤–∏–¥—É  –æ–ø–ª–∞—Ç—ã
+            */
+            KOLS:=2;        
+        ELSIF  NOT  BCHAIRMAN  AND  NOT  BPAY  THEN
+            /*
+            –û–¥–Ω–∞  –≤–µ–¥–æ–º–æ—Å—Ç—å,  –≤  –∫–æ—Ç–æ—Ä—É—é  –≤–∫–ª—é—á–∞—é—Ç—Å—è  –≤—Å–µ  —á–ª–µ–Ω—ã  –ø–æ  —Ä–∞—Å—á–µ—Ç–Ω–æ–º—É  –¥–æ–∫—É–º–µ–Ω—Ç—É
+            */
+            KOLS:=1;
+        END  IF;  
+        
+        
+        FOR  I  IN  1..KOLS  LOOP
+            INSERT  INTO  SHEETS(
+                                                        CODE,
+                                                        DOCTYPEID,
+                                                  DOCPREF,
+                                                  DOCNUMB,
+                                                  DOCDATE,
+                                                  ELECTCAMPAIGNID,
+                                                  ELECTDATE,
+                                                  ELECTCOMMINCAMPID,
+                                                  REGISTERID
+                                                  )
+                                          SELECT
+                                                        '–í–µ–¥–æ–º–æ—Å—Ç—å  '||TO_CHAR(DDOCDATE,'YYYY')||'-'||UD||'-'||(SELECT  COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,'  ')),  '[^0-9]',  '',  'g')::INT+1,1)  FROM  SHEETS  WHERE  DOCPREF  =  TO_CHAR(DDOCDATE,'YYYY')||'-'||UD  AND  CID=0)||'  –æ—Ç  '||to_char(ddocdate,'dd.mm.yyyy'),
+                                                        nVED,
+                                                  TO_CHAR(DDOCDATE,'YYYY')||'-'||UD,
+                                                  (SELECT  COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,'  ')),  '[^0-9]',  '',  'g')::INT+1,1)  FROM  SHEETS  WHERE  DOCPREF  =  TO_CHAR(DDOCDATE,'YYYY')||'-'||UD  AND  CID=0),
+                                                  DDOCDATE,
+                                                  R.ELECTCAMPAIGNID,
+                                                  (SELECT  IK.ELECTDATE  FROM  ELECTCAMPAIGN  IK  WHERE  IK.ID  =  R.ELECTCAMPAIGNID),
+                                                  R.ELECTCOMMINCAMPID,
+                                                  R.ID
+                                        FROM  REGISTER  R
+                                      WHERE  R.ID  =  IDENT
+                              RETURNING  SHEETS.ID  
+                                        INTO  nID;
+                IF  BCHAIRMAN  AND  BPAY  THEN          
+                      IF  I  =  1  THEN    --–û—Ç–¥–µ–ª—å–Ω–æ  –ø—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª–∏
+                        SQL_BUF:=tSQL;
+                              SQL_BUF:=SQL_BUF||PR;    --–ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);  
+                                
+                        END  LOOP;
+                      ELSIF  I  =  2  THEN  --–ë–µ–∑  –ø—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª–µ–π  –∏  –Ω–∞–ª–∏—á–∫–æ–π
+                              SQL_BUF:=tSQL;
+                        SQL_BUF:=SQL_BUF||N_PR;    --–ù–ï  –ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+                        SQL_BUF:=SQL_BUF||BEZ;      --–ë–µ–∑–Ω–∞–ª
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);
+                                
+                        END  LOOP;
+                      ELSIF  I  =  3  THEN  --–ë–µ–∑  –ø—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª–µ–π  –∏  –±–µ–∑–Ω–∞–ª–æ–º
+                              SQL_BUF:=tSQL;
+                        SQL_BUF:=SQL_BUF||N_PR;    --–ù–ï  –ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+                        SQL_BUF:=SQL_BUF||NAL;      --–ù–∞–ª–∏—á–∫–∞
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);
+                                  
+                        END  LOOP;
+                      END  IF;
+                ELSIF  NOT  BCHAIRMAN  AND  BPAY  THEN
+                      IF  I  =  1  THEN  --–ù–∞–ª–∏—á–∫–æ–π
+                              SQL_BUF:=tSQL;
+                        SQL_BUF:=SQL_BUF||NAL;
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);  
+                                
+                        END  LOOP;                      
+                      ELSIF  I  =  2  THEN  --–ë–µ–∑–Ω–∞–ª–æ–º
+                              SQL_BUF:=tSQL;
+                        SQL_BUF:=SQL_BUF||BEZ;
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);
+                                
+                        END  LOOP;
+                      END  IF;    
+                ELSIF  BCHAIRMAN  AND  NOT  BPAY  THEN
+                      IF  I  =  1  THEN  --–ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+                              SQL_BUF:=tSQL;
+                        SQL_BUF:=SQL_BUF||PR;
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);  
+                                
+                        END  LOOP;
+                      ELSIF  I  =  2  THEN  --–ù–ï  –ü—Ä–µ–¥—Å–µ–¥–∞—Ç–µ–ª—å
+                              SQL_BUF:=tSQL;
+                        SQL_BUF:=SQL_BUF||N_PR;
+                        FOR  RC  IN  EXECUTE  SQL_BUF
+                              LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);
+                                
+                        END  LOOP;
+                      END  IF;
+                ELSIF  NOT  BCHAIRMAN  AND  NOT  BPAY  THEN
+                      FOR  RC  IN  EXECUTE  tSQL
+                        LOOP
+                                IF  RC.MFIN  =  2  THEN
+                                        RAISE  USING  MESSAGE  =  '–§–æ—Ä–º–∏—Ä–æ–≤–∞–Ω–∏–µ  –≤–µ–¥–æ–º–æ—Å—Ç–µ–π  –∑–∞–ø—Ä–µ—â–µ–Ω–æ!  –û–ø–ª–∞—Ç–∞  —Ç—Ä—É–¥–∞  —á–ª–µ–Ω–∞–º  –£–ò–ö  –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç—Å—è  —Å–∞–º–æ—Å—Ç–æ—è—Ç–µ–ª—å–Ω–æ.';
+                                END  IF;
+                              --  BEGIN
+                                INSERT  INTO  SHEETDETAILS(SHEETSID,COMMITTEEMANID,      SUMCOMP,      SUMEXTRA12,      EXTRAA,      TRPERSONID,      PERSONACCID)
+                                                                        VALUES(NID,          RC.COMMITTEEMANID,RC.SUMCOMP,RC.SUMEXTRA12,RC.EXTRAA,RC.TRPERSONID,RC.PERSONACCID);
+                              --  EXCEPTION  WHEN  OTHERS  THEN    RAISE  USING  MESSAGE  =  COALESCE(RC.COMMITTEEMANID,-1)||'  '||COALESCE(RC.SUMCOMP,-1)||'  '||COALESCE(RC.SUMEXTRA12,-1)||'  '||COALESCE(RC.EXTRAA,-1)||'  '||COALESCE(RC.TRPERSONID,-1)||'  '||COALESCE(RC.PERSONACCID,-1);  END;
+                                UPDATE  PAYS  P  SET  SHEETSID  =  NID  WHERE  P.REGISTERLISTID  =  RC.REGLISTID  AND  P.SLCOMPCHARGESID  IN  (SELECT  SL.ID
+                                                                                                                                                                                                                                      FROM  SLCOMPCHARGES  SL  
+                                                                                                                                                                                                                                    WHERE  UPPER(SL.DESCRIPTION)  =  'COMPENSATION'  AND  PA  =  1
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'SUMEXTRA12'  AND  PA  =  2
+                                                                                                                                                                                                                                          OR  UPPER(SL.DESCRIPTION)  =  'EXTRAA'  AND  PA  =  2);
+                                
+                        END  LOOP;
+                END  IF;
+                
+                        
+                        
+            --–ü—Ä–æ–≤–µ—Ä–∫–∞  –Ω–∞  –Ω–∞–ª–∏—á–∏–µ  —Å–ø–µ—Ü–∏—Ñ–∏–∫–∞—Ü–∏–∏
+        IF  (SELECT  COUNT(*)  FROM  SHEETDETAILS  SD  WHERE  SD.SHEETSID  =  NID)  =  0  THEN  DELETE  FROM  SHEETS  S  WHERE  S.ID  =  NID;  END  IF;
+        END  LOOP;
+        UPDATE  REGISTER  R  SET  STATUS  =  '4'  WHERE  R.ID  =  IDENT;
+    end  loop;  
+        RETURN  NULL;        
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_create_payroll (id bigint, ddocdate date, bpay boolean, bchairman boolean, uid bigint)
-  OWNER TO magicbox;
+$function$
+ 

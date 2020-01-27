@@ -9,15 +9,24 @@
 				<queries>
                      <query name="header" type="sql">
                         <script>
-							select r.docpref||' '||r.docnumb as n_reestr, to_char(r.docdate,'dd.mm.yyyy') as date_reestr, c.name as institution, s.bankacc as payment_account
+							select r.docpref||' '||r.docnumb as n_reestr, to_char(r.docdate,'dd.mm.yyyy') as date_reestr, c.name as institution, s.bankacc as payment_account, 
+									(select UL.NAME from AGENT UL where UL.ID = ag.agentid) as bank_inst,
+									case r.TRANSFERSTYPE
+										when '25' then 'Компенсация члену комиссии, работающему с освобождением от основной работы'
+										when '33' then 'Допоплата труда (вознаграждение) члену комиссии'
+										when '17' then 'Возмещение расходов члену комиссии, связанных с командировкой'
+										when '51' then 'Подотчет члену комиссии'
+									end as type_enrollment
 							  from REGISTERSTRANSFERS r,
 							  	   ELECTCOMMINCAMP k,
 							  	   ELECTCOMMITTEE c,
-							  	   ELCMTACC s
+							  	   ELCMTACC s,
+								   AGENTBANKS ag
 							  where r.id = ${id}::bigint
 							  and k.id = r.ELECTCOMMINCAMPid
 							  and c.id = k.ELECTCOMMITTEEid
 							  and s.id = r.ELCMTACCid
+							  and ag.id = r.agentbanksid
 								;
 						</script>
                      </query>

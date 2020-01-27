@@ -1,66 +1,49 @@
-CREATE OR REPLACE FUNCTION public.p_action_finexp_sumpay (
-  id bigint
-)
-RETURNS numeric AS
-$body$
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_finexp_sumpay(id  bigint)
+  RETURNS  numeric
+  LANGUAGE  plpgsql
+AS  $function$
 declare
-  NSUM NUMERIC;
+    NSUM  NUMERIC;
 begin
- /*
- Ðàñ÷åòíîå ïîëå.
- •	SUMPAY (ñóììà ðàñõîäà):
-1.	Ïî ïîëþ «Íàïðàâëåíèå ðàñõîäà» (TYPEEXPID) òåêóùåé çàïèñè, îïðåäåëèòü âûïëàòû, êîòîðûå ó÷èòûâàþòñÿ ïðè îïðåäåëåíèè ðàñõîäà, ïî ñïåöèôèêàöèè TYPEEXPSL.
-2.	Íàéòè çàïèñè òàáëèöû PAYS, äëÿ êîòîðîé ãëàâíûé ðîäèòåëü «Èçáèðàòåëüíàÿ êîìèññèÿ â èçáèðàòåëüíîé êàìïàíèè» (ELECTCOMMINCAMPID) = ðîäèòåëþ òåêóùåé çàïèñè, 
-	è âûïëàòà (SLCOMPCHARGESID) ëåæèò â ñïèñêå. Îïðåäåëåííîì íà ïåðâîì øàãå.
-3.	Ïî íàéäåííûì çàïèñÿì íàéòè ñóììó ïî ïîëþ SUMPAY.
+  /*
+  Ð Ð°ÑÑ‡ÐµÑ‚Ð½Ð¾Ðµ  Ð¿Ð¾Ð»Ðµ.
+  â€¢	SUMPAY  (ÑÑƒÐ¼Ð¼Ð°  Ñ€Ð°ÑÑ…Ð¾Ð´Ð°):
+1.	ÐŸÐ¾  Ð¿Ð¾Ð»ÑŽ  Â«ÐÐ°Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ  Ñ€Ð°ÑÑ…Ð¾Ð´Ð°Â»  (TYPEEXPID)  Ñ‚ÐµÐºÑƒÑ‰ÐµÐ¹  Ð·Ð°Ð¿Ð¸ÑÐ¸,  Ð¾Ð¿Ñ€ÐµÐ´ÐµÐ»Ð¸Ñ‚ÑŒ  Ð²Ñ‹Ð¿Ð»Ð°Ñ‚Ñ‹,  ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ  ÑƒÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÑŽÑ‚ÑÑ  Ð¿Ñ€Ð¸  Ð¾Ð¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ð¸  Ñ€Ð°ÑÑ…Ð¾Ð´Ð°,  Ð¿Ð¾  ÑÐ¿ÐµÑ†Ð¸Ñ„Ð¸ÐºÐ°Ñ†Ð¸Ð¸  TYPEEXPSL.
+2.	ÐÐ°Ð¹Ñ‚Ð¸  Ð·Ð°Ð¿Ð¸ÑÐ¸  Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹  PAYS,  Ð´Ð»Ñ  ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹  Ð³Ð»Ð°Ð²Ð½Ñ‹Ð¹  Ñ€Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ  Â«Ð˜Ð·Ð±Ð¸Ñ€Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð°Ñ  ÐºÐ¾Ð¼Ð¸ÑÑÐ¸Ñ  Ð²  Ð¸Ð·Ð±Ð¸Ñ€Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹  ÐºÐ°Ð¼Ð¿Ð°Ð½Ð¸Ð¸Â»  (ELECTCOMMINCAMPID)  =  Ñ€Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŽ  Ñ‚ÐµÐºÑƒÑ‰ÐµÐ¹  Ð·Ð°Ð¿Ð¸ÑÐ¸,  
+	Ð¸  Ð²Ñ‹Ð¿Ð»Ð°Ñ‚Ð°  (SLCOMPCHARGESID)  Ð»ÐµÐ¶Ð¸Ñ‚  Ð²  ÑÐ¿Ð¸ÑÐºÐµ.  ÐžÐ¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð½Ð¾Ð¼  Ð½Ð°  Ð¿ÐµÑ€Ð²Ð¾Ð¼  ÑˆÐ°Ð³Ðµ.
+3.	ÐŸÐ¾  Ð½Ð°Ð¹Ð´ÐµÐ½Ð½Ñ‹Ð¼  Ð·Ð°Ð¿Ð¸ÑÑÐ¼  Ð½Ð°Ð¹Ñ‚Ð¸  ÑÑƒÐ¼Ð¼Ñƒ  Ð¿Ð¾  Ð¿Ð¾Ð»ÑŽ  SUMPAY.
 
-4. Äîïîëíåíèå. Ãðóïïèðóåì ñóììû ïî óðîâíþ èçáèðàòåëüíîé êîìèññèè, â êîòîðîé íàõîäèòñÿ ÷ëåí ÈÊ. 
-Åñëè óðîâåíü - ÓÈÊ, òî íàõîäèì â ñâåäåíèÿõ î ôèíàíñèðîâàíèè çàïèñü, ãäå â ïîëå âêëþ÷åíèå â ñìåòó = ñìåòà ÓÈÊ, 
-äëÿ ÒÈÊà - â ñìåòó ÒÈÊ
- */
+4.  Ð”Ð¾Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ðµ.  Ð“Ñ€ÑƒÐ¿Ð¿Ð¸Ñ€ÑƒÐµÐ¼  ÑÑƒÐ¼Ð¼Ñ‹  Ð¿Ð¾  ÑƒÑ€Ð¾Ð²Ð½ÑŽ  Ð¸Ð·Ð±Ð¸Ñ€Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹  ÐºÐ¾Ð¼Ð¸ÑÑÐ¸Ð¸,  Ð²  ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹  Ð½Ð°Ñ…Ð¾Ð´Ð¸Ñ‚ÑÑ  Ñ‡Ð»ÐµÐ½  Ð˜Ðš.  
+Ð•ÑÐ»Ð¸  ÑƒÑ€Ð¾Ð²ÐµÐ½ÑŒ  -  Ð£Ð˜Ðš,  Ñ‚Ð¾  Ð½Ð°Ñ…Ð¾Ð´Ð¸Ð¼  Ð²  ÑÐ²ÐµÐ´ÐµÐ½Ð¸ÑÑ…  Ð¾  Ñ„Ð¸Ð½Ð°Ð½ÑÐ¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ð¸  Ð·Ð°Ð¿Ð¸ÑÑŒ,  Ð³Ð´Ðµ  Ð²  Ð¿Ð¾Ð»Ðµ  Ð²ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ  Ð²  ÑÐ¼ÐµÑ‚Ñƒ  =  ÑÐ¼ÐµÑ‚Ð°  Ð£Ð˜Ðš,  
+Ð´Ð»Ñ  Ð¢Ð˜ÐšÐ°  -  Ð²  ÑÐ¼ÐµÑ‚Ñƒ  Ð¢Ð˜Ðš
+  */
 
-
-
-SELECT SUM(P.SUMPAY)
-  INTO NSUM
-  FROM FINEXP F, --="Ñâåäåíèÿ î ôèíàíñèðîâàíèè è ðàñõîäàõ">
-       TYPEEXP T,
-       TYPEEXPSL TS,
-       ELECTCOMMINCAMP E,
---	ELECTCOMMITTEE el,
-       REGISTER R,
-       REGISTERLIST RS,
-       COMMITTEEMAN C,
-       POSTS PO,
-       PAYS P
- WHERE F.ID = P_ACTION_FINEXP_SUMPAY.ID
-   AND T.ID = F.TYPEEXPID
-   AND TS.TYPEEXPID = T.ID
-   AND E.ID = F.ELECTCOMMINCAMPID
-   AND T.mestimate = true
-   AND R.ELECTCOMMINCAMPID = E.ID
-   AND RS.REGISTERID = R.ID
-   AND C.ID = RS.COMMITTEEMANID
-   AND PO.ID = C.POSTSID
-   AND P.REGISTERLISTID = RS.ID
-   AND P.SLCOMPCHARGESID = TS.SLCOMPCHARGESID
- --
-   AND PO.LEVELELCOMMITTEE = F.LEVELESTIMATE
---
-  /* AND E.electcommitteeid=el.id
-   and F.LEVELESTIMATE = el.LEVELELCOMMITTEE    --"territory"--'Ñìåòà ÒÈÊ'  Âêëþ÷åíèå â ñìåòó
-						--"district" name="Ñìåòà ÓÈÊ"/>*/
-   ;
- 
- return round(NSUM,2);
- 
+SELECT  SUM(P.SUMPAY)
+    INTO  NSUM
+    FROM  FINEXP  F,  --="Ð¡Ð²ÐµÐ´ÐµÐ½Ð¸Ñ  Ð¾  Ñ„Ð¸Ð½Ð°Ð½ÑÐ¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ð¸  Ð¸  Ñ€Ð°ÑÑ…Ð¾Ð´Ð°Ñ…">
+              TYPEEXP  T,
+              TYPEEXPSL  TS,
+              ELECTCOMMINCAMP  E,
+              REGISTER  R,
+              REGISTERLIST  RS,
+              COMMITTEEMAN  C,
+              POSTS  PO,
+              PAYS  P
+  WHERE  F.ID  =  P_ACTION_FINEXP_SUMPAY.ID
+      AND  T.ID  =  F.TYPEEXPID
+      AND  TS.TYPEEXPID  =  T.ID
+      AND  E.ID  =  F.ELECTCOMMINCAMPID
+      AND  T.MESTIMATE  =  TRUE
+      AND  R.ELECTCOMMINCAMPID  =  E.ID
+      AND  RS.REGISTERID  =  R.ID
+      AND  C.ID  =  RS.COMMITTEEMANID
+      AND  PO.ID  =  C.POSTSID
+      AND  P.REGISTERLISTID  =  RS.ID
+      AND  P.SLCOMPCHARGESID  =  TS.SLCOMPCHARGESID
+      AND  PO.LEVELELCOMMITTEE  =  F.LEVELESTIMATE;
+  
+  RETURN  ROUND(NSUM,2);
+  
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_finexp_sumpay (id bigint)
-  OWNER TO magicbox;
+$function$
+ 

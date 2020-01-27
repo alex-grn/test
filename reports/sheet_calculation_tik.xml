@@ -38,20 +38,27 @@
                      <query name="spec" type="sql">
                         <script>
 								select row_number() over () as pp, tbl.fio,tbl.post,
-									/*sum(comp)*/'помесячно' as comp,
+									case 
+                                     when cardinality(P_SYSTEM_GET_SELECTLIST(${idlist}::text)) = 1 then
+									  replace(round(sum(comp),2)::text,'.',',')
+                                     when cardinality(P_SYSTEM_GET_SELECTLIST(${idlist}::text)) > 1 then
+                                      'расчет помесячно' 
+                                     end as comp,
 									sum(days_worked) as days_worked,
-									sum(compensation) as compensation,
+									round(sum(compensation),2) as compensation,
 									max(dop_ot) as dop_ot,
 									max(r_coef) as r_coef,
 									sum(week_days) as week_days,
 									sum(night_days) as night_days,
 									sum(dop_money) as dop_money,
 									max(v_coef) as v_coef,
-									sum(n_sum) as n_sum
+									sum(n_sum) as n_sum,
+									postbegindate, postprint
 								FROM(
 								select  ch.id,
-								  COALESCE(ch.surname,'')||' '||COALESCE(ch.firstname,'')||' '||COALESCE(ch.middlename,'') as fio,
-								  case p.postprint when 'CHAIRMAN' then 'Председатель' when 'DEPCHAIRMAN' then 'Заместитель председателя' when 'SECRETARY' then 'Секретарь' when 'OTHERCM' then 'Член комиссии' end as post,
+								  CH.postbegindate, p.postprint,
+								  COALESCE(pp.surname,'')||' '||COALESCE(pp.firstname,'')||' '||COALESCE(pp.middlename,'') as fio,
+								  case p.postprint when 'CHAIRMAN' then 'Председатель' when 'DEPCHAIRMAN' then 'Заместитель председателя' when 'SECRETARY' then 'Секретарь' when 'ZOTHERCM' then 'Член комиссии' end as post,
 								  COALESCE((select COALESCE(sum(COALESCE(pp.norm,0)),0) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as comp,
 								  COALESCE((select sum(COALESCE(pp.workhours,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as days_worked,
 								  COALESCE((select sum(COALESCE(pp.sumpay,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'COMPENSATION'),0) as compensation,
@@ -67,18 +74,22 @@
 								  COALESCE((select sum(COALESCE(pp.sumpay,0)) from pays pp, slcompcharges s where pp.registerlistid = r.id and s.id = pp.slcompchargesid and s.description = 'EXTRAA'),0) as n_sum		
 							  from registerlist r,
 								   COMMITTEEMAN ch,
+								   person pp,
 								   posts p,
 								   register rr,
 								   ELECTCAMPAIGN ik,
 								   ELECTCOMMINCAMP i
 							 where r.registerid = any(P_SYSTEM_GET_SELECTLIST(${idlist}::text))
 							   and ch.id = r.committeemanid
+							   and pp.id = ch.personid
 							   and p.id = ch.postsid
 							   and rr.id = r.registerid
 							   and ik.id = rr.electcampaignid
-							   and i.id = rr.electcommincampid) tbl
-                               group by tbl.id,tbl.fio,tbl.post
-							   ORDER BY CH.POSTBEGINDATE, P.POSTPRINT;;
+							   and i.id = rr.electcommincampid
+							   ORDER BY CH.postbegindate, p.postprint) tbl
+                               group by tbl.id,tbl.fio,tbl.post,tbl.postbegindate, tbl.postprint
+							   order by tbl.postbegindate, tbl.postprint
+							   ;
 							  
 						</script>
                      </query>

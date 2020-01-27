@@ -1,133 +1,101 @@
-CREATE OR REPLACE FUNCTION public.p_action_electcommincamp_dot_empl (
-  id bigint,
-  begindate date,
-  enddate date
-)
-RETURNS void AS
-$body$
- declare 
-  CAMPID    BIGINT:= ID;
-  BDATE date := BEGINDATE; --ÌÂÓ‰ÌÓÁÌ‡˜Ì‡ˇ ÒÒ˚ÎÍ‡
-  EDATE  date := ENDDATE; --ÌÂÓ‰ÌÓÁÌ‡˜Ì‡ˇ ÒÒ˚ÎÍ‡
-  --LVLCOM TEXT := UPPER(LEVELELCOMMITTEE); --ÌÂÓ‰ÌÓÁÌ‡˜Ì‡ˇ ÒÒ˚ÎÍ‡ //Û·‡ÎË Ô‡‡ÏÂÚ levelelcommittee ÔÓ ÒÓ·˚ÚË˛ 3829
-  REC    record;
-  IZ     record;
-  RK     record;
-  STEMP  TEXT;
-  NID    BIGINT;
-  COMPIT TEXT := ' ÓÏÔÂÌÒ‡ˆËˇ'; --Ú‡·ÎËˆ‡ pays ‚ÒÂ„‰‡ ÍÓÏÔÂÌÒ‡ˆËˇ
-  COMID  BIGINT;
-  REGID  BIGINT;
-  tDOC   bigint;
-  TIK    TEXT := 'territory'; --ÍÓ‰ “»  ‚ ÒËÒÚÂÏÂ
-begin 
-  for REC in (select S.*, ik.levelelcommittee as level
-                from ELECTCOMMINCAMP S,
-                     electcommittee ik
-               where S.ID = CAMPID
-                 and ik.id = s.electcommitteeid) loop
-   -- continue when UPPER(REC.LEVELELCOMMITTEE) != LVLCOM; --raise using message = '@'||upper(rec.levelelcommittee) ||'='|| lvlcom||'@';  //Û·‡ÎË Ô‡‡ÏÂÚ levelelcommittee ÔÓ ÒÓ·˚ÚË˛ 3829
-    if REC.level != TIK then raise using message = 'ƒÓÍÛÏÂÌÚ ÙÓÏËÛÂÚÒˇ ÚÓÎ¸ÍÓ ‰Îˇ “» !'||REC.level; end if;
-    select s.id
-      into tDOC
-      from DOCTYPES s
-     where lower(S.code) = '‚Â‰ÓÏÓÒÚ¸ ‰ÓÚ Á‡ ‡ÍÚË‚ÌÛ˛ ‡·ÓÚÛ ˜ÎÂÌ‡Ï ÚËÍ';
-    --ÔÓ‚ÂÍ‡ 3842
-    /*	
-    	ÕÂ ÒÓÁ‰‡Ì ÎË Ú‡ÍÓÈ ‰ÓÍÛÏÂÌÚ. œÓ‚ÂÍÛ Ì‡‰Ó ÔÓ‚Ó‰ËÚ¸ ÔÓ ÚËÔÛ ‰ÓÍÛÏÂÌÚ‡ Ë ÔÂËÓ‰Û ‡·ÓÚ˚ ÍÓÏËÒÒËË
-    */
-    if (select count(*) from register r where r.ELECTCOMMINCAMPid = rec.id and r.doctypeid = tDOC) > 0 then 
-    	raise using message = 'ƒÓÍÛÏÂÌÚ ÛÊÂ ÒÛ˘ÂÒÚ‚ÛÂÚ!';
-    end if;
-   
-    STEMP := tDOC|| '_' || -- Ó‰ ËÁ·Ë‡ÚÂÎ¸ÌÓ„Ó Û˜‡ÒÚÍ‡
-             (select COALESCE(TO_CHAR(X.ELECTDATE, 'dd.mm.yyyy'), '')
-                from ELECTCAMPAIGN X
-               where X.ID = REC.ELECTCAMPAIGNID) || '_'; --ƒ‡Ú‡ ‚˚·ÓÓ‚
-    update ELECTCOMMINCAMP S
-       set msregister = COALESCE(msregister, 0) + 1
-     where S.ID = REC.ID; --‡Ô‰ÂÈÚËÏ  Œƒ
-    insert into REGISTER
-      (CODE,
-       doctypeid,
-       STATUS,
-       ELECTCAMPAIGNID,
-       BEGINDATE,
-       ENDDATE,
-       electcommincampid, /* ELECDISTNUMB,*/
-       DATELOADTBL,
-       RESPONSPERSID /*, LEVELELCOMMITTEE ,indicationcircuit,indicationship*/)
-      select STEMP,
-             tDOC,
-             1,
-             REC.ELECTCAMPAIGNID,
-             BDATE,
-             EDATE,
-             REC.ID, /* X.ELECDISTNUMB,*/
-             null,
-             null /*, LVLCOM ,x.INDICATIONCIRCUIT,x.INDICATIONSHIP*/ returning REGISTER.ID
-        into REGID;
-       update REGISTER s set code = s.code||s.id where s.id = REGID;
-       --raise using message = REGID;
-    for IZ in (select R.CODE,
-                      R.ID,
-                      R.POSTSID,
-                      R.PERSONID
-                 from ELECTCOMMITTEE X, COMMITTEEMAN R, POSTS D
-                where X.ID = REC.ELECTCOMMITTEEID
-                  and R.ELECTCOMMITTEEID = X.ID
-                  and D.ID = R.POSTSID
-                  and (BDATE between R.POSTBEGINDATE and R.POSTENDDATE
-                  OR EDATE between R.POSTBEGINDATE and R.POSTENDDATE
-                  OR R.POSTBEGINDATE BETWEEN BDATE AND EDATE 
-                  OR R.POSTENDDATE BETWEEN BDATE AND EDATE) 
-                  and d.levelelcommittee = TIK
-                  and lower(d.code) != 'ÔÂ‰ÒÂ‰‡ÚÂÎ¸ ÚËÍ') loop
-      insert into REGISTERLIST
-        (REGISTERID,
-         CODE,
-         COMMITTEEMANID,
-         MIDDLESALARY,
-         DEPCOEFF,
-         LEVELDCCHAIRMAN /*, WHCOMP, WHEXTRAFULL, WHEXTRANIGHT, WHEXTRAHOL, WHEXTRAWORKDAY*/)
-        select REGID,
-               IZ.CODE,
-               IZ.ID,
-               0,
-               0,
-               TIK /*,
-                             0,
-                             0,
-                             0,
-                             0,
-                             0*/ returning REGISTERLIST.ID
-          into NID;
-      
-      select S.ID
-        into COMID
-        from SLCOMPCHARGES S
-       where LOWER(trim(S.code)) = LOWER('ƒŒ“ Á‡ ‡ÍÚË‚ÌÛ˛ ‡·ÓÚÛ');
-      insert into PAYS
-        (REGISTERLISTID, SLCOMPCHARGESID)
-      values
-        (NID, COMID);
-      select S.ID
-        into COMID
-        from SLCOMPCHARGES S
-       where LOWER(trim(S.code)) = LOWER('¬—≈√Œ');
-      insert into PAYS
-        (REGISTERLISTID, SLCOMPCHARGESID)
-      values
-        (NID, COMID);
-    end loop;
-  end loop;
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_electcommincamp_dot_empl(id  bigint,  begindate  date,  enddate  date)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+/*  –î–µ–π—Å—Ç–≤–∏–µ:  –°—Ñ–æ—Ä–º–∏—Ä–æ–≤–∞—Ç—å  –≤–µ–¥–æ–º–æ—Å—Ç—å  –Ω–∞  –î–û–¢  –∑–∞  –∞–∫—Ç–∏–≤–Ω—É—é  —Ä–∞–±–æ—Ç—É  —á–ª–µ–Ω–∞–º  –¢–ò–ö  */
+declare
+    CAMPID  BIGINT  :=  ID;
+    BDATE    DATE  :=  BEGINDATE;  --–Ω–µ–æ–¥–Ω–æ–∑–Ω–∞—á–Ω–∞—è  —Å—Å—ã–ª–∫–∞
+    EDATE    DATE  :=  ENDDATE;  --–Ω–µ–æ–¥–Ω–æ–∑–Ω–∞—á–Ω–∞—è  —Å—Å—ã–ª–∫–∞
+    REC        record;
+    IZ          record;
+    RK          record;
+    STEMP    TEXT;
+    NID        BIGINT;
+    COMPIT  TEXT  :=  '–ö–æ–º–ø–µ–Ω—Å–∞—Ü–∏—è';  --—Ç–∞–±–ª–∏—Ü–∞  pays  –≤—Å–µ–≥–¥–∞  –∫–æ–º–ø–µ–Ω—Å–∞—Ü–∏—è
+    COMID    BIGINT;
+    REGID    BIGINT;
+    TDOC      BIGINT;
+    TIK        TEXT  :=  'territory';  --–∫–æ–¥  –¢–ò–ö  –≤  —Å–∏—Å—Ç–µ–º–µ
+    IKMO      TEXT  :=  'circuit';  --–∫–æ–¥  –ò–ö–ú–û
+begin
+    for  REC  in  (select  S.*,
+                                          IK.LEVELELCOMMITTEE  as  level
+                                from  ELECTCOMMINCAMP  S,
+                                          ELECTCOMMITTEE    IK
+                              where  S.ID  =  CAMPID
+                                  and  IK.ID  =  S.ELECTCOMMITTEEID)
+    loop
+        
+        if  REC.LEVEL  !=  TIK  AND  REC.LEVEL  !=  IKMO  then
+            raise
+                using  MESSAGE  =  '–î–æ–∫—É–º–µ–Ω—Ç  —Ñ–æ—Ä–º–∏—Ä—É–µ—Ç—Å—è  —Ç–æ–ª—å–∫–æ  –¥–ª—è  –¢–ò–ö!'  ||  REC.LEVEL;
+        end  if;
+        
+        select  S.ID  into  TDOC  from  DOCTYPES  S  where  LOWER(S.CODE)  =  '–≤–µ–¥–æ–º–æ—Å—Ç—å  –¥–æ—Ç  –∑–∞  –∞–∫—Ç–∏–≤–Ω—É—é  —Ä–∞–±–æ—Ç—É  —á–ª–µ–Ω–∞–º  —Ç–∏–∫';
+        
+        --–ø—Ä–æ–≤–µ—Ä–∫–∞  3842
+        /*    
+            –ù–µ  —Å–æ–∑–¥–∞–Ω  –ª–∏  —Ç–∞–∫–æ–π  –¥–æ–∫—É–º–µ–Ω—Ç.  –ü—Ä–æ–≤–µ—Ä–∫—É  –Ω–∞–¥–æ  –ø–æ–≤–æ–¥–∏—Ç—å  –ø–æ  —Ç–∏–ø—É  –¥–æ–∫—É–º–µ–Ω—Ç–∞  –∏  –ø–µ—Ä–∏–æ–¥—É  —Ä–∞–±–æ—Ç—ã  –∫–æ–º–∏—Å—Å–∏–∏
+        */
+        if  (select  count(*)
+                    from  REGISTER  R
+                  where  R.ELECTCOMMINCAMPID  =  REC.ID
+                      and  R.DOCTYPEID  =  TDOC)  >  0  then
+            raise
+                using  MESSAGE  =  '–î–æ–∫—É–º–µ–Ω—Ç  —É–∂–µ  —Å—É—â–µ—Å—Ç–≤—É–µ—Ç!';
+        end  if;
+    
+        STEMP  :=  TDOC  ||  '_'  ||  --–ö–æ–¥  –∏–∑–±–∏—Ä–∞—Ç–µ–ª—å–Ω–æ–≥–æ  —É—á–∞—Å—Ç–∫–∞
+                          (select  COALESCE(TO_CHAR(X.ELECTDATE,  'dd.mm.yyyy'),  '')  from  ELECTCAMPAIGN  X  where  X.ID  =  REC.ELECTCAMPAIGNID)  ||  '_';  --–î–∞—Ç–∞  –≤—ã–±–æ—Ä–æ–≤
+        update  ELECTCOMMINCAMP  S  set  MSREGISTER  =  COALESCE(MSREGISTER,  0)  +  1  where  S.ID  =  REC.ID;  --–∞–ø–¥–µ–π—Ç–∏–º  –ö–û–î
+        insert  into  REGISTER
+            (CODE,  DOCTYPEID,  STATUS,  ELECTCAMPAIGNID,  BEGINDATE,  ENDDATE,  ELECTCOMMINCAMPID,  DATELOADTBL,  RESPONSPERSID)
+            select  STEMP,
+                          TDOC,
+                          1,
+                          REC.ELECTCAMPAIGNID,
+                          BDATE,
+                          EDATE,
+                          REC.ID,  
+                          null,
+                          null
+      returning  REGISTER.ID
+                into  REGID;
+        update  REGISTER  S  set  CODE  =  S.CODE  ||  S.ID  where  S.ID  =  REGID;
+        for  IZ  in  (select  R.CODE,
+                                            R.ID,
+                                            R.POSTSID,
+                                            R.PERSONID,
+                                            --D.LEVELELCOMMITTEE
+                                            (SELECT  RS.LEVELDCCHAIRMAN  FROM  ELECTCOMMINCAMP  K,  REGISTER  RR,  REGISTERLIST  RS  WHERE  K.ELECTCOMMITTEEID  =  IK.ID  AND  RR.ELECTCOMMINCAMPID  =  K.ID  AND  RS.REGISTERID  =  RR.ID  AND  RS.COMMITTEEMANID  =  R.ID  LIMIT  1)  AS  LEVELELCOMMITTEE
+                                  from  ELECTCOMMITTEE  X,
+                                            COMMITTEEMAN      R,
+                                            POSTS                    D
+                                where  X.ID  =  REC.ELECTCOMMITTEEID
+                                    and  R.ELECTCOMMITTEEID  =  X.ID
+                                    and  D.ID  =  R.POSTSID
+                                    and  (BDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE  or  EDATE  between  R.POSTBEGINDATE  and  R.POSTENDDATE  or  R.POSTBEGINDATE  between  BDATE  and  EDATE  or  R.POSTENDDATE  between  BDATE  and  EDATE)
+                                    and  (D.LEVELELCOMMITTEE  =  TIK  or  D.LEVELELCOMMITTEE  =  IKMO)
+                                    and  UPPER(D.POSTPRINT)  !=  'CHAIRMAN')
+        loop
+            insert  into  REGISTERLIST
+                (REGISTERID,  CODE,  COMMITTEEMANID,  MIDDLESALARY,  DEPCOEFF,  LEVELDCCHAIRMAN)
+                select  REGID,
+                              IZ.CODE,
+                              IZ.ID,
+                              0,
+                              0,
+                              IZ.LEVELELCOMMITTEE
+          returning  REGISTERLIST.ID
+                    into  NID;
+        
+            select  S.ID  into  COMID  from  SLCOMPCHARGES  S  where  UPPER(trim(S.DESCRIPTION))  =  LOWER('EXTRAA');
+            insert  into  PAYS  (REGISTERLISTID,  SLCOMPCHARGESID)  values  (NID,  COMID);
+            select  S.ID  into  COMID  from  SLCOMPCHARGES  S  where  UPPER(trim(S.DESCRIPTION))  =  LOWER('SUMALL');
+            insert  into  PAYS  (REGISTERLISTID,  SLCOMPCHARGESID)  values  (NID,  COMID);
+        end  loop;
+    end  loop;
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_electcommincamp_dot_empl (id bigint, begindate date, enddate date)
-  OWNER TO magicbox;
+$function$
+ 

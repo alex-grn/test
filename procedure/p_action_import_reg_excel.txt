@@ -1,45 +1,34 @@
-CREATE OR REPLACE FUNCTION public.p_action_import_reg_excel (
-  spage text,
-  ident bigint
-)
-RETURNS text AS
-$body$
-declare 
-	RC RECORD;
-    sCODEPAGE text:='UTF-8';
-    file_text text;
-    file_xml xml;
-    filebuf_id bigint;
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_import_reg_excel(spage  text,  ident  bigint)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    RC                  record;
+    SCODEPAGE    TEXT  :=  'UTF-8';
+    FILE_TEXT    TEXT;
+    FILE_XML      XML;
+    FILEBUF_ID  BIGINT;
 begin
 
-   select max(f2.id) into filebuf_id from filebuffer f2 where f2.cid = ident;
-   
-   select P_SYSTEM_FILE_TO_TEXT(f.bfile, sCODEPAGE)
-     into file_text 
-     from filebuffer f 
-    where f.id = filebuf_id;
-   
-   if file_text is null then
-     raise using MESSAGE = 'Файл не найден.';
-   end if;
-   
-   begin
-   	file_xml := cast(file_text as xml);
-   exception when others then
-         raise using MESSAGE = 'Некорректная структура XML-файла.';
-   end;
-   
-   
-   
-	RETURN NULL; 
-       
-end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
+    select  max(F2.ID)  into  FILEBUF_ID  from  FILEBUFFER  F2  where  F2.CID  =  IDENT;
 
-ALTER FUNCTION public.p_action_import_reg_excel (spage text, ident bigint)
-  OWNER TO magicbox;
+    select  P_SYSTEM_FILE_TO_TEXT(F.BFILE,  SCODEPAGE)  into  FILE_TEXT  from  FILEBUFFER  F  where  F.ID  =  FILEBUF_ID;
+
+    if  FILE_TEXT  is  null  then
+        raise
+            using  MESSAGE  =  'Файл  не  найден.';
+    end  if;
+
+    begin
+        FILE_XML  :=  cast(FILE_TEXT  as  XML);
+    exception
+        when  others  then
+            raise
+                using  MESSAGE  =  'Некорректная  структура  XML-файла.';
+    end;
+
+    return  null;
+
+end;
+$function$
+ 

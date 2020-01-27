@@ -1,290 +1,297 @@
-CREATE OR REPLACE FUNCTION public.p_action_create_reg_transfers (
-  idlist text,
-  ddocdate date,
-  sdocnumb text
-)
-RETURNS void AS
-$body$
-         declare rec record;
-  spec           record;
-  nID            bigint;
-  nrecipient     bigint;
-  nrecipient_acc bigint;
-  ssum1          numeric := 0;
-  ssum2          numeric := 0;
-  ssum3          numeric := 0;
-  sdocnumber     text;
-  REGISTERSTRANSFERS_ID BIGINT;
-  TIK		bigint:=0;
-  DOCTYPE   BIGINT;
-  IZBKOM bigint;
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_create_reg_transfers(idlist  text,  ddocdate  date,  sdocnumb  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+/*Р”РµР№СЃС‚РІРёРµ:  РЎС„РѕСЂРјРёСЂРѕРІР°С‚СЊ  СЂРµРµСЃС‚СЂ  РїРµСЂРµС‡РёСЃР»РµРЅРёР№*/
+declare  
+    rec                        record;
+    tENROLL                record;
+    nID                        bigint;
+    nrecipient          bigint;
+    nrecipient_acc  bigint;
+    ssum1                    numeric  :=  0;
+    ssum2                    numeric  :=  0;
+    ssum3                    numeric  :=  0;
+    sdocnumber          text;
+    REGISTERSTRANSFERS_ID  BIGINT;
+    TIK		bigint:=0;
+    DOCTYPE      BIGINT;
+    IZBKOM  bigint;
 begin
 /*
-1.	Формируем запись в разделе «Реестры перечислений»
+1.	Р¤РѕСЂРјРёСЂСѓРµРј  Р·Р°РїРёСЃСЊ  РІ  СЂР°Р·РґРµР»Рµ  В«Р РµРµСЃС‚СЂС‹  РїРµСЂРµС‡РёСЃР»РµРЅРёР№В»
 
-REGISTERSTRANSFERS.CODE		<-DOCPREF – DOCNUMB|| от || DOCDATE
-REGISTERSTRANSFERS.DOCPREF	<-Входящий параметр		
-REGISTERSTRANSFERS.DOCNUMB	<-Генерим следующий номер в рамках префикса
-REGISTERSTRANSFERS.DOCDATE	<-Входящий параметр		
-REGISTERSTRANSFERS.electcommincampid <-electcommincamp.ELECTCOMMITTEEID	
+REGISTERSTRANSFERS.CODE		<-DOCPREF  вЂ“  DOCNUMB||  РѕС‚  ||  DOCDATE
+REGISTERSTRANSFERS.DOCPREF	<-Р’С…РѕРґСЏС‰РёР№  РїР°СЂР°РјРµС‚СЂ		
+REGISTERSTRANSFERS.DOCNUMB	<-Р“РµРЅРµСЂРёРј  СЃР»РµРґСѓСЋС‰РёР№  РЅРѕРјРµСЂ  РІ  СЂР°РјРєР°С…  РїСЂРµС„РёРєСЃР°
+REGISTERSTRANSFERS.DOCDATE	<-Р’С…РѕРґСЏС‰РёР№  РїР°СЂР°РјРµС‚СЂ		
+REGISTERSTRANSFERS.electcommincampid  <-electcommincamp.ELECTCOMMITTEEID	
 REGISTERSTRANSFERS.ELCMTACCID	<-ELCMTACC.BANKACC	
 REGISTERSTRANSFERS.INN		<-ELECTCOMMITTEE.INN	
-REGISTERSTRANSFERS.CONTRACTNUMB	<-Входящий параметр		
+REGISTERSTRANSFERS.CONTRACTNUMB	<-Р’С…РѕРґСЏС‰РёР№  РїР°СЂР°РјРµС‚СЂ		
 REGISTERSTRANSFERS.AGENTBANKSID	<-ELCMTACC.AGENTBANKSID	
 REGISTERSTRANSFERS.BIC		<-ELCMTACC.BIC	
-REGISTERSTRANSFERS.FILENAME	<-Не заполняется		
-REGISTERSTRANSFERS.FORMDATE	<-Не заполняется		
-2.	Заполняем данные о перечислении в разделе «Ведомости по оплате труда» (см. ниже).
+REGISTERSTRANSFERS.FILENAME	<-РќРµ  Р·Р°РїРѕР»РЅСЏРµС‚СЃСЏ		
+REGISTERSTRANSFERS.FORMDATE	<-РќРµ  Р·Р°РїРѕР»РЅСЏРµС‚СЃСЏ		
+2.	Р—Р°РїРѕР»РЅСЏРµРј  РґР°РЅРЅС‹Рµ  Рѕ  РїРµСЂРµС‡РёСЃР»РµРЅРёРё  РІ  СЂР°Р·РґРµР»Рµ  В«Р’РµРґРѕРјРѕСЃС‚Рё  РїРѕ  РѕРїР»Р°С‚Рµ  С‚СЂСѓРґР°В»  (СЃРј.  РЅРёР¶Рµ).
 SLREGTRNPR.COMMITTEEMANID	<-SHEETDETAILS.COMMITTEEMANID	
-SLREGTRNPR.SUMTRN		<-SHEETDETAILS.SUMCOMP + SUMEXTRA12 + EXTRAA	
+SLREGTRNPR.SUMTRN		<-SHEETDETAILS.SUMCOMP  +  SUMEXTRA12  +  EXTRAA	
 SLREGTRNPR.TRPERSONID		<-SHEETDETAILS.TRPERSONID	
 SLREGTRNPR.PERSONACCID		<-SHEETDETAILS.PERSONACCID	
 3.
-SHEETDETAILS.SUMTRN		<- значением SUMTRN таблицы SLREGTRNPR для указанного члена ИК;
-SHEETDETAILS.REGISTERSTRANSFERSID<- значением CODE таблицы REGISTERSTRANSFERS созданной записи.
+SHEETDETAILS.SUMTRN		<-  Р·РЅР°С‡РµРЅРёРµРј  SUMTRN  С‚Р°Р±Р»РёС†С‹  SLREGTRNPR  РґР»СЏ  СѓРєР°Р·Р°РЅРЅРѕРіРѕ  С‡Р»РµРЅР°  РРљ;
+SHEETDETAILS.REGISTERSTRANSFERSID<-  Р·РЅР°С‡РµРЅРёРµРј  CODE  С‚Р°Р±Р»РёС†С‹  REGISTERSTRANSFERS  СЃРѕР·РґР°РЅРЅРѕР№  Р·Р°РїРёСЃРё.
 */
---Ищем ТИК, Если в помеченных записях уровень УИК то ищем родителя, а для ТИК просто берем.
-IF (SELECT COUNT(*) FROM SHEETS S, SHEETDETAILS D WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST)) AND D.SHEETSID = S.ID AND D.REGISTERSTRANSFERSID IS NOT NULL) > 0 THEN
-	RAISE USING MESSAGE = 'Реестр перечислений уже сформирован!';
-END IF;
-SELECT S.ID INTO DOCTYPE FROM DOCTYPES S WHERE LOWER(S.CODE) = 'реестр перечислений';
-FOR REC IN( 
-		SELECT LOWER(IK.LEVELELCOMMITTEE) AS LEVELELCOMMITTEE
-          FROM SHEETS S,
-          	   ELECTCOMMINCAMP E,
-               ELECTCOMMITTEE IK
-         WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-           AND E.ID = S.ELECTCOMMINCAMPID
-           AND IK.ID = E.ELECTCOMMITTEEID
-         GROUP BY IK.LEVELELCOMMITTEE
-         ORDER BY IK.LEVELELCOMMITTEE DESC
-         )
+--РС‰РµРј  РўРРљ,  Р•СЃР»Рё  РІ  РїРѕРјРµС‡РµРЅРЅС‹С…  Р·Р°РїРёСЃСЏС…  СѓСЂРѕРІРµРЅСЊ  РЈРРљ  С‚Рѕ  РёС‰РµРј  СЂРѕРґРёС‚РµР»СЏ,  Р°  РґР»СЏ  РўРРљ  РїСЂРѕСЃС‚Рѕ  Р±РµСЂРµРј.
+IF  (SELECT  COUNT(*)  FROM  SHEETS  S,  SHEETDETAILS  D  WHERE  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))  AND  D.SHEETSID  =  S.ID  AND  D.REGISTERSTRANSFERSID  IS  NOT  NULL)  >  0  THEN
+	RAISE  USING  MESSAGE  =  'Р РµРµСЃС‚СЂ  РїРµСЂРµС‡РёСЃР»РµРЅРёР№  СѓР¶Рµ  СЃС„РѕСЂРјРёСЂРѕРІР°РЅ!';
+END  IF;
+SELECT  S.ID  INTO  DOCTYPE  FROM  DOCTYPES  S  WHERE  LOWER(S.CODE)  =  'СЂРµРµСЃС‚СЂ  РїРµСЂРµС‡РёСЃР»РµРЅРёР№';
+FOR  REC  IN(  
+		SELECT  LOWER(IK.LEVELELCOMMITTEE)  AS  LEVELELCOMMITTEE
+                    FROM  SHEETS  S,
+                    	      ELECTCOMMINCAMP  E,
+                              ELECTCOMMITTEE  IK
+                  WHERE  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                      AND  E.ID  =  S.ELECTCOMMINCAMPID
+                      AND  IK.ID  =  E.ELECTCOMMITTEEID
+                  GROUP  BY  IK.LEVELELCOMMITTEE
+                  ORDER  BY  IK.LEVELELCOMMITTEE  DESC
+                  )
 	LOOP
-    	IF REC.LEVELELCOMMITTEE = 'district' AND TIK = 0 THEN										--УИК
-          SELECT DISTINCT EI.ID , IK.ID
-            INTO TIK , IZBKOM 
-            FROM SHEETS S,
-                 ELECTCOMMINCAMP E,
-                 ELECTCOMMITTEE I,
-                 ELECTCOMMITTEE IK,
-                 ELECTCOMMINCAMP EI 
-           WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-             AND E.ID = S.ELECTCOMMINCAMPID
-             AND I.ID = E.ELECTCOMMITTEEID
-             AND IK.IDGASECOM = I.IDGASPARECOM
-             AND EI.ELECTCOMMITTEEID = IK.ID;
-        ELSIF REC.LEVELELCOMMITTEE = 'territory' AND TIK = 0 THEN									--ТИК
-          SELECT DISTINCT E.ID , I.ID
-            INTO TIK , IZBKOM
-            FROM SHEETS S,
-                 ELECTCOMMINCAMP E,
-                 ELECTCOMMITTEE I
-           WHERE S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-             AND E.ID = S.ELECTCOMMINCAMPID
-             AND I.ID = E.ELECTCOMMITTEEID;
-        END IF;
-    END LOOP;
- --проверка!
- IF TIK = 0 or TIK is null then raise using message = 'Неопределенна ТИК'; end if;
- --проверка!
- for rec in(
- 	select K.ID, EC.LEVELELCAMPAIGN
-      from SHEETS S,
-           ELECTCAMPAIGN   EC,--'Избирательные кампании'
-           ELECTCOMMINCAMP EK, --Избирательные комиссии, участвующие в кампании'
-           ELECTCOMMITTEE  K --'Избирательные комиссии';
-     where S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-       and EC.ID = S.ELECTCAMPAIGNID
-       and EK.ID = S.ELECTCOMMINCAMPID
-       and K.ID = IZBKOM
- )
- loop
- 	if not exists(select 1
-     				from ELCMTACC E
-                   where E.BEGINDATE <= DDOCDATE
-                     and (E.ENDDATE >= DDOCDATE or E.ENDDATE is null)
-                     and E.ELECTCOMMITTEEID = REC.ID
-                     and E.LEVELELCAMPAIGN = REC.LEVELELCAMPAIGN) then 
-                      raise using message = 'Расчетный счет избирательный комиссии на дату - '||to_char(ddocdate,'dd.mm.yyyy')||' не определен!';
-                     end if;
- end loop;
- --          
-INSERT INTO
- REGISTERSTRANSFERS(
+        	IF  REC.LEVELELCOMMITTEE  =  'district'  AND  TIK  =  0  THEN										--РЈРРљ
+                    SELECT  DISTINCT  EI.ID  ,  IK.ID
+                        INTO  TIK  ,  IZBKOM  
+                        FROM  SHEETS  S,
+                                  ELECTCOMMINCAMP  E,
+                                  ELECTCOMMITTEE  I,
+                                  ELECTCOMMITTEE  IK,
+                                  ELECTCOMMINCAMP  EI  
+                      WHERE  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                          AND  E.ID  =  S.ELECTCOMMINCAMPID
+                          AND  I.ID  =  E.ELECTCOMMITTEEID
+                          AND  IK.IDGASECOM  =  I.IDGASPARECOM
+                          AND  EI.ELECTCOMMITTEEID  =  IK.ID
+                          AND  E.ELECTCAMPAIGNID  =  EI.ELECTCAMPAIGNID;
+                ELSIF  (REC.LEVELELCOMMITTEE  =  'territory'  or  REC.LEVELELCOMMITTEE  =  'circuit')  AND  TIK  =  0  THEN					--РўРРљ  РёР»Рё  РРљРњРћ
+                    SELECT  DISTINCT  E.ID  ,  I.ID
+                        INTO  TIK  ,  IZBKOM
+                        FROM  SHEETS  S,
+                                  ELECTCOMMINCAMP  E,
+                                  ELECTCOMMITTEE  I
+                      WHERE  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                          AND  E.ID  =  S.ELECTCOMMINCAMPID
+                          AND  I.ID  =  E.ELECTCOMMITTEEID;
+                END  IF;
+        END  LOOP;
+  --РїСЂРѕРІРµСЂРєР°!
+  IF  TIK  =  0  or  TIK  is  null  then  raise  using  message  =  'РќРµРѕРїСЂРµРґРµР»РµРЅРЅР°  РўРРљ';  end  if;
+  --РїСЂРѕРІРµСЂРєР°!
+  for  rec  in(
+  	select  K.ID,  EC.LEVELELCAMPAIGN
+            from  SHEETS  S,
+                      ELECTCAMPAIGN      EC,--'РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєР°РјРїР°РЅРёРё'
+                      ELECTCOMMINCAMP  EK,  --РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєРѕРјРёСЃСЃРёРё,  СѓС‡Р°СЃС‚РІСѓСЋС‰РёРµ  РІ  РєР°РјРїР°РЅРёРё'
+                      ELECTCOMMITTEE    K  --'РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєРѕРјРёСЃСЃРёРё';
+          where  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+              and  EC.ID  =  S.ELECTCAMPAIGNID
+              and  EK.ID  =  S.ELECTCOMMINCAMPID
+              and  K.ID  =  IZBKOM
+  )
+  loop
+  	if  not  exists(select  1
+          				from  ELCMTACC  E
+                                      where  E.BEGINDATE  <=  DDOCDATE
+                                          and  (E.ENDDATE  >=  DDOCDATE  or  E.ENDDATE  is  null)
+                                          and  E.ELECTCOMMITTEEID  =  REC.ID
+                                          and  E.LEVELELCAMPAIGN  =  REC.LEVELELCAMPAIGN)  then  
+                                            raise  using  message  =  'Р Р°СЃС‡РµС‚РЅС‹Р№  СЃС‡РµС‚  РёР·Р±РёСЂР°С‚РµР»СЊРЅС‹Р№  РєРѕРјРёСЃСЃРёРё  РЅР°  РґР°С‚Сѓ  -  '||to_char(ddocdate,'dd.mm.yyyy')||'  РЅРµ  РѕРїСЂРµРґРµР»РµРЅ!';
+                                          end  if;
+  end  loop;
+  --  РґРѕР±Р°РІРёРј  С†РёРєР»  РїРѕ  2  С‚РёРїР°Рј  Р·Р°РїРёСЃРµР№,  РёСЃС…РѕРґСЏ  РёР·  СЃРѕР±С‹С‚РёСЏ  РњРђР¦-4003  TRANSFERSTYPE  
+  FOR  tENROLL  in  (
+          select  '25'  as  types  --  РљРѕРјРїРµРЅСЃР°С†РёСЏ  С‡Р»РµРЅСѓ  РєРѕРјРёСЃСЃРёРё,  СЂР°Р±РѕС‚Р°СЋС‰РµРјСѓ  СЃ  РѕСЃРІРѕР±РѕР¶РґРµРЅРёРµРј  РѕС‚  РѕСЃРЅРѕРІРЅРѕР№  СЂР°Р±РѕС‚С‹
+          union  ALL
+          select  '33'                    --  Р”РѕРїРѕРїР»Р°С‚Р°  С‚СЂСѓРґР°  (РІРѕР·РЅР°РіСЂР°Р¶РґРµРЅРёРµ)  С‡Р»РµРЅСѓ  РєРѕРјРёСЃСЃРёРё
+  )
+  LOOP
+              
+INSERT  INTO
+  REGISTERSTRANSFERS(
 					CODE,
 					DOCPREF,
 					DOCNUMB,
 					DOCDATE,
-                    DOCTYPEID,
-                    ELECTCAMPAIGNID,
+                                        DOCTYPEID,
+                                        ELECTCAMPAIGNID,
 					ELECTCOMMINCAMPID,
 					ELCMTACCID,
 					INN,
 					CONTRACTNUMB,
 					AGENTBANKSID,
-					BIC
-                    )
-             SELECT TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK||'-'||(SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM REGISTERSTRANSFERS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK AND CID=0)||' от '||to_char(ddocdate,'dd.mm.yyyy'),
-             		TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK,
-                    (SELECT COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,' ')), '[^0-9]', '', 'g')::INT+1,1) FROM REGISTERSTRANSFERS WHERE DOCPREF = TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK AND CID=0),
-                    DDOCDATE,
-                    DOCTYPE,
-                    EC.ID,
-                    TIK,--EK.ID AS ELECTCOMMINCAMP_ID,
-                    E.ID as ELCMTACC_ID,
-             		K.INN, 
-                    SDOCNUMB,
-                    E.AGENTBANKSID, 
-                    B.BIC
-              from SHEETS S,
-                   ELECTCAMPAIGN EC,--'Избирательные кампании'
-                   ELECTCOMMINCAMP EK, --Избирательные комиссии, участвующие в кампании'
-                   ELECTCOMMITTEE  K, --'Избирательные комиссии';
-                   ELCMTACC        E, --'Расчетные счета избирательных комиссий';
-                   AGENTBANKS      B
-             where S.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-               and EC.ID = S.ELECTCAMPAIGNID
-               and EK.ID = S.ELECTCOMMINCAMPID
-               and K.ID = IZBKOM
-               and E.ELECTCOMMITTEEID = K.ID
-               and E.BEGINDATE <= DDOCDATE
-               and (E.ENDDATE >= DDOCDATE or E.ENDDATE is null)
-               and B.ID = E.AGENTBANKSID
-               AND E.LEVELELCAMPAIGN = EC.LEVELELCAMPAIGN
-               AND (SELECT COUNT(*) FROM SHEETDETAILS SH WHERE SH.SHEETSID = S.ID AND SH.TRPERSONID IS NOT NULL AND SH.PERSONACCID IS NOT NULL) > 0
-               GROUP BY EC.ID,E.ID, K.INN, E.AGENTBANKSID,  B.BIC
-          RETURNING REGISTERSTRANSFERS.ID
-               INTO REGISTERSTRANSFERS_ID;
+					BIC,
+                                        TRANSFERSTYPE
+                                        )
+                          SELECT  TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK||'-'||(SELECT  COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,'  ')),  '[^0-9]',  '',  'g')::INT+1,1)  FROM  REGISTERSTRANSFERS  WHERE  DOCPREF  =  TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK  AND  CID=0)||'  РѕС‚  '||to_char(ddocdate,'dd.mm.yyyy'),
+                          		TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK,
+                                        (SELECT  COALESCE(REGEXP_REPLACE(MAX(LPAD(DOCNUMB,80,'  ')),  '[^0-9]',  '',  'g')::INT+1,1)  FROM  REGISTERSTRANSFERS  WHERE  DOCPREF  =  TO_CHAR(DDOCDATE,'YYYY')||'-'||TIK  AND  CID=0),
+                                        DDOCDATE,
+                                        DOCTYPE,
+                                        EC.ID,
+                                        TIK,--EK.ID  AS  ELECTCOMMINCAMP_ID,
+                                        E.ID  as  ELCMTACC_ID,
+                          		K.INN,  
+                                        SDOCNUMB,
+                                        E.AGENTBANKSID,  
+                                        B.BIC,
+                                        tENROLL.types
+                            from  SHEETS  S,
+                                      ELECTCAMPAIGN  EC,--'РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєР°РјРїР°РЅРёРё'
+                                      ELECTCOMMINCAMP  EK,  --РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєРѕРјРёСЃСЃРёРё,  СѓС‡Р°СЃС‚РІСѓСЋС‰РёРµ  РІ  РєР°РјРїР°РЅРёРё'
+                                      ELECTCOMMITTEE    K,  --'РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєРѕРјРёСЃСЃРёРё';
+                                      ELCMTACC                E,  --'Р Р°СЃС‡РµС‚РЅС‹Рµ  СЃС‡РµС‚Р°  РёР·Р±РёСЂР°С‚РµР»СЊРЅС‹С…  РєРѕРјРёСЃСЃРёР№';
+                                      AGENTBANKS            B
+                          where  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                              and  EC.ID  =  S.ELECTCAMPAIGNID
+                              and  EK.ID  =  S.ELECTCOMMINCAMPID
+                              and  K.ID  =  IZBKOM
+                              and  E.ELECTCOMMITTEEID  =  K.ID
+                              and  E.BEGINDATE  <=  DDOCDATE
+                              and  (E.ENDDATE  >=  DDOCDATE  or  E.ENDDATE  is  null)
+                              and  B.ID  =  E.AGENTBANKSID
+                              AND  E.LEVELELCAMPAIGN  =  EC.LEVELELCAMPAIGN
+                              AND  (SELECT  COUNT(*)  FROM  SHEETDETAILS  SH  WHERE  SH.SHEETSID  =  S.ID  AND  SH.TRPERSONID  IS  NOT  NULL  AND  SH.PERSONACCID  IS  NOT  NULL)  >  0
+                              GROUP  BY  EC.ID,  E.ID,  K.INN,  E.AGENTBANKSID,  B.BIC
+                    RETURNING  REGISTERSTRANSFERS.ID
+                              INTO  REGISTERSTRANSFERS_ID;
 
-FOR REC IN (
-			SELECT D.ID AS SHEETDETAILS_ID,
-            	   D.COMMITTEEMANID,
-            	   (COALESCE(D.SUMCOMP,0) + COALESCE(D.SUMEXTRA12,0) + COALESCE(D.EXTRAA,0)) AS SUMM,
-                   TRPERSONID,
-                   PERSONACCID
-              FROM SHEETS S,
-              	   SHEETDETAILS D
-             WHERE S.ID =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
-               AND D.SHEETSID = S.ID
-               AND D.REGISTERSTRANSFERSID IS NULL
-               AND D.TRPERSONID IS NOT NULL
-               AND D.PERSONACCID IS NOT NULL
+FOR  REC  IN  (
+			SELECT  D.ID  AS  SHEETDETAILS_ID,
+                        	      D.COMMITTEEMANID,
+                        	      (COALESCE(D.SUMCOMP,0)  +  COALESCE(D.SUMEXTRA12,0)  +  COALESCE(D.EXTRAA,0))  AS  SUMM,
+                                      TRPERSONID,
+                                      PERSONACCID
+                            FROM  SHEETS  S,
+                            	      SHEETDETAILS  D
+                          WHERE  S.ID  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                              AND  D.SHEETSID  =  S.ID
+                              AND  D.REGISTERSTRANSFERSID  IS  NULL
+                              AND  D.TRPERSONID  IS  NOT  NULL
+                              AND  D.PERSONACCID  IS  NOT  NULL
+                              AND  (tENROLL.types  =  '25'  and  COALESCE(D.SUMCOMP,0)  >  0  
+                                OR  tENROLL.types  =  '33'  and  COALESCE(D.SUMEXTRA12,0)+COALESCE(D.EXTRAA,0)  >  0)
 			)
-	LOOP 
-    	INSERT INTO 
-        	SLREGTRNPR(
+	LOOP  
+        	INSERT  INTO  
+                	SLREGTRNPR(
 						REGISTERSTRANSFERSID,
 						COMMITTEEMANID,
 						SUMTRN,
 						TRPERSONID,
 						PERSONACCID
-                      )
-		 		VALUES( 
+                                            )
+		  		VALUES(  
 						REGISTERSTRANSFERS_ID,
 						REC.COMMITTEEMANID,
 						REC.SUMM,
 						REC.TRPERSONID,
 						REC.PERSONACCID
-                      );
-        UPDATE SHEETDETAILS S SET REGISTERSTRANSFERSID = REGISTERSTRANSFERS_ID, SUMTRN = REC.SUMM WHERE S.ID = REC.SHEETDETAILS_ID; 
-    END LOOP;
+                                            );
+                UPDATE  SHEETDETAILS  S  SET  REGISTERSTRANSFERSID  =  REGISTERSTRANSFERS_ID,  SUMTRN  =  REC.SUMM  WHERE  S.ID  =  REC.SHEETDETAILS_ID;  
+        END  LOOP;
+        --  РЈРґР°Р»СЏРµРј  СЃРѕР·РґР°РЅРЅСѓСЋ  СЃС‚СЂРѕРєСѓ,  РµСЃР»Рё  РЅРµС‚  СЃРїРµС†РёС„РёРєР°С†РёР№
+        delete  from  REGISTERSTRANSFERS  s  where  s.id  =  REGISTERSTRANSFERS_ID  and  not  EXISTS  (select  1  from  SLREGTRNPR  sp  where  sp.registerstransfersid  =  s.id);
+  end  loop;
 /*
-select coalesce(regexp_replace(max(lpad(docnumb, 80, ' ')),
-                                 '[^0-9]',
-                                 '',
-                                 'g') ::int + 1,
-                  1)
-    into sdocnumber
-    from REGISTERSTRANSFERS s
-   where s.docpref = Sdocpref;
+select  coalesce(regexp_replace(max(lpad(docnumb,  80,  '  ')),
+                                                                  '[^0-9]',
+                                                                  '',
+                                                                  'g')  ::int  +  1,
+                                    1)
+        into  sdocnumber
+        from  REGISTERSTRANSFERS  s
+      where  s.docpref  =  Sdocpref;
 
- for rec in (      select s.id, 
-		    e.id as ELCMTACC_id, 
-		    k.inn, 
-		    e.agentbanksid, 
-		    ek.id electcommincampid,
-		    b.bic
-               from sheets s, 
---                     electcampaign ec,--'Избирательные кампании'
-		     electcommincamp ek,--Избирательные комиссии, участвующие в кампании'
-		     ELECTCOMMITTEE k, --'Избирательные комиссии';
-                     ELCMTACC e, --'Расчетные счета избирательных комиссий';
-                     AGENTBANKS b
-               where s.id = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
---                 and ec.id = s.electcampaignid
-                 and ek.id = s.electcommincampid
-                 and e.electcommitteeid = k.id
-                 and e.begindate <= ddocdate
-                 and (e.enddate >=  ddocdate or e.enddate is null)
-                 and b.id = e.agentbanksid
-        )         
+  for  rec  in  (            select  s.id,  
+                        e.id  as  ELCMTACC_id,  
+                        k.inn,  
+                        e.agentbanksid,  
+                        ek.id  electcommincampid,
+                        b.bic
+                              from  sheets  s,  
+--                                          electcampaign  ec,--'РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєР°РјРїР°РЅРёРё'
+                          electcommincamp  ek,--РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєРѕРјРёСЃСЃРёРё,  СѓС‡Р°СЃС‚РІСѓСЋС‰РёРµ  РІ  РєР°РјРїР°РЅРёРё'
+                          ELECTCOMMITTEE  k,  --'РР·Р±РёСЂР°С‚РµР»СЊРЅС‹Рµ  РєРѕРјРёСЃСЃРёРё';
+                                          ELCMTACC  e,  --'Р Р°СЃС‡РµС‚РЅС‹Рµ  СЃС‡РµС‚Р°  РёР·Р±РёСЂР°С‚РµР»СЊРЅС‹С…  РєРѕРјРёСЃСЃРёР№';
+                                          AGENTBANKS  b
+                              where  s.id  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+--                                  and  ec.id  =  s.electcampaignid
+                                  and  ek.id  =  s.electcommincampid
+                                  and  e.electcommitteeid  =  k.id
+                                  and  e.begindate  <=  ddocdate
+                                  and  (e.enddate  >=    ddocdate  or  e.enddate  is  null)
+                                  and  b.id  =  e.agentbanksid
+                )                  
 
-     loop
-    --вставка в реестры перечислений
-	insert into REGISTERSTRANSFERS(
-			code,
-			docpref,
-			docnumb,
-			docdate,
---       		electcommitteeid,
-			electcommincampid,
-			elcmtaccid,
-			inn,
-			contractnumb,
-			agentbanksid,
-			bic)
-		values (
-			sdocpref || '-' || sdocnumber || ' от ' ||
-			to_char(ddocdate, 'dd.mm.yyyy'),
-			sdocpref,
-			sdocnumber,
-			ddocdate,
---       		rec.electcommitteeid,
-			rec.electcommincampid,
-			rec.ELCMTACC_id,
-			rec.inn,
-			sdocnumb,
-			rec.agentbanksid,
-			rec.bic)
-	returning REGISTERSTRANSFERS.id into nID;
---цикл по составу
-	for spec in (select s.* 
-		       from SHEETDETAILS s 
-		      where s.sheetsid = rec.id
-		     ) loop
+          loop
+        --РІСЃС‚Р°РІРєР°  РІ  СЂРµРµСЃС‚СЂС‹  РїРµСЂРµС‡РёСЃР»РµРЅРёР№
+        insert  into  REGISTERSTRANSFERS(
+                        code,
+                        docpref,
+                        docnumb,
+                        docdate,
+--                              electcommitteeid,
+                        electcommincampid,
+                        elcmtaccid,
+                        inn,
+                        contractnumb,
+                        agentbanksid,
+                        bic)
+                values  (
+                        sdocpref  ||  '-'  ||  sdocnumber  ||  '  РѕС‚  '  ||
+                        to_char(ddocdate,  'dd.mm.yyyy'),
+                        sdocpref,
+                        sdocnumber,
+                        ddocdate,
+--                              rec.electcommitteeid,
+                        rec.electcommincampid,
+                        rec.ELCMTACC_id,
+                        rec.inn,
+                        sdocnumb,
+                        rec.agentbanksid,
+                        rec.bic)
+        returning  REGISTERSTRANSFERS.id  into  nID;
+--С†РёРєР»  РїРѕ  СЃРѕСЃС‚Р°РІСѓ
+        for  spec  in  (select  s.*  
+                              from  SHEETDETAILS  s  
+                            where  s.sheetsid  =  rec.id
+                          )  loop
 /*
-SLREGTRNPR.COMMITTEEMANID	<-SHEETDETAILS.COMMITTEEMANID	
-SLREGTRNPR.SUMTRN		<-SHEETDETAILS.SUMCOMP + SUMEXTRA12 + EXTRAA	
-SLREGTRNPR.TRPERSONID		<-SHEETDETAILS.TRPERSONID	
-SLREGTRNPR.PERSONACCID		<-SHEETDETAILS.PERSONACCID	
+SLREGTRNPR.COMMITTEEMANID        <-SHEETDETAILS.COMMITTEEMANID        
+SLREGTRNPR.SUMTRN                <-SHEETDETAILS.SUMCOMP  +  SUMEXTRA12  +  EXTRAA        
+SLREGTRNPR.TRPERSONID                <-SHEETDETAILS.TRPERSONID        
+SLREGTRNPR.PERSONACCID                <-SHEETDETAILS.PERSONACCID        
 */
-		insert into SLREGTRNPR(
-			registerstransfersid,
-			committeemanid,
-			sumtrn,
-			trpersonid,
-			personaccid)
-		 values( 
-			nID,
-			spec.committeemanid,
-			spec.SUMCOMP + spec.SUMEXTRA12 + spec.EXTRAA,
-			spec.TRPERSONID,
-			spec.PERSONACCID);
+                insert  into  SLREGTRNPR(
+                        registerstransfersid,
+                        committeemanid,
+                        sumtrn,
+                        trpersonid,
+                        personaccid)
+                  values(  
+                        nID,
+                        spec.committeemanid,
+                        spec.SUMCOMP  +  spec.SUMEXTRA12  +  spec.EXTRAA,
+                        spec.TRPERSONID,
+                        spec.PERSONACCID);
 
-		update SHEETDETAILS s
-		   set sumtrn= spec.SUMCOMP + spec.SUMEXTRA12 + spec.EXTRAA,
-		       registerstransfersid = nID
-		 where s.id = spec.id;
-	end loop;
-end loop;
+                update  SHEETDETAILS  s
+                      set  sumtrn=  spec.SUMCOMP  +  spec.SUMEXTRA12  +  spec.EXTRAA,
+                              registerstransfersid  =  nID
+                  where  s.id  =  spec.id;
+        end  loop;
+end  loop;
 */
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_create_reg_transfers (idlist text, ddocdate date, sdocnumb text)
-  OWNER TO magicbox;
+$function$
+ 

@@ -1,63 +1,60 @@
-CREATE OR REPLACE FUNCTION public.p_action_registerlist_check_runtime (
-  idlist text
-)
-RETURNS text AS
-$body$
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_registerlist_check_runtime(idlist  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
 declare
-  REC          record;
-  PR 		   record;
+    REC  record;
+    PR    record;
 begin
-  
-  FOR REC IN(
-  			SELECT S.COMMITTEEMANID,
-            	   S.ID AS REG_ID,
-            	   W.TIMEBEGINTBL::time, 
-            	   W.TIMEENDTBL::time,
-                   (SELECT E.CODE FROM REGISTER R, ELECTCAMPAIGN E WHERE R.ID = S.REGISTERID AND E.ID = R.ELECTCAMPAIGNID) AS NAME_COMP,
-                   COALESCE(P.SURNAME,'')||' '||COALESCE(P.FIRSTNAME)||' '||COALESCE(P.MIDDLENAME) as FIO_CH,
-                   TO_CHAR(W.DATETBL,'dd.mm.yyyy') as DATETBL,
-                   W.DATETBL AS DATETBLS
-              FROM REGISTERLIST S,
-              	   WORKTBL W,
-                   COMMITTEEMAN C,
-                   PERSON P 
-             WHERE S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
-               AND W.REGISTERLISTID = S.ID 
-               AND C.ID = S.COMMITTEEMANID
-               AND P.ID = C.PERSONID
-               AND W.TIMEBEGINTBL IS NOT NULL
-               AND W.TIMEENDTBL IS NOT NULL
-  			)
-  			LOOP
-            	FOR PR IN(
-                	   SELECT W.TIMEBEGINTBL::time,
-                         	  W.TIMEENDTBL::time,
-                              (SELECT E.CODE FROM REGISTER R, ELECTCAMPAIGN E WHERE R.ID = S.REGISTERID AND E.ID = R.ELECTCAMPAIGNID) AS NAME_COMP
-                         FROM REGISTERLIST S,
-                              WORKTBL W 
-                        WHERE S.ID != REC.REG_ID
-                          AND S.COMMITTEEMANID = REC.COMMITTEEMANID
-                          AND W.REGISTERLISTID = S.ID 
-                          AND W.DATETBL = REC.DATETBLS
-                          AND (W.TIMEBEGINTBL::time <= REC.TIMEBEGINTBL::time AND W.TIMEENDTBL::time > REC.TIMEBEGINTBL::time
-                           OR W.TIMEBEGINTBL::time < REC.TIMEENDTBL::time AND W.TIMEENDTBL::time >= REC.TIMEENDTBL::time
-                           OR W.TIMEBEGINTBL::time <= REC.TIMEBEGINTBL::time AND W.TIMEENDTBL::time >= REC.TIMEENDTBL::time)
-                	   ) 
-                LOOP
-                	RETURN 'Нарушение периода работы члена ИК: Член избирательной комиссии '|| REC.FIO_CH ||
-                    	' работал '||REC.DATETBL||' в период подготовки и проведения выборов '||REC.NAME_COMP|| 
-                        ' с '||REC.TIMEBEGINTBL::time||' до '||REC.TIMEENDTBL::time|| 
-                        ' и выборов '||PR.NAME_COMP||' с '||PR.TIMEBEGINTBL::time||' до '||PR.TIMEENDTBL::time||'.';
-                END LOOP;
-            END LOOP;
-            RETURN null;
-end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
 
-ALTER FUNCTION public.p_action_registerlist_check_runtime (idlist text)
-  OWNER TO magicbox;
+    for  REC  in  (select  S.COMMITTEEMANID,
+                                          S.ID  as  REG_ID,
+                                          W.TIMEBEGINTBL  ::time,
+                                          W.TIMEENDTBL  ::time,
+                                          (select  E.CODE
+                                                from  REGISTER            R,
+                                                          ELECTCAMPAIGN  E
+                                              where  R.ID  =  S.REGISTERID
+                                                  and  E.ID  =  R.ELECTCAMPAIGNID)  as  NAME_COMP,
+                                          COALESCE(P.SURNAME,  '')  ||  '  '  ||  COALESCE(P.FIRSTNAME)  ||  '  '  ||  COALESCE(P.MIDDLENAME)  as  FIO_CH,
+                                          TO_CHAR(W.DATETBL,  'dd.mm.yyyy')  as  DATETBL,
+                                          W.DATETBL  as  DATETBLS
+                                from  REGISTERLIST  S,
+                                          WORKTBL            W,
+                                          COMMITTEEMAN  C,
+                                          PERSON              P
+                              where  S.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                                  and  W.REGISTERLISTID  =  S.ID
+                                  and  C.ID  =  S.COMMITTEEMANID
+                                  and  P.ID  =  C.PERSONID
+                                  and  W.TIMEBEGINTBL  is  not  null
+                                  and  W.TIMEENDTBL  is  not  null)
+    loop
+        for  PR  in  (select  W.TIMEBEGINTBL  ::time,
+                                            W.TIMEENDTBL  ::time,
+                                            (select  E.CODE
+                                                  from  REGISTER            R,
+                                                            ELECTCAMPAIGN  E
+                                                where  R.ID  =  S.REGISTERID
+                                                    and  E.ID  =  R.ELECTCAMPAIGNID)  as  NAME_COMP
+                                  from  REGISTERLIST  S,
+                                            WORKTBL            W
+                                where  S.ID  !=  REC.REG_ID
+                                    and  S.COMMITTEEMANID  =  REC.COMMITTEEMANID
+                                    and  W.REGISTERLISTID  =  S.ID
+                                    and  W.DATETBL  =  REC.DATETBLS
+                                    and  (W.TIMEBEGINTBL::time  <=  REC.TIMEBEGINTBL  ::time  
+                                              and  W.TIMEENDTBL  ::time  >  REC.TIMEBEGINTBL  ::time  
+                                                or  W.TIMEBEGINTBL  ::time  <  REC.TIMEENDTBL::time  
+                                              and  W.TIMEENDTBL::time  >=  REC.TIMEENDTBL::time  
+                                                or  W.TIMEBEGINTBL::time  <=  REC.TIMEBEGINTBL::time  
+                                              and  W.TIMEENDTBL::time  >=  REC.TIMEENDTBL::time)
+                              )
+        loop
+            return  'Нарушение  периода  работы  члена  ИК:  Член  избирательной  комиссии  '  ||  REC.FIO_CH  ||  '  работал  '  ||  REC.DATETBL  ||  '  в  период  подготовки  и  проведения  выборов  '  ||  REC.NAME_COMP  ||  '  с  '  ||  REC.TIMEBEGINTBL  ::time  ||  '  до  '  ||  REC.TIMEENDTBL  ::time  ||  '  и  выборов  '  ||  PR.NAME_COMP  ||  '  с  '  ||  PR.TIMEBEGINTBL  ::time  ||  '  до  '  ||  PR.TIMEENDTBL  ::time  ||  '.';
+        end  loop;
+    end  loop;
+    return  null;
+end;
+$function$
+ 
