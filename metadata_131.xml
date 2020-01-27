@@ -1,0 +1,285 @@
+<SYSTEM id="131" name="Субсидии, субвенции, межбюджетные трансферты">
+	<MODULES id="Modules" name="Модули">
+		<MODULE id="Subsidy, subvention, transfer" name="Субсидии, субвенции, межбюджетные трансферты" menu="Subsidy, subvention, transfer"/>
+	</MODULES>
+	<GROUPS_MENU name="Группы меню">
+		<MENU id="Subsidy, subvention, transfer" name="Меню модуля Субсидии, субвенции, межбюджетные трансферты">
+			<MENU name="Файл">
+				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MI name="Изменить пароль" actionlist="PasswordChangeExit"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Документы">
+				<MI name="Казначейские уведомления" formlist="TreasuryNotice_form"/>
+				<MI name="Ведение БР" formlist=""/>
+				<MENU name="Реестр соглашений">
+					<MI name="Распределение ЛБО по получателям" formlist=""/>
+					<MI name="Соглашение о предоставлении субсидии" formlist=""/>
+				</MENU>
+				<MI name="Кассовое исполнение" formlist=""/>
+			</MENU>
+			<MENU name="Отчеты">
+				<MI name="Реестр соглашений" reportlist=""/>
+				<MI name="Нераспределенные остатки по КБК" reportlist=""/>
+			</MENU>
+			<MENU name="Справочники">
+				<MI name="Периоды" formlist="Period"/>
+				<MENU name="Контрагенты">
+					<MI name="Подведомственные бюджетополучатели" formlist="SubordinateBudgetRecipient"/>
+					<MI name="Иные бюджетополучатели" formlist="OtherBudgetRecipient"/>
+					<MI name="Финансовые учреждения (органы)" formlist="FinOrgan"/>
+				</MENU>
+				<MENU name="Сотрудники">
+					<MI name="Должности" formlist=""/>
+					<MI name="Подразделения" formlist=""/>
+				</MENU>
+				<MENU name="Бюджетная классификация">
+					<MI name="КБК" formlist="Kbk"/>
+					<MI name="Код главы" formlist="ExpenseManager"/>
+					<MI name="Раздел" formlist="ExpenseGroup"/>
+					<MI name="Подраздел" formlist="ExpenseSubGroup"/>
+					<MI name="Целевая статья" formlist="TargetArticle"/>
+					<MI name="Вид расходов" formlist="ExpenseType"/>
+					<MI name="КОСГУ" formlist="Kosgu"/>
+				</MENU>
+			</MENU>
+			<MENU name="Справка">
+				<MI name="Руководство Администратора" actionlist="HelpAdmin"/>
+			</MENU>
+		</MENU>
+	</GROUPS_MENU>
+	<ATTRIBUTES name="Атрибуты">
+		<A id="TREASURY_NOTICE_ID" name="Казначейское уведомление" caption="Казначейское уведомление" labelwidth="200" type="ref" table="TREASURY_NOTICES" ret="ID" nulls="false"/>
+		<A id="TREASURY_NOTICE_SPC_ID" name="Казначейское уведомление-спецификация" caption="Казначейское уведомление-спецификация" labelwidth="200" type="ref" table="TREASURY_NOTICES_SPC" ret="ID" nulls="false"/>
+		<A id="KBK_ID" name="Код бюджетной классификации" caption="Код бюджетной классификации" labelwidth="200" type="ref" table="KBK" ret="KBK_CODE_VIRT" form="Kbk" nulls="false"/>
+		<A id="EXPENSE_MANAGER_ID" name="Код главы" caption="Код главы" labelwidth="200" type="ref" table="EXPENSE_MANAGER" ret="CODE" form="ExpenseManager" nulls="false"/>
+		<A id="EXPENSE_GROUP_ID" name="Раздел" caption="Раздел" labelwidth="200" type="ref" table="EXPENSE_GROUP" ret="CODE" form="ExpenseGroup" nulls="false"/>
+		<A id="EXPENSE_SUBGROUP_ID" name="Подраздел" caption="Подраздел" labelwidth="200" type="ref" table="EXPENSE_SUBGROUP" ret="CODE" form="ExpenseSubGroup" nulls="false"/>
+		<A id="TARGET_ARTICLE_ID" name="Целевая статья" caption="Целевая статья" labelwidth="200" type="ref" table="TARGET_ARTICLE" ret="CODE" form="TargetArticle" nulls="false"/>
+		<A id="EXPENSE_TYPE_ID" name="Вид расходов" caption="Вид расходов" labelwidth="200" type="ref" table="EXPENSE_TYPE" ret="CODE" form="ExpenseType" nulls="false"/>
+		<A id="KOSGU_ID" name="КОСГУ" caption="КОСГУ" labelwidth="200" type="ref" table="KOSGU" ret="CODE" form="Kosgu" nulls="false"/>
+		<A id="ACTUAL" name="Запись актуальна" caption="Запись актуальна" labelwidth="150" type="boolean" nulls="false" value="true"/>
+		<A id="PERIOD_ID" name="Период" ref="CODE" caption="Период" labelwidth="150" type="ref" table="PERIOD" form="Period" nulls="false"/>
+	</ATTRIBUTES>
+	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		<GA id="Period" name="Период действия" caption="Период действия">
+			<A id="DATE_BEGIN" name="Дата начала" caption="Дата начала" labelwidth="200" type="date" nulls="true"/>
+			<A id="DATE_END" name="Дата окончания" caption="Дата окончания" labelwidth="200" type="date" nulls="true"/>
+		</GA>
+	</GROUPS_ATTRIBUTES>
+	<TABLES name="Таблицы">
+		<TABLE id="PERIOD" name="Период">
+			<GA id="Dictionary"/>
+			<GA id="Period"/>
+		</TABLE>
+		<TABLE id="KBK" name="Код бюджетной классификации">
+			<GA id="KBK_CODE" name="Код КБК" caption="Код КБК">
+				<A id="EXPENSE_MANAGER_ID" name="Код главы" caption="Код главы" labelwidth="115" nulls="true" visible="form"/>
+				<GA id="FUNCTION_CLASSIF_ID" name="Функциональная классификация" caption="Функциональная классификация">
+					<A id="EXPENSE_GROUP_ID" name="Раздел" caption="Раздел" labelwidth="100" nulls="true" visible="form"/>
+					<A id="EXPENSE_SUBGROUP_ID" name="Подраздел" caption="Подраздел" labelwidth="100" nulls="true" visible="form"/>
+				</GA>
+				<A id="TARGET_ARTICLE_ID" name="Целевая статья" caption="Целевая статья" labelwidth="120" width="33" nulls="true" visible="form"/>
+				<A id="EXPENSE_TYPE_ID" name="Вид расходов" caption="Вид расходов" labelwidth="100" width="33" nulls="true" visible="form"/>
+				<A id="KOSGU_ID" name="КОСГУ" caption="КОСГУ" labelwidth="50" width="33" nulls="true" visible="form"/>
+				<A id="KBK_CODE_VIRT" name="Код КБК" caption="Код КБК" labelwidth="120" type="string" nulls="true" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="KBK_NAME_VIRT" name="Наименование КБК" caption="Наименование КБК" labelwidth="120" type="string" nulls="true" readonly="true" virtual="true" formula="" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="EXPENSE_MANAGER" name="Код главы">
+			<GA id="Dictionary"/>
+			<A id="ACTUAL"/>
+			<TI unique="CODE,NAME"/>
+			<TI id="EXPENSE_MANAGER_CODE_IND" index="CODE"/>
+			<TI id="EXPENSE_MANAGER_NAME_IND" index="NAME"/>
+			<TI id="EXPENSE_MANAGER_ACRUAL_IND" index="ACTUAL"/>
+		</TABLE>
+		<TABLE id="EXPENSE_GROUP" name="Раздел">
+			<GA id="Dictionary"/>
+			<A id="ACTUAL"/>
+			<TI unique="CODE,NAME"/>
+			<TI id="EXPENSE_GROUP_CODE_IND" index="CODE"/>
+			<TI id="EXPENSE_GROUP_NAME_IND" index="NAME"/>
+			<TI id="EXPENSE_GROUP_ACRUAL_IND" index="ACTUAL"/>
+		</TABLE>
+		<TABLE id="EXPENSE_SUBGROUP" name="Подраздел">
+			<GA id="Dictionary"/>
+			<A id="ACTUAL"/>
+			<TI unique="CODE,NAME"/>
+			<TI id="EXPENSE_SUBGROUP_CODE_IND" index="CODE"/>
+			<TI id="EXPENSE_SUBGROUP_NAME_IND" index="NAME"/>
+			<TI id="EXPENSE_SUBGROUP_ACRUAL_IND" index="ACTUAL"/>
+		</TABLE>
+		<TABLE id="TARGET_ARTICLE" name="Целевая статья">
+			<GA id="Dictionary"/>
+			<A id="ACTUAL"/>
+			<TI unique="CODE,NAME"/>
+			<TI id="TARGET_ARTICLE_CODE_IND" index="CODE"/>
+			<TI id="TARGET_ARTICLE_NAME_IND" index="NAME"/>
+			<TI id="TARGET_ARTICLE_ACRUAL_IND" index="ACTUAL"/>
+		</TABLE>
+		<TABLE id="EXPENSE_TYPE" name="Вид расхода">
+			<GA id="Dictionary"/>
+			<A id="ACTUAL"/>
+			<TI unique="CODE,NAME"/>
+			<TI id="EXPENSE_TYPE_CODE_IND" index="CODE"/>
+			<TI id="EXPENSE_TYPE_NAME_IND" index="NAME"/>
+			<TI id="EXPENSE_TYPE_ACRUAL_IND" index="ACTUAL"/>
+		</TABLE>
+		<TABLE id="KOSGU" name="КОСГУ">
+			<GA id="Dictionary"/>
+			<A id="ACTUAL"/>
+			<TI unique="CODE,NAME"/>
+			<TI id="KOSGU_CODE_IND" index="CODE"/>
+			<TI id="KOSGU_NAME_IND" index="NAME"/>
+			<TI id="KOSGU_ACRUAL_IND" index="ACTUAL"/>
+		</TABLE>
+		<TABLE id="TREASURY_NOTICES" name="Казначейские уведомления">
+			<TABS>
+				<TAB name="Реквизиты">
+					<GA name="Заголовок документа" caption="Заголовок документа">
+						<A id="DOCNUMB" name="Номер документа" caption="Номер" labelwidth="100" type="string" len="80" nulls="false" formula=""/>
+						<A id="DOCDATE" name="Дата документа" caption="Дата" labelwidth="100" type="date" nulls="false" formula=""/>
+						<A id="LOAD_DATE" name="Дата загрузки документа" caption="Дата загрузки документа" labelwidth="100" type="date" nulls="true" readonly="true" formula=""/>
+						<A id="USERID" name="Исполнитель" caption="Исполнитель" labelwidth="100" type="string" nulls="false" formula=""/>
+					</GA>
+				</TAB>
+				<TAB name="Показатели">
+					<GA name="Бюджетные ассигнования" caption="Бюджетные ассигнования">
+						<A id="SUM_BA_VIRT" name="Cумма на текущий финансовый год" caption="Cумма на текущий финансовый год" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+						<A id="SUM_BA1_VIRT" name="Cумма на 1 год планового периода" caption="Cумма на 1 год планового периода" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+						<A id="SUM_BA2_VIRT" name="Cумма на 2 год планового периода" caption="Cумма на 2 год планового периода" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+					</GA>
+					<GA name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств">
+						<A id="SUM_LBO_VIRT" name="Cумма на текущий финансовый год" caption="Cумма на текущий финансовый год" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+						<A id="SUM_LBO1_VIRT" name="Cумма на 1 год планового периода" caption="Cумма на 1 год планового периода" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+						<A id="SUM_LBO2_VIRT" name="Cумма на 2 год планового периода" caption="Cумма на 2 год планового периода" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+					</GA>
+					<GA name="Предельные объемы финансирования" caption="Предельные объемы финансирования">
+						<A id="SUM_POFR_VIRT" name="Cумма ПОФР на текущий финансовый год" caption="Cумма ПОФР на текущий финансовый год" labelwidth="250" width="100" type="number" nulls="true" virtual="true" formula="" local="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="TREASURY_NOTICES_SPC" name="Казначейские уведомления-спецификация">
+			<GA name="КБК" caption="КБК">
+				<A id="TREASURY_NOTICE_ID" parentkey="cascade"/>
+				<A id="KBK_ID"/>
+				<A id="KBK_NAME_VIRT" name="Наименование КБК" caption="Наименование КБК" labelwidth="200" width="150" type="text" nulls="true" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="100"/>
+			</GA>
+			<GA name="Бюджетные ассигнования" caption="Бюджетные ассигнования">
+				<A id="SUM_BA" name="Cумма на текущий финансовый год" caption="Cумма на текущий финансовый год" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+				<A id="SUM_BA1" name="Cумма на 1 год планового периода" caption="Cумма на 1 год планового периода" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+				<A id="SUM_BA2" name="Cумма на 2 год планового периода" caption="Cумма на 2 год планового периода" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+			</GA>
+			<GA name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств">
+				<A id="SUM_LBO" name="Cумма на текущий финансовый год" caption="Cумма на текущий финансовый год" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+				<A id="SUM_LBO1" name="Cумма на 1 год планового периода" caption="Cумма на 1 год планового периода" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+				<A id="SUM_LBO2" name="Cумма на 2 год планового периода" caption="Cумма на 2 год планового периода" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+			</GA>
+			<GA name="Предельные объемы финансирования" caption="Предельные объемы финансирования">
+				<A id="SUM_POFR" name="Cумма ПОФР на текущий финансовый год" caption="Cумма ПОФР на текущий финансовый год" labelwidth="250" width="100" type="number" nulls="true" formula="" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="TREASURY_NOTICES_FILE" name="Файлы КУ">
+			<A id="TREASURY_NOTICE_ID" parentkey="cascade"/>
+			<GA id="FileInformation"/>
+		</TABLE>
+		<TABLE id="TREASURY_NOTICES_STATUS" name="Статус документа">
+			<A id="TREASURY_NOTICE_ID" parentkey="cascade"/>
+		</TABLE>
+	</TABLES>
+	<ACTIONS name="Действия">
+	</ACTIONS>
+	<REPORTS name="Отчеты">
+	</REPORTS>
+	<FORMS id="Forms" name="Формы">
+		<FORM id="Period" name="Период">
+			<GRID id="Period" name="Период" table="PERIOD">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="Kbk" name="Код бюджетной классификации">
+			<GRID id="Kbk" name="Код бюджетной классификации" table="KBK">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ExpenseManager" name="Код главы">
+			<GRID id="ExpenseManager" name="Код главы" table="EXPENSE_MANAGER">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ExpenseGroup" name="Раздел">
+			<GRID id="ExpenseGroup" name="Раздел" table="EXPENSE_GROUP">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ExpenseSubGroup" name="Подраздел">
+			<GRID id="ExpenseSubGroup" name="Подраздел" table="EXPENSE_SUBGROUP">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="TargetArticle" name="Целевая статья">
+			<GRID id="TargetArticle" name="Целевая статья" table="TARGET_ARTICLE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="ExpenseType" name="Вид расходов">
+			<GRID id="ExpenseType" name="Вид расходов" table="EXPENSE_TYPE">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="Kosgu" name="КОСГУ">
+			<GRID id="Kosgu" name="КОСГУ" table="KOSGU">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="TreasuryNotice_form" name="Казначейские уведомления">
+			<TABS>
+				<TAB name="Казначейские уведомления">
+					<GRID id="TreasuryNotice" name="Казначейские уведомления" table="TREASURY_NOTICES" actionlist="" reportlist="">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+					<GRID id="TreasuryNoticeSpc" name="Казначейское уведомление-спецификация" table="TREASURY_NOTICES_SPC">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Прикрепленные документы">
+					<GRID id="TreasuryNoticeFile" name="Прикрепленные документы" table="TREASURY_NOTICES_FILE" actionlist="addFilelinks;uploadFilelinks">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Статус документа">
+					<GRID id="TreasuryNoticeStatus" name="Статус документа" table="TREASURY_NOTICES_STATUS">
+						<MENU>
+							<MI actionlist="MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+	</FORMS>
+</SYSTEM>
