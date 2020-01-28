@@ -23,59 +23,112 @@
                      </query>
                 </queries>
 			</band>
-		    <band name="spec1" orientation="H">
+			<band name="razdel1_sub" orientation="H">
+				<bands>
+					<band name="spec1" orientation="H">
+						<queries>
+							<query name="spec1" type="sql">
+								<script>
+									select row_number() over(order by dep.name) as num,
+										dor.name as name_org,
+										dep.name as name_sub,
+										p_action_get_adress(dor.id) as adr_org
+									from ORGANIZATION org
+									inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
+									inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
+									where dep.LEVELSIGNIFICANCE = '1' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
+									and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
+									and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer) 
+									and dep.name = ${razdel1_sub.name_sub}
+									order by dep.name
+								</script>
+							</query>
+						</queries>
+					</band>
+				</bands>
 				<queries>
-                     <query name="spec1" type="sql">
+                     <query name="razdel1_sub" type="sql">
                         <script>
-							select row_number() over(order by dep.name) as num,
-								dor.name as name_org,
-								dep.name as name_sub,
-								p_action_get_adress(dor.id) as adr_org
-							from ORGANIZATION org
-							inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
-							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
-							where dep.LEVELSIGNIFICANCE = '1' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
-							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
-							  and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer) 
-							  order by dep.name
+							select dep.name as name_sub
+								from ORGANIZATION org
+								inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
+								inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
+								where dep.LEVELSIGNIFICANCE = '1' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
+								and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
+								and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer) 
+								group by dep.name
+								order by dep.name
 						</script>
                      </query>
                 </queries>
 			</band>
 			<band name="razdel2" orientation="H">
 				<queries>
-                     <query name="razdel1" type="sql">
+                     <query name="razdel2" type="sql">
                         <script>
 							select where ${executivebody} = '2' or ${executivebody} = '' or ${executivebody} is null
 						</script>
                      </query>
                 </queries>
 			</band>
-		    <band name="spec2" orientation="H">
+			<band name="razdel2_sub" orientation="H">
+				<bands>
+					<band name="spec2" orientation="H">
+						<queries>
+							<query name="spec2" type="sql">
+								<script>
+									select   row_number() over(order by sort,name_sub) as num, tbl.name_org, tbl.name_sub, tbl.adr_org,tbl.sort
+									FROM(select 
+										dor.name as name_org,
+										dep.name as name_sub,
+										p_action_get_adress(dor.id) as adr_org,
+										case 
+										when dep.name ilike '%республика%' then 0
+										when dep.name ilike '%край%' then 1
+										when dep.name ilike '%область%' then 2
+										when dep.name ilike '%федерального значения%' then 3
+										when dep.name ilike '%автономная область%' then 4
+										when dep.name ilike '%автономный округ%' then 5
+										else 6
+										end sort
+									from ORGANIZATION org
+									inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
+									inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
+									where dep.LEVELSIGNIFICANCE = '2' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
+									and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
+									and dep.name = ${razdel2_sub.name_sub}
+									and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer)) tbl
+									order by sort,name_sub
+								</script>
+							</query>
+						</queries>
+					</band>
+				</bands>	
 				<queries>
-                     <query name="spec2" type="sql">
+                     <query name="razdel2_sub" type="sql">
                         <script>
-							select   row_number() over(order by sort,name_sub) as num, tbl.name_org, tbl.name_sub, tbl.adr_org,tbl.sort
-							 FROM(select 
-								dor.name as name_org,
-								dep.name as name_sub,
-								p_action_get_adress(dor.id) as adr_org,
-								case 
-                                   when dep.name ilike '%республика%' then 0
-                                   when dep.name ilike '%край%' then 1
-                                   when dep.name ilike '%область%' then 2
-                                   when dep.name ilike '%федерального значения%' then 3
-                                   when dep.name ilike '%автономная область%' then 4
-                                   when dep.name ilike '%автономный округ%' then 5
-                                   else 6
-                                end sort
-							from ORGANIZATION org
-							inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
-							inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
-							where dep.LEVELSIGNIFICANCE = '2' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
-							  and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
-							  and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer)) tbl
-							order by sort,name_sub
+							select   row_number() over(order by sort,name_sub) as num,tbl.name_sub
+									FROM(select 
+										dor.name as name_org,
+										dep.name as name_sub,
+										p_action_get_adress(dor.id) as adr_org,
+										case 
+										when dep.name ilike '%республика%' then 0
+										when dep.name ilike '%край%' then 1
+										when dep.name ilike '%область%' then 2
+										when dep.name ilike '%федерального значения%' then 3
+										when dep.name ilike '%автономная область%' then 4
+										when dep.name ilike '%автономный округ%' then 5
+										else 6
+										end sort
+									from ORGANIZATION org
+									inner join ORGANIZATIONDIR dor on dor.id = org.organizationdirid
+									inner join DEPARTMENTDIR dep on dep.id = dor.departmentdirid
+									where dep.LEVELSIGNIFICANCE = '2' and (dep.LEVELSIGNIFICANCE = ${executivebody} or ${executivebody} = '' or ${executivebody} is null)
+									and (dep.id::text = ${departmentdirid} or ${departmentdirid} = '' or ${departmentdirid} is null)
+									and exists(select 1 from VACANCYORG vv where vv.ORGANIZATIONid = org.id and vv.yearconscription = (select case ${organizationyear} when '' then '0' else ${organizationyear} end)::integer)) tbl
+									group by sort,name_sub
+									order by sort,name_sub
 						</script>
                      </query>
                 </queries>
