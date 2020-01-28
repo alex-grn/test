@@ -116,7 +116,7 @@
 		<A id="DOCOUTAGENT" name="Орган, выдавший документ" caption="Орган, выдавший документ" type="text" nulls="true"/>
 		<A id="DOCOUTDATE" name="Дата выдачи документа" caption="Дата выдачи документа" type="date" nulls="true"/>
 		<A id="BANKACC" name="Номер счета" caption="Номер счета" type="string" len="20" nulls="true"/>
-		<A id="CORRACC" name="Номер корреспондентского счета" caption="Номер корреспондентского счета" labelwidth="200" type="string" len="20" nulls="false"/>
+		<A id="CORRACC" name="Номер корреспондентского счета" caption="Номер корреспондентского счета" labelwidth="200" type="string" len="20" nulls="true"/>
 		<A id="AGENTID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="150" type="ref" table="AGENT" ret="CODE" form="FormAgent" nulls="false"/>
 		<A id="AGENTBANKSID" name="Банковское учреждение" caption="Банковское учреждение" labelwidth="150" type="ref" table="AGENTBANKS" ret="CODE" form="FormAgentBanks" nulls="false"/>
 		<A id="BIC" name="БИК" caption="БИК" type="string" len="9" nulls="true"/>
@@ -424,6 +424,7 @@
 				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" type="date" nulls="false"/>
 				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" type="date" nulls="true"/>
 				<A id="COMPNUMB" caption="Номер состава" labelwidth="650" nulls="true"/>
+				<A id="TEMPORARY" caption="Временое исполнение"  type="boolean"  nulls="true" local="true"/>
 			</GA>
 			<GA name="Реквизиты перечислений" caption="Реквизиты перечислений">
 				<A id="TRPERSONID" name="Получатель" caption="Получатель" labelwidth="70" width="50" nulls="true"/>
@@ -460,12 +461,21 @@
 			<A id="AGENTBANKSID" name="Банковское учреждение" labelwidth="300"/>
 			<A id="BIC" name="Код банка (БИК)" labelwidth="300" readonly="true" virtual="true" formula="select B.BIC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
 			<A id="CORRACC" labelwidth="300" readonly="true" virtual="true" formula="select B.CORRACC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
-			<A id="DEPARTMENT" name="Отделение банка" caption="Отделение банка" labelwidth="300" width="40" type="number" nulls="true" local="true"/>
 			<GA name="Период действия" caption="Период действия">
 				<A id="BEGINDATE" caption="Дата открытия" labelwidth="100" width="50"/>
 				<A id="ENDDATE" caption="Дата закрытия" labelwidth="100" width="50"/>
 			</GA>
-			<TI unique="LEVELELCAMPAIGN,BANKACC"/>
+			<A id="SALCONTRACT" name="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" caption="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" type="boolean" nulls="true" local="true"/>
+			<TI unique="LEVELELCAMPAIGN,BANKACC"/>	
+		</TABLE>
+		<TABLE id="SALARYCONTRACT" name="Зарплатный проект в отделениях ПАО СБЕРБАНК">
+		    <GA name="Зарплатный проект в отделениях ПАО СБЕРБАНК" caption="Зарплатный проект в отделениях ПАО СБЕРБАНК">
+			    <A id="DEPARTMENT" name="Номер отделения" caption="Номер отделения" labelwidth="100" width="50" type="number" nulls="true" local="true"/>
+				<A id="BRANCHOFFICE" name="Номер филиала" caption="Номер филиал" labelwidth="100" width="50" type="number" nulls="true" local="true"/>
+				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" labelwidth="100" width="50" type="date" nulls="true" local="true"/>
+				<A id="CONTRACTNUMB" name="Номер договора" caption="Номер договора" labelwidth="100" width="50" type="string" nulls="true" local="true"/>
+			</GA>
+			<TI unique="CONTRACTNUMB"/>
 		</TABLE>
 		<TABLE id="CONTACTINFOEC" name="Контактная информация по избирательной комиссии">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -711,7 +721,7 @@
 			<A id="ELECTCAMPAIGNID" labelwidth="200"/>
 			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="400" nulls="false"/>
 			<A id="ELECTCOMMITTEEID" name="Избирком" caption="Избирком" labelwidth="400" type="ref" nulls="true" visible="false" virtual="true" formula="select IK.ELECTCOMMITTEEID from ELECTCOMMINCAMP IK where IK.ID = @ELECTCOMMINCAMPID::BIGINT"/>
-			<A id="ELCMTACCID" name="Расчетный счет избирательной комиссии" caption="Расчетный счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="false" local="true"/>
+			<A id="ELCMTACCID" name="Расчетный счет избирательной комиссии" caption="Расчетный счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
 			<A id="INN" labelwidth="400"/>
 			<A id="CONTRACTNUMB" name="Номер договора" caption="Номер договора" labelwidth="400" type="string" nulls="true" local="true"/>
 			<A id="AGENTBANKSID" labelwidth="400"/>
@@ -729,6 +739,7 @@
 			<TI unique="REGISTERSTRANSFERSID, COMMITTEEMANID"/>
 		</TABLE>
 		<TABLE id="TYPEEXP" name="Направление расходов">
+			<A id="NUMB" name="Номер" caption="Номер" labelwidth="650" type="number" len="3.1" nulls="false" local="true"/>
 			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false"/>
 			<A id="MESTIMATE"/>
 			<A id="REGIONSRFID"/>
@@ -964,7 +975,7 @@
 			</GRID>
 		</FORM>
 		<FORM id="TypeexpFRM" name="Направление расходов">
-			<GRID id="TypeexpGR" name="Направление расходов" table="TYPEEXP" actionlist="SetLID">
+			<GRID id="TypeexpGR" name="Направление расходов" actionlist="SetLID" table="TYPEEXP" >
 				<MENU>
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
@@ -1061,6 +1072,9 @@
 							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
+				</TAB>
+				<TAB name="Зарплатный проект в отделениях ПАО СБЕРБАНК">
+					<GRID id="SalarycontractGR" name="Зарплатный проект в отделениях ПАО СБЕРБАНК" table="SALARYCONTRACT"/>
 				</TAB>
 				<TAB name="Контактная информация">
 					<GRID id="ContactInfoECGR" name="Контактная информация" table="CONTACTINFOEC">
