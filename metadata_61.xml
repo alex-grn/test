@@ -33,8 +33,12 @@
 				</MENU>
 				<MENU name="Контрагенты">
 					<MI name="Физические лица" formlist="FormPerson"/>
+					<MI name="Материально-отвественные лица" formlist="MTResponsPersFRM"/>				
 					<MI name="Юридические лица" formlist="FormAgent"/>
 					<MI name="Банковские учреждения" formlist="FormAgentBanks"/>
+				</MENU>
+				<MENU name="Бухгалтерский учет">
+					<MI name="Номенклатор" formlist="DicNomnsFRM"/>
 				</MENU>
 			</MENU>
 		</MENU>
@@ -190,6 +194,11 @@
 		<A id="LEVELESTIMATE" name="Включение в смету" caption="Включение в смету" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
 			<AI id="district" name="Смета УИК"/>
+		</A>
+		<A id="TYPENOM" name="Тип номенклатуры" caption="Тип номенклатуры" labelwidth="400" type="list" nulls="false">
+				<AI id="product" name="Товар"/>
+				<AI id="service" name="Услуга"/>
+				<AI id="worksexec" name="Работа"/>
 		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
@@ -740,7 +749,7 @@
 		</TABLE>
 		<TABLE id="TYPEEXP" name="Направление расходов">
 			<A id="NUMB" name="Номер" caption="Номер" labelwidth="650" type="number" len="3.1" nulls="false" local="true"/>
-			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false"/>
+			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false" local="true"/>
 			<A id="MESTIMATE"/>
 			<A id="REGIONSRFID"/>
 			<TI unique="CODE,REGIONSRFID"/>
@@ -759,6 +768,17 @@
 			<A id="SUMCOSTS" name="Сумма расхода по отчету" caption="Сумма расхода по отчету" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="SUMRES" name="Остаток" caption="Остаток" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="@SUMFIN - p_action_finexp_sumpay(@ID)" local="true"/>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID,LEVELESTIMATE"/>
+		</TABLE>
+		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
+			<A id="PERSONID" labelwidth="300"/>
+			<A id="FULLNAME" name="Полное имя" caption="Полное имя" labelwidth="200" type="string" readonly="true" virtual="true" formula="" local="true"/>
+			<TI unique="PERSONID"/>
+		</TABLE>
+		<TABLE id="DICNOMNS" name="Номенклатор">
+			<A id="CODE" name="Код номенклатуры" caption="Код номенклатуры" labelwidth="300" type="string" len="40" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" labelwidth="200" type="string"  len="400"  local="true"/>
+			<A id="TYPENOM" labelwidth="400"/>
+			<TI unique="CODE"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1042,6 +1062,13 @@
 				</MENU>
 			</GRID>
 		</FORM>
+		<FORM id="MTResponsPersFRM" name="Материально-отвественные лица">
+			<GRID id="MTResponsPersGR" name="Материально-отвественные лица" table="MTRESPONSPERS">
+				<MENU>
+					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
 		<FORM id="RegionsRFFRM" name="Субъекты Российской Федерации">
 			<GRID id="RegionsRFGR" name="Субъекты Российской Федерации" table="REGIONSRF" readonly="true"/>
 		</FORM>
@@ -1221,6 +1248,9 @@
 		</FORM>
 		<FORM id="CommitteeManFRMVIRT" name="Члены избирательных комиссий">
 			<GRID id="ElCommGRVIRT" name="Члены избирательных комиссий" table="COMMITTEEMANVIRT"/>
+		</FORM>
+		<FORM id="DicNomnsFRM" name="Номенклатор">
+			<GRID id="DicNomnsGR" name="Номенклатор" table="DICNOMNS"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
