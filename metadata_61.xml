@@ -15,6 +15,10 @@
 				<MI name="Расчетно-платежные ведомости" formlist="SheetsFRM"/>
 				<MI name="Документы о перечислении" formlist="RegisterstransfersFRM"/>
 			</MENU>
+			<MENU name="Бухгалтерия ТИК">
+				<MI name="Договоры с юридическими лицами" formlist="ContractsFRM"/>
+				
+			</MENU>
 			<MENU name="Справочники">
 				<MENU name="Общие понятия">
 					<MI name="Типы документов" formlist="DocTypes"/>
@@ -41,6 +45,11 @@
 					<MI name="Номенклатор" formlist="DicNomnsFRM"/>
 					<MI name="Журналы операций" formlist="MEMOrderFRM"/>
 					<MI name="Классификационные признаки счета" formlist="BudgClassFRM"/>
+					<MI name="Коды операций сектора государственного управления" formlist="EconclassFRM"/>
+					<MI name="План счетов" formlist="DicAccsFRM"/>
+					<MI name="Типовые операции" formlist="TypicalOpersFRM"/>
+					
+					
 
 				</MENU>
 			</MENU>
@@ -181,7 +190,7 @@
 		</A>
 		<A id="SHEETSID" name="Ведомость по оплате труда" caption="Ведомость по оплате труда" labelwidth="200" type="ref" table="SHEETS" ret="CODE" form="SheetsFRM" nulls="false"/>
 		<A id="TRPERSONID" name="Получатель перечислений" caption="Получатель перечислений" labelwidth="200" type="ref" table="PERSON" ret="CODE" nulls="false"/>
-		<A id="AGENTACCID" name="Реквизит" caption="Реквизит" labelwidth="200" type="ref" table="AGENTACC" ret="CODE" form="AgentaccFRM" nulls="false"/>
+		<A id="AGENTACCID" name="Реквизит" caption="Реквизит" labelwidth="200" type="ref" pid="AGENTID" table="AGENTACC" ret="CODE" form="AgentaccFRM" nulls="false"/>
 		<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="200" type="ref" pid="TRPERSONID" pid_ref="PERSONID" table="PERSONACC" ret="CODE" nulls="false"/>
 		<A id="REGISTERSTRANSFERSID" name="Реестр перечислений" caption="Реестр перечислений" labelwidth="200" type="ref" table="REGISTERSTRANSFERS" ret="CODE" form="RegisterstransfersFRM" nulls="false"/>
 		<A id="TYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
@@ -212,6 +221,15 @@
 				<AI id="7" name="Журнал операций по выбытию и перемещению нефинансовых активов"/>
 				<AI id="8" name="Журнал по прочим операциям"/>
 		</A>
+		<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200"  type="ref"  table="TYPICALOPERS" ret="CODE" nulls="false"/>
+		<A id="ACCOUNTDTID" name="Номер счета дебита" caption="Номер счета дебита" labelwidth="200"  type="ref"  table="DICACCS" ret="ACCNUMB" nulls="false"/>
+		<A id="ACCOUNTKTID" name="Номер счета кредита" caption="Номер счета кредита" labelwidth="200"  type="ref"  table="DICACCS" ret="ACCNUMB" nulls="false"/>
+		<A id="ECONCLASSDTID" name="КОСГУ дебита" caption="КОСГУ дебита" labelwidth="200"  type="ref"  table="ECONCLASS" ret="CODE" nulls="false"/>		
+		<A id="ECONCLASSKTID" name="КОСГУ дебита" caption="КОСГУ дебита" labelwidth="200"  type="ref"  table="ECONCLASS" ret="CODE" nulls="false"/>
+		<A id="MEMORDERID" name="Журнал операций" caption="Журнал операций" labelwidth="200"  type="ref"  table="MEMORDER" ret="CODE" nulls="false"/>
+		<A id="CONTRACTSID" name="Договоры" caption="Договоры" labelwidth="200"  type="ref"  table="CONTRACTS" ret="CODE" nulls="false"/>
+		
+		<!-- <A id="ELECTCOMMITTEEVIRTID" name="Принадлежность" caption="Принадлежность" labelwidth="200" type="ref" table="ELECTCOMMITTEEVIRT" ret="CODE" form="ElectcommitteevirtFRM" nulls="false"/> -->
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -233,7 +251,7 @@
 			<A id="WHEXTRANIGHT" caption="в ночное время" labelwidth="60" width="12" readonly="true"/>
 			<A id="WHEXTRAHOL" caption="в выходные и нерабочие праздничные дни" labelwidth="180" width="12" readonly="true"/>
 			<A id="WHEXTRAWORKDAY" caption="в будние дни с 06.00 до 22.00" labelwidth="120" width="12" readonly="true"/>
-		</GA>
+		</GA>		
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
 		<TABLE id="POSTS" name="Должности">
@@ -490,13 +508,14 @@
 			<TI unique="LEVELELCAMPAIGN,BANKACC"/>	
 		</TABLE>
 		<TABLE id="SALARYCONTRACT" name="Зарплатный проект в отделениях ПАО СБЕРБАНК">
-		    <GA name="Зарплатный проект в отделениях ПАО СБЕРБАНК" caption="Зарплатный проект в отделениях ПАО СБЕРБАНК">
+		    <A id="ELECTCOMMITTEEID" parentkey="cascade"/>
+			<GA name="Зарплатный проект в отделениях ПАО СБЕРБАНК" caption="Зарплатный проект в отделениях ПАО СБЕРБАНК">
 			    <A id="DEPARTMENT" name="Номер отделения" caption="Номер отделения" labelwidth="100" width="50" type="number" nulls="true" local="true"/>
 				<A id="BRANCHOFFICE" name="Номер филиала" caption="Номер филиал" labelwidth="100" width="50" type="number" nulls="true" local="true"/>
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" labelwidth="100" width="50" type="date" nulls="true" local="true"/>
 				<A id="CONTRACTNUMB" name="Номер договора" caption="Номер договора" labelwidth="100" width="50" type="string" nulls="true" local="true"/>
 			</GA>
-			<TI unique="CONTRACTNUMB"/>
+			<TI unique="ELECTCOMMITTEEID,CONTRACTNUMB"/>
 		</TABLE>
 		<TABLE id="CONTACTINFOEC" name="Контактная информация по избирательной комиссии">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -538,7 +557,7 @@
 			</GA>
 			<TI unique="ELECTCOMMITTEEID,PERSONID, POSTSID, POSTBEGINDATE"/>
 		</TABLE>
-		<TABLE id="ELECTCAMPAIGN" name="Избирательные кампании" hid="LEVELELCAMPAIGN">
+		<TABLE id="ELECTCAMPAIGN" name="Избирательные кампании">
 			<A id="CODE" labelwidth="350"/>
 			<A id="NAME" nulls="false"/>
 			<A id="OFFICIALNAME"/>
@@ -788,22 +807,103 @@
 		</TABLE>
 		<TABLE id="DICNOMNS" name="Номенклатор">
 			<A id="CODE" name="Код номенклатуры" caption="Код номенклатуры" labelwidth="400" type="string" len="40" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" labelwidth="200" type="string"  len="400"  local="true"/>
+			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" labelwidth="200" type="string"  len="400" nulls="false" local="true"/>
 			<A id="TYPENOM" labelwidth="400"/>
 			<TI unique="CODE"/>
 		</TABLE>
 		<TABLE id="MEMORDER" name="Журналы операций">
-			<A id="CODE" name="Номер журнала операций" caption="Номер журнала операций" labelwidth="400" type="string" len="10" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование журнала операций" caption="Наименование журнала операций" labelwidth="200" type="string"  len="400"  local="true"/>
-			<A id="TYPEMEMORDER" labelwidth="400"/>
+			<A id="CODE" name="Номер журнала операций" caption="Номер журнала операций" labelwidth="650" type="string" len="10" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование журнала операций" caption="Наименование журнала операций" labelwidth="200" type="string"  len="400" nulls="false" local="true"/>
+			<A id="TYPEMEMORDER" labelwidth="200"/>
 			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="650" type="number"  len="2"  local="true"/>
 			<TI unique="CODE"/>
 		</TABLE>	
 		<TABLE id="BUDGCLASS" name="Классификационные признаки счета">
 			<A id="CODE" name="Код" caption="Код" labelwidth="400" type="string" len="17" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="string"  len="400"  local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="string"  len="400" nulls="false" local="true"/>
 			<TI unique="CODE"/>
-		</TABLE>			
+		</TABLE>
+		<TABLE id="ECONCLASS" name="Коды операций сектора государственного управления">
+			<A id="CODE" name="Код" caption="Код" labelwidth="400" type="string" len="3" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="string"  len="400" nulls="false"  local="true"/>
+			<TI unique="CODE"/>
+		</TABLE>	
+		<TABLE id="DICACCS" name="План счетов" hid="ACCNUMB">
+			<A id="ACCNUMB" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" len="6" nulls="false" local="true"/>
+			<A id="ACCNAME" name="Наименование счета" caption="Наименование счета" labelwidth="200" type="string"  len="400" nulls="false" local="true"/>
+			<A id="ACCTYPE" name="Тип счета" caption="Тип счета" labelwidth="400" type="list" nulls="false" local="true">
+				<AI id="2" name="материалы"/>
+				<AI id="4" name="денежные средства"/>
+				<AI id="7" name="дебиторы/кредиторы"/>
+				<AI id="8" name="прочие"/>
+			</A>
+			<TI unique="ACCNUMB"/>
+		</TABLE>	
+		<TABLE id="TYPICALOPERS" name="Типовые операции">
+			<A id="CODE" name="Код типовой операции" caption="Код типовой операции" labelwidth="650" type="string" len="4" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование типовой операции" caption="Наименование типовой операции" labelwidth="200" type="string"  len="240" nulls="false" local="true"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200"/>
+			<TI unique="CODE"/>
+		</TABLE>	
+		<TABLE id="TYPICALOPERSPEC" name="Проводка типовой операции">
+		    <A id="TYPICALOPERSID" parentkey="cascade"/>
+			<GA name="Дебет" caption="Дебет">
+				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="100" width="50" />
+				<A id="ECONCLASSDTID" name="КОСГУ" caption="Счет" labelwidth="100" width="50"/>
+			</GA>
+			<GA name="Кредит" caption="Кредит">
+				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="100" width="50" />
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="Счет" labelwidth="100" width="50"/>
+			</GA>
+			<A id="MEMORDERID"/>
+			<TI unique="TYPICALOPERSID,ACCOUNTDTID,ECONCLASSDTID,ACCOUNTKTID,ECONCLASSKTID"/>
+		</TABLE>
+		<TABLE id="CONTRACTS" name="Договоры с юридическими лицами">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="350" readonly="true" virtual="true" formula="" />
+				<A id="ELECTDATE" labelwidth="350" readonly="true" virtual="true" formula="" />
+				<!-- <A id="ELECTCOMMITTEEVIRTID" labelwidth="350"/> -->
+			</GA>
+			<GA name="Договор" caption="Договор">
+				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" nulls="false" local="true">
+					<AI id="product" name="Поставка товара"/>
+					<AI id="service" name="Оказание услуг"/>
+					<AI id="worksexec" name="Выполнение работ"/>
+				</A>
+				<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
+				<A id="DOCDATE" labelwidth="45" width="20"/>
+			</GA>
+			<GA name="Поставщик/подрядчик" caption="Поставщик/подрядчик">
+				<A id="AGENTID" name="Юридическое лицо"/>
+				<A id="AGENTACCID" caption="Реквизит" labelwidth="150"  nulls="true"/>
+			</GA>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
+				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
+			</GA>
+			<GA name="Предмет договора" caption="Предмет договора">
+				<A id="SUBJECT" caption="Предмет договора" name="Предмет договора"  labelwidth="150" type="text" nulls="false" local="true"/>
+				<A id="NOTE" caption="Примечание" name="Примечание"  labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula=""/>
+			</GA>
+		</TABLE>
+		<TABLE id="STAGES" name="Этапы договора">
+				<A id="CONTRACTSID" parentkey="cascade"/>
+				<A id="NUMBPP" caption="№ п/п" name="№ п/п"  labelwidth="150" type="number" nulls="false" local="true" />
+			
+		</TABLE>
+		
+		<!-- <TABLE id="ELECTCOMMITTEEVIRT" name="Принадлежность" virtual="true" query="select c.*  from ELECTCOMMITTEE c where c.levelelcommittee = 'territory' or c.levelelcommittee = 'circuit'">
+			<A id="CODE" labelwidth="300"/>
+			<A id="NAME" nulls="false"/>
+			<A id="REGIONSRFID" labelwidth="100"/>
+			<A id="LEVELELCOMMITTEE" labelwidth="300"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
+			</GA>
+		</TABLE>	 -->
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="AExportTransfers" name="Выгрузить реестр перечислений в формате Сбербанка (данные)" type="procedure" procedure="p_action_unloading_reestr_to_bank">
@@ -1282,5 +1382,24 @@
 		<FORM id="BudgClassFRM" name="Классификационные признаки счета">
 			<GRID id="BudgClassGR" name="Классификационные признаки счета" table="BUDGCLASS"/>
 		</FORM>
+		<FORM id="EconclassFRM" name="Коды операций сектора государственного управления">
+			<GRID id="EconclassGR" name="Коды операций сектора государственного управления" table="ECONCLASS"/>
+		</FORM>
+		<FORM id="DicAccsFRM" name="План счетов">
+			<GRID id="DicAccsGR" name="План счетов" table="DICACCS"/>
+		</FORM>
+		<FORM id="TypicalOpersFRM" name="Типовые операции">
+			<GRID id="TypicalOpersGR" name="Типовые операции" table="TYPICALOPERS"/>
+			<GRID id="TypicalOperSpecGR" name="Проводки" table="TYPICALOPERSPEC"/>
+		</FORM>
+		<FORM id="ContractsFRM" name="Договоры">
+			<GRID id="ContractsGR" name="Договоры" table="CONTRACTS"/>
+			<GRID id="StagesGR" name="Проводки" table="STAGES"/>
+		</FORM>
+		<!-- <FORM id="ElectcommitteevirtFRM" name="Принадлежность">
+			<GRID id="ElectcommitteevirtGR" name="Члены избирательных комиссий" table="ELECTCOMMITTEEVIRT"/>
+		</FORM>
+		 -->
+			
 	</FORMS>
 </SYSTEM>
