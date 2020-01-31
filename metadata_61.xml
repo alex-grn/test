@@ -47,6 +47,10 @@
 					<MI name="Коды операций сектора государственного управления" formlist="EconclassFRM"/>
 					<MI name="План счетов" formlist="DicAccsFRM"/>
 					<MI name="Типовые операции" formlist="TypicalOpersFRM"/>
+					<MI name="Принадлежность" formlist="JurpersonsFRM"/>
+					<MI name="Единицы измерения" formlist="DicmuntsFRM"/>
+					
+					
 				</MENU>
 			</MENU>
 		</MENU>
@@ -217,6 +221,8 @@
 			<AI id="7" name="Журнал операций по выбытию и перемещению нефинансовых активов"/>
 			<AI id="8" name="Журнал по прочим операциям"/>
 		</A>
+		<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
+		<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
 		<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200" type="ref" table="TYPICALOPERS" ret="CODE" nulls="false"/>
 		<A id="ACCOUNTDTID" name="Номер счета дебита" caption="Номер счета дебита" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
 		<A id="ACCOUNTKTID" name="Номер счета кредита" caption="Номер счета кредита" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
@@ -224,6 +230,15 @@
 		<A id="ECONCLASSKTID" name="КОСГУ дебита" caption="КОСГУ дебита" labelwidth="200" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
 		<A id="MEMORDERID" name="Журнал операций" caption="Журнал операций" labelwidth="200" type="ref" table="MEMORDER" ret="CODE" nulls="false"/>
 		<A id="CONTRACTSID" name="Договоры" caption="Договоры" labelwidth="200" type="ref" table="CONTRACTS" ret="SUBJECT" nulls="false"/>
+		<A id="JURPERSONSID" name="Принадлежность" caption="Принадлежность" labelwidth="200" type="ref" table="JURPERSONS" ret="CODEJURPERS" nulls="false"/>
+		<A id="BUDGCLASSID" name="КПС" caption="КПС" labelwidth="200" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
+		<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="200" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
+		<A id="DICMUNTSID" name="Единица измерения" caption="Единица измерения" labelwidth="200" type="ref" table="DICMUNTS" ret="CODE" nulls="false"/>	
+		<A id="SUMMPAY" name="Оплачено" caption="Оплачено" type="number" len="8.2" nulls="true"/>
+		<A id="SUMMEXEC" name="Исполнено" caption="Исполнено" type="number" len="8.2" nulls="true"/>
+		
+		
+		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -443,6 +458,17 @@
 			</GA>
 			<TI unique="CODE,POSTENDDATE,NUMBKSA"/>
 		</TABLE>
+		<TABLE id="JURPERSONS" name="Принадлежность">
+			<A id="CODEJURPERS" name="Код" caption="Код" labelwidth="300" type="string" nulls="false" local="true"/>
+			<A id="ELECTCOMMITTEEID"/>
+			<A id="NAME" readonly="true" virtual="true" formula=""/>
+			<A id="REGIONSRFID" labelwidth="100" readonly="true" virtual="true" formula=""/>
+			<A id="LEVELELCOMMITTEE" labelwidth="300" readonly="true" virtual="true" formula=""/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
+			</GA>
+		</TABLE>	
 		<TABLE id="COMMITTEEMAN" name="Члены избирательных комиссий">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
 			<A id="CODE" labelwidth="300"/>
@@ -803,6 +829,7 @@
 			<A id="CODE" name="Код номенклатуры" caption="Код номенклатуры" labelwidth="400" type="string" len="40" nulls="false" local="true"/>
 			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" labelwidth="200" type="string" len="400" nulls="false" local="true"/>
 			<A id="TYPENOM" labelwidth="400"/>
+			<A id="DICMUNTSID" labelwidth="400"/>
 			<TI unique="CODE"/>
 		</TABLE>
 		<TABLE id="MEMORDER" name="Журналы операций">
@@ -852,11 +879,18 @@
 			<A id="MEMORDERID"/>
 			<TI unique="TYPICALOPERSID,ACCOUNTDTID,ECONCLASSDTID,ACCOUNTKTID,ECONCLASSKTID"/>
 		</TABLE>
+		<TABLE id="DICMUNTS" name="Единицы измерения">
+			<A id="CODE" name="Код" caption="Код" labelwidth="400" type="string" len="17" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="string" len="400" nulls="false" local="true"/>
+			<A id="CODEOKEI" name="Код ОКЕИ" caption="Код ОКЕИ" labelwidth="400" type="number" len="4" nulls="true" local="true"/>
+			<TI unique="CODE"/>
+		</TABLE>
 		<TABLE id="CONTRACTS" name="Договоры с юридическими лицами">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID"/>
 				<A id="LEVELELCAMPAIGN" labelwidth="350" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="350" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
 			</GA>
 			<GA name="Договор" caption="Договор">
 				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" nulls="false" local="true">
@@ -884,6 +918,21 @@
 		<TABLE id="STAGES" name="Этапы договора">
 			<A id="CONTRACTSID" parentkey="cascade"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" local="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSID = @CONTRACTSID and cid=0"/>
+			<A id="BUDGCLASSID"/>
+			<A id="TYPEEXPID"/>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
+				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
+			</GA>
+			<GA name="Номенклатура" caption="Номенклатура">
+				<A id="DICNOMNSID"/>
+				<A id="TYPENOM" readonly="true" virtual="true" formula=""/>
+				<A id="DICMUNTSID" readonly="true" virtual="true" formula=""/>
+			</GA>	
+			<GA name="Исполнение" caption="Исполнение">
+				<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
+				<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
+			</GA>	
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1377,5 +1426,14 @@
 			<GRID id="ContractsGR" name="Договоры" table="CONTRACTS"/>
 			<GRID id="StagesGR" name="Проводки" table="STAGES"/>
 		</FORM>
+		<FORM id="JurpersonsFRM" name="Принадлежность">
+			<GRID id="JurpersonsGR" name="Принадлежность" table="JURPERSONS"/>
+		</FORM>
+		<FORM id="DicmuntsFRM" name="Единицы измерения">
+			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS"/>
+		</FORM>
+		
+		
+		
 	</FORMS>
 </SYSTEM>
