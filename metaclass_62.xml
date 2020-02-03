@@ -1,18 +1,78 @@
 <SYSTEM id="62" name="Учет расходов на выборы 2">
-	<MODULES id="Modules" name="Модули">
-	</MODULES>
+	<MODULES id="Modules" name="Модули"/>
 	<GROUPS_MENU name="Группы меню">
+		<MENU name="Бухгалтерия ТИК">
+			<MI name="Договоры о мат. ответственности" formlist="LiabilityFRM"/>
+			<MI name="Доверенности" formlist="ProxyFRM"/>
+		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
+		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>	
+		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="CODE" nulls="false"/>
+		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="RESPONSPERS" ret="CODE" nulls="false"/>
 	</ATTRIBUTES>
-	<GROUPS_ATTRIBUTES name="Группы атрибутов">
-	</GROUPS_ATTRIBUTES>
+	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
+		<TABLE id="LIABILITY" name="Договоры о материальной ответственности">
+			<GA name="Избирательная кампания" caption="Избирательная кампания" local="true">
+				<A id="ELECTCAMPAIGNID" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTCOMMITTEEID"/>
+			</GA>
+			<GA name="Договор о материальной ответственности" caption="Договор о материальной ответственности" local="true">
+				<A id="NUMBER" caption="Номер" type="string" labelwidth="70" width="40"/>
+				<A id="DATE" labelwidth="45" type="date" width="20"/>
+			</GA>
+			<GA name="Кем выдана" caption="Кем выдана">
+				<A id="WHOISSUEDID" name="Кем выдана" caption="Кем выдана" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
+			</GA>
+			<GA name="Кому выдана" caption="Кому выдана">
+				<A id="RECEIVEDID" name="Кому выдана" caption="Кому выдана" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PROXY" name="Доверенности">
+			<A id="CODE"/>
+			<GA name="Избирательная кампания" caption="Избирательная кампания" local="true">
+				<A id="ELECTCAMPAIGNID" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="350" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="350" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTCOMMITTEEID"/>
+			</GA>
+			<GA name="Документ" caption="Документ" local="true">
+				<A id="DOCTYPEID"/>
+				<A id="PREFIX" name="Префикс" caption="Префикс" type="string" labelwidth="150" readonly="false" local="true" nulls="true"/>
+				<A id="DOCNUMB"/>
+				<A id="DOCDATE"/>
+				<A id="ENDDATE" local="true" name="Срок действия" caption="Срок действия" type="date" nulls="true" labelwidth="45" width="20"/>
+				<A id="RESPPERSON" type="ref" table="RESPONSPERS" ret="CODE" nulls="false"/>
+			</GA>
+			<GA name="Поставщик" caption="Поставщик">
+				<A id="CONTRACTID"/>
+				<A id="CONTRACTDATE" caption="Дата контракта" labelwidth="350" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
+				<A id="CONTRTYPE" caption="Тип контракта" labelwidth="350" readonly="true" virtual="true" formula="select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID"/>
+			</GA>
+			<GA name="Получение от" caption="Получение от">
+				<A id="AGENTID"/>
+			</GA>
+		</TABLE>
+		<TABLE id="GOODS" name="Товары">
+			<A id="PROXYID" parentkey="cascade"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" local="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0"/>
+			<A id="DICNOMNSID"/>
+			<A id="DICMUNTSID" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="QUANTITY" nulls="false"/>
+		</TABLE>
 	</TABLES>
-	<ACTIONS name="Действия">
-	</ACTIONS>
-	<REPORTS name="Отчеты">
-	</REPORTS>
+	<ACTIONS name="Действия"/>
+	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
+		<FORM id="LiabilityFRM" name="Договоры о материальной ответственности">
+			<GRID id="LiabilityGR" name="Договоры о материальной ответственности" table="LIABILITY"/>
+		</FORM>
+		<FORM id="ProxyFRM" name="Доверенности">
+			<GRID id="ProxyGR" name="Доверенности" table="PROXY"/>
+			<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
+		</FORM>
 	</FORMS>
 </SYSTEM>
