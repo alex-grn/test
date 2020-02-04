@@ -5,59 +5,62 @@
 	<ATTRIBUTES name="Атрибуты">
 		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>	
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
-		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="RESPONSPERS" ret="CODE" nulls="false"/>
+		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
 		<TABLE id="LIABILITY" name="Договоры о материальной ответственности">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
-				<A id="ELECTCAMPAIGNID" nulls="false"/>
-				<A id="LEVELELCAMPAIGN" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
-				<A id="ELECTDATE" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
-				<A id="ELECTCOMMITTEEID"/>
+				<A id="ELECTCAMPAIGNID" nulls="false" labelwidth="200"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTCOMMITTEEID" labelwidth="200"/>
+				<A id="LEVELELCOMMITTEE" visible="false" readonly="true" formula="select t.levelelcommittee from electcommittee t where t.id=@ELECTCOMMITTEEID"/>				
 			</GA>
 			<GA name="Договор о материальной ответственности" caption="Договор о материальной ответственности">
-				<A id="NUMBER" caption="Номер" type="string" labelwidth="70" width="40"/>
-				<A id="DATE" labelwidth="45" type="date" width="20"/>
+				<A id="NUMBER" name="Номер" caption="Номер" type="string" labelwidth="70" width="40"/>
+				<A id="DATE" name="Дата" caption="Дата" labelwidth="45" type="date" width="20"/>
 			</GA>
-			<GA name="Кем выдана" caption="Кем выдана">
-				<A id="WHOISSUEDID" name="Кем выдана" caption="Кем выдана" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
+			<GA name="Кем выдан договор" caption="Кем выдана">
+				<A id="WHOISSUEDID" name="Кем выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true" pid="ELECTCOMMITTEEID"/>
 			</GA>
-			<GA name="Кому выдана" caption="Кому выдана">
-				<A id="RECEIVEDID" name="Кому выдана" caption="Кому выдана" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
+			<GA name="Кому выдан договор" caption="Кому выдана">
+				<A id="RECEIVEDID" name="Кому выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
 			</GA>
+			<TI id="LEVELELCOMMITTEE_CHECK" local="true" name="Договоры о мат. ответственности не может заключать УИК" check="LEVELELCOMMITTEE!='district'"/>				
 		</TABLE>
 		<TABLE id="PROXY" name="Доверенности">
-			<A id="CODE"/>
+			<A id="CODE" labelwidth="200"/>
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
-				<A id="ELECTCAMPAIGNID" nulls="false"/>
-				<A id="LEVELELCAMPAIGN" labelwidth="350" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
-				<A id="ELECTDATE" labelwidth="350" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
-				<A id="ELECTCOMMITTEEID"/>
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTCOMMITTEEID" labelwidth="200"/>
+				<A id="LEVELELCOMMITTEE" visible="false" readonly="true" formula="select t.levelelcommittee from electcommittee t where t.id=@ELECTCOMMITTEEID"/>
 			</GA>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID"/>
-				<A id="PREFIX" name="Префикс" caption="Префикс" type="string" labelwidth="150" readonly="false" local="true" nulls="true"/>
+				<A id="PREFIX" name="Префикс" caption="Префикс" type="string" readonly="false" local="true" nulls="true"/>
 				<A id="DOCNUMB"/>
-				<A id="DOCDATE"/>
-				<A id="ENDDATE" local="true" name="Срок действия" caption="Срок действия" type="date" nulls="true" labelwidth="45" width="20"/>
-				<A id="RESPPERSON" type="ref" table="RESPONSPERS" ret="CODE" nulls="false"/>
+				<A id="DOCDATE" width="50"/>
+				<A id="ENDDATE" local="true" name="Срок действия" caption="Срок действия" type="date" nulls="true" width="50"/>
+				<A id="RESPPERSON" visible="true" width="20"/>
+				<A id="MOL" name="ФИО МОЛ" width="80" type="string" readonly="true" virtual="true" formula="select t.NAME from PERSON t, MTRESPONSPERS m where t.ID = m.PERSONID and m.id = @RESPPERSON"/>				
 			</GA>
 			<GA name="Поставщик" caption="Поставщик">
-				<A id="CONTRACTID"/>
-				<A id="CONTRACTDATE" type="date" caption="Дата контракта" labelwidth="350" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
-				<A id="CONTRTYPE" type="string" caption="Тип контракта" labelwidth="350" readonly="true" virtual="true" formula="select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID"/>
+				<A id="CONTRACTID" caption="Контракт №" name="Контракт №"/>
+				<A id="CONTRACTDATE" type="date" caption="Дата контракта" name="Дата контракта" width="50" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
+				<A id="CONTRTYPE" type="string" caption="Тип контракта" name="Тип контракта" width="50" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" caption="Поставщик" name="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
 			</GA>
-			<GA name="Получение от" caption="Получение от">
-				<A id="AGENTID"/>
-			</GA>
+			<TI id="ELECTCOMMITTEE_CHECK" local="true" name="Доверенности не может выдавать УИК" check="LEVELELCOMMITTEE!='district'"/>			
 		</TABLE>
 		<TABLE id="GOODS" name="Товары">
 			<A id="PROXYID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" local="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0"/>
-			<A id="DICNOMNSID"/>
-			<A id="DICMUNTSID" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
-			<A id="QUANTITY" nulls="false"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" local="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0"/>
+			<A id="DICNOMNSID" labelwidth="90" width="80" />
+			<A id="DICMUNTSID" labelwidth="120" width="40" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="QUANTITY" nulls="false" labelwidth="90" width="60"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия"/>
