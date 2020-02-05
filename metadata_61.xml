@@ -17,6 +17,8 @@
 			</MENU>
 			<MENU name="Бухгалтерия ТИК">
 				<MI name="Договоры с юридическими лицами" formlist="ContractsFRM"/>
+				<MI name="Договоры о мат. ответственности" formlist="LiabilityFRM"/>
+				<MI name="Доверенности" formlist="ProxyFRM"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MENU name="Общие понятия">
@@ -29,7 +31,7 @@
 				<MENU name="Учет рабочего времени">
 					<MI name="Типы дней" formlist="TypedayFRM"/>
 					<MI name="Праздничные дни" formlist="HolidayFRM"/>
-					<MI name="Рабочие календаря" formlist="WorkCalendarFRM"/>
+					<MI name="Рабочие календари" formlist="WorkCalendarFRM"/>
 				</MENU>
 				<MENU name="Оплата труда">
 					<MI name="Выплаты" formlist="SlcompchargesFRM"/>
@@ -49,8 +51,6 @@
 					<MI name="Типовые операции" formlist="TypicalOpersFRM"/>
 					<MI name="Принадлежность" formlist="JurpersonsFRM"/>
 					<MI name="Единицы измерения" formlist="DicmuntsFRM"/>
-					
-					
 				</MENU>
 			</MENU>
 		</MENU>
@@ -233,12 +233,10 @@
 		<A id="JURPERSONSID" name="Принадлежность" caption="Принадлежность" labelwidth="200" type="ref" table="JURPERSONS" ret="CODEJURPERS" nulls="false"/>
 		<A id="BUDGCLASSID" name="КПС" caption="КПС" labelwidth="200" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
 		<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="200" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
-		<A id="DICMUNTSID" name="Единица измерения" caption="Единица измерения" labelwidth="200" type="ref" table="DICMUNTS" ret="CODE" nulls="false"/>	
+		<A id="DICMUNTSID" name="Единица измерения" caption="Единица измерения" labelwidth="200" type="ref" table="DICMUNTS" ret="CODE" nulls="false"/>
 		<A id="SUMMPAY" name="Оплачено" caption="Оплачено" type="number" len="8.2" nulls="true"/>
 		<A id="SUMMEXEC" name="Исполнено" caption="Исполнено" type="number" len="8.2" nulls="true"/>
-		
-		
-		
+		<A id="QUANTITY" name="Количество" caption="Количество" type="number" len="8.2" nulls="true"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -461,14 +459,14 @@
 		<TABLE id="JURPERSONS" name="Принадлежность">
 			<A id="CODEJURPERS" name="Код" caption="Код" labelwidth="300" type="string" nulls="false" local="true"/>
 			<A id="ELECTCOMMITTEEID"/>
-			<A id="NAME" readonly="true" virtual="true" formula=""/>
-			<A id="REGIONSRFID" labelwidth="100" readonly="true" virtual="true" formula=""/>
-			<A id="LEVELELCOMMITTEE" labelwidth="300" readonly="true" virtual="true" formula=""/>
+			<A id="NAME" readonly="true" virtual="true" formula="select t.name from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
+			<A id="REGIONSRFID" labelwidth="100" readonly="true" virtual="true" formula="select t.REGIONSRFID from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
+			<A id="LEVELELCOMMITTEE" labelwidth="300" readonly="true" virtual="true" formula="select t.LEVELELCOMMITTEE from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
 			<GA name="Период действия полномочий" caption="Период действия полномочий">
 				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
 				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
 			</GA>
-		</TABLE>	
+		</TABLE>
 		<TABLE id="COMMITTEEMAN" name="Члены избирательных комиссий">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
 			<A id="CODE" labelwidth="300"/>
@@ -530,6 +528,7 @@
 		<TABLE id="SALARYCONTRACT" name="Зарплатный проект в отделениях ПАО СБЕРБАНК">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
 			<GA name="Зарплатный проект в отделениях ПАО СБЕРБАНК" caption="Зарплатный проект в отделениях ПАО СБЕРБАНК">
+				<A id="AGENTBANKSID" name="Банковское учреждение" labelwidth="200"/>
 				<A id="DEPARTMENT" name="Номер отделения" caption="Номер отделения" labelwidth="100" width="50" type="number" nulls="true" local="true"/>
 				<A id="BRANCHOFFICE" name="Номер филиала" caption="Номер филиал" labelwidth="100" width="50" type="number" nulls="true" local="true"/>
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" labelwidth="100" width="50" type="date" nulls="true" local="true"/>
@@ -912,12 +911,12 @@
 			<GA name="Предмет договора" caption="Предмет договора">
 				<A id="SUBJECT" name="Предмет договора" caption="Предмет договора" labelwidth="150" type="text" nulls="false" local="true"/>
 				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="150" type="string" nulls="true" local="true"/>
-				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula=""/>
+				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSID = @ID"/>
 			</GA>
 		</TABLE>
 		<TABLE id="STAGES" name="Этапы договора">
 			<A id="CONTRACTSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" local="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSID = @CONTRACTSID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSID = @CONTRACTSID and cid=0" local="true"/>
 			<A id="BUDGCLASSID"/>
 			<A id="TYPEEXPID"/>
 			<GA name="Период действия" caption="Период действия">
@@ -926,13 +925,15 @@
 			</GA>
 			<GA name="Номенклатура" caption="Номенклатура">
 				<A id="DICNOMNSID"/>
-				<A id="TYPENOM" readonly="true" virtual="true" formula=""/>
-				<A id="DICMUNTSID" readonly="true" virtual="true" formula=""/>
-			</GA>	
+				<A id="TYPENOM" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
+				<A id="DICMUNTSID" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+				<A id="QUANTITY" labelwidth="600" nulls="false"/>
+				<A id="SUMM" labelwidth="600" nulls="false"/>
+			</GA>
 			<GA name="Исполнение" caption="Исполнение">
 				<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
 				<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
-			</GA>	
+			</GA>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -970,8 +971,7 @@
 		</ACTION>
 		<ACTION id="FormRTransfers" name="Сформировать реестр перечислений" type="procedure" procedure="p_action_create_reg_transfers">
 			<FORM name="Параметры">
-				<A id="DDOCDATE" name="Дата формирования" caption="Дата формирования" labelwidth="200" width="40" type="date" nulls="false" local="true"/>
-				<A id="SDOCNUMB" name="Номер договора" caption="Номер договора" labelwidth="100" width="40" type="string" nulls="false" local="true"/>
+				<A id="DDOCDATE" name="Дата формирования" caption="Дата формирования" labelwidth="600" width="40" type="date" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="SetTransInfo" name="Заполнить реквизиты получателя данными члена ИК" type="procedure"/>
@@ -1432,8 +1432,5 @@
 		<FORM id="DicmuntsFRM" name="Единицы измерения">
 			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS"/>
 		</FORM>
-		
-		
-		
 	</FORMS>
 </SYSTEM>
