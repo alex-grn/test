@@ -7,6 +7,7 @@
 			<MENU name="Файл">
 				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
 				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
+				<MI name="Удалить конфигурацию" actionlist="ConfigDrop"/>
 				<MI name="Параметры системы" formlist="Options"/>
 				<MI name="Загруженные файлы" formlist="Filelinks"/>
 				<MI name="Изменить пароль" actionlist="PasswordChangeExit"/>
@@ -805,12 +806,17 @@
 				<A id="BFILE" ext="xml" nulls="false"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="ConfigExportProc" name="Процедура выгрузки конфигурации системы" type="procedure" procedure="p_system_export_config">
+		<ACTION id="ConfigExportProc" name="Выгрузить конфигурацию системы" type="procedure" procedure="p_system_export_config">
 			<FORM>
 				<A id="NUMB" name="Конфигурация" caption="Конфигурация" type="list" nulls="false" query="select mp.propnode as id, mp.strvalue as code from metaclass m, metaclassprops mp where m.classnode='SYSTEM' and m.id=mp.metaclassid order by cast(mp.propnode as int)" local="true"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="ConfigExport" name="Выгрузить конфигурацию системы" type="script" actionlist="ConfigExportProc;LoadFileFromFilebuffer"/>
+		<ACTION id="ConfigDrop" name="Удалить конфигурацию системы" type="procedure" procedure="p_system_drop_config">
+			<FORM>
+				<A id="NUMB" name="Конфигурация" caption="Конфигурация" type="list" nulls="false" query="select mp.propnode as id, mp.strvalue as code from metaclass m, metaclassprops mp where m.classnode='SYSTEM' and m.id=mp.metaclassid and mp.propnode not in ('0','1') order by cast(mp.propnode as int)" local="true"/>
+			</FORM>
+		</ACTION>
 		<ACTION id="uploadReports" name="Загрузить шаблоны отчетов" type="java">
 			<FORM>
 				<A id="BFILE" array="true" nulls="false"/>
