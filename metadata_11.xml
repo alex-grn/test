@@ -11,6 +11,10 @@
 				<MI name="Загруженные файлы" formlist="Filelinks"/>
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
+			<MENU name="Структура бюджетов">
+				<MI name="Бюджеты" formlist="Budgets"/>
+				<MI name="Виды бюджетов и внебюджетных средств" formlist="OffBudgetKinds"/>
+			</MENU>
 			<MENU name="Бюджетная классификация">
 				<MENU name="Классификация доходов бюджетов">
 					<MI name="КДБ  Классификатор доходов бюджетов" formlist="Bkd"/>
@@ -46,9 +50,24 @@
 					<MI name="Коды операций сектора государственного управления" formlist="EconClass"/>
 				</MENU>
 			</MENU>
+			<MENU name="Общероссийские классификаторы">
+				<MI name="ОКФС — Общероссийский классификатор форм собственности" formlist="OKFS"/>
+				<MI name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" formlist="OKOPF"/>
+				<MI name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" formlist="OKOGU"/>
+				<MI name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" formlist="Okved"/>
+			</MENU>
+			<MENU name="Юридические лица">
+				<MI name="Юридические лица" formlist="Agent"/>
+			</MENU>
 		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
+		<COMMENT name="Контрольная сумма служит для проверки того, что в записи ничего не поменялось. Вместо 'Какой то текст' надо написать выражение из полей, которые мы хотим контролировать на неизменяемость.  Например ' COALESCE(@CODE,'0')|| COALESCE(@NAME,'000') '"/>
+		<A id="CHECK_SUM" name="Контрольная сумма" caption="Контрольная сумма" labelwidth="400" type="string" visible="form" readonly="true" formula="select md5('Какой то текст')"/>
+		<COMMENT name="Ссылки на прочие справочники"/>
+		<A id="OFFBUDGETKINDS_ID" name="Вид бюджета и внебюджетных средств" caption="Вид бюджета и внебюджетных средств" labelwidth="500" type="ref" table="OFFBUDGETKINDS" ret="CODE" form="OffBudgetKinds"/>
+		<A id="BUDGETS_ID" name="Бюджет" caption="Бюджет" labelwidth="300" type="ref" table="BUDGETS" ret="CODE" form="Budgets"/>
+		<COMMENT name="Ссылки на бюджетную классификацию"/>
 		<A id="DIR_RECIPID" name="Главный распорядитель и администратор" caption="Главный распорядитель и администратор" labelwidth="400" type="ref" table="DIR_RECIP" ret="CODE" form="DirRecip" nulls="false"/>
 		<A id="ECON_CLASS_ID" name="КОСГУ" caption="КОСГУ" labelwidth="400" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass" nulls="false"/>
 		<A id="FUN_CLASSID" name="Раздел, подраздел" caption="Раздел, подраздел" labelwidth="400" type="ref" table="FUN_CLASS" ret="CODE" form="FunClass" nulls="false"/>
@@ -61,7 +80,14 @@
 		<A id="INCOM_SUB_ARTICLE_ID" name="Подстатья доходов" caption="Подстатья доходов" labelwidth="150" type="ref" table="INCOM_SUB_ARTICLE" ret="CODE" form="IncomSubArticle" nulls="false"/>
 		<A id="BUDG_ELEMENT_ID" name="Элемент бюджета" caption="Элемент бюджета" labelwidth="150" type="ref" table="BUDG_ELEMENT" ret="CODE" form="BudgElement" nulls="false"/>
 		<A id="INCOM_SUB_VID_ID" name="Группа подвида доходов" caption="Группа подвида доходов" labelwidth="150" type="ref" table="INCOM_SUB_VID" ret="CODE" form="IncomSubVid" nulls="false"/>
-		<A id="KBR_ID" name="КРБ" caption="Классификатор расходов бюджетов" labelwidth="400" type="ref" table="KBR" ret="" form="Kbr"/>
+		<A id="KBR_ID" name="КРБ" caption="Классификатор расходов бюджетов" labelwidth="400" type="ref" table="KBR" ret="CODE" form="Kbr"/>
+		<COMMENT name="Ссылки на Общероссийские классификаторы"/>
+		<A id="OKFS_ID" name="ОКФС" caption="Общероссийский классификатор форм собственности (ОКФС)" labelwidth="500" type="ref" table="OKFS" ret="CODE" form="OKFS"/>
+		<A id="OKOPF_ID" name="ОКОПФ" caption="Общероссийский классификатор организационно-правовых форм (ОКОПФ)" labelwidth="500" type="ref" table="OKOPF" ret="CODE" form="OKOPF"/>
+		<A id="OKOGU_ID" name="ОКОГУ" caption="Общероссийский классификатор органов государственной власти и управления (ОКОГУ)" labelwidth="550" type="ref" table="OKOGU" ret="CODE" form="OKOGU"/>
+		<A id="OKVED_ID" name="ОКВЭД" caption="Общероссийский классификатор видов экономической деятельности (ОКВЭД)" labelwidth="500" type="ref" table="OKVED" ret="CODE" form="Okved"/>
+		<COMMENT name="Ссылки на юридические лица"/>
+		<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="500" type="ref" table="AGENT" ret="CODE" form="Agent"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Простой справочник с Полным и кратким наименованием"/>
@@ -70,9 +96,9 @@
 			<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование"/>
 			<A id="NOTE" name="Полное наименование" caption="Полное наименование"/>
 		</GA>
-		<GA id="DictionaryParam" name="Период действия" caption="Период действия">
-			<A id="BEGIN_DATE" name="Дата начала действия" caption="Дата начала действия" labelwidth="220" width="50" type="date" nulls="true" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
-			<A id="END_DATE" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="220" width="50" type="date" nulls="true" local="true"/>
+		<GA id="DictionaryParam" caption="Период действия">
+			<A id="BEGIN_DATE" name="Дата начала действия" caption="Дата начала действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
+			<A id="END_DATE" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" local="true"/>
 			<A id="ACTIVE" name="Актуальная запись" caption="Актуальная запись" labelwidth="220" type="boolean" nulls="false" value="true" local="true"/>
 		</GA>
 	</GROUPS_ATTRIBUTES>
@@ -201,11 +227,97 @@
 			<TI id="iKBR_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iKBR_ACTIVE" index="ACTIVE"/>
 		</TABLE>
+		<TABLE id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" hid="CODE">
+			<GA id="Dictionary"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iOKFS_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iOKFS_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" hid="CODE">
+			<GA id="Dictionary"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iOKOPF_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iOKOPF_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" hid="CODE">
+			<GA id="Dictionary"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iOKOGU_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iOKOGU_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="OKVED" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" hid="CODE">
+			<GA id="Dictionary"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iOKVED_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iOKVED_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="OFFBUDGETKINDS" name="Виды бюджетов и внебюджетных средств">
+			<A id="LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="650" type="int" nulls="false" value="1" local="true"/>
+			<A id="CODE" labelwidth="500" nulls="false"/>
+			<A id="NAME" labelwidth="200"/>
+			<A id="OFFBUDGET" name="Внебюджетные средства" caption="Внебюджетные средства" labelwidth="400" type="boolean" local="true"/>
+			<TI id="iOFFBUDGETKINDS_UK" unique="CODE"/>
+		</TABLE>
+		<TABLE id="BUDGETS" name="Бюджеты">
+			<A id="CODE" labelwidth="500" nulls="false"/>
+			<A id="NAME" labelwidth="200"/>
+			<A id="OFFBUDGETKINDS_ID"/>
+			<A id="AGENT_ID" name="Финансовый орган" caption="Финансовый орган"/>
+			<TI id="iBUDGETS_UK" unique="CODE"/>
+		</TABLE>
+		<TABLE id="AGENT" name="Юридические лица">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
+					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
+					<A id="SUBJECTMSB" name="Субъект МСП" caption="Субъект малого и среднего предпринимательства" labelwidth="400" type="boolean"/>
+					<A id="CODE" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@NAME)"/>
+					<GA caption="Коды классификаторов">
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
+						<A id="OKOGU_ID" visible="form"/>
+						<A id="OKOPF_ID" visible="form"/>
+						<A id="OKFS_ID" visible="form"/>
+					</GA>
+				</TAB>
+				<TAB name="Участник бюджетного процесса">
+					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" local="true"/>
+					<A id="DIR_RECIPID" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="500"/>
+					<A id="TYPEU" name="Тип учреждения" caption="Тип учреждения" labelwidth="500" type="list" local="true">
+						<AI id="1" name="Казенное"/>
+						<AI id="2" name="Бюджетное"/>
+						<AI id="3" name="Автономное"/>
+					</A>
+					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" local="true"/>
+					<A id="DATESR" name="Дата включения организации в Сводный реестр" caption="Дата включения организации в Сводный реестр" labelwidth="600" type="date" local="true"/>
+					<A id="NUR" name="Номер учреждения по распоряжению" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" local="true"/>
+					<A id="BUDGETS_ID"/>
+					<COMMENT name="Только для казначейства"/>
+					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" local="true"/>
+					<COMMENT name="Только для банка"/>
+					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" local="true"/>
+					<A id="ACC" name="Счет" caption="Счет" labelwidth="500" type="string" len="20" visible="form" local="true"/>
+					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" visible="form" local="true"/>
+				</TAB>
+				<TAB name="Действие записи">
+					<A id="CHECK_SUM" formula="select md5(COALESCE(@CODE,'0')||COALESCE(@NAME,'0')||COALESCE(@INN,'0')||COALESCE(@KPP,'0'))"/>
+					<GA id="DictionaryParam"/>
+					<A id="TYPE" name="Тип юридического лица" caption="Тип юридического лица" labelwidth="500" type="list" local="true">
+						<AI id="1" name="Коммерческая организация"/>
+						<AI id="2" name="Получатель бюджетных средств"/>
+						<AI id="3" name="Банк"/>
+						<AI id="4" name="Казначейство"/>
+						<AI id="5" name="Финансовый орган"/>
+					</A>
+				</TAB>
+			</TABS>
+		</TABLE>
 	</TABLES>
-	<ACTIONS name="Действия">
-	</ACTIONS>
-	<REPORTS name="Отчеты">
-	</REPORTS>
+	<ACTIONS name="Действия"/>
+	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="DirRecip" name="Главные распорядители и администраторы">
 			<GRID id="DirRecip" name="Главные распорядители и администраторы" table="DIR_RECIP"/>
@@ -254,6 +366,27 @@
 		</FORM>
 		<FORM id="Kbr" name="Классификатор расходов бюджетов">
 			<GRID id="Kbr" name="Классификатор расходов бюджетов" table="KBR"/>
+		</FORM>
+		<FORM id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности">
+			<GRID id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" table="OKFS"/>
+		</FORM>
+		<FORM id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм">
+			<GRID id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" table="OKOPF"/>
+		</FORM>
+		<FORM id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления">
+			<GRID id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" table="OKOGU"/>
+		</FORM>
+		<FORM id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности">
+			<GRID id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" table="OKVED"/>
+		</FORM>
+		<FORM id="Budgets" name="Бюджеты">
+			<GRID id="Budgets" name="Бюджеты" table="BUDGETS"/>
+		</FORM>
+		<FORM id="OffBudgetKinds" name="Виды бюджетов и внебюджетных средств">
+			<GRID id="OffBudgetKinds" name="Виды бюджетов и внебюджетных средств" table="OFFBUDGETKINDS"/>
+		</FORM>
+		<FORM id="Agent" name="Юридические лица">
+			<GRID id="Agent" name="Юридические лица" table="AGENT"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
