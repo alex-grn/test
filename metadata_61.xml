@@ -6,6 +6,7 @@
 		<MENU id="CalcPayCM" name="Меню модуля Расчет оплаты труда членам ИК в период проведения выборов">
 			<MENU name="Файл">
 				<MI name="Загрузить классификатор ИК, сведения о членах ИК и сведения об избирательных кампаниях" actionlist="ImportElectcampaign"/>
+				<MI name="Загрузить файлы КРФ" formlist="INPUTKFRFRM"/>				
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Избирательные комиссии и их состав">
@@ -123,10 +124,9 @@
 			<AI id="2" name="женский"/>
 		</A>
 		<A id="TYPEPERS" name="Тип физического лица" caption="Тип физического лица" type="list" nulls="false">
-			<AI id="0" name="не задан"/>
+			<AI id="0" name="не задан "/>
 			<AI id="1" name="Член ИК"/>
-			<AI id="2" name="Работник аппарата"/>
-			<AI id="3" name="Граждане, привлекаемые по ГПД"/>
+			<AI id="2" name="Работник ИК"/>
 		</A>
 		<A id="BEGINDATE" name="Дата с" caption="Дата с" type="date" nulls="true"/>
 		<A id="ENDDATE" name="Дата по" caption="Дата по" type="date" nulls="true"/>
@@ -379,9 +379,9 @@
 			<A id="ELECTCAMPAIGNID" labelwidth="200"/>
 			<A id="AGENTNAME" name="Наименование организации" caption="Наименование организации" labelwidth="200" type="string" nulls="false" local="true"/>
 			<A id="VALUE" name="Средняя заработная плата за полный месяц работы" caption="Средняя заработная плата за полный месяц работы" labelwidth="500" type="number" len="8.2" nulls="false" local="true"/>
-			<GA name="Период действия" caption="Период действия"  visible="false">
-				<A id="BEGINDATE" labelwidth="50" width="20" nulls="true" visible="false"/>
-				<A id="ENDDATE" labelwidth="50" width="20" nulls="true"  visible="false"/>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" labelwidth="50" width="20" nulls="false"/>
+				<A id="ENDDATE" labelwidth="50" width="20" nulls="true"/>
 			</GA>
 			<TI unique="PERSONID,BEGINDATE "/>
 		</TABLE>
@@ -645,7 +645,7 @@
 			<A id="RESPONSPERSID" caption="Ответственный за загрузку табеля" labelwidth="200" nulls="true"/>
 			<A id="MCIRCUIT" nulls="false" readonly="true" virtual="true" formula="select IK.MCIRCUIT from ELECTCOMMINCAMP IK where IK.ID = @ELECTCOMMINCAMPID::BIGINT"/>
 			<A id="PRINTREPORT" name="Вывод отчета по выборам" caption="Вывод отчета по выборам" type="boolean" nulls="false" local="true"/>
-			<A id="PrintKRF" type="string" visible="false" readonly="true" virtual="true" formula="select case e.levelelcampaign when 'territory' then 'region' else e.levelelcampaign end ||'/'||m.mfin||'/'||r.printreport::text||'/'||i.LEVELELCOMMITTEE as value from register r, electcampaign e, electcommincamp ik, electcommittee i, mfin m where r.id = @ID and e.id = r.electcampaignid and ik.id = r.electcommincampid and i.id = ik.electcommitteeid and m.electcommitteeid = i.id and now()::date >= m.begindate and (m.enddate >=now()::date or m.enddate is null)">
+			<A id="PRINTKRF" type="string" visible="false" readonly="true" virtual="true" formula="select case e.levelelcampaign when 'territory' then 'region' else e.levelelcampaign end ||'/'||m.mfin||'/'||r.printreport::text||'/'||i.LEVELELCOMMITTEE as value from register r, electcampaign e, electcommincamp ik, electcommittee i, mfin m where r.id = @ID and e.id = r.electcampaignid and ik.id = r.electcommincampid and i.id = ik.electcommitteeid and m.electcommitteeid = i.id and now()::date >= m.begindate and (m.enddate >=now()::date or m.enddate is null)">
 				<AI id="central/1/false/district" reportlist="KRF_F_ZP_NO"/>
 				<AI id="central/2/true/district" reportlist="KRF_F_NE_ZP_O"/>
 				<AI id="central/2/false/district" reportlist="KRF_F_NE_ZP_NO"/>
@@ -657,7 +657,7 @@
 				<AI id="region/3/true/district" reportlist="KRF_R_ZP_PL_O"/>
 				<AI id="region/3/false/district" reportlist="KRF_R_ZP_PL_NO"/>
 			</A>
-			<A id="PrintKRFTIK" type="string" visible="false" readonly="true" virtual="true" formula="select case e.levelelcampaign when 'territory' then 'region' else e.levelelcampaign end||'/'||i.LEVELELCOMMITTEE as value from register r, electcampaign e, electcommincamp ik, electcommittee i where r.id = @ID and e.id = r.electcampaignid and ik.id = r.electcommincampid and i.id = ik.electcommitteeid">
+			<A id="PRINTKRFTIK" type="string" visible="false" readonly="true" virtual="true" formula="select case e.levelelcampaign when 'territory' then 'region' else e.levelelcampaign end||'/'||i.LEVELELCOMMITTEE as value from register r, electcampaign e, electcommincamp ik, electcommittee i where r.id = @ID and e.id = r.electcampaignid and ik.id = r.electcommincampid and i.id = ik.electcommitteeid">
 				<AI id="central/territory" reportlist="KRF_F_TIK"/>
 				<AI id="region/territory" reportlist="KRF_R_TIK"/>
 				<AI id="central/circuit" reportlist="KRF_F_TIK"/>

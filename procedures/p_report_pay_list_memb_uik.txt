@@ -1,0 +1,54 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_report_pay_list_memb_uik(idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+declare  
+sCodeDoc  TEXT;
+sTypeDoc  TEXT;
+  
+begin
+/*
+по  образцу  отчета  sheet_calculation_tik  Расчетная  ведомость
+
+Задание:  Реализовать  ведомости  начислений  ведомственного  коэффициента  председателям  УИК,  членам  ТИК.  
+Отчеты  формируются  в  разделе  Расчетные  документы.  register  Отчет  формируется  по  1  записи.
+Входящие  параметры:  
+Председатель  Избирательной  комиссии  –  здесь  нужен  выбор  из  спецификации  Ответственные  лица  избирательной  комиссии.
+Бухгалтер  -  здесь  нужен  выбор  из  спецификации  Ответственные  лица  избирательной  комиссии.
+Порядок  формирования  отчетов  одинаков.
+
+Эта  процедура:
+Необходима  проверка  на  корректность  выбора  отчета  в  зависимости  от  типа  документа.  
+При  неверном  выборе  выводить  ошибку  «Неверно  выбран  шаблон  печати  ведомости  для  документа  типа  {тип  документа}
+*/
+
+--пока  это  заглушка
+sCodeDoc=null;
+/*
+  select  
+              r.code,
+--              ik.name,
+--              c.officialname,
+              dt.code  
+    into  sCodeDoc,  sTypeDoc  --Ведомость  ДОТ  за  активную  работу  членам  ТИК
+                              --Ведомость  ДОТ  за  активную  работу  председателям  УИК
+    from  register  r,
+    doctypes  dt,
+	      ELECTCOMMINCAMP  k,
+	      ELECTCAMPAIGN  c,
+	      ELECTCOMMITTEE  ik,
+	      REGIONSRF  Reg
+where  r.id  =    any(P_SYSTEM_GET_SELECTLIST(idlist  ::text))
+    and  r.doctypeid  =dt.id
+    and  k.id  =  r.electcommincampid
+    and  c.id  =  k.electcampaignid
+    and  ik.id  =  k.electcommitteeid
+    and  reg.id  =  ik.regionsrfid;
+
+    if  sTypeDoc<>'Ведомость  ДОТ  за  активную  работу  членам  ТИК'  then  
+          RAISE  EXCEPTION  'Неверно  выбран  шаблон  печати  ведомости  для  документа  %  типа  %',sCodeDoc,sTypeDoc;
+    end  if;
+  */        
+end;
+$function$
+ 

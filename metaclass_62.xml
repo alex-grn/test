@@ -1,9 +1,8 @@
 <SYSTEM id="62" name="Учет расходов на выборы 2">
 	<MODULES id="Modules" name="Модули"/>
-	<GROUPS_MENU name="Группы меню">
-	</GROUPS_MENU>
+	<GROUPS_MENU name="Группы меню"/>
 	<ATTRIBUTES name="Атрибуты">
-		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>	
+		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 	</ATTRIBUTES>
@@ -11,18 +10,18 @@
 	<TABLES name="Таблицы">
 		<TABLE id="LIABILITY" name="Договоры о материальной ответственности">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
-				<A id="ELECTCAMPAIGNID" nulls="false" labelwidth="200"/>
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
 				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
-				<A id="ELECTCOMMITTEEID" type="int" local="true" labelwidth="200" readonly="true" virtual="true" visible="false" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID"/>				
+				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
 			</GA>
 			<GA name="Договор о материальной ответственности" caption="Договор о материальной ответственности">
-				<A id="NUMBER" name="Номер" caption="Номер" type="string" labelwidth="70" width="40"/>
-				<A id="DATE" name="Дата" caption="Дата" labelwidth="45" type="date" width="20"/>
+				<A id="NUMBER" name="Номер" caption="Номер" labelwidth="70" width="40" type="string"/>
+				<A id="DATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date"/>
 			</GA>
 			<GA name="Кем выдан договор" caption="Кем выдана">
-				<A id="WHOISSUEDID" name="Кем выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true" pid="ELECTCOMMITTEEID"/>
+				<A id="WHOISSUEDID" name="Кем выдан договор" type="ref" pid="ELECTCOMMITTEEID" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
 			</GA>
 			<GA name="Кому выдан договор" caption="Кому выдана">
 				<A id="RECEIVEDID" name="Кому выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
@@ -37,28 +36,41 @@
 				<A id="JURPERSONSID"/>
 			</GA>
 			<GA name="Документ" caption="Документ">
-				<A id="DOCTYPEID" value="22" readonly="true"/>
-				<A id="PREFIX" name="Префикс" caption="Префикс" type="string" readonly="false" local="true" nulls="true"/>
+				<A id="DOCTYPEID" readonly="true" value="22"/>
+				<A id="PREFIX" name="Префикс" caption="Префикс" type="string" nulls="true" readonly="false" local="true"/>
 				<A id="DOCNUMB"/>
 				<A id="DOCDATE" width="50"/>
-				<A id="ENDDATE" local="true" name="Срок действия" caption="Срок действия" type="date" nulls="true" width="50"/>
-				<A id="RESPPERSON" visible="true" width="20"/>
-				<A id="MOL" name="ФИО МОЛ" width="80" type="string" readonly="true" virtual="true" formula="select t.NAME from PERSON t, MTRESPONSPERS m where t.ID = m.PERSONID and m.id = @RESPPERSON"/>				
+				<A id="ENDDATE" name="Срок действия" caption="Срок действия" width="50" type="date" nulls="true" local="true"/>
+				<A id="RESPPERSON" width="20" visible="true"/>
+				<A id="MOL" name="ФИО МОЛ" width="80" type="string" readonly="true" virtual="true" formula="select t.NAME from PERSON t, MTRESPONSPERS m where t.ID = m.PERSONID and m.id = @RESPPERSON"/>
 			</GA>
 			<GA name="Поставщик" caption="Поставщик">
-				<A id="CONTRACTID" caption="Контракт №" name="Контракт №"/>
-				<A id="CONTRACTDATE" type="date" caption="Дата контракта" name="Дата контракта" width="50" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
-				<A id="CONTRTYPE" type="string" caption="Тип контракта" name="Тип контракта" width="50" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
-				<A id="CONTRAGENTID" caption="Поставщик" name="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
+				<A id="CONTRACTID" name="Контракт №" caption="Контракт №"/>
+				<A id="CONTRACTDATE" name="Дата контракта" caption="Дата контракта" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
+				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
 			</GA>
 		</TABLE>
 		<TABLE id="GOODS" name="Товары">
 			<A id="PROXYID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" local="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0"/>
-			<A id="DICNOMNSID" labelwidth="90" width="80" />
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0" local="true"/>
+			<A id="DICNOMNSID" labelwidth="90" width="80"/>
 			<A id="DICMUNTSID" labelwidth="120" width="40" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
-			<A id="QUANTITY" nulls="false" labelwidth="90" width="60"/>
+			<A id="QUANTITY" labelwidth="90" width="60" nulls="false"/>
 		</TABLE>
+		<TABLE id="INPUTKFR" name="Файлы КФР входящие">
+			<A id="LOGIN" labelwidth="120" width="40" readonly="true" virtual="true" formula="select t.LOGIN from USERS t where t.id = @UID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INPUTKFR where UID = @UID and cid=0" local="true"/>	
+			<GA id="FileInformation"/>
+			<A id="STATUS" name="Статус" caption="Статус" type="list" readonly="true" width="50">	
+				<AI id="1" name="Загружается"/>
+				<AI id="2" name="Загружен для обработки"/>
+				<AI id="3" name="Обрабатывается"/>
+				<AI id="4" name="Обработан"/>			
+			</A>	
+			<A id="IDKFR" name="Файл КФР" caption="Файл КФР" type="number" readonly="true" width="50"/>	
+			<A id="LOG" name="Журнал загрузки" caption="Журнал загрузки" type="text" readonly="true"/>	
+		</TABLE>		
 	</TABLES>
 	<ACTIONS name="Действия"/>
 	<REPORTS name="Отчеты"/>
@@ -69,6 +81,9 @@
 		<FORM id="ProxyFRM" name="Доверенности">
 			<GRID id="ProxyGR" name="Доверенности" table="PROXY"/>
 			<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
+		</FORM>
+		<FORM id="INPUTKFRFRM" name="Договоры о материальной ответственности">
+			<GRID id="INPUTKFRGR" name="Договоры о материальной ответственности" table="INPUTKFR"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>

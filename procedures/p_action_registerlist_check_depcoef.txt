@@ -1,0 +1,39 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_registerlist_check_depcoef(idlist  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    REC        record;
+    DEPCOF  TEXT  :=  'depcoeffmax';  --Предельный  размер  ведомственного  коэффициента  list  в  Xml
+
+begin
+    for  REC  in  (select  R.BEGINDATE,
+                                          R.ENDDATE,
+                                          OP.VALUE  as  RATIO_LIMIT,
+                                          RS.DEPCOEFF,
+                                          I.CODE,
+                                          COALESCE(P.SURNAME,  '')  ||  '  '  ||  COALESCE(P.FIRSTNAME)  ||  '  '  ||  COALESCE(P.MIDDLENAME)  as  FIO_CH
+                                from  REGISTERLIST    RS,
+                                          REGISTER            R,
+                                          ELECTCAMPAIGN  I,
+                                          FEDELECCAMP      N,
+                                          NORMSFEDEC        OP,
+                                          COMMITTEEMAN    CH,
+                                          PERSON                P
+                              where  RS.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                                  and  R.ID  =  RS.REGISTERID
+                                  and  I.ID  =  R.ELECTCAMPAIGNID
+                                  and  N.ID  =  I.FEDELECCAMPID
+                                  and  P.ID  =  CH.PERSONID
+                                  and  OP.FEDELECCAMPID  =  N.ID
+                                  and  OP.NAMENORMS  =  DEPCOF
+                                  and  CH.ID  =  RS.COMMITTEEMANID)
+    loop
+        if  REC.DEPCOEFF  >  REC.RATIO_LIMIT  then
+            return  'Превышено  значение  ведомственного  коэффициента  установленного  на  выборы  для  '  ||  REC.FIO_CH  ||  '.  Предельный  размер  ведомственного  коэффициента  =  '  ||  REC.RATIO_LIMIT;
+        end  if;
+    end  loop;
+    return  null;
+end;
+$function$
+ 

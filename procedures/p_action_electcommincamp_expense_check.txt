@@ -1,0 +1,24 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_electcommincamp_expense_check(idlist  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    NID_AGENTACC  BIGINT;
+    REC                    record;
+begin
+    for  REC  in  (select  S.SUMFIN,
+                                          S.ID,
+                                          T.CODE
+                                from  FINEXP    S,
+                                          TYPEEXP  T
+                              where  S.ELECTCOMMINCAMPID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                                  and  T.ID  =  S.TYPEEXPID)
+    loop
+        if  (REC.SUMFIN  -  P_ACTION_FINEXP_SUMPAY(REC.ID))  <  0  then
+            return  'Превышены  расходы  на  оплату  труда  по  направлению  расходов  '  ||  REC.CODE  ||  '  на  сумму  '  ||  ABS(REC.SUMFIN  -  P_ACTION_FINEXP_SUMPAY(REC.ID));
+        end  if;
+    end  loop;
+    return  null;
+end;
+$function$
+ 

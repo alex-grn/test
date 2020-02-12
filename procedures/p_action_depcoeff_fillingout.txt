@@ -1,0 +1,17 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_depcoeff_fillingout(idlist  text,  fed_value  numeric,  reg_value  numeric)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    REC  record;
+begin
+    for  REC  in  (select  X.ID  from  ELECTCOMMITTEE  X  where  X.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+    loop
+        update  ELECTCOMMITTEE  S
+              set  DISCOEFFFED  =  FED_VALUE,
+                      DISCOEFREG    =  REG_VALUE
+          where  S.ID  =  REC.ID;
+    end  loop;
+end;
+$function$
+ 

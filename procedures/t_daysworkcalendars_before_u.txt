@@ -1,0 +1,31 @@
+ CREATE  OR  REPLACE  FUNCTION  public.t_daysworkcalendars_before_u()
+  RETURNS  trigger
+  LANGUAGE  plpgsql
+AS  $function$
+  declare
+    dSPDATE  date;
+  begin  
+  select  
+						to_date(case  s.month
+							when  'december'  then  12
+							when  'november'  then  11
+							when  'october'  then  10
+							when  'september'  then  9
+							when  'august'  then  8
+							when  'june'  then  6
+							when  'july'  then  7
+							when  'may'  then  5
+							when  'april'  then  4
+							when  'march'  then  3
+							when  'february'  then  2
+							when  'january'  then  1
+							end||'.'||s.year,'mm.yyyy')
+                                                        into  dSPDATE
+                                                        from  WORKCALENDARS  s  where  s.id  =  new.workcalendarsid;
+      if  to_date('01.'||to_char(new.datewc,'mm.yyyy'),'dd.mm.yyyy')  !=  dSPDATE    then
+        raise  using  message  =  'Дата  вне  месяца  рабочего  календаря!';
+      end  if;
+      return  new;
+  end;
+$function$
+ 
