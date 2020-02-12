@@ -1,0 +1,150 @@
+CREATE OR REPLACE FUNCTION public.t_worktbl_before_u (
+)
+RETURNS trigger AS
+$body$
+ declare
+  dSPDATE date;
+  hh6 timestamp;
+  hh22 timestamp;
+  hh24 timestamp;
+  buf1 numeric;
+  buf2 numeric;
+  buf numeric[];
+  tENDTIME numeric(17,2);
+  tBEGINTIME numeric(17,2);
+  pay_ord text:='K';    --порядок оплаты компенсация
+ begin 
+   
+   /* if to_char(new.timeendtbl-new.timebegintbl,'mi')::numeric = 0 then 
+      buf[1]:=0;
+    else buf[1]:=(1/(60/to_char(new.timeendtbl-new.timebegintbl,'mi')::numeric));
+    end if;
+    if to_char(hh6-new.timebegintbl,'mi')::numeric = 0 then 
+      buf[2]:=0;
+    else buf[2]:=(1/(60/to_char(hh6-new.timebegintbl,'mi')::numeric));
+    end if;
+    if to_char(new.timeendtbl-hh22,'mi')::numeric = 0 then 
+      buf[3]:=0;
+    else buf[3]:=(1/(60/to_char(new.timeendtbl-hh22,'mi')::numeric));
+    end if;
+    if to_char(new.timeendtbl,'mi')::numeric = 0 then 
+      buf[4]:=0;
+    else buf[4]:=(1/(60/to_char(new.timeendtbl,'mi')::numeric));
+    end if;*/
+    if to_char(new.timebegintbl,'mi')::numeric = 0 then 
+      buf[0]:=0;
+    else buf[0]:=(1/(60/to_char(new.timebegintbl,'mi')::numeric));
+    end if;
+    if to_char(new.timeendtbl,'mi')::numeric = 0 then 
+      buf[1]:=0;
+    else buf[1]:=(1/(60/to_char(new.timeendtbl,'mi')::numeric));
+    end if;
+     tBEGINTIME:=to_char(new.timebegintbl,'hh24')::numeric+buf[0];
+     tENDTIME:=to_char(new.timeendtbl,'hh24')::numeric+buf[1];
+     --if tBEGINTIME = 0 then tBEGINTIME:=24; end if;
+     if tENDTIME = 0 then tENDTIME:=24; end if;
+  if tENDTIME < tBEGINTIME then new.errwh := /*raise using message =*/ ' Время конца не может быть меньше, времени начала!!!'; end if;
+ -- raise using message = tBEGINTIME||' @ '||tENDTIME;
+  new.errwh:=null;
+ 	if new.typepay = 'K' and new.typedayid is null then
+      --raise using message = (tENDTIME - tBEGINTIME)::text ||' '||tENDTIME||'-'||tBEGINTIME;
+    	if tENDTIME - tBEGINTIME = 8 then
+        	new.whcomp = 8;new.errwh :='';
+        else
+        	new.whcomp := tENDTIME - tBEGINTIME; new.errwh := 'Ошибка ввода времени по Компенсации!';
+        end if;
+    else new.whcomp := 0;new.errwh :='';
+    end if;
+ 	if new.typepay = 'D' then
+    	new.whextrafull = tENDTIME - tBEGINTIME;
+        if tENDTIME <= 6 and tBEGINTIME <= 6 then
+        	new.whextranight := tENDTIME - tBEGINTIME;new.errwh :='';  
+        elsif tBEGINTIME <= 6 and 6 < tENDTIME and tENDTIME < 22 then
+        	new.whextranight := 6 - tBEGINTIME;new.errwh :=''; 
+        elsif 6 <= tBEGINTIME and tBEGINTIME <= 22 and 6 <= tENDTIME and tENDTIME <= 22 then
+        	new.whextranight := 0; new.errwh :='';
+        elsif 6 <= tBEGINTIME and tBEGINTIME <= 22 and 22 < tENDTIME and tENDTIME <= 24 then
+        	new.whextranight := tENDTIME - 22; new.errwh :='';--raise using message = tBEGINTIME||' @ '||tENDTIME;
+        elsif 22 <= tBEGINTIME and tBEGINTIME < 24 and 22 < tENDTIME and tENDTIME <= 24 then
+        	new.whextranight := tENDTIME - tBEGINTIME;new.errwh :='';
+        end if;
+    else new.whextrafull:=0;--new.errwh :='';
+    end if;
+    buf1 := new.whextranight;
+    buf2 := new.whextrafull;
+    buf1 := buf2 - buf1;
+    if new.typepay = 'D' and new.typedayid is not null then
+    	new.whextrahol := buf1;new.errwh :='';
+    else new.whextrahol := 0;--new.errwh :='';
+    end if;
+    
+    if new.typepay = 'D' and new.typedayid is null then
+    	new.whextraworkday := buf1;new.errwh :='';
+    else new.whextraworkday := 0;--new.errwh :='';
+    end if;
+    
+    /*
+   	3826 проверки ввода значений в сведених фов
+   */
+   if new.typepay = pay_ord and new.typedayid is not null then
+   		new.errwh := 'Выплата компенсации в выходной и нерабочий праздничный день запрещена!';--raise using message = 'Выплата компенсации в выходной и нерабочий праздничный день запрещена!';
+   elsif new.typepay = pay_ord and new.whcomp != 8 then
+   		new.errwh := 'Нарушен порядок работы при выплате компенсации. Количество отработанных часов должно равняться 8!';--raise using message = 'Нарушен порядок работы при выплате компенсации. Количество отработанных часов должно равняться 8!';
+   elsif new.typepay = pay_ord and new.typedayid is null and new.whcomp = 8 and (new.timebegintbl::time > '14:00'::time or new.timeendtbl::time < '14:00'::time) then
+   		new.errwh := 'Ошибка ввода времени работы при выплате компенсации: укажите любые 8 рабочих часов в день в период с 6.00 до 22.00';--raise using message = 'Ошибка ввода времени работы при выплате компенсации: укажите любые 8 рабочих часов в день в период с 6.00 до 22.00'; 
+   end if;
+   --
+  /*   
+  if new.timeendtbl < new.timebegintbl and to_char(new.timeendtbl,'hh24')::numeric+to_char(new.timeendtbl,'mi')::numeric != 0 then raise using message = 'Время конца не может быть меньше, времени начала!!!'; end if;
+  --для корректного сравнения
+  hh6:=to_timestamp(to_char(new.timeendtbl,'dd.mm.yyyy')||' 06:00:00','dd.mm.yyyy hh24:mi:ss');
+  hh22:=to_timestamp(to_char(new.timeendtbl,'dd.mm.yyyy')||' 22:00:00','dd.mm.yyyy hh24:mi:ss');
+  hh24:=to_timestamp(to_char(new.timeendtbl,'dd.mm.yyyy')||' 24:00:00','dd.mm.yyyy hh24:mi:ss');
+  new.errwh:=null;
+ 	if new.typepay = 'K' and new.typedayid is null then
+    	if to_char(new.timeendtbl - new.timebegintbl,'hh24')::numeric + buf[1] = 8 then
+        	new.whcomp = 8;
+        else
+        	new.errwh := 'Ошибка ввода времени по Компенсации!';
+        end if;
+    else new.whcomp := 0;
+    end if;
+ 	if new.typepay = 'D' then
+    	new.whextrafull = to_char(new.timeendtbl - new.timebegintbl,'hh24')::numeric + buf[1];
+        if new.timeendtbl <= hh6 and new.timebegintbl <= hh6 then
+        	new.whextranight := to_char(new.timeendtbl - new.timebegintbl,'hh24')::numeric + buf[1];  
+        elsif new.timebegintbl <= hh6 and hh6 < new.timeendtbl and new.timeendtbl < hh22 then
+        	new.whextranight := to_char(hh6 - new.timebegintbl,'hh24')::numeric + buf[2] ; 
+        elsif hh6 <= new.timebegintbl and new.timebegintbl <= hh22 and hh6 <= new.timeendtbl and new.timeendtbl <= hh22 then
+        	new.whextranight := 0; 
+        elsif hh6 <= new.timebegintbl and new.timebegintbl <= hh22 and hh22 < new.timeendtbl and new.timeendtbl <= hh24 then
+        	new.whextranight := to_char(new.timeendtbl - hh22,'hh24')::numeric + buf[3] ;
+        elsif hh22 <= new.timebegintbl and new.timebegintbl < hh24 and hh22 < new.timeendtbl and new.timeendtbl <= hh24 then
+        	new.whextranight := to_char(new.timeendtbl - new.timebegintbl,'hh24')::numeric + buf[1];
+        end if;
+    else new.whextrafull:=0;
+    end if;
+    buf1 := new.whextranight;
+    buf2 := new.whextrafull;
+    buf1 := buf2 - buf1;
+    if new.typepay = 'D' and new.typedayid is not null then
+    	new.whextrahol := buf1;
+    else new.whextrahol := 0;
+    end if;
+    
+    if new.typepay = 'D' and new.typedayid is null then
+    	new.whextraworkday := buf1;
+    else new.whextraworkday := 0;
+    end if;
+    */
+   return new;
+ end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.t_worktbl_before_u ()
+  OWNER TO magicbox;

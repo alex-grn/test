@@ -1,0 +1,33 @@
+ CREATE  OR  REPLACE  FUNCTION  public.test_proc()
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+  rec  record;
+  res  text:='';
+  j      integer:=1;
+  k      integer:=0;
+begin
+    
+for  i  in  1..82
+  loop
+	res:=res||'			<band  name="info_fovpr_spec'||i||'"  orientation="H">
+				<queries>
+                                          <query  name="info_fovpr_spec'||i||'"  type="sql">
+                                                <script>
+                                                SELECT  d2s(w.datetbl)  as    date1,  (select  t.code  from  typeday  t  where  t.id  =  w.typedayid)  as  type1,W.numbcalday  AS  rownumber
+								from  (select  r.id  from  registerlist  r  where  r.registerid  =  ${id}::bigint  limit  1)  tbl,
+									worktbl  w
+									where  w.registerlistid  =  tbl.id
+									    AND  W.numbcalday  =  '||i||'
+									order  by  date1
+								;
+						</script>
+                                          </query>
+                                </queries>
+			</band>'||chr(10);          
+  end  loop;
+return  res;
+end;
+$function$
+ 

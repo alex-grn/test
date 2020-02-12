@@ -1,0 +1,59 @@
+ CREATE  OR  REPLACE  FUNCTION  public.t_registerlist_after_iu()
+  RETURNS  trigger
+  LANGUAGE  plpgsql
+AS  $function$
+  declare
+    res  text;
+    levelel  text;
+    nvalue  numeric;
+    POST  text;
+  begin  
+  
+      SELECT  P.POSTPRINT  INTO  POST  FROM  committeeman  C,  POSTS  P  WHERE  C.ID  =  NEW.COMMITTEEMANID  AND  P.ID  =  C.POSTSID;
+        
+        --IF  POST  =  'CHAIRMAN'  THEN  
+            select  i.levelelcommittee
+          into  levelel
+          from  register  r,
+          	    ELECTCOMMINCAMP  ik,
+                    ELECTCOMMITTEE  i
+        where  r.id  =  new.registerid
+            and  ik.id  =  r.electcommincampid
+            and  i.id  =  ik.electcommitteeid;            
+            --if  levelel  !=  new.leveldcchairman  and  NEW.leveldcchairman  is  not  null  AND  NEW.depcoeff  !=  OLD.depcoeff  and  new.depcoeff  >  0  then
+            if  new.depcoeff  >  0  and  levelel  !=  new.leveldcchairman  and  POST  =  'CHAIRMAN'  then
+        	if  new.leveldcchairman  =  'central'  then  levelel  :=  'ЦИК  России';
+                elsif  new.leveldcchairman  =  'region'  then  levelel  :=  'ИКСРФ';  
+                elsif  new.leveldcchairman  =  'circuit'  then  levelel  :=  'ИКМО  с  полномочиями  ТИК';
+                elsif  new.leveldcchairman  =  'territory'  then  levelel  :=  'ТИК';
+                elsif  new.leveldcchairman  =  'district'  then  levelel  :=  'УИК';
+                end  if;
+        	raise  using  message  =  'Размер  ведомственного  коэффициента  определяет  вышестоящая  ИК';--||levelel;
+            end  if;
+        --ELSE
+        	--IF  NEW.LEVELDCCHAIRMAN  IS  NULL  THEN
+                      SELECT  FS.VALUE
+        		  INTO  NVALUE
+        		  FROM  REGISTER  R,
+          	    		    ELECTCOMMINCAMP  IK,
+                                    ELECTCAMPAIGN  K,
+                                    FEDELECCAMP  F,
+                                    NORMSFEDEC  FS
+        		WHERE  R.ID  =  NEW.REGISTERID
+            		    AND  IK.ID  =  R.ELECTCOMMINCAMPID
+            		    AND  K.ID  =  IK.ELECTCAMPAIGNID
+                            AND  F.ID  =  K.FEDELECCAMPID
+                            AND  FS.FEDELECCAMPID  =  F.ID
+                            AND  LOWER(FS.NAMENORMS)  =  'depcoeffmax';    --предельный  размер  ведомственного  коэффициента
+                            
+                        IF  NEW.DEPCOEFF  >  NVALUE  AND  OLD.DEPCOEFF  !=  NEW.DEPCOEFF  THEN
+                              RAISE  USING  MESSAGE  =  'Превышено  значение  ведомственного  коэффициента.';
+                        END  IF;
+                            
+              --  END  IF;
+        --END  IF;
+      return  new;
+      
+  end;
+$function$
+ 
