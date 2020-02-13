@@ -17,6 +17,9 @@
 				<MI name="Расчетно-платежные ведомости" formlist="SheetsFRM"/>
 				<MI name="Документы о перечислении" formlist="RegisterstransfersFRM"/>
 			</MENU>
+			<MENU name="Финансовое обеспечение">
+					<MI name="Финансовое обеспечение избирательных комиссий" formlist="FinanceelcomFRM"/>
+			</MENU>	
 			<MENU name="Бухгалтерия ТИК">
 				<MI name="Договоры с юридическими лицами" formlist="ContractsFRM"/>
 				<MI name="Договоры о мат. ответственности" formlist="LiabilityFRM"/>
@@ -239,6 +242,14 @@
 		<A id="SUMMPAY" name="Оплачено" caption="Оплачено" type="number" len="8.2" nulls="true"/>
 		<A id="SUMMEXEC" name="Исполнено" caption="Исполнено" type="number" len="8.2" nulls="true"/>
 		<A id="QUANTITY" name="Количество" caption="Количество" type="number" len="8.2" nulls="true"/>
+		<A id="NUMBPP" name="Номер по порядку" caption="Номер по порядку" labelwidth="650" type="number" len="2" nulls="false" />
+		<A id="NUMBESTIMATE" name="Номер в смете расходов" caption="Номер в смете расходов" labelwidth="650" type="string" len="5" nulls="false"/>
+		<A id="TYPEEXPENSES" name="Вид расходов" caption="Вид расходов" labelwidth="400" type="list" nulls="true">
+			<AI id="salary" name="Оплата труда"/>
+			<AI id="product" name="Приобретение МЦ"/>
+			<AI id="service" name="Оказание услуг"/>
+			<AI id="worksexec" name="Выполнение работ"/>
+		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -800,25 +811,40 @@
 			<TI unique="REGISTERSTRANSFERSID, COMMITTEEMANID"/>
 		</TABLE>
 		<TABLE id="TYPEEXP" name="Направление расходов">
-			<A id="NUMB" name="Номер" caption="Номер" labelwidth="650" type="number" len="3.1" nulls="false" local="true"/>
-			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false" local="true"/>
+			<A id="NUMBPP"/>
+			<A id="NUMBESTIMATE"/>
+			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false" local = "true"/>
+			<A id="REGIONSRFID" labelwidth="200"/>
+			<A id="TYPEEXPENSES" labelwidth="200" />
 			<A id="MESTIMATE"/>
-			<A id="REGIONSRFID"/>
-			<TI unique="CODE,REGIONSRFID"/>
+			<TI unique="NUMBESTIMATE,CODE,REGIONSRFID"/>
 		</TABLE>
 		<TABLE id="TYPEEXPSL" name="Учет выплат при расчете расходов">
 			<A id="TYPEEXPID" parentkey="cascade"/>
 			<A id="SLCOMPCHARGESID" labelwidth="200"/>
 			<TI unique="TYPEEXPID,SLCOMPCHARGESID"/>
 		</TABLE>
-		<TABLE id="FINEXP" name="Сведения о финансировании и расходах">
+		<TABLE id="FINEXP" name="Контроль расходов на оплату труда">
 			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
+			<A id="NUMBPP" readonly="true" virtual="true" formula=""/>
+			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula=""/>
+			<A id="TYPEEXPID" labelwidth="200"/>
+			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="true" formula=""/>
+			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
+			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
+			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
+			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
+			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID"/>
+		</TABLE>
+		<TABLE id="FINANCEELCOM" name="Сведения о финансовом обеспечении ИК">
+			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
+			<A id="NUMBPP" readonly="true" virtual="true" formula=""/>
+			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula=""/>
 			<A id="TYPEEXPID" labelwidth="200"/>
 			<A id="LEVELESTIMATE" labelwidth="200"/>
-			<A id="SUMFIN" name="Сумма финансирования" caption="Сумма финансирования" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMPAY" name="Сумма расхода" caption="Сумма расхода" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
-			<A id="SUMCOSTS" name="Сумма расхода по отчету" caption="Сумма расхода по отчету" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMRES" name="Остаток" caption="Остаток" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="@SUMFIN - p_action_finexp_sumpay(@ID)" local="true"/>
+			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
+			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2"  local="true"/>
+			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID,LEVELESTIMATE"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
@@ -964,6 +990,7 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="CalcPays" name="Рассчитать выплаты" type="procedure" procedure="p_action_registerlist_gen"/>
+		<ACTION id="FormFinanceelcom" name="Сформировать перечень направлений расходов по смете" type="procedure" procedure=""/>
 		<ACTION id="FormSheet" name="Сформировать ведомости по оплате труда" type="procedure" procedure="p_action_create_payroll">
 			<FORM name="Параметры">
 				<A id="DDOCDATE" name="Дата формирования" caption="Дата формирования" labelwidth="200" width="40" type="date" local="true"/>
@@ -1295,11 +1322,11 @@
 						</MENU>
 					</GRID>
 				</TAB>
-				<TAB name="Сведения о финансировании и расходах">
+				<TAB name="Контроль расходов на оплату труда">
 					<A id="ELECTCAMPAIGN1VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<A id="ELECTCOMMINCAMP1VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
-					<GRID id="FinexpGR" name="Сведения о финансировании и расходах" table="FINEXP" readonly="true">
+					<GRID id="FinexpGR" name="Контроль расходов на оплату труда" table="FINEXP" readonly="true">
 						<MENU>
 							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
@@ -1404,6 +1431,31 @@
 		</FORM>
 		<FORM id="CommitteeManFRMVIRT" name="Члены избирательных комиссий">
 			<GRID id="ElCommGRVIRT" name="Члены избирательных комиссий" table="COMMITTEEMANVIRT"/>
+		</FORM>
+		<FORM id="FinanceelcomFRM" name="Финансовое обеспечение избирательных комиссий">
+			<TABS>
+				<TAB name="Избирательные кампании">
+					<GRID id="ElCampGR1" name="Избирательные кампании" table="ELECTCAMPAIGN" readonly="true"/>
+				</TAB>
+				<TAB name="Избирательные комиссии">
+					<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<GRID id="ElectСommInCampGR1" name="Избирательные комиссии, участвующие в избирательной кампании" table="ELECTCOMMINCAMP" readonly="true">
+						<MENU>
+							<MI actionlist="FormFinanceelcom;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Сведения о финансовом обеспечении">
+					<A id="ELECTCAMPAIGN1VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCOMMINCAMP1VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
+					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
+					<GRID id="FinanceelcomGR" name="Сведения о финансовом обеспечении" table="FINANCEELCOM" readonly="true">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
 		</FORM>
 		<FORM id="DicNomnsFRM" name="Номенклатор">
 			<GRID id="DicNomnsGR" name="Номенклатор" table="DICNOMNS"/>
