@@ -28,34 +28,41 @@
 			</GA>
 		</TABLE>
 		<TABLE id="PROXY" name="Доверенности">
-			<A id="CODE" labelwidth="200"/>
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
 				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
-			<GA name="Документ" caption="Документ">
-				<A id="DOCTYPEID" readonly="true" value="22"/>
-				<A id="PREFIX" name="Префикс" caption="Префикс" type="string" nulls="true" readonly="false" local="true"/>
-				<A id="DOCNUMB"/>
+			<GA name="Доверенность" caption="Доверенность">
+				<A id="DOCTYPEID" readonly="true" value="22" labelwidth="100"/>
+				<A id="DOCNUMB" labelwidth="100"/>
 				<A id="DOCDATE" width="50"/>
 				<A id="ENDDATE" name="Срок действия" caption="Срок действия" width="50" type="date" nulls="true" local="true"/>
-				<A id="RESPPERSON" width="20" visible="true"/>
-				<A id="MOL" name="ФИО МОЛ" width="80" type="string" readonly="true" virtual="true" formula="select t.NAME from PERSON t, MTRESPONSPERS m where t.ID = m.PERSONID and m.id = @RESPPERSON"/>
+				<A id="PERSONID" labelwidth="100" caption="ФИО МОЛ" visible="true" nulls="false"/>
 			</GA>
 			<GA name="Поставщик" caption="Поставщик">
-				<A id="CONTRACTID" name="Контракт №" caption="Контракт №"/>
-				<A id="CONTRACTDATE" name="Дата контракта" caption="Дата контракта" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
+				<A id="CONTRACTID" name="Договор" caption="Договор"/>
+				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
+			</GA>
+			<GA name="По документу" caption="По документу">
+				<A id="DOCNAME" name="Наименование документа" caption="Наименование" labelwidth="90" type="string" width="70"  nulls="true"/>
+				<A id="DOCNUMBER" name="Номер документа" caption="Номер" type="string" labelwidth="40" width="20"  nulls="true"/>
+				<A id="DOCNAMEDATE" name="Дата документа" caption="Дата" type="date" labelwidth="30" width="10"  nulls="true"/>
 			</GA>
 		</TABLE>
 		<TABLE id="GOODS" name="Товары">
 			<A id="PROXYID" parentkey="cascade"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0" local="true"/>
-			<A id="DICNOMNSID" labelwidth="90" width="80"/>
-			<A id="DICMUNTSID" labelwidth="120" width="40" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="CONTRACTSID" labelwidth="120" width="40" readonly="true" virtual="true" visible="false" formula="select t.CONTRACTID from PROXY t where t.id = @PROXYID"/>
+			<GA name="Спецификация договора" caption="Спецификация договора">
+				<A id="STAGESID" name="Спецификация" type="ref" table="STAGES" pid="CONTRACTSID" nulls="false" local="true"/>
+				<A id="DICNOMNS" caption="Наименование товара" type="string" labelwidth="125" width="60" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
+				<A id="DICMUNTS" caption="Единица измерения" type="string" labelwidth="120" width="25" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
+				<A id="STAGEQUANTITY" caption="Количество" type="number" labelwidth="95" width="15" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
+			</GA>
 			<A id="QUANTITY" labelwidth="90" width="60" nulls="false"/>
 		</TABLE>
 		<TABLE id="INPUTKFR" name="Файлы КФР входящие">
