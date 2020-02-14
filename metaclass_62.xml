@@ -3,6 +3,7 @@
 	<GROUPS_MENU name="Группы меню"/>
 	<ATTRIBUTES name="Атрибуты">
 		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>
+		<A id="INPUTKRFID" name="Входящий файл" caption="Входящий файл" type="ref" table="INPUTKRF" ret="NUMBPP" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 	</ATTRIBUTES>
@@ -65,9 +66,9 @@
 			</GA>
 			<A id="QUANTITY" type="number" labelwidth="90" width="60" nulls="false"/>
 		</TABLE>
-		<TABLE id="INPUTKFR" name="Файлы КФР входящие">
+		<TABLE id="INPUTKRF" name="Файлы КРФ входящие">
 			<A id="LOGIN" labelwidth="120" width="40" readonly="true" virtual="true" formula="select t.LOGIN from USERS t where t.id = @UID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INPUTKFR where UID = @UID and cid=0" local="true"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INPUTKRF where UID = @UID and cid=0" local="true"/>
 			<GA id="FileInformation"/>
 			<A id="STATUS" name="Статус" caption="Статус" width="50" type="list" readonly="true">
 				<AI id="1" name="Загружается"/>
@@ -75,8 +76,11 @@
 				<AI id="3" name="Обрабатывается"/>
 				<AI id="4" name="Обработан"/>
 			</A>
-			<A id="IDKFR" name="Файл КФР" caption="Файл КФР" width="50" type="number" readonly="true"/>
+			<A id="IDKRF" name="Файл КРФ" caption="Файл КРФ" width="50" type="number" readonly="true"/>
 			<A id="LOG" name="Журнал загрузки" caption="Журнал загрузки" type="text" readonly="true"/>
+		</TABLE>
+		<TABLE id="ERRORKRF" name="Файлы КРФ входящие">
+			<A id="INPUTKRFID" parentkey="cascade"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия"/>
@@ -89,8 +93,9 @@
 			<GRID id="ProxyGR" name="Доверенности" table="PROXY"/>
 			<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
 		</FORM>
-		<FORM id="INPUTKFRFRM" name="Загрузка форм КФР">
-			<GRID id="INPUTKFRGR" name="Загрузка форм КФР" table="INPUTKFR"/>
+		<FORM id="INPUTKRFFRM" name="Загрузка форм КРФ">
+			<GRID id="INPUTKRFGR" name="Загрузка форм КРФ" table="INPUTKRF"/>
+			<GRID id="ERRORKRFGR" name="Ошибки форм КРФ" table="ERRORKRF"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
