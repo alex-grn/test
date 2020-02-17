@@ -6,7 +6,7 @@
 		<MENU id="CalcPayCM" name="Меню модуля Расчет оплаты труда членам ИК в период проведения выборов">
 			<MENU name="Файл">
 				<MI name="Загрузить классификатор ИК, сведения о членах ИК и сведения об избирательных кампаниях" actionlist="ImportElectcampaign"/>
-				<MI name="Загрузить файлы КРФ" formlist="INPUTKFRFRM"/>				
+				<MI name="Загрузить файлы КРФ" formlist="INPUTKRFFRM"/>				
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Избирательные комиссии и их состав">
@@ -24,6 +24,12 @@
 				<MI name="Договоры с юридическими лицами" formlist="ContractsFRM"/>
 				<MI name="Договоры о мат. ответственности" formlist="LiabilityFRM"/>
 				<MI name="Доверенности" formlist="ProxyFRM"/>
+				<MI name="Касса избирательной кампании" formlist="CashFRM"/>
+				<MI name="Расчетно-платежные документы" formlist="PayaccountsFRM"/>
+				
+				
+				
+				
 			</MENU>
 			<MENU name="Справочники">
 				<MENU name="Общие понятия">
@@ -210,6 +216,7 @@
 		<A id="MESTIMATE" name="Признак включения в смету" caption="Признак включения в смету" type="boolean" nulls="false"/>
 		<A id="LEVELESTIMATE" name="Включение в смету" caption="Включение в смету" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
+			<AI id="terdist" name="Смета ТИК за нижестоящие УИК"/>
 			<AI id="district" name="Смета УИК"/>
 		</A>
 		<A id="TYPENOM" name="Тип номенклатуры" caption="Тип номенклатуры" labelwidth="400" type="list" nulls="false">
@@ -250,6 +257,8 @@
 			<AI id="service" name="Оказание услуг"/>
 			<AI id="worksexec" name="Выполнение работ"/>
 		</A>
+		<A id="PAYACCOUNTSID" name="Расчетный (лицевой) счет избирательной кампании" caption="Расчетный (лицевой) счет избирательной кампании" labelwidth="200" type="ref" table="PAYACCOUNTS" ret="ELCMTACCID" nulls="false"/>
+		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -962,6 +971,38 @@
 				<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
 				<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
 			</GA>
+			<TI unique="CONTRACTSID, NUMBPP"/>
+		</TABLE>
+		<TABLE id="PAYACCOUNTS" name="Расчетный (лицевой счет) в банке">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+				<A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
+				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PAYDOCS" name="Платежные документы">
+			<A id="PAYACCOUNTSID" parentkey="cascade"/>
+			<GA name="Документ" caption="Документ">
+				<A id="DOCTYPEID" readonly="true" value="16"/>
+				<A id="DOCNUMB" caption="Номер" width="50"/>
+				<A id="DOCDATE" width="50"/>
+			</GA>
+			<GA name="Основание" caption="Основание">
+				<A id="CONTRACTID" name="Договор" caption="Договор" nulls="true"/>
+				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
+				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
+				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula=""/>
+				<A id="NTAX" name="В том числе НДС" caption="В том числе НДС"  type="list" nulls="true">
+					<AI id="10" name="10%"/>
+					<AI id="20" name="20%"/>
+					<AI id="0" name="без НДС"/>
+				</A>
+			<!-- 	<A id="SUMTAX" type="number" readonly="true" virtual="true" formula="" local="true"/> -->
+			</GA>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1059,6 +1100,10 @@
 			<P id="convname" value="Загрузка Банков по справочнику БИК"/>
 			<P id="errorone" value="false"/>
 		</ACTION>
+		 <ACTION id="ImportSberAcc" name="Загрузить сведения о лицевых счетах" type="script" actionlist="LoadAndConvertFile">
+            <P id="convname" value="Сбербанк"/>
+            <P id="errorone" value="false"/>
+        </ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="PaylistReport" name="Платежная ведомость (0504403)" procedure="" template="payment_statement.xls">
@@ -1259,7 +1304,7 @@
 		<FORM id="ElCommFRM" name="Избирательные комиссии и их состав">
 			<GRID id="ElCommGR" name="Избирательные комиссии" table="ELECTCOMMITTEE" readonly="true" actionlist="setLID">
 				<MENU>
-					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables;ImportElectcommittee;SetMFIN;SetDEPCOEFF;SetCOMMITTEEMAN"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables;ImportElectcommittee;ImportSberAcc;SetMFIN;SetDEPCOEFF;SetCOMMITTEEMAN"/>
 				</MENU>
 			</GRID>
 			<TABS>
@@ -1487,5 +1532,12 @@
 		<FORM id="DicmuntsFRM" name="Единицы измерения">
 			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS" actionlist="setLID"/>
 		</FORM>
+		<FORM id="PayaccountsFRM" name="Расчетные (лицевые) счета в банке">
+			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID"/>
+			<GRID id="PaydocsGR" name="Исходящие платежные поручения" table="PAYDOCS" actionlist="setLID"/>
+			
+		</FORM>
+		
+		
 	</FORMS>
 </SYSTEM>
