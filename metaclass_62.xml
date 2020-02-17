@@ -4,8 +4,11 @@
 	<ATTRIBUTES name="Атрибуты">
 		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>
 		<A id="INPUTKRFID" name="Входящий файл" caption="Входящий файл" type="ref" table="INPUTKRF" ret="NUMBPP" nulls="false"/>
+		<A id="CASHID" name="Касса" caption="Касса" type="ref" table="CASH" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
+		<A id="PKOHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="PKO_HEADER" ret="ID" nulls="false"/>
+		<A id="RKOHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="RKO_HEADER" ret="ID" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -90,6 +93,112 @@
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" len="5" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ERRORKRF where UID = @UID and cid=0" local="true"/>
 			<A id="ERROR" name="Ошибка" caption="Ошибка" type="string" labelwidth="30" width="80"  nulls="true"/>
 		</TABLE>
+		<TABLE id="CASH" name="Касса избирательной кампании">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PKO_HEADER" name="Приходные кассовые документы">
+			<A id="CASHID" parentkey="cascade"/>
+				<GA name="Основание" caption="Основание">
+					<A id="DOCTYPEID" readonly="true" value="21" labelwidth="60" width="50"/>
+					<A id="DOCNUMB" labelwidth="60" width="50"/>
+					<A id="DOCDATE" width="50" labelwidth="60"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="60" width="50" type="list" readonly="true">
+						<AI id="1" name="Создан"/>
+						<AI id="2" name="Оплачен"/>
+						<AI id="3" name="Аннулирован"/>
+					</A>
+					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true"/>
+					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+				</GA>				
+				<GA name="Принято от" caption="Принято от">
+						
+				</GA>
+				<GA name="Основание" caption="Основание">
+						<A id="CONTRACTID" caption="Договор"/>
+						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
+						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
+				</GA>
+		</TABLE>
+		<TABLE id="PKO" name="ПКО Расшифровка платежа">		
+			<A id="PKOHEADERID" parentkey="cascade"/>
+			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PKO where PKOHEADERID = @PKOHEADERID and cid=0" local="true"/>
+				<A id="SUMMPAY"/>
+			</GA>
+			<GA name="Типовая операция" caption="Типовая операция">
+				<A id="TYPICALOPERSID"/>
+				<A id="BUDGCLASSID"/>
+				<A id="TYPEEXPID"/>
+			</GA>
+			<GA name="Проводка" caption="Проводка">
+					<A id="KPS" name="КПС" labelwidth="200" readonly="true" virtual="true" formula="select t.CODE from BUDGCLASS t where t.id = @BUDGCLASSID"/>
+				<GA name="Дебет" caption="Дебет">
+					<A id="DTACCNUMB" name="Счет" caption="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
+					<A id="DTACCNAME" name="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
+					<A id="DTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="200" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassdtid"/>
+				</GA>
+				<GA name="Кредит" caption="Кредит">
+					<A id="KTACCNUMB" name="Счет" caption="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
+					<A id="KTACCNAME" name="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
+					<A id="KTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="200" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassktid"/>
+				</GA>
+				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="200" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
+			</GA>
+		</TABLE>
+		<TABLE id="RKO_HEADER" name="Расходные кассовые документы">
+			<A id="CASHID" parentkey="cascade"/>
+				<GA name="Основание" caption="Основание">
+					<A id="DOCTYPEID" readonly="true" value="21" labelwidth="100"/>
+					<A id="DOCNUMB" labelwidth="100"/>
+					<A id="DOCDATE" width="50"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" width="50" type="list" readonly="true">
+						<AI id="1" name="Создан"/>
+						<AI id="2" name="Оплачен"/>
+						<AI id="3" name="Аннулирован"/>
+					</A>
+					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true"/>
+					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" type="string"/>
+				</GA>				
+				<GA name="Принято от" caption="Принято от">
+						
+				</GA>
+				<GA name="Основание" caption="Основание">
+						<A id="CONTRACTID" caption="Договор"/>
+						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
+						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
+				</GA>	
+		</TABLE>
+		<TABLE id="RKO" name="ПКО Расшифровка платежа">		
+			<A id="RKOHEADERID" parentkey="cascade"/>
+			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RKO where RKOHEADERID = @RKOHEADERID and cid=0" local="true"/>
+				<A id="SUMMPAY"/>
+			</GA>
+			<GA name="Типовая операция" caption="Типовая операция">
+				<A id="TYPICALOPERSID"/>
+				<A id="BUDGCLASSID"/>
+				<A id="TYPEEXPID"/>
+			</GA>
+			<GA name="Проводка" caption="Проводка">
+					<A id="KPS" name="КПС" labelwidth="200" readonly="true" virtual="true" formula="select t.CODE from BUDGCLASS t where t.id = @BUDGCLASSID"/>
+				<GA name="Дебет" caption="Дебет">
+					<A id="DTACCNUMB" name="Счет" caption="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
+					<A id="DTACCNAME" name="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
+					<A id="DTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="200" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassdtid"/>
+				</GA>
+				<GA name="Кредит" caption="Кредит">
+					<A id="KTACCNUMB" name="Счет" caption="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
+					<A id="KTACCNAME" name="Счет" labelwidth="200" readonly="true" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
+					<A id="KTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="200" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassktid"/>
+				</GA>
+				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="200" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
+			</GA>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия"/>
 	<REPORTS name="Отчеты"/>
@@ -105,5 +214,35 @@
 			<GRID id="INPUTKRFGR" name="Загрузка форм КРФ" table="INPUTKRF" actionlist="uploadFilelinks;loadFilelinks"/>
 			<GRID id="ERRORKRFGR" name="Ошибки форм КРФ" table="ERRORKRF" readonly="true"/>
 		</FORM>
+		<FORM id="CashFRM" name="Касса избирательной кампании">
+			<GRID id="CashGR" name="Касса избирательной кампании" table="CASH">
+			</GRID>
+			<TABS>
+				<TAB name="Приходные кассовые документы">
+					<TABS>
+						<TAB name="Документ">						
+							<GRID id="PKOHEADERGR" name="Приходные кассовые документы" table="PKO_HEADER">
+							</GRID>
+						</TAB>	
+						<TAB name="Расшифровка платежа">						
+							<GRID id="PKOGR" name="Приходные кассовые документы" table="PKO">
+							</GRID>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Расходные кассовые документы">
+					<TABS>
+						<TAB name="Документ">						
+							<GRID id="RKOHEADERGR" name="Приходные кассовые документы" table="RKO_HEADER">
+							</GRID>
+						</TAB>	
+						<TAB name="Расшифровка платежа">						
+							<GRID id="RKOGR" name="Приходные кассовые документы" table="RKO">
+							</GRID>
+						</TAB>
+					</TABS>
+				</TAB>
+			</TABS>	
+		</FORM>	
 	</FORMS>
 </SYSTEM>
