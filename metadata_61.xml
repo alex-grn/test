@@ -258,6 +258,13 @@
 			<AI id="worksexec" name="Выполнение работ"/>
 		</A>
 		<A id="PAYACCOUNTSID" name="Расчетный (лицевой) счет избирательной кампании" caption="Расчетный (лицевой) счет избирательной кампании" labelwidth="200" type="ref" table="PAYACCOUNTS" ret="ELCMTACCID" nulls="false"/>
+		<A id="PERSONACCDOCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" type="ref" pid="PERSONID" table="PERSONACC" ret="CODE" nulls="false" form="PersonaccFRM"/>
+		<A id="NTAX" name="В том числе НДС" caption="В том числе НДС"  type="list" nulls="true">
+					<AI id="10" name="10%"/>
+					<AI id="20" name="20%"/>
+					<AI id="0" name="без НДС"/>
+		</A>
+		<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" type="ref"  table="PAYDOCS" ret="PAYDOCSVIRT" nulls="false"/>
 		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
@@ -983,26 +990,36 @@
 				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
 			</GA>
 		</TABLE>
-		<TABLE id="PAYDOCS" name="Платежные документы">
+		<TABLE id="PAYDOCS" name="Платежные поручения">
 			<A id="PAYACCOUNTSID" parentkey="cascade"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" readonly="true" value="16"/>
 				<A id="DOCNUMB" caption="Номер" width="50"/>
 				<A id="DOCDATE" width="50"/>
-			</GA>
-			<GA name="Основание" caption="Основание">
-				<A id="CONTRACTID" name="Договор" caption="Договор" nulls="true"/>
-				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
-				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
-				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
+				<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select f.doctypeid||f.docnumb from PAYDOCS f where f.id = @ID" local="true"/>
 				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula=""/>
-				<A id="NTAX" name="В том числе НДС" caption="В том числе НДС"  type="list" nulls="true">
-					<AI id="10" name="10%"/>
-					<AI id="20" name="20%"/>
-					<AI id="0" name="без НДС"/>
-				</A>
-			<!-- 	<A id="SUMTAX" type="number" readonly="true" virtual="true" formula="" local="true"/> -->
+				<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" labelwidth="70" width="50" />
+				<!-- <A id="SUMTAX" type="number" labelwidth="70" width="50"  readonly="true" virtual="true" formula="" local="true"/> -->
 			</GA>
+			<GA name="Получатель" caption="Получатель">
+				<A id="AGENTID" caption="Юр. лицо" name="Юр. лицо" labelwidth="70" width="50" nulls="true"/>
+				<A id="AGENTACCID" caption="Реквизит" labelwidth="70" width="50"  nulls="true"/>
+				<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="KPPAG" name="КПП" caption="КПП" labelwidth="70" width="50"  type="string" readonly="true" virtual="true" formula=""  local="true"/>
+				<A id="PERSONID" caption="Физ. лицо" name="Физ. лицо" labelwidth="70" width="50" nulls="true"/>
+				<A id="PERSONACCDOCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+				<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="70" width="50"  type="string" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="KPPPRS" name="КПП" caption="КПП" labelwidth="70" width="50"  type="string" readonly="true" virtual="true" formula=""  local="true"/>
+			</GA>
+			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
+		</TABLE>
+		<TABLE id="PAYDOCSCONS" name="Платежные поручения">
+			<A id="PAYDOCSID" parentkey="cascade"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID and cid=0" local="true"/>
+			<A id="BUDGCLASSID"/>
+			<A id="TYPEEXPID"/>
+			<A id="SUMM" labelwidth="600" nulls="false"/>
+			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1435,7 +1452,7 @@
 			<GRID id="ElcmtaccGR" name="Расчетные счета избирательной комиссии" table="ELCMTACC" actionlist="setLID"/>
 		</FORM>
 		<FORM id="PersonaccFRM" name="Лицевые счета физических лиц, открытые в кредитных организациях">
-			<GRID id="PersonaccGR" name="Лицевые счета физических лиц, открытые в кредитных организациях" table="PERSON" actionlist="setLID"/>
+			<GRID id="PersonaccGR" name="Лицевые счета физических лиц, открытые в кредитных организациях" table="PERSONACC" actionlist="setLID"/>
 		</FORM>
 		<FORM id="SheetsFRM" name="Расчетно-платёжные ведомости">
 			<GRID id="SheetsGR" name="Расчетно-платёжные ведомости" table="SHEETS" reportlist="PaylistReport" actionlist="setLID">
@@ -1534,7 +1551,30 @@
 		</FORM>
 		<FORM id="PayaccountsFRM" name="Расчетные (лицевые) счета в банке">
 			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID"/>
-			<GRID id="PaydocsGR" name="Исходящие платежные поручения" table="PAYDOCS" actionlist="setLID"/>
+			<TABS>
+				<TAB name="Платежные поручения">
+					<TABS>
+						<TAB name="Документ">
+							<GRID id="PaydocsGR" name="Документ" table="PAYDOCS" actionlist="setLID"/>
+						</TAB>
+						<TAB name="Расшифровка платежа">
+							<GRID id="PaydocsconsGR" name="Расшифровка платежа" table="PAYDOCSCONS"/>
+						</TAB>
+					</TABS>
+				</TAB>
+				<!-- <TAB name="Расходные кассовые документы">
+					<TABS>
+						<TAB name="Документ">
+							<GRID id="RKOHEADERGR" name="Приходные кассовые документы" table="RKO_HEADER"/>
+						</TAB>
+						<TAB name="Расшифровка платежа">
+							<GRID id="RKOGR" name="Приходные кассовые документы" table="RKO"/>
+						</TAB>
+					</TABS>
+				</TAB> -->
+			</TABS>
+			
+			
 			
 		</FORM>
 		
