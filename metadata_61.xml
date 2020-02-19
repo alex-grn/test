@@ -26,6 +26,7 @@
 				<MI name="Доверенности" formlist="ProxyFRM"/>
 				<MI name="Касса избирательной кампании" formlist="CashFRM"/>
 				<MI name="Расчетно-платежные документы" formlist="PayaccountsFRM"/>
+				<MI name="Авансовые отчеты" formlist="Expense_ReportsFRM"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MENU name="Общие понятия">
@@ -141,7 +142,7 @@
 		<A id="BANKACC" name="Номер счета" caption="Номер счета" type="string" len="20" nulls="true"/>
 		<A id="CORRACC" name="Номер корреспондентского счета" caption="Номер корреспондентского счета" labelwidth="200" type="string" len="20" nulls="true"/>
 		<A id="AGENTID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="150" type="ref" table="AGENT" ret="CODE" form="FormAgent" nulls="false"/>
-		<A id="AGENTBANKSID" name="Банковское учреждение" caption="Банковское учреждение" labelwidth="150" type="ref" table="AGENTBANKS" ret="CODE" form="FormAgentBanks" nulls="false"/>
+		<A id="AGENTBANKSID" name="Банковское учреждение" caption="Банковское учреждение" labelwidth="150" type="ref" table="AGENTBANKS" ret="NAME" form="FormAgentBanks" nulls="false"/>
 		<A id="BIC" name="БИК" caption="БИК" type="string" len="9" nulls="true"/>
 		<A id="OFFICIALNAME" name="Официальное наименование" caption="Официальное наименование" type="text" nulls="true"/>
 		<A id="ELECDISTNUMB" name="Номер избирательного участка" caption="Номер избирательного участка" labelwidth="200" type="string" len="10" nulls="true"/>
@@ -232,9 +233,9 @@
 		<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
 		<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
 		<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200" type="ref" table="TYPICALOPERS" ret="CODE" nulls="false"/>
-		<A id="ACCOUNTDTID" name="Номер счета дебита" caption="Номер счета дебита" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
+		<A id="ACCOUNTDTID" name="Номер счета дебета" caption="Номер счета дебета" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
 		<A id="ACCOUNTKTID" name="Номер счета кредита" caption="Номер счета кредита" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
-		<A id="ECONCLASSDTID" name="КОСГУ дебита" caption="КОСГУ дебита" labelwidth="200" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
+		<A id="ECONCLASSDTID" name="КОСГУ дебета" caption="КОСГУ дебета" labelwidth="200" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
 		<A id="ECONCLASSKTID" name="КОСГУ дебита" caption="КОСГУ дебита" labelwidth="200" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
 		<A id="MEMORDERID" name="Журнал операций" caption="Журнал операций" labelwidth="200" type="ref" table="MEMORDER" ret="CODE" nulls="false"/>
 		<A id="CONTRACTSID" name="Договоры" caption="Договоры" labelwidth="200" type="ref" table="CONTRACTS" ret="SUBJECT" nulls="false"/>
@@ -260,7 +261,10 @@
 			<AI id="20" name="20%"/>
 			<AI id="0" name="без НДС"/>
 		</A>
-		<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" type="ref" table="PAYDOCS" ret="PAYDOCSVIRT" nulls="false"/>
+		<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" type="ref" table="PAYDOCS" ret="DOCNUMB" nulls="false"/>
+		<A id="PERSDOCTYPEID" name="Тип персонального документа" caption="Тип персонального документа" labelwidth="400" type="list" nulls="true">
+			<AI id="passport" name="Паспорт гражданина РФ"/>
+		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -367,8 +371,7 @@
 		<TABLE id="PERSDOCS" name="Документы физического лица">
 			<A id="PERSONID" parentkey="cascade"/>
 			<GA id="PERSDOCUMENT" name="Персональный документ" caption="Персональный документ">
-				<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200"/>
-				<A id="DOCTYPESNAME" name="Наименование документа" caption="Наименование документа" labelwidth="200" type="text" nulls="false" visible="form" readonly="true" virtual="true" formula="select D.NAME from DOCTYPES D where D.ID = @DOCTYPEID::BIGINT" local="true"/>
+				<A id="PERSDOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200"/>
 				<A id="DOCSERIES" name="Серия" caption="Серия" labelwidth="50" width="20"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="20"/>
 				<A id="DOCOUTDATE" name="Дата выдачи документа" caption="Дата выдачи документа" labelwidth="200" nulls="false"/>
@@ -882,7 +885,7 @@
 			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="string" len="400" nulls="false" local="true"/>
 			<TI unique="CODE"/>
 		</TABLE>
-		<TABLE id="ECONCLASS" name="Коды операций сектора государственного управления">
+		<TABLE id="ECONCLASS" name="Коды операций сектора государственного управления" hid="CODE">
 			<A id="CODE" name="Код" caption="Код" labelwidth="400" type="string" len="3" nulls="false" local="true"/>
 			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="string" len="400" nulls="false" local="true"/>
 			<TI unique="CODE"/>
@@ -912,7 +915,7 @@
 			</GA>
 			<GA name="Кредит" caption="Кредит">
 				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="100" width="50"/>
-				<A id="ECONCLASSKTID" name="КОСГУ" caption="Счет" labelwidth="100" width="50"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="100" width="50"/>
 			</GA>
 			<A id="MEMORDERID"/>
 			<TI unique="TYPICALOPERSID,ACCOUNTDTID,ECONCLASSDTID,ACCOUNTKTID,ECONCLASSKTID"/>
@@ -987,32 +990,59 @@
 		</TABLE>
 		<TABLE id="PAYDOCS" name="Платежные поручения">
 			<A id="PAYACCOUNTSID" parentkey="cascade"/>
-			<GA name="Документ" caption="Документ">
-				<A id="DOCTYPEID" readonly="true" value="16"/>
-				<A id="DOCNUMB" caption="Номер" width="50"/>
-				<A id="DOCDATE" width="50"/>
-				<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select f.doctypeid||f.docnumb from PAYDOCS f where f.id = @ID" local="true"/>
-				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula=""/>
-				<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" labelwidth="70" width="50"/>
-			</GA>
-			<GA name="Получатель" caption="Получатель">
-				<A id="AGENTID" name="Юр. лицо" caption="Юр. лицо" labelwidth="70" width="50" nulls="true"/>
-				<A id="AGENTACCID" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
-				<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-				<A id="KPPAG" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-				<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="70" width="50" nulls="true"/>
-				<A id="PERSONACCDOCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
-				<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-				<A id="KPPPRS" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-			</GA>
+
+			<TABS >
+				<TAB name="Документ" >
+
+					<GA name="Заголовок" caption="Заголовок">
+						<A id="DOCTYPEID" readonly="true" value="16"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" nulls="false" type="number"  formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and cid=0" local="true"/>
+						<A id="DOCDATE" width="50"/>
+						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||f.docdate from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
+						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС"  width="50"/>
+						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" type="number"  width="50" readonly="true" virtual="true" formula="" local="true"/>
+					</GA>
+,							
+				</TAB>
+				<TAB name="Получатель">
+					<GA name="Получатель" caption="Получатель">
+						<GA name="Юридическое лицо" caption="Юридическое лицо">
+							<A id="AGENTID" name="Юр. лицо" caption="Юр. лицо" labelwidth="200" nulls="true"/>
+							<A id="AGENTACCID" name="Счет получателя" caption="Счет получателя" labelwidth="200" nulls="true"/>
+							<A id="AGENTNAME" name="Наименование получателя" caption="Наименование получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="KPPAG" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="AGENTBANKSAGID"  name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="BICBANKAGENT" name="БИК" caption="БИК" labelwidth="70" width="50"  readonly="true"  type="string" virtual="true" formula="" local = "true"/>
+							<A id="CORRACCAG" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula=""  local="true"/>
+					
+						</GA>
+						<GA name="Физическое лицо" caption="Физическое лицо">
+							<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="200"  nulls="true"/>
+							<A id="PERSONACCDOCID"  name="Счет получателя" caption="Счет получателя" labelwidth="200" nulls="true"/>
+							<A id="PERSONNAME" name="Наименование получателя" caption="Наименование получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="KPPPRS" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="AGENTBANKSPRSID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="BICBANKPERSON" name="БИК" caption="БИК" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula="" local = "true"/>
+							<A id="CORRACCPRS" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula="" local = "true"/>
+						</GA>
+					</GA>
+
+				</TAB>
+			</TABS>
+
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
 		</TABLE>
-		<TABLE id="PAYDOCSCONS" name="Платежные поручения">
+		<TABLE id="PAYDOCSCONS" name="Расшифровка платежа (Платежные поручения)">
 			<A id="PAYDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID and cid=0" local="true"/>
-			<A id="BUDGCLASSID"/>
-			<A id="TYPEEXPID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID and cid=0" local="true"/>
 			<A id="SUMM" labelwidth="600" nulls="false"/>
+			<A id="BUDGCLASSID" labelwidth="70" width="50" />
+			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="70" width="50"/> 
+			<A id="TYPEEXPID" labelwidth="200" nulls="true"/>
+			<A id="TYPICALOPERSID" labelwidth="200"/>
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 	</TABLES>
@@ -1192,7 +1222,7 @@
 				<A id="SUPERVISOR" name="Председатель" caption="Председатель" type="ref" table="PERSON" ret="NAME" form="FormPerson" nulls="false"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="LiabilityAgreement" name="Договор о материальной ответственности" procedure="" template="liability_agreement.xls"/>
+		
 		<REPORT id="WorkdaysErrorLog" name="Протокол проверки сведений о ФОВ" procedure="" template="workdays_error_log.xls"/>
 		<REPORT id="ScheduleTik" name="График работы" procedure="" template="schedule_tik.xls"/>
 	</REPORTS>
