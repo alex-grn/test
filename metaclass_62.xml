@@ -5,6 +5,7 @@
 		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>
 		<A id="INPUTKRFID" name="Входящий файл" caption="Входящий файл" type="ref" table="INPUTKRF" ret="NUMBPP" nulls="false"/>
 		<A id="CASHDOCSID" name="Касса" caption="Касса" type="ref" table="CASHDOCS" ret="ID" nulls="false"/>
+		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 		<A id="CASHWARRANTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHWARRANT_HEADER" ret="ID" nulls="false"/>
@@ -112,7 +113,7 @@
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
 					</A>
-					<A id="DOCNUMB" labelwidth="50" width="58"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" type="number" width="58" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHWARRANT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
 					<A id="DOCDATE" labelwidth="50" width="42"/>
 					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="120"/>
 					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
@@ -129,7 +130,7 @@
 		<TABLE id="CASHWARRANT" name="ПКО Расшифровка платежа">		
 			<A id="CASHWARRANTHEADERID" parentkey="cascade"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHWARRANT where CASHWARRANTHEADERID = @CASHWARRANTHEADERID and cid=0" local="true"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHWARRANT where CASHWARRANTHEADERID = @CASHWARRANTHEADERID and cid=0" local="true"/>
 				<A id="SUMMPAY" caption="сумма" labelwidth="60" width="80"/>
 			</GA>
 			<GA name="Типовая операция" caption="Типовая операция">
@@ -161,8 +162,8 @@
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
 					</A>
-					<A id="DOCNUMB" labelwidth="50" width="58"/>
-					<A id="DOCDATE" labelwidth="50" width="42"/>
+					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
+					<A id="DOCDATE" labelwidth="50" width="80"/>
 					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="120"/>
 					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 				</GA>				
@@ -174,7 +175,8 @@
 						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
 						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
 				</GA>	
-			<TI id="PERSON_CHECK" name="Необходимо заполнить поле Выдать" check="DOCTYPEID = 13 and PERSONID is null"/>
+			<TI id="PERSON_CHECK" name="Заполнение поля Физическое лицо для Ведомости недопустимо" check="DOCTYPEID != 13 or PERSONID is null"/>
+			<TI id="PERSON_CHECK2" name="Заполните поле Физическое лицо или выберите тип Ведомость" check="DOCTYPEID = 23 and PERSONID is not null or DOCTYPEID != 23"/>			
 			<TI id="DOCTYPE_CHECK" name="Неверный тип документа" check="DOCTYPEID = 13 or DOCTYPEID = 23"/>
 		</TABLE>
 		<TABLE id="ACCCASHWARRANT" name="РКО Расшифровка платежа">		
@@ -204,17 +206,62 @@
 				</GA>
 				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
 			</GA>
-			<TI id="AGENT_CHECK" name="Необходимо заполнить поле Контрагент" check="DOCTYPEID = 23 and PERSONID is null"/>	
+			<TI id="AGENT_CHECK" name="Необходимо заполнить поле Контрагент" check="DOCTYPEID != 13 or PERSONID is null"/>	
+			<TI id="AGENT_CHECK2" name="Для РКО поле Контрагент не заполняется" check="DOCTYPEID != 23 or PERSONID is not null"/>	
 		</TABLE>
+		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+			</GA>
+		</TABLE>
+		<TABLE id="EXPENSE_DOCS" name="Документы аванса">
+			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+		</TABLE>
+		<TABLE id="PREPAID_EXPENSE" name="Аванс">
+			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+		</TABLE>
+		<TABLE id="EXPENDED" name="Израсходовано">
+			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+		</TABLE>
+		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
+			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+		</TABLE>
+		<TABLE id="EXPENSE_OPERATIONS" name="Типовые операции">
+			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<GA name="Типовая операция" caption="Типовая операция">
+				<A id="TYPICALOPERSID" labelwidth="150"/>
+				<A id="BUDGCLASSID" labelwidth="150"/>
+				<A id="TYPEEXPID" labelwidth="150"/>
+			</GA>
+			<GA name="Проводка" caption="Проводка">
+					<A id="KPS" name="КПС" labelwidth="150" type="string" readonly="true" virtual="true" formula="select t.CODE from BUDGCLASS t where t.id = @BUDGCLASSID"/>
+				<GA name="Дебет" caption="Дебет">
+					<A id="DTACCNUMB" name="Счет" caption="Счет" labelwidth="50" width="20" type="string" readonly="true" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
+					<A id="DTACCNAME" name="Счет" caption=" " labelwidth="50" width="80" readonly="true" type="string" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
+					<A id="DTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="50" type="string" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassdtid"/>
+				</GA>
+				<GA name="Кредит" caption="Кредит">
+					<A id="KTACCNUMB" name="Счет" caption="Счет" labelwidth="50" width="20" readonly="true" type="string" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
+					<A id="KTACCNAME" name="Счет" labelwidth="50" readonly="true" width="80" type="string" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
+					<A id="KTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="50" type="string" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassktid"/>
+				</GA>
+				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" type="string" labelwidth="150" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
+			</GA>
+		</TABLE>		
 	</TABLES>
 	<ACTIONS name="Действия"/>
-	<REPORTS name="Отчеты"/>
+	<REPORTS name="Отчеты">
+			<REPORT id="PROXYREP" name="Доверенность" procedure="" template="proxy.xls"/>
+	</REPORTS>		
 	<FORMS id="Forms" name="Формы">
 		<FORM id="LiabilityFRM" name="Договоры о материальной ответственности">
 			<GRID id="LiabilityGR" name="Договоры о материальной ответственности" table="LIABILITY"/>
 		</FORM>
 		<FORM id="ProxyFRM" name="Доверенности">
-			<GRID id="ProxyGR" name="Доверенности" table="PROXY"/>
+			<GRID id="ProxyGR" name="Доверенности" table="PROXY" reportlist="PROXYREP"/>
 			<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
 		</FORM>
 		<FORM id="INPUTKRFFRM" name="Загрузка данных из комплектов расчетных форм">
@@ -250,6 +297,32 @@
 					</TABS>
 				</TAB>
 			</TABS>	
-		</FORM>	
+		</FORM>
+		<FORM id="Expense_ReportsFRM" name="Авансовые отчеты избирательной кампании">
+			<GRID id="Expense_ReportsGR" name="Авансовые отчеты избирательной кампании" table="EXPENSE_REPORTS">
+			</GRID>
+			<TABS>
+				<TAB name="Документы аванса">
+					<GRID id="EXPENSE_DOCSGR" name="Документы аванса" table="EXPENSE_DOCS">
+					</GRID>					
+				</TAB>
+				<TAB name="Аванс">
+					<GRID id="PREPAID_EXPENSEGR" name="Аванс" table="PREPAID_EXPENSE">
+					</GRID>					
+				</TAB>
+				<TAB name="Израсходовано">
+					<GRID id="EXPENDEDGR" name="Израсходовано" table="EXPENDED">
+					</GRID>					
+				</TAB>
+				<TAB name="Сведения о выдаче остатка, внесениии перерасхода">
+					<GRID id="BALANCE_INFORMATIONGR" name="Сведения о выдаче остатка, внесениии перерасхода" table="BALANCE_INFORMATION">
+					</GRID>					
+				</TAB>
+				<TAB name="Типовые операции">
+					<GRID id="EXPENSE_OPERATIONSGR" name="Типовые операции" table="EXPENSE_OPERATIONS">
+					</GRID>					
+				</TAB>				
+			</TABS>	
+		</FORM>			
 	</FORMS>
 </SYSTEM>
