@@ -1,0 +1,1295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="ags-1.xlsx" documentPath="ags-1.xlsx" outputType="xlsx" outputNamePattern="ags-1.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								 select 
+											tbl.sreg_all ,         
+											tbl.in_org_all  ,    
+											tbl.out_org   ,        
+											tbl.in_org     ,       
+											tbl.fire_ags   ,      
+											tbl.timeout     ,     
+											tbl.health      ,      
+											tbl.family_drama ,     
+											tbl.others     ,      
+											tbl.sreg_all + tbl.in_org_all - tbl.fire_ags as ends,
+											'СВЕДЕНИЯ О ЧИСЛЕННОСТИ ГРАЖДАН, ПРОХОДЯЩИХ'||chr(10)||
+											'АЛЬТЕРНАТИВНУЮ ГРАЖДАНСКУЮ СЛУЖБУ'||chr(10)||
+											case ${dateofrequest} when '1' then 'за период с 01 февраля по 31 июля '|| ${yearconscription}||' года'
+											when '2' then 'за период с 01 августа - 31 января '|| ${yearconscription}||' - '|| (${yearconscription}::integer+1)::text ||' года'  
+											end as doca
+									from (  select    
+											(select count(s.id)
+											from citizenry s,
+													regiondir r
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1') as sreg_all,
+												
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id) as in_org_all,
+											
+											(select count(s.id) 
+										from citizenry s, 
+												regiondir r,
+												DIRECTION p,
+												ORGANIZATION o,
+												ORGANIZATIONDIR org
+										where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and o.id = p.organizationid
+											and org.id = o.organizationdirid
+											and org.regiondirid != s.regiondirid) as out_org,
+											
+										(select count(s.id)
+										from citizenry s,  
+												regiondir r,
+												DIRECTION p,
+												ORGANIZATION o,
+												ORGANIZATIONDIR org
+										where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and o.id = p.organizationid
+											and org.id = o.organizationdirid
+											and org.regiondirid = s.regiondirid) as in_org,
+										
+										(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											limit 1) as fire_ags,
+											
+										(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and p.basis4 = '1'
+											limit 1) as timeout,
+										
+										(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and p.basis4 = '2'
+											limit 1) as health,
+										
+										(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and p.basis4 = '5'
+											limit 1) as family_drama,
+										
+										(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and p.basis4 = '6'
+											limit 1) as others) tbl
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec_f" orientation="H">
+				<bands>
+					<band name="spec_s" orientation="H">
+						<queries>
+							<query name="spec_s" type="sql">
+								<script>
+									select r.names as name_s,
+										r.reg_all as sreg_all,
+										r.in_org_all,
+										r.out_org,
+										r.in_org,
+										r.fire_ags,
+										r.timeout,
+										r.health,
+										r.family_drama,
+										r.others,
+										r.ends
+									from report_1ags r
+									where r.names is not null
+									and r.ident = ${ident}::bigint
+									and r.fnames = ${spec_f.name_f}
+								;
+								</script>
+							</query>
+						</queries>
+					</band>
+				</bands>
+				<queries>
+                     <query name="spec_f" type="sql">
+                        <script>
+							select r.fnames as name_f,
+								r.reg_all as sreg_all,
+								r.in_org_all,
+								r.out_org,
+								r.in_org,
+								r.fire_ags,
+								r.timeout,
+								r.health,
+								r.family_drama,
+								r.others,
+								r.ends
+							from report_1ags r
+							where r.names is null
+							and r.ident = ${ident}::bigint
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+								select      
+											'" '||to_char(now(),'dd')||' " '||case to_char(now(),'mm')
+											 when '01' then 'января'
+											 when '02' then 'февраля'
+											 when '03' then 'марта'
+											 when '04' then 'апреля'
+											 when '05' then 'мая'
+											 when '06' then 'июня'
+											 when '07' then 'июля'
+											 when '08' then 'августа'
+											 when '09' then 'сентября'
+											 when '10' then 'октября'
+											 when '11' then 'ноября'
+											 when '12' then 'декабря'
+											 end ||' '||to_char(now(),'yyyy')||' года' as dates,
+								
+											(select count(s.id)
+											from citizenry s,
+													regiondir r
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id) -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											limit 1) as all_humans,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id) -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											limit 1) as all_humans1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id) -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											limit 1) as all_humans2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p													
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id) -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											limit 1) as all_humans3,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                            and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                            and e.leveleducation = '2'
+											limit 1) as beg_ed,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p ,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2'
+											limit 1) as beg_ed1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2'
+											limit 1) as beg_ed2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '2'
+											limit 1) as beg_ed3,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                            and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                            and e.leveleducation = '3'
+											limit 1) as osn_ed,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p ,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3'
+											limit 1) as osn_ed1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3'
+											limit 1) as osn_ed2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '3'
+											limit 1) as osn_ed3,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                            and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                            and e.leveleducation = '4'
+											limit 1) as mid_ed,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p ,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4'
+											limit 1) as mid_ed1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4'
+											limit 1) as mid_ed2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '4'
+											limit 1) as mid_ed3,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                            and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                            and e.leveleducation = '5'
+											limit 1) as beg_pr,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p ,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5'
+											limit 1) as beg_pr1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5'
+											limit 1) as beg_pr2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '5'
+											limit 1) as beg_pr3,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                            and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                            and e.leveleducation = '6'
+											limit 1) as mid_pr,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p ,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6'
+											limit 1) as mid_pr1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6'
+											limit 1) as mid_pr2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '6'
+											limit 1) as mid_pr3,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                            and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                            and e.leveleducation = '8'
+											limit 1) as up_pr,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p ,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=18 and 20 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8'
+											limit 1) as up_pr1,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                    EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=21 and 25 >= split_part(age(now(),s.birthdate)::text,' ',1)::integer
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8'
+											limit 1) as up_pr2,
+											(select count(s.id)
+											from citizenry s,
+													regiondir r,
+                                                    EDUCATIONCIT e
+											where s.regiondirid = r.id
+												and r.districtfederal::integer != 9
+												and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+												and s.conscription = ${dateofrequest} 
+												and s.yearconscription = ${yearconscription}::integer
+												and s.statuscitizen = '1'
+												and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') +
+											(select count(s.id)
+											from citizenry s, 
+													regiondir r, 
+													DIRECTION p,
+                                                    EDUCATIONCIT e 
+											where r.id = s.regiondirid 
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8') -
+											(select count(s.id)
+											from citizenry s, 
+												regiondir r,
+												PASSAGEAGSCIT p,
+                                                EDUCATIONCIT e
+											where r.id = s.regiondirid
+											and split_part(age(now(),s.birthdate)::text,' ',1)::integer>=26
+											and s.conscription = ${dateofrequest} 
+											and s.yearconscription = ${yearconscription}::integer 
+											and p.citizenryid = s.id 
+											and p.DATEOFDISMISSLA is not null
+											and e.citizenryid = s.id
+                                                and e.hidedate = (select max(x.hidedate) from EDUCATIONCIT x where x.citizenryid = e.citizenryid)
+                                                and e.leveleducation = '8'
+											limit 1) as up_pr3
+											
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
