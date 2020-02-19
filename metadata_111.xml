@@ -1,0 +1,113 @@
+<SYSTEM id="111" name="Внутренний финансовый контроль">
+	<MODULES id="Modules" name="Модули">
+		<MODULE id="VFC" name="Внутренний финансовый контроль" menu="VFC"/>
+	</MODULES>
+	<GROUPS_MENU name="Группы меню">
+		<MENU id="VFC" name="Внутренний финансовый контроль">
+			<MENU name="Файл">
+				<MI name="Параметры" formlist="Options"/>
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
+				<MI name="Удалить конфигурацию" actionlist="ConfigDrop"/>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Внутренний финансовый контроль">
+				<MI name="Бюджетные процедуры ВФК" formlist="Proclist"/>
+				<MI name="Карты ВФК" formlist="Card_VFC"/>
+				<MI name="Периодичность контроля" formlist="Purfreqcntrl"/>
+				<MI name="Функциональные роли ВФК" formlist="Pur_Functional_Roles"/>
+				<MI name="Журналы ВФК" formlist="Journal"/>
+			</MENU>
+		 </MENU>
+	</GROUPS_MENU>
+   <ATTRIBUTES name="Атрибуты">
+   <A id="PROCLISTID" name="Бюджетная процедура ВФК" caption="Бюджетная процедура ВФК" labelwidth="160" type="ref" table="PROCLIST" ret="NAME" form="Proclist" nulls="false"/>
+   <A id="PROCESSLISTID" name="Процесс ВФК" caption="Процесс ВФК" labelwidth="160" type="ref" table="PROCESSLIST" ret="NAME" form="Processlist" nulls="false"/>
+   <A id="OPERLISTID" name="Операции ВФК" caption="Операции ВФК" labelwidth="160" type="ref" table="OPERLIST" ret="NAME" form="Operlist" nulls="false"/>
+   </ATTRIBUTES>
+   <GROUPS_ATTRIBUTES name="Группы атрибутов">
+   </GROUPS_ATTRIBUTES>
+   <TABLES name="Таблицы">
+		<COMMENT name="Главная таблица Бюджетные процедуры ВФК"/>
+		<TABLE id="PROCLIST" name="Бюджетные процедуры ВФК">
+			<A id="CODE" name="Код процедуры" caption="Код процедуры" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование процедуры" caption="Наименование процедуры" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="160" type="text" nulls="true" local="true"/>
+		</TABLE>
+		<COMMENT name="Подчиннёная таблица Процессы ВФК"/>
+		<TABLE id="PROCESSLIST" name="Процессы ВФК">
+			<A id="PROCLISTID" parentkey="cascade" name="Бюджетная процедура ВФК"/>
+			<A id="CODE" name="Код процесса" caption="Код процесса" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование процесса" caption="Наименование процесса" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="160" type="text" nulls="true" local="true"/>
+		</TABLE>
+		<COMMENT name="Подчиннёная таблица Операции ВФК"/>
+		<TABLE id="OPERLIST" name="Операции ВФК">
+			<A id="PROCESSLISTID" parentkey="cascade" name="Процесс ВФК"/>
+			<A id="CODE" name="Код операции" caption="Код операции" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование операции" caption="Наименование операции" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="160" type="text" nulls="true" local="true"/>
+		</TABLE>
+		<COMMENT name="Подчиннёная таблица Действия ВФК"/>
+		<TABLE id="ACTION" name="Действия ВФК">
+			<A id="OPERLISTID" parentkey="cascade" name="Операции ВФК"/>
+			<A id="CODE" name="Код действия" caption="Код действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование действия" caption="Наименование действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="160" type="text" nulls="true" local="true"/>
+			/A id="PUR_FUNCTIONAL_ROLESID" name="Функциональная роль"/
+			<A id="RISK_BUDG" name="Бюджетные риски" caption="Бюджетные риски" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CHANCE" name="Вероятность наступления" caption="Вероятность наступления" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CONSEQUENCES" name="Последствия" caption="Последствия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="RISK_LVL" name="Уровень рисков" caption="Уровень рисков" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="PROPOSALS" name="Предложения по применению контрольных действий" caption="Предложения по применению контрольных действий" labelwidth="305" type="string" nulls="false" local="true"/>
+			<A id="INCLUDE_IFC" name="Включить в карту ВФК" caption="Включить в карту ВФК" labelwidth="600" type="boolean" nulls="false" local="true"/>
+		</TABLE>
+		<COMMENT name="Главная таблица Карты ВФК"/>
+		<TABLE id="CARD_VFC" name="Карты ВФК">
+			<A id="FULL_PATH" name="Код" caption="Код" labelwidth="160" type="string" nulls="false" local="true"/>
+			/A id="ACTIONID" name="Действие ВФК" labelwidth="160"/
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="PERIOD_OPERATION" name="Срок выполнения операции" caption="Срок выполнения операции" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CHECK_METHOD" name="Метод контроля" caption="Метод контроля" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CHECK_ACTION" name="Вид контроля" caption="Вид контроля" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CHECK_TYPE_CODE" name="Способ контроля" caption="Способ контроля" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="160" type="text" nulls="true" local="true"/>
+			/A id="PURFREQCNTRLID" name="Периодичность" labelwidth="160"/
+		</TABLE>
+	</TABLES>
+	<ACTIONS name="Действия">
+	</ACTIONS>
+	<REPORTS name="Отчеты">
+	</REPORTS>
+	<FORMS id="Forms" name="Формы">
+		<FORM id="Proclist" name="Бюджетные процедуры ВФК">
+			<GRID id="Proclist" name="Бюджетные процедуры ВФК" table="PROCLIST">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="Processlist" name="Процессы ВФК" table="PROCESSLIST">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="Operlist" name="Операции ВФК" table="OPERLIST">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+			<GRID id="Action" name="Исполнение должностей" table="ACTION">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="Card_VFC" name="Карты ВФК">
+			<GRID id="Card_VFC" name="Карты ВФК" table="CARD_VFC">
+				<MENU>
+					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+	</FORMS>
+</SYSTEM>
