@@ -6,7 +6,7 @@
 		<MENU id="CalcPayCM" name="Меню модуля Расчет оплаты труда членам ИК в период проведения выборов">
 			<MENU name="Файл">
 				<MI name="Загрузить классификатор ИК, сведения о членах ИК и сведения об избирательных кампаниях" actionlist="ImportElectcampaign"/>
-				<MI name="Загрузить файлы КРФ" formlist="INPUTKRFFRM"/>				
+				<MI name="Загрузить файлы КРФ" formlist="INPUTKRFFRM"/>
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
 			<MENU name="Избирательные комиссии и их состав">
@@ -17,10 +17,15 @@
 				<MI name="Расчетно-платежные ведомости" formlist="SheetsFRM"/>
 				<MI name="Документы о перечислении" formlist="RegisterstransfersFRM"/>
 			</MENU>
+			<MENU name="Финансовое обеспечение">
+				<MI name="Финансовое обеспечение избирательных комиссий" formlist="FinanceelcomFRM"/>
+			</MENU>
 			<MENU name="Бухгалтерия ТИК">
 				<MI name="Договоры с юридическими лицами" formlist="ContractsFRM"/>
 				<MI name="Договоры о мат. ответственности" formlist="LiabilityFRM"/>
 				<MI name="Доверенности" formlist="ProxyFRM"/>
+				<MI name="Касса избирательной кампании" formlist="CashFRM"/>
+				<MI name="Расчетно-платежные документы" formlist="PayaccountsFRM"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MENU name="Общие понятия">
@@ -207,6 +212,7 @@
 		<A id="MESTIMATE" name="Признак включения в смету" caption="Признак включения в смету" type="boolean" nulls="false"/>
 		<A id="LEVELESTIMATE" name="Включение в смету" caption="Включение в смету" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
+			<AI id="terdist" name="Смета ТИК за нижестоящие УИК"/>
 			<AI id="district" name="Смета УИК"/>
 		</A>
 		<A id="TYPENOM" name="Тип номенклатуры" caption="Тип номенклатуры" labelwidth="400" type="list" nulls="false">
@@ -239,6 +245,22 @@
 		<A id="SUMMPAY" name="Оплачено" caption="Оплачено" type="number" len="8.2" nulls="true"/>
 		<A id="SUMMEXEC" name="Исполнено" caption="Исполнено" type="number" len="8.2" nulls="true"/>
 		<A id="QUANTITY" name="Количество" caption="Количество" type="number" len="8.2" nulls="true"/>
+		<A id="NUMBPP" name="Номер по порядку" caption="Номер по порядку" labelwidth="650" type="number" len="2" nulls="false"/>
+		<A id="NUMBESTIMATE" name="Номер в смете расходов" caption="Номер в смете расходов" labelwidth="650" type="string" len="5" nulls="false"/>
+		<A id="TYPEEXPENSES" name="Вид расходов" caption="Вид расходов" labelwidth="400" type="list" nulls="true">
+			<AI id="salary" name="Оплата труда"/>
+			<AI id="product" name="Приобретение МЦ"/>
+			<AI id="service" name="Оказание услуг"/>
+			<AI id="worksexec" name="Выполнение работ"/>
+		</A>
+		<A id="PAYACCOUNTSID" name="Расчетный (лицевой) счет избирательной кампании" caption="Расчетный (лицевой) счет избирательной кампании" labelwidth="200" type="ref" table="PAYACCOUNTS" ret="ELCMTACCID" nulls="false"/>
+		<A id="PERSONACCDOCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" type="ref" pid="PERSONID" table="PERSONACC" ret="CODE" form="PersonaccFRM" nulls="false"/>
+		<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" type="list" nulls="true">
+			<AI id="10" name="10%"/>
+			<AI id="20" name="20%"/>
+			<AI id="0" name="без НДС"/>
+		</A>
+		<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" type="ref" table="PAYDOCS" ret="PAYDOCSVIRT" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -465,8 +487,8 @@
 			<A id="REGIONSRFID" labelwidth="100" readonly="true" virtual="true" formula="select t.REGIONSRFID from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
 			<A id="LEVELELCOMMITTEE" labelwidth="300" readonly="true" virtual="true" formula="select t.LEVELELCOMMITTEE from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
 			<GA name="Период действия полномочий" caption="Период действия полномочий">
-				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
-				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" readonly="true" virtual="true" formula="select t.POSTBEGINDATE from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" readonly="true" virtual="true" formula="select t.POSTENDDATE from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
 			</GA>
 		</TABLE>
 		<TABLE id="COMMITTEEMAN" name="Члены избирательных комиссий">
@@ -636,9 +658,9 @@
 			</GA>
 			<A id="ELECTCOMMINCAMPID" caption="Избирательная комиссия" labelwidth="200" parentkey="nocascade"/>
 			<A id="LEVELELCOMMITTEE" labelwidth="200" nulls="false" readonly="true" virtual="true" formula="select IK.LEVELELCOMMITTEE from ELECTCOMMINCAMP k, ELECTCOMMITTEE IK where k.id = @ELECTCOMMINCAMPID and IK.ID = k.ELECTCOMMITTEEid">
-				<AI id="territory" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog"/>
-				<AI id="circuit" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog"/>
-				<AI id="district" reportlist="WorktblReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog"/>
+				<AI id="territory" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
+				<AI id="circuit" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
+				<AI id="district" reportlist="WorktblReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
 			</A>
 			<A id="ELECDISTNUMB" labelwidth="200" nulls="true" readonly="true" virtual="true" formula="select IK.ELECDISTNUMB from ELECTCOMMINCAMP k, ELECTCOMMITTEE IK where k.id = @ELECTCOMMINCAMPID and IK.ID = k.ELECTCOMMITTEEid"/>
 			<A id="DATELOADTBL" name="Дата загрузки Сведений о ФОВ" caption="Дата загрузки Сведений о ФОВ" labelwidth="200" type="date" nulls="true"/>
@@ -800,25 +822,40 @@
 			<TI unique="REGISTERSTRANSFERSID, COMMITTEEMANID"/>
 		</TABLE>
 		<TABLE id="TYPEEXP" name="Направление расходов">
-			<A id="NUMB" name="Номер" caption="Номер" labelwidth="650" type="number" len="3.1" nulls="false" local="true"/>
+			<A id="NUMBPP"/>
+			<A id="NUMBESTIMATE"/>
 			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false" local="true"/>
+			<A id="REGIONSRFID" labelwidth="200"/>
+			<A id="TYPEEXPENSES" labelwidth="200"/>
 			<A id="MESTIMATE"/>
-			<A id="REGIONSRFID"/>
-			<TI unique="CODE,REGIONSRFID"/>
+			<TI unique="NUMBESTIMATE,CODE,REGIONSRFID"/>
 		</TABLE>
 		<TABLE id="TYPEEXPSL" name="Учет выплат при расчете расходов">
 			<A id="TYPEEXPID" parentkey="cascade"/>
 			<A id="SLCOMPCHARGESID" labelwidth="200"/>
 			<TI unique="TYPEEXPID,SLCOMPCHARGESID"/>
 		</TABLE>
-		<TABLE id="FINEXP" name="Сведения о финансировании и расходах">
+		<TABLE id="FINEXP" name="Контроль расходов на оплату труда">
 			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
+			<A id="NUMBPP" readonly="true" virtual="true" formula=""/>
+			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula=""/>
+			<A id="TYPEEXPID" labelwidth="200"/>
+			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="true" formula=""/>
+			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
+			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
+			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
+			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
+			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID"/>
+		</TABLE>
+		<TABLE id="FINANCEELCOM" name="Сведения о финансовом обеспечении ИК">
+			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
+			<A id="NUMBPP" readonly="true" virtual="true" formula=""/>
+			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula=""/>
 			<A id="TYPEEXPID" labelwidth="200"/>
 			<A id="LEVELESTIMATE" labelwidth="200"/>
-			<A id="SUMFIN" name="Сумма финансирования" caption="Сумма финансирования" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMPAY" name="Сумма расхода" caption="Сумма расхода" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
-			<A id="SUMCOSTS" name="Сумма расхода по отчету" caption="Сумма расхода по отчету" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMRES" name="Остаток" caption="Остаток" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="@SUMFIN - p_action_finexp_sumpay(@ID)" local="true"/>
+			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
+			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" local="true"/>
+			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID,LEVELESTIMATE"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
@@ -936,6 +973,47 @@
 				<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
 				<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
 			</GA>
+			<TI unique="CONTRACTSID, NUMBPP"/>
+		</TABLE>
+		<TABLE id="PAYACCOUNTS" name="Расчетный (лицевой счет) в банке">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+				<A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
+				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PAYDOCS" name="Платежные поручения">
+			<A id="PAYACCOUNTSID" parentkey="cascade"/>
+			<GA name="Документ" caption="Документ">
+				<A id="DOCTYPEID" readonly="true" value="16"/>
+				<A id="DOCNUMB" caption="Номер" width="50"/>
+				<A id="DOCDATE" width="50"/>
+				<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select f.doctypeid||f.docnumb from PAYDOCS f where f.id = @ID" local="true"/>
+				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula=""/>
+				<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" labelwidth="70" width="50"/>
+			</GA>
+			<GA name="Получатель" caption="Получатель">
+				<A id="AGENTID" name="Юр. лицо" caption="Юр. лицо" labelwidth="70" width="50" nulls="true"/>
+				<A id="AGENTACCID" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+				<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="KPPAG" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="70" width="50" nulls="true"/>
+				<A id="PERSONACCDOCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+				<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+				<A id="KPPPRS" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+			</GA>
+			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
+		</TABLE>
+		<TABLE id="PAYDOCSCONS" name="Платежные поручения">
+			<A id="PAYDOCSID" parentkey="cascade"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID and cid=0" local="true"/>
+			<A id="BUDGCLASSID"/>
+			<A id="TYPEEXPID"/>
+			<A id="SUMM" labelwidth="600" nulls="false"/>
+			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -964,6 +1042,7 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="CalcPays" name="Рассчитать выплаты" type="procedure" procedure="p_action_registerlist_gen"/>
+		<ACTION id="FormFinanceelcom" name="Сформировать перечень направлений расходов по смете" type="procedure" procedure=""/>
 		<ACTION id="FormSheet" name="Сформировать ведомости по оплате труда" type="procedure" procedure="p_action_create_payroll">
 			<FORM name="Параметры">
 				<A id="DDOCDATE" name="Дата формирования" caption="Дата формирования" labelwidth="200" width="40" type="date" local="true"/>
@@ -1030,6 +1109,10 @@
 		</ACTION>
 		<ACTION id="ImportBanks" name="Загрузить банковские учреждения" type="script" actionlist="LoadAndConvertFile">
 			<P id="convname" value="Загрузка Банков по справочнику БИК"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="ImportSberAcc" name="Загрузить сведения о лицевых счетах" type="script" actionlist="LoadAndConvertFile">
+			<P id="convname" value="Сбербанк"/>
 			<P id="errorone" value="false"/>
 		</ACTION>
 	</ACTIONS>
@@ -1111,22 +1194,23 @@
 		</REPORT>
 		<REPORT id="LiabilityAgreement" name="Договор о материальной ответственности" procedure="" template="liability_agreement.xls"/>
 		<REPORT id="WorkdaysErrorLog" name="Протокол проверки сведений о ФОВ" procedure="" template="workdays_error_log.xls"/>
+		<REPORT id="ScheduleTik" name="График работы" procedure="" template="schedule_tik.xls"/>
 	</REPORTS>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="PostsFRM" name="Должности">
 			<GRID id="PostsGR" name="Должности" table="POSTS">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
 		<FORM id="TypedayFRM" name="Типы дней">
-			<GRID id="TypedayGR" name="Типы дней" table="TYPEDAYS" readonly="true"/>
+			<GRID id="TypedayGR" name="Типы дней" table="TYPEDAYS" actionlist="setLID" readonly="true"/>
 		</FORM>
 		<FORM id="HolidayFRM" name="Праздничные дни">
 			<GRID id="HolidayGR" name="Праздничные дни" table="HOLIDAYS">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -1136,92 +1220,92 @@
 					<MI actionlist="setLID;FormDaysWorkCalendars;ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="DaysWorkCalendarGR" name="Состав рабочего календаря" table="DAYSWORKCALENDARS" actionlist="SetLID"/>
+			<GRID id="DaysWorkCalendarGR" name="Состав рабочего календаря" table="DAYSWORKCALENDARS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="NormsFECFRM" name="Нормативные документы, устанавливающие параметры оплаты труда">
-			<GRID id="FedECGR" name="Нормативные документы, устанавливающие параметры оплаты труда" table="FEDELECCAMP" actionlist="SetLID">
+			<GRID id="FedECGR" name="Нормативные документы, устанавливающие параметры оплаты труда" table="FEDELECCAMP">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="NormsFedECGR" name="Размеры оплаты труда" table="NORMSFEDEC" actionlist="SetLID">
+			<GRID id="NormsFedECGR" name="Размеры оплаты труда" table="NORMSFEDEC">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
 		<FORM id="TypeexpFRM" name="Направление расходов">
-			<GRID id="TypeexpGR" name="Направление расходов" table="TYPEEXP" actionlist="SetLID">
+			<GRID id="TypeexpGR" name="Направление расходов" table="TYPEEXP" actionlist="setLID">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID id="TypeexpslGR" name="Учет выплат при расчете расходов" table="TYPEEXPSL">
 				<MENU>
-					<MI actionlist="SetLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
 		<FORM id="FormPerson" name="Физические лица">
 			<GRID id="GridPerson" name="Физические лица" table="PERSON">
 				<MENU>
-					<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<TABS>
 				<TAB name="Документы физического лица">
 					<GRID id="PersDocGR" name="Документы физического лица" table="PERSDOCS">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Лицевые счета, открытые в кредитных организациях">
 					<GRID id="PersonaccGR" name="Лицевые счета, открытые в кредитных организациях" table="PERSONACC">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Справки о среднем заработке с основного места работы">
 					<GRID id="PersonsAVSLRGR" name="Справки о среднем заработке с основного места работы" table="PERSONSAVSLR">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Адреса">
 					<GRID id="PersaddressesGR" name="Адреса" table="PERSADDRESSES">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
 		<FORM id="FormAgent" name="Юридические лица">
-			<GRID id="GridAgent" name="Юридические лица" table="AGENT" actionlist="SetLID">
+			<GRID id="GridAgent" name="Юридические лица" table="AGENT" actionlist="setLID">
 				<MENU>
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID id="AgentaccGR" name="Cчета, открытые в банках" table="AGENTACC">
 				<MENU>
-					<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
 		<FORM id="FormAgentBanks" name="Банковские учреждения">
 			<GRID id="GridAgentBanks" name="Банковские учреждения" table="AGENTBANKS">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;ImportBanks;MoveFolder;SetLID;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;ImportBanks;MoveFolder;SetLID;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
 		<FORM id="MTResponsPersFRM" name="Материально-отвественные лица">
 			<GRID id="MTResponsPersGR" name="Материально-отвественные лица" table="MTRESPONSPERS">
 				<MENU>
-					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -1229,30 +1313,30 @@
 			<GRID id="RegionsRFGR" name="Субъекты Российской Федерации" table="REGIONSRF" readonly="true"/>
 		</FORM>
 		<FORM id="ElCommFRM" name="Избирательные комиссии и их состав">
-			<GRID id="ElCommGR" name="Избирательные комиссии" table="ELECTCOMMITTEE" readonly="true">
+			<GRID id="ElCommGR" name="Избирательные комиссии" table="ELECTCOMMITTEE" actionlist="setLID" readonly="true">
 				<MENU>
-					<MI actionlist="SetLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables;ImportElectcommittee;SetMFIN;SetDEPCOEFF;SetCOMMITTEEMAN"/>
+					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables;ImportElectcommittee;ImportSberAcc;SetMFIN;SetDEPCOEFF;SetCOMMITTEEMAN"/>
 				</MENU>
 			</GRID>
 			<TABS>
 				<TAB name="Члены избирательной комиссии">
 					<GRID id="CommitteeManGR" name="Члены избирательной комиссии" table="COMMITTEEMAN">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables" reportlist="rpt_appltransfacc;СertificateOfPayments"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables" reportlist="rpt_appltransfacc;СertificateOfPayments"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Расчетные счета избирательных комиссий">
 					<GRID id="ElcmtaccGR" name="Расчетные счета избирательных комиссий" table="ELCMTACC">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Порядок финансирования ИК">
 					<GRID id="MfinGR" name="Порядок финасирования УИК" table="MFIN">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -1262,28 +1346,28 @@
 				<TAB name="Контактная информация">
 					<GRID id="ContactInfoECGR" name="Контактная информация" table="CONTACTINFOEC">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 				<TAB name="Ответственные лица избирательной комиссии">
 					<GRID id="ResponsPersGR" name="Отвественные лица избирательной комиссии" table="RESPONSPERS">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
 		<FORM id="CommitteeManFRM" name="Члены избирательных комиссий">
-			<GRID id="ElCommGR" name="Члены избирательных комиссий" table="COMMITTEEMAN"/>
+			<GRID id="ElCommGR" name="Члены избирательных комиссий" table="COMMITTEEMAN" actionlist="setLID"/>
 		</FORM>
 		<FORM id="RegisterFRM1" name="Избирательные кампании-Расчет оплаты труда">
 			<TABS>
 				<TAB name="Избирательные кампании">
 					<GRID id="ElCampGR1" name="Избирательные кампании" table="ELECTCAMPAIGN" readonly="true">
 						<MENU>
-							<MI actionlist="SetLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -1291,17 +1375,17 @@
 					<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<GRID id="ElectСommInCampGR1" name="Избирательные комиссии, участвующие в избирательной кампании" table="ELECTCOMMINCAMP" readonly="true">
 						<MENU>
-							<MI actionlist="ExportRegExcel;FormRegEA;FormRegEACM;Insert;Update;Delete;MoveFolder;ConfigTables;ControlLBO" reportlist="Check_info_electcom;LiabilityAgreement"/>
+							<MI actionlist="setLID;ExportRegExcel;FormRegEA;FormRegEACM;Insert;Update;Delete;MoveFolder;ConfigTables;ControlLBO" reportlist="Check_info_electcom;LiabilityAgreement"/>
 						</MENU>
 					</GRID>
 				</TAB>
-				<TAB name="Сведения о финансировании и расходах">
+				<TAB name="Контроль расходов на оплату труда">
 					<A id="ELECTCAMPAIGN1VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<A id="ELECTCOMMINCAMP1VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
-					<GRID id="FinexpGR" name="Сведения о финансировании и расходах" table="FINEXP" readonly="true">
+					<GRID id="FinexpGR" name="Контроль расходов на оплату труда" table="FINEXP" readonly="true">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -1309,9 +1393,9 @@
 					<A id="ELECTCAMPAIGN2VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<A id="ELECTCOMMINCAMP2VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
-					<GRID id="RegisterGR1" name="Расчетные документы" table="REGISTER" reportlist="TIK_ZP_VKTIK;KRF_F_NE_ZP_NO;KRF_F_NE_ZP_O;KRF_F_ZP_NO;KRF_F_ZP_PL_NO;KRF_F_ZP_PL_O;KRF_R_NE_ZP_NO;KRF_R_NE_ZP_O;KRF_R_ZP_NO;KRF_R_ZP_PL_NO;KRF_R_ZP_PL_O;KRF_F_TIK;KRF_R_TIK;WorktblReport;PayslipReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog">
+					<GRID id="RegisterGR1" name="Расчетные документы" table="REGISTER" reportlist="TIK_ZP_VKTIK;KRF_F_NE_ZP_NO;KRF_F_NE_ZP_O;KRF_F_ZP_NO;KRF_F_ZP_PL_NO;KRF_F_ZP_PL_O;KRF_R_NE_ZP_NO;KRF_R_NE_ZP_O;KRF_R_ZP_NO;KRF_R_ZP_PL_NO;KRF_R_ZP_PL_O;KRF_F_TIK;KRF_R_TIK;WorktblReport;PayslipReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik">
 						<MENU>
-							<MI actionlist="Delete;MoveFolder;ImportRegExcel;FormSheet;ConfigTables"/>
+							<MI actionlist="setLID;Delete;MoveFolder;ImportRegExcel;FormSheet;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -1322,7 +1406,7 @@
 					<A id="REGISTER3VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
 					<GRID id="RegisterlistGR1" name="Члены избирательных комиссий по ведомости" table="REGISTERLIST" readonly="true">
 						<MENU>
-							<MI actionlist="Update;View;Delete;MoveFolder;CalcPays;ConfigTables;ControlWHTBL;ControlDEPCOEFF"/>
+							<MI actionlist="setLID;Update;View;Delete;MoveFolder;CalcPays;ConfigTables;ControlWHTBL;ControlDEPCOEFF"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -1334,7 +1418,7 @@
 					<A id="REGISTERLIST4VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
 					<GRID id="WorkTBLGR1" name="Сведения о фактически отработанном времени" table="WORKTBL" readonly="true">
 						<MENU>
-							<MI actionlist="Update;MoveFolder;ConfigTables"/>
+							<MI actionlist="setLID;Update;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -1346,45 +1430,45 @@
 					<A id="REGISTERLIST5VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
 					<GRID id="PaysGR1" name="Расчет" table="PAYS" readonly="true">
 						<MENU>
-							<MI actionlist="View;ConfigTables"/>
+							<MI actionlist="setLID;View;ConfigTables"/>
 						</MENU>
 					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
 		<FORM id="SlcompchargesFRM" name="Выплаты">
-			<GRID id="SlcompchargesGR" name="Выплаты" table="SLCOMPCHARGES" readonly="true"/>
+			<GRID id="SlcompchargesGR" name="Выплаты" table="SLCOMPCHARGES" actionlist="setLID" readonly="true"/>
 		</FORM>
 		<FORM id="AgentaccFRM" name="Лицевые счета, открытые в кредитных организациях">
 			<GRID id="AgentaccGR" name="Лицевые счета, открытые в кредитных организациях" table="AGENTACC"/>
 		</FORM>
 		<FORM id="ElcmtaccFRM" name="Расчетные счета избирательной комиссии">
-			<GRID id="ElcmtaccGR" name="Расчетные счета избирательной комиссии" table="ELCMTACC"/>
+			<GRID id="ElcmtaccGR" name="Расчетные счета избирательной комиссии" table="ELCMTACC" actionlist="setLID"/>
 		</FORM>
 		<FORM id="PersonaccFRM" name="Лицевые счета физических лиц, открытые в кредитных организациях">
-			<GRID id="PersonaccGR" name="Лицевые счета физических лиц, открытые в кредитных организациях" table="PERSON"/>
+			<GRID id="PersonaccGR" name="Лицевые счета физических лиц, открытые в кредитных организациях" table="PERSONACC" actionlist="setLID"/>
 		</FORM>
 		<FORM id="SheetsFRM" name="Расчетно-платёжные ведомости">
-			<GRID id="SheetsGR" name="Расчетно-платёжные ведомости" table="SHEETS" reportlist="PaylistReport">
+			<GRID id="SheetsGR" name="Расчетно-платёжные ведомости" table="SHEETS" actionlist="setLID" reportlist="PaylistReport">
 				<MENU>
 					<MI actionlist="MoveFolder;DisbandSheet;FormRTransfers;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID id="SheetdetailsGR" name="Состав" table="SHEETDETAILS">
 				<MENU>
-					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
 		<FORM id="RegisterstransfersFRM" name="Документы на перечисление">
 			<GRID id="RegisterstransferSGR" name="Документы на перечисление" table="REGISTERSTRANSFERS" reportlist="RegtransfersReport" readonly="true">
 				<MENU>
-					<MI actionlist="View;DisbandTransfers;ExportTransfers;ConfigTables"/>
+					<MI actionlist="setLID;View;DisbandTransfers;ExportTransfers;ConfigTables"/>
 				</MENU>
 			</GRID>
 			<GRID id="SlregtrnprGR" name="Состав" table="SLREGTRNPR" readonly="true">
 				<MENU>
-					<MI actionlist="View;ConfigTables"/>
+					<MI actionlist="setLID;View;ConfigTables"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -1405,34 +1489,74 @@
 		<FORM id="CommitteeManFRMVIRT" name="Члены избирательных комиссий">
 			<GRID id="ElCommGRVIRT" name="Члены избирательных комиссий" table="COMMITTEEMANVIRT"/>
 		</FORM>
+		<FORM id="FinanceelcomFRM" name="Финансовое обеспечение избирательных комиссий">
+			<TABS>
+				<TAB name="Избирательные кампании">
+					<GRID id="ElCampGR1" name="Избирательные кампании" table="ELECTCAMPAIGN" readonly="true"/>
+				</TAB>
+				<TAB name="Избирательные комиссии">
+					<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<GRID id="ElectСommInCampGR1" name="Избирательные комиссии, участвующие в избирательной кампании" table="ELECTCOMMINCAMP" readonly="true">
+						<MENU>
+							<MI actionlist="FormFinanceelcom;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+				<TAB name="Сведения о финансовом обеспечении">
+					<A id="ELECTCAMPAIGN1VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
+					<A id="ELECTCOMMINCAMP1VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
+					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
+					<GRID id="FinanceelcomGR" name="Сведения о финансовом обеспечении" table="FINANCEELCOM" readonly="true">
+						<MENU>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
 		<FORM id="DicNomnsFRM" name="Номенклатор">
-			<GRID id="DicNomnsGR" name="Номенклатор" table="DICNOMNS"/>
+			<GRID id="DicNomnsGR" name="Номенклатор" table="DICNOMNS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="MEMOrderFRM" name="Журналы операций">
-			<GRID id="MEMOrderGR" name="Журналы операций" table="MEMORDER"/>
+			<GRID id="MEMOrderGR" name="Журналы операций" table="MEMORDER" actionlist="setLID"/>
 		</FORM>
 		<FORM id="BudgClassFRM" name="Классификационные признаки счета">
-			<GRID id="BudgClassGR" name="Классификационные признаки счета" table="BUDGCLASS"/>
+			<GRID id="BudgClassGR" name="Классификационные признаки счета" table="BUDGCLASS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="EconclassFRM" name="Коды операций сектора государственного управления">
-			<GRID id="EconclassGR" name="Коды операций сектора государственного управления" table="ECONCLASS"/>
+			<GRID id="EconclassGR" name="Коды операций сектора государственного управления" table="ECONCLASS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="DicAccsFRM" name="План счетов">
-			<GRID id="DicAccsGR" name="План счетов" table="DICACCS"/>
+			<GRID id="DicAccsGR" name="План счетов" table="DICACCS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="TypicalOpersFRM" name="Типовые операции">
-			<GRID id="TypicalOpersGR" name="Типовые операции" table="TYPICALOPERS"/>
-			<GRID id="TypicalOperSpecGR" name="Проводки" table="TYPICALOPERSPEC"/>
+			<GRID id="TypicalOpersGR" name="Типовые операции" table="TYPICALOPERS" actionlist="setLID"/>
+			<GRID id="TypicalOperSpecGR" name="Проводки" table="TYPICALOPERSPEC" actionlist="setLID"/>
 		</FORM>
 		<FORM id="ContractsFRM" name="Договоры">
-			<GRID id="ContractsGR" name="Договоры" table="CONTRACTS"/>
-			<GRID id="StagesGR" name="Проводки" table="STAGES"/>
+			<GRID id="ContractsGR" name="Договоры" table="CONTRACTS" actionlist="setLID"/>
+			<GRID id="StagesGR" name="Проводки" table="STAGES" actionlist="setLID"/>
 		</FORM>
 		<FORM id="JurpersonsFRM" name="Принадлежность">
-			<GRID id="JurpersonsGR" name="Принадлежность" table="JURPERSONS"/>
+			<GRID id="JurpersonsGR" name="Принадлежность" table="JURPERSONS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="DicmuntsFRM" name="Единицы измерения">
-			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS"/>
+			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS" actionlist="setLID"/>
+		</FORM>
+		<FORM id="PayaccountsFRM" name="Расчетные (лицевые) счета в банке">
+			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID"/>
+			<TABS>
+				<TAB name="Платежные поручения">
+					<TABS>
+						<TAB name="Документ">
+							<GRID id="PaydocsGR" name="Документ" table="PAYDOCS" actionlist="setLID"/>
+						</TAB>
+						<TAB name="Расшифровка платежа">
+							<GRID id="PaydocsconsGR" name="Расшифровка платежа" table="PAYDOCSCONS"/>
+						</TAB>
+					</TABS>
+				</TAB>
+			</TABS>
 		</FORM>
 	</FORMS>
 </SYSTEM>
