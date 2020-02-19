@@ -71,7 +71,7 @@ ALTER TABLE public.report_1ags
         -- со статусом "зарегистрирован"
         select count(s.id) into nreg_all 
           from citizenry s, regiondir r 
-         where r.id = s.regiondirid and r.districtfederal = fed.districtfederal and s.conscription = dateofrequest and s.yearconscription = nyear and s.statuscitizen = '1';
+         where r.id = s.regiondirid and r.districtfederal = fed.districtfederal and s.conscription = dateofrequest and s.yearconscription = nyear and s.statuscitizen = '3';
         -- в организации всего
         select count(s.id) into in_org_all 
           from citizenry s, regiondir r, DIRECTION p 
@@ -192,7 +192,7 @@ ALTER TABLE public.report_1ags
           nrows:=nrows+1;  
           select count(s.id) into nreg_all 
             from citizenry s, regiondir r 
-            where r.id = s.regiondirid and r.name = reg.name_reg and s.conscription = dateofrequest and s.yearconscription = nyear and s.statuscitizen = '1';
+            where r.id = s.regiondirid and r.name = reg.name_reg and s.conscription = dateofrequest and s.yearconscription = nyear and s.statuscitizen = '3';
            -- в организации всего
            select count(s.id) into in_org_all 
              from citizenry s, regiondir r, DIRECTION p 
