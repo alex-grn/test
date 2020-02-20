@@ -8,9 +8,9 @@
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
-		<A id="CASHWARRANTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHWARRANT_HEADER" ret="ID" nulls="false"/>
-		<A id="ACCCASHWARRANTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="ACCCASHWARRANT_HEADER" ret="ID" nulls="false"/>
-		<A id="STATEMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="STATEMENT_HEADER" ret="ID" nulls="false"/>
+		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="ID" nulls="false"/>
+		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="ID" nulls="false"/>
+		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="ID" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -105,111 +105,112 @@
 				<A id="JURPERSONSID"/>
 			</GA>
 		</TABLE>
-		<TABLE id="CASHWARRANT_HEADER" name="Приходные кассовые документы">
+		<TABLE id="CASHRECEIPT_HEADER" name="Приходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 				<GA name="Основание" caption="Основание">
-					<A id="DOCTYPEID" readonly="true" value="21" labelwidth="50" width="55"/>
-					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true" value="1">
+					<A id="DOCTYPEID" visible="false" readonly="true" value="21" labelwidth="50" width="100"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" type="number" width="50" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 						<AI id="1" name="Создан"/>
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
 					</A>
-					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" type="number" width="58" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHWARRANT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
-					<A id="DOCDATE" labelwidth="50" width="42"/>
-					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="120"/>
-					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+					<A id="DOCDATE" labelwidth="50" width="43"/>
+					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="49" width="57"/>
 				</GA>				
 				<GA name="Принято от" caption="Принято от">
-					<A id="PERSONID"/>	
+					<A id="PERSONID" labelwidth="120"/>	
 				</GA>
 				<GA name="Основание" caption="Основание">
-						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
-						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
+						<A id="BASIS" name="Основание" caption="Основание" type="string" labelwidth="120"/>
+						<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string" labelwidth="120"/>
 				</GA>
 		</TABLE>
-		<TABLE id="CASHWARRANT" name="ПКО Расшифровка платежа">		
-			<A id="CASHWARRANTHEADERID" parentkey="cascade"/>
+		<TABLE id="CASHRECEIPT" name="ПКО Расшифровка платежа">		
+			<A id="CASHRECEIPTHEADERID" parentkey="cascade"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHWARRANT where CASHWARRANTHEADERID = @CASHWARRANTHEADERID and cid=0" local="true"/>
-				<A id="SUMMPAY" caption="сумма" labelwidth="60" width="80"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT where CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID and cid=0" local="true"/>
+				<A id="SUMMPAY" caption="сумма" labelwidth="60" width="50"/>
 			</GA>
 			<GA name="Типовая операция" caption="Типовая операция">
-				<A id="BUDGCLASSID" labelwidth="150"/>
-				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150"/>
-				<A id="TYPEEXPID" labelwidth="150"/>
-				<A id="TYPICALOPERSID" labelwidth="150"/>
+				<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+				<A id="TYPEEXPID" labelwidth="150" width="50"/>
+				<A id="TYPICALOPERSID" labelwidth="150" width="50"/>
 				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
 			</GA>
 		</TABLE>
-		<TABLE id="ACCCASHWARRANT_HEADER" name="Расходные кассовые документы">
+		<TABLE id="CASHPAYMENT_HEADER" name="Расходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 				<GA name="Основание" caption="Основание">
-					<A id="DOCTYPEID" readonly="true" value="23" labelwidth="50" width="55" nulls="false"/>
-					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true" value="1">
+					<A id="DOCTYPEID" visible="false" readonly="true" value="23" labelwidth="50" width="100" nulls="false"/>
+					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 						<AI id="1" name="Создан"/>
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
 					</A>
-					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
-					<A id="DOCDATE" labelwidth="50" width="80"/>
-					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="120"/>
-					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+					<A id="DOCDATE" labelwidth="50" width="43"/>
+					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="49" width="57"/>
 				</GA>				
 				<GA name="Выдать" caption="Выдать">
-					<A id="PERSONID" nulls="true"/>		
+					<A id="PERSONID" nulls="true" labelwidth="120"/>		
 				</GA>
 				<GA name="Основание" caption="Основание">
-						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
-						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
+						<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
+						<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+						<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				</GA>	
 		</TABLE>
-		<TABLE id="ACCCASHWARRANT" name="РКО Расшифровка платежа">		
-			<A id="ACCCASHWARRANTHEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" readonly="true" visible="false" type="bigint" nulls="false" formula="select t.DOCTYPEID from ACCCASHWARRANT_HEADER t where t.ID = @ACCCASHWARRANTHEADERID" local="true"/>
+		<TABLE id="CASHPAYMENT" name="РКО Расшифровка платежа">		
+			<A id="CASHPAYMENTHEADERID" parentkey="cascade"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" readonly="true" visible="false" type="bigint" nulls="false" formula="select t.DOCTYPEID from CASHPAYMENT_HEADER t where t.ID = @CASHPAYMENTHEADERID" local="true"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT where ACCCASHWARRANTHEADERID = @ACCCASHWARRANTHEADERID and cid=0" local="true"/>
-				<A id="SUMMPAY" labelwidth="60" width="80"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT where CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID and cid=0" local="true"/>
+				<A id="SUMMPAY" labelwidth="60" width="50"/>
 			</GA>
 			<GA name="Типовая операция" caption="Типовая операция">
-				<A id="BUDGCLASSID" labelwidth="150"/>
-				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150"/>
-				<A id="TYPEEXPID" labelwidth="150"/>
-				<A id="TYPICALOPERSID" labelwidth="150"/>
+				<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+				<A id="TYPEEXPID" labelwidth="150" width="50"/>
+				<A id="TYPICALOPERSID" labelwidth="150" width="50"/>
 				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
 			</GA>
 		</TABLE>
 		<TABLE id="STATEMENT_HEADER" name="Платежные ведомости">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 				<GA name="Основание" caption="Основание">
-					<A id="DOCTYPEID" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
-					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true" value="1">
+					<A id="DOCTYPEID" visible="false" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
+					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 						<AI id="1" name="Создан"/>
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
 					</A>
-					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
-					<A id="DOCDATE" labelwidth="50" width="80"/>
-					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="120"/>
-					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+					<A id="DOCDATE" labelwidth="50" width="43"/>
+					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="49" width="57"/>
+
 				</GA>				
 				<GA name="Основание" caption="Основание">
-						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
-						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
+						<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
+						<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+						<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				</GA>	
 		</TABLE>
 		<TABLE id="STATEMENT" name="Платежные ведомости Расшифровка платежа">		
 			<A id="STATEMENTHEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" readonly="true" visible="false" type="bigint" nulls="false" formula="select t.DOCTYPEID from ACCCASHWARRANT_HEADER t where t.ID = @ACCCASHWARRANTHEADERID" local="true"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" readonly="true" visible="false" type="bigint" nulls="false" formula="select t.DOCTYPEID from CASHPAYMENT_HEADER t where t.ID = @CASHPAYMENTHEADERID" local="true"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT where ACCCASHWARRANTHEADERID = @ACCCASHWARRANTHEADERID and cid=0" local="true"/>
-				<A id="SUMMPAY" labelwidth="60" width="80"/>
-				<A id="PERSONID" name="Контрагент" caption="Контрагент" nulls="true"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="80" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STATEMENT where STATEMENTHEADERID = @STATEMENTHEADERID and cid=0" local="true"/>
+				<A id="SUMMPAY" labelwidth="60" width="50"/>
+				<A id="PERSONID" labelwidth="80" name="Контрагент" caption="Контрагент" nulls="true"/>
 			</GA>
 			<GA name="Типовая операция" caption="Типовая операция">
-				<A id="BUDGCLASSID" labelwidth="150"/>
-				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150"/>
-				<A id="TYPEEXPID" labelwidth="150"/>
-				<A id="TYPICALOPERSID" labelwidth="150"/>
+				<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+				<A id="TYPEEXPID" labelwidth="150" width="50"/>
+				<A id="TYPICALOPERSID" labelwidth="150" width="50"/>
 				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
 			</GA>
 		</TABLE>
@@ -280,11 +281,11 @@
 				<TAB name="Приходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">						
-							<GRID id="CASHWARRANTHEADERGR" name="Приходные кассовые документы" table="CASHWARRANT_HEADER">
+							<GRID id="CASHRECEIPTHEADERGR" name="Приходные кассовые документы" table="CASHRECEIPT_HEADER">
 							</GRID>
 						</TAB>	
 						<TAB name="Расшифровка платежа">						
-							<GRID id="CASHWARRANTGR" name="ПКО расшифровка платежа" table="CASHWARRANT">
+							<GRID id="CASHRECEIPTGR" name="ПКО расшифровка платежа" table="CASHRECEIPT">
 							</GRID>
 						</TAB>
 					</TABS>
@@ -292,11 +293,11 @@
 				<TAB name="Расходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">						
-							<GRID id="ACCCASHWARRANTHEADERGR" name="Расходные кассовые документы" table="ACCCASHWARRANT_HEADER">
+							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые документы" table="CASHPAYMENT_HEADER">
 							</GRID>
 						</TAB>	
 						<TAB name="Расшифровка платежа">						
-							<GRID id="ACCCASHWARRANTGR" name="РКО расшифровка платежа" table="ACCCASHWARRANT">
+							<GRID id="CASHPAYMENTGR" name="РКО расшифровка платежа" table="CASHPAYMENT">
 							</GRID>
 						</TAB>
 					</TABS>
