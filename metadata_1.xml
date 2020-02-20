@@ -261,7 +261,7 @@
 		<A id="CONVLOADACTPARAMID" name="Параметр действия" caption="Параметр действия" labelwidth="150" type="ref" table="CONVLOADACTPARAMS" ret="CONVACTPARAMID_ret" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
-		<GA id="Dictionary">
+		<GA id="Dictionary" caption="Словарь">
 			<A id="CODE"/>
 			<A id="NAME"/>
 		</GA>
@@ -272,13 +272,24 @@
 		</GA>
 		<GA id="Document" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" caption="Документ" width="40"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
 			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="DocumentP" name="Документ" caption="Документ">
 			<A id="DOCTYPEID" labelwidth="90" width="20"/>
 			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
+			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
+		</GA>
+		<GA id="DocumentAutoNumb" name="Документ" caption="Документ">
+			<A id="DOCTYPEID" caption="Документ" width="40"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::numeric+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
+		</GA>
+		<GA id="DocumentAutoNumbP" name="Документ" caption="Документ">
+			<A id="DOCTYPEID" labelwidth="90" width="20"/>
+			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::numeric+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
 			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
 		</GA>
 		<GA id="FileInformation" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
@@ -346,6 +357,7 @@
 	<TABLES name="Таблицы">
 		<TABLE id="LEVACCESS" name="Уровни доступа" hid="NAME">
 			<A id="NAME" nulls="false"/>
+			<A id="NOTE"/>
 			<TI unique="NAME"/>
 		</TABLE>
 		<TABLE id="FOLDERS" name="Каталоги" hid="NAME">
@@ -450,8 +462,9 @@
 		</TABLE>
 		<TABLE id="ROLES" name="Роли">
 			<A id="NAME" nulls="false"/>
-			<A id="LEVACCESSID"/>
-			<A id="DISABLED"/>
+			<A id="LEVACCESSID" width="74"/>
+			<A id="DISABLED" width="26"/>
+			<A id="NOTE"/>
 			<TI unique="NAME"/>
 		</TABLE>
 		<TABLE id="ROLEPRIVS" name="Права доступа" hid="UNITID_ret">
@@ -838,7 +851,7 @@
 				<A id="REMOVE" caption="Удалить каскадно из назначения прав" type="boolean" nulls="false" value="true" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_period="0" schedule_start="15" type="procedure" procedure="p_system_transaction_clear"/>
+		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_start="15" schedule_period="0" type="procedure" procedure="p_system_transaction_clear"/>
 		<ACTION id="setLID" name="Установить уровень доступа" type="procedure" procedure="p_system_set_levaccess">
 			<FORM>
 				<A id="LEVACCESSID"/>
