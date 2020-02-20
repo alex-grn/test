@@ -10,6 +10,7 @@
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 		<A id="CASHWARRANTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHWARRANT_HEADER" ret="ID" nulls="false"/>
 		<A id="ACCCASHWARRANTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="ACCCASHWARRANT_HEADER" ret="ID" nulls="false"/>
+		<A id="STATEMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="STATEMENT_HEADER" ret="ID" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -108,7 +109,7 @@
 			<A id="CASHDOCSID" parentkey="cascade"/>
 				<GA name="Основание" caption="Основание">
 					<A id="DOCTYPEID" readonly="true" value="21" labelwidth="50" width="55"/>
-					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true">
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true" value="1">
 						<AI id="1" name="Создан"/>
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
@@ -143,8 +144,8 @@
 		<TABLE id="ACCCASHWARRANT_HEADER" name="Расходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 				<GA name="Основание" caption="Основание">
-					<A id="DOCTYPEID" readonly="false" value="23" labelwidth="50" width="55" nulls="false"/>
-					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true">
+					<A id="DOCTYPEID" readonly="true" value="23" labelwidth="50" width="55" nulls="false"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true" value="1">
 						<AI id="1" name="Создан"/>
 						<AI id="2" name="Оплачен"/>
 						<AI id="3" name="Аннулирован"/>
@@ -161,12 +162,43 @@
 						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
 						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
 				</GA>	
-			<TI id="PERSON_CHECK" name="Заполнение поля Физическое лицо для Ведомости недопустимо" check="DOCTYPEID != 13 or PERSONID is null"/>
-			<TI id="PERSON_CHECK2" name="Заполните поле Физическое лицо или выберите тип Ведомость" check="DOCTYPEID = 23 and PERSONID is not null or DOCTYPEID != 23"/>			
-			<TI id="DOCTYPE_CHECK" name="Неверный тип документа" check="DOCTYPEID = 13 or DOCTYPEID = 23"/>
 		</TABLE>
 		<TABLE id="ACCCASHWARRANT" name="РКО Расшифровка платежа">		
 			<A id="ACCCASHWARRANTHEADERID" parentkey="cascade"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" readonly="true" visible="false" type="bigint" nulls="false" formula="select t.DOCTYPEID from ACCCASHWARRANT_HEADER t where t.ID = @ACCCASHWARRANTHEADERID" local="true"/>
+			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT where ACCCASHWARRANTHEADERID = @ACCCASHWARRANTHEADERID and cid=0" local="true"/>
+				<A id="SUMMPAY" labelwidth="60" width="80"/>
+			</GA>
+			<GA name="Типовая операция" caption="Типовая операция">
+				<A id="BUDGCLASSID" labelwidth="150"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150"/>
+				<A id="TYPEEXPID" labelwidth="150"/>
+				<A id="TYPICALOPERSID" labelwidth="150"/>
+				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
+			</GA>
+		</TABLE>
+		<TABLE id="STATEMENT_HEADER" name="Платежные ведомости">
+			<A id="CASHDOCSID" parentkey="cascade"/>
+				<GA name="Основание" caption="Основание">
+					<A id="DOCTYPEID" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
+					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="45" type="list" readonly="true" value="1">
+						<AI id="1" name="Создан"/>
+						<AI id="2" name="Оплачен"/>
+						<AI id="3" name="Аннулирован"/>
+					</A>
+					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0" local="true"/>
+					<A id="DOCDATE" labelwidth="50" width="80"/>
+					<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="120"/>
+					<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+				</GA>				
+				<GA name="Основание" caption="Основание">
+						<A id="BASIS" name="Основание" caption="Основание" type="string"/>
+						<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string"/>
+				</GA>	
+		</TABLE>
+		<TABLE id="STATEMENT" name="Платежные ведомости Расшифровка платежа">		
+			<A id="STATEMENTHEADERID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" readonly="true" visible="false" type="bigint" nulls="false" formula="select t.DOCTYPEID from ACCCASHWARRANT_HEADER t where t.ID = @ACCCASHWARRANTHEADERID" local="true"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
 				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACCCASHWARRANT where ACCCASHWARRANTHEADERID = @ACCCASHWARRANTHEADERID and cid=0" local="true"/>
@@ -180,8 +212,6 @@
 				<A id="TYPICALOPERSID" labelwidth="150"/>
 				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
 			</GA>
-			<TI id="AGENT_CHECK" name="Необходимо заполнить поле Контрагент" check="DOCTYPEID != 13 or PERSONID is null"/>	
-			<TI id="AGENT_CHECK2" name="Для РКО поле Контрагент не заполняется" check="DOCTYPEID != 23 or PERSONID is not null"/>	
 		</TABLE>
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -247,7 +277,7 @@
 			<GRID id="CashGR" name="Касса избирательной кампании" table="CASHDOCS">
 			</GRID>
 			<TABS>
-				<TAB name="Приходные кассовые документы">
+				<TAB name="Приходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">						
 							<GRID id="CASHWARRANTHEADERGR" name="Приходные кассовые документы" table="CASHWARRANT_HEADER">
@@ -259,7 +289,7 @@
 						</TAB>
 					</TABS>
 				</TAB>
-				<TAB name="Расходные кассовые документы">
+				<TAB name="Расходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">						
 							<GRID id="ACCCASHWARRANTHEADERGR" name="Расходные кассовые документы" table="ACCCASHWARRANT_HEADER">
@@ -267,6 +297,18 @@
 						</TAB>	
 						<TAB name="Расшифровка платежа">						
 							<GRID id="ACCCASHWARRANTGR" name="РКО расшифровка платежа" table="ACCCASHWARRANT">
+							</GRID>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Платежные ведомости">
+					<TABS>
+						<TAB name="Документ">						
+							<GRID id="STATEMENTHEADERGR" name="Платежные ведомости" table="STATEMENT_HEADER">
+							</GRID>
+						</TAB>	
+						<TAB name="Расшифровка платежа">						
+							<GRID id="STATEMENTGR" name="Расшифровка платежа" table="STATEMENT">
 							</GRID>
 						</TAB>
 					</TABS>
