@@ -390,8 +390,8 @@
 			<A id="BIC" name="Код банка (БИК)" labelwidth="200" readonly="true" virtual="true" formula="select B.BIC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
 			<A id="CORRACC" readonly="true" virtual="true" formula="select B.CORRACC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
 			<GA name="Прочие реквизиты для перечислений" caption="Прочие реквизиты для перечислений">
-				<A id="INN" labelwidth="50" width="50" nulls="true"/>
-				<A id="KPP" caption="КПП" labelwidth="50" width="50" nulls="true"/>
+				<A id="INN"  labelwidth="50" width="50" nulls="true"/>
+				<A id="KPP" caption="КПП"  labelwidth="50" width="50" nulls="true"/>
 			</GA>
 			<GA name="Период действия" caption="Период действия">
 				<A id="BEGINDATE" name="Дата открытия" caption="Дата открытия" labelwidth="200" width="40" nulls="false"/>
@@ -994,47 +994,48 @@
 		</TABLE>
 		<TABLE id="PAYDOCS" name="Платежные поручения">
 			<A id="PAYACCOUNTSID" parentkey="cascade"/>
-			<TABS>
-				<TAB name="Документ">
+			<TABS >
+				<TAB name="Документ" >
 					<GA name="Документ" caption="Документ">
-						<A id="STATUS" name="Статус" caption="Статус" width="50" type="list" value="0" local="true">
+						<A id="STATUS" name="Статус" caption="Статус" type="list" width="50" value="0" local="true">
 							<AI id="0" name="В работе"/>
 							<AI id="1" name="На исполнении" readonly="true"/>
 							<AI id="2" name="Исполнен" readonly="true"/>
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" width="50" type="date" local="true"/>
 						<A id="DOCTYPEID" readonly="true" value="16"/>
-						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" nulls="false" type="number"  formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
 						<A id="DOCDATE" width="50"/>
 						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||f.docdate from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
-						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" width="50"/>
-						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="" local="true"/>
-					</GA>
+						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС"  width="50"/>
+						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" type="number"  width="50" readonly="true" virtual="true" formula="" local="true"/>
+					</GA>			
 					<GA name="Реквизиты платежа" caption="Реквизиты платежа">
-						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24)" type="text" nulls="false" local="true"/>
-						<A id="EXPDATE" name="Срок платежа (19)" caption="Срок платежа (19)" type="date" local="true"/>
-						<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
+						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24)" type="text" local="true" nulls="false"/>
+						<A id="EXPDATE" name="Срок платежа (19)" caption="Срок платежа (19)"  type="date" local="true"/>
+						<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)"  type="list" local="true" nulls="false">
 							<AI id="1" name="1"/>
 							<AI id="2" name="3"/>
 							<AI id="3" name="3"/>
 							<AI id="4" name="4"/>
 							<AI id="5" name="5"/>
 						</A>
-						<A id="IDPAYMENT" name="Код (22)" caption="Код (22)" type="string" local="true"/>
-					</GA>
+						<A id="IDPAYMENT" name="Код (22)" caption="Код (22)"  type="string" local="true"/>
+											
+					</GA>	
 				</TAB>
-				<TAB name="Плательщик">
+				<TAB name="Плательщик" >
 					<GA name="Плательщик" caption="Плательщик">
-						<A id="ELECTCOMMITTEE" name="Избирательная комиссия" caption="Юр. лицо" labelwidth="200" type="string" readonly="true" virtual="true" formula="" local="true"/>
-						<A id="ELCMTACCCODE" name="Расчетный счет избирательной комиссии" caption="Счет получателя" labelwidth="200" type="string" readonly="true" virtual="true" formula="" local="true"/>
+						<A id="ELECTCOMMITTEE" name="Избирательная комиссия" caption="Юр. лицо" type="string" labelwidth="200" readonly="true" virtual="true" formula="" local="true"/>
+						<A id="ELCMTACCCODE" name="Расчетный счет избирательной комиссии" caption="Счет получателя"  type="string" labelwidth="200" readonly="true" virtual="true" formula="" local="true"/>
 						<A id="ELECTCOMMITTEENAME" name="Наименование плательщика" caption="Наименование плательщика" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
 						<A id="INNEC" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
 						<A id="KPPEC" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-						<A id="AGENTBANKSEC" name="Банк плательщика" caption="Банк плательщика" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
-						<A id="BICBANKEC" name="БИК" caption="БИК" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-						<A id="CORRACCEC" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-					</GA>
+						<A id="AGENTBANKSEC"  name="Банк плательщика" caption="Банк плательщика" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
+						<A id="BICBANKEC" name="БИК" caption="БИК" labelwidth="70" width="50"  readonly="true"  type="string" virtual="true" formula="" local = "true"/>
+						<A id="CORRACCEC" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula=""  local="true"/>
+					</GA>						
 				</TAB>
 				<TAB name="Получатель">
 					<GA name="Получатель" caption="Получатель">
@@ -1044,34 +1045,36 @@
 							<A id="AGENTNAME" name="Наименование получателя" caption="Наименование получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
 							<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
 							<A id="KPPAG" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-							<A id="AGENTBANKSAGID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
-							<A id="BICBANKAGENT" name="БИК" caption="БИК" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-							<A id="CORRACCAG" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="AGENTBANKSAGID"  name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="BICBANKAGENT" name="БИК" caption="БИК" labelwidth="70" width="50"  readonly="true"  type="string" virtual="true" formula="" local = "true"/>
+							<A id="CORRACCAG" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula=""  local="true"/>
 						</GA>
 						<GA name="Физическое лицо" caption="Физическое лицо">
-							<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="200" nulls="true"/>
-							<A id="PERSONACCDOCID" name="Счет получателя" caption="Счет получателя" labelwidth="200" nulls="true"/>
+							<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="200"  nulls="true"/>
+							<A id="PERSONACCDOCID"  name="Счет получателя" caption="Счет получателя" labelwidth="200" nulls="true"/>
 							<A id="PERSONNAME" name="Наименование получателя" caption="Наименование получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
 							<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
 							<A id="KPPPRS" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
 							<A id="AGENTBANKSPRSID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="" local="true"/>
-							<A id="BICBANKPERSON" name="БИК" caption="БИК" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
-							<A id="CORRACCPRS" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="" local="true"/>
+							<A id="BICBANKPERSON" name="БИК" caption="БИК" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula="" local = "true"/>
+							<A id="CORRACCPRS" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" readonly="true"  type="string" virtual="true" formula="" local = "true"/>
 						</GA>
 					</GA>
+
 				</TAB>
 			</TABS>
 			<TI unique="PAYACCOUNTSID, DOCNUMB"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
+			<!-- <TI id="NULLSREC_CHECK" name="Не заполнен получатель!" check="AGENTID is not null and PERSONID is not null"/> -->
 		</TABLE>
 		<TABLE id="PAYDOCSCONS" name="Расшифровка платежа (Платежные поручения)">
 			<A id="PAYDOCSID" parentkey="cascade"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID" local="true"/>
-			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="600" type="number" len="10.2" nulls="false" local="true"/>
-			<A id="BUDGCLASSID" labelwidth="70" width="50"/>
-			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="70" width="50"/>
+			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="600" nulls="false" type="number" len="10.2" local="true"/>
+			<A id="BUDGCLASSID" labelwidth="70" width="50" />
+			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="70" width="50"/> 
 			<A id="TYPEEXPID" labelwidth="200" nulls="true"/>
-			<A id="TYPICALOPERSID" labelwidth="200" nulls="false"/>
+			<A id="TYPICALOPERSID" labelwidth="200"  nulls="false"/>
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 	</TABLES>
@@ -1251,6 +1254,7 @@
 				<A id="SUPERVISOR" name="Председатель" caption="Председатель" type="ref" table="PERSON" ret="NAME" form="FormPerson" nulls="false"/>
 			</FORM>
 		</REPORT>
+		
 		<REPORT id="WorkdaysErrorLog" name="Протокол проверки сведений о ФОВ" procedure="" template="workdays_error_log.xls"/>
 		<REPORT id="ScheduleTik" name="График работы" procedure="" template="schedule_tik.xls"/>
 	</REPORTS>
