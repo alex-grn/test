@@ -8,9 +8,9 @@
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
-		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="ID" nulls="false"/>
-		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="ID" nulls="false"/>
-		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="ID" nulls="false"/>
+		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
+		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="DOCNUMB" nulls="false"/>
+		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -224,44 +224,70 @@
 		</TABLE>
 		<TABLE id="EXPENSE_DOCS" name="Документы аванса">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+			<A id="DOCDATE" labelwidth="50" width="43"/>
+			<A id="PERSONID" name="Контрагент" caption="Контрагент" nulls="true" labelwidth="160"/>
+			<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
+			<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
 		</TABLE>
 		<TABLE id="PREPAID_EXPENSE" name="Аванс">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<GA name="Получено" caption="Получено">
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="CASHPAYMENTHEADERID" name="Документ" width="50"/>
+				<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
+			</GA>				
 		</TABLE>
 		<TABLE id="EXPENDED" name="Израсходовано">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<GA name="Приходный документ" caption="Приходный документ">
+				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="DOCDATE" labelwidth="50" width="45"/>
+				<A id="PURPOSE" name="Кому и по какому документу уплачено" caption="Кому и по какому документу уплачено" labelwidth="100" type="text"/>
+			</GA>
+			<GA name="Суммы" caption="Суммы">
+				<A id="REPORTSUMM" name="По отчету" caption="По отчету" readonly="false" type="number" len="8.2" nulls="true" labelwidth="100" width="47"/>
+				<A id="REGISTERSUMM" name="Принято к учету" caption="Принято к учету" readonly="false" type="number" len="8.2" nulls="true" labelwidth="60" width="53"/>
+			</GA>
 		</TABLE>
 		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<GA name="Перерасход выдан" caption="Перерасход выдан">
+				<A id="CASHPAYMENTHEADERID" name="Документ" width="50"/>
+				<A id="SUMMPAYMENT" name="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
+			</GA>
+			<GA name="Остаток внесен" caption="Остаток внесен">
+				<A id="CASHRECEIPTHEADERID" name="Документ" width="50"/>
+				<A id="SUMMRECEIPT" name="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
+			</GA>
 		</TABLE>
 		<TABLE id="EXPENSE_OPERATIONS" name="Типовые операции">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
 			<GA name="Типовая операция" caption="Типовая операция">
-				<A id="TYPICALOPERSID" labelwidth="150"/>
-				<A id="BUDGCLASSID" labelwidth="150"/>
-				<A id="TYPEEXPID" labelwidth="150"/>
-			</GA>
-			<GA name="Проводка" caption="Проводка">
-					<A id="KPS" name="КПС" labelwidth="150" type="string" readonly="true" virtual="true" formula="select t.CODE from BUDGCLASS t where t.id = @BUDGCLASSID"/>
-				<GA name="Дебет" caption="Дебет">
-					<A id="DTACCNUMB" name="Счет" caption="Счет" labelwidth="50" width="20" type="string" readonly="true" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
-					<A id="DTACCNAME" name="Счет" caption=" " labelwidth="50" width="80" readonly="true" type="string" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountdtid"/>
-					<A id="DTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="50" type="string" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassdtid"/>
-				</GA>
-				<GA name="Кредит" caption="Кредит">
-					<A id="KTACCNUMB" name="Счет" caption="Счет" labelwidth="50" width="20" readonly="true" type="string" virtual="true" formula="select d.ACCNUMB from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
-					<A id="KTACCNAME" name="Счет" labelwidth="50" readonly="true" width="80" type="string" virtual="true" formula="select d.ACCNAME from typicaloperspec t, dicaccs d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.accountktid"/>
-					<A id="KTECONCLASSNUMB" name="КОСГУ" caption="КОСГУ" labelwidth="50" type="string" readonly="true" virtual="true" formula="select d.CODE from typicaloperspec t, econclass d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.econclassktid"/>
-				</GA>
-				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" type="string" labelwidth="150" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
+				<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+				<A id="TYPEEXPID" labelwidth="150" width="100"/>
+				<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
+				<A id="MEMORDER" name="Журнал операций" caption="Журнал операций" labelwidth="150" type="string" readonly="true" virtual="true" formula="select d.NAME from typicaloperspec t, memorder d where t.TYPICALOPERSID = @TYPICALOPERSID and d.ID = t.memorderid"/>
 			</GA>
 		</TABLE>		
 	</TABLES>
 	<ACTIONS name="Действия">
-		<ACTION id="FileTreatment" name="" type="script" actionlist="FilelinksToFilebuffer;ConvPrepare">
-			<P id="convname" value="test_excel"/>
-			<P id="errorone" value="false"/>
+		<ACTION id="StatusINPUTKRF1" name="Смена статуса" type="procedure" procedure="p_action_status">
+			<P id="values" value="1"/>
 		</ACTION>
+		<ACTION id="StatusINPUTKRF2" name="Смена статуса" type="procedure" procedure="p_action_status">
+			<P id="values" value="2"/>
+		</ACTION>
+		<ACTION id="StatusINPUTKRF3" name="Смена статуса" type="procedure" procedure="p_action_status">
+			<P id="values" value="3"/>
+		</ACTION>
+		<ACTION id="StatusINPUTKRF4" name="Смена статуса" type="procedure" procedure="p_action_status">
+			<P id="values" value="4"/>
+		</ACTION>
+		<ACTION id="uploadFileInINPUTKRF" name="Загрузка файла" type="script" actionlist="StatusINPUTKRF1;uploadFilelinks;StatusINPUTKRF2"/>
+		<ACTION id="ConvertFileFromINPUTKRF" name="Конвертировать файл" type="procedure" procedure="p_action_file_convert"/>
+		<ACTION id="FileTreatment" name="" type="script" actionlist="StatusINPUTKRF3;FilelinksToFilebuffer;p_action_file_convert;StatusINPUTKRF4"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 			<REPORT id="PROXYREP" name="Доверенность" procedure="" template="proxy.xls"/>
@@ -276,7 +302,7 @@
 			<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
 		</FORM>
 		<FORM id="INPUTKRFFRM" name="Загрузка данных из комплектов расчетных форм">
-			<GRID id="INPUTKRFGR" name="Загрузка данных из комплектов расчетных форм" table="INPUTKRF" actionlist="uploadFilelinks;loadFilelinks"/>
+			<GRID id="INPUTKRFGR" name="Загрузка данных из комплектов расчетных форм" table="INPUTKRF" actionlist="uploadFileInINPUTKRF;loadFilelinks"/>
 			<GRID id="ERRORKRFGR" name="Ошибки комплектов расчетных форм" table="ERRORKRF" readonly="true"/>
 		</FORM>
 		<FORM id="CashFRM" name="Касса избирательной кампании">
