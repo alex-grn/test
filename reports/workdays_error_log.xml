@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="workdays_error_log.xls" documentPath="workdays_error_log.xls" outputType="xls" outputNamePattern="workdays_error_log.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select d2s(now()::date) as date_check,
+									r.code as code_doc,
+									k.code as name_choiser,
+									ik.name as electcom
+								from register r,
+									electcampaign k,
+									electcommincamp i,
+									electcommittee ik,
+									registerlist rs,
+									committeeman c,
+									worktbl w
+								where r.id = ${id}::bigint
+								and k.id = r.electcampaignid
+								and rs.registerid = r.id
+								and c.id = rs.committeemanid
+								and w.registerlistid = rs.id
+								and i.id = r.electcommincampid
+								and ik.id = i.electcommitteeid
+								and w.errwh is not null
+								limit 1
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+								select 
+									COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio,
+									d2s(w.datetbl) as dates,
+									w.errwh as result
+								from register r,
+									electcampaign k,
+									electcommincamp i,
+									electcommittee ik,
+									registerlist rs,
+									committeeman c,
+									person p,
+									worktbl w
+								where r.id = ${id}::bigint
+								and k.id = r.electcampaignid
+								and rs.registerid = r.id
+								and c.id = rs.committeemanid
+								and w.registerlistid = rs.id
+								and i.id = r.electcommincampid
+								and ik.id = i.electcommitteeid
+								and p.id = c.personid
+								and (w.errwh is not null and w.errwh != '')
+								order by fio,w.datetbl
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

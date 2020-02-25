@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="krf_f_zp_pl_no.xls" documentPath="krf_f_zp_pl_no.xls" outputType="xls" outputNamePattern="krf_f_zp_pl_no.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+			<band name="shedule_head" orientation="H">
+				<queries>
+                     <query name="shedule_head" type="sql">
+                        <script>
+								select 
+									e.name as name_choice,
+									d2s(r.enddate) as edate_ik,
+									ik.discoefffed as r_coef, --федеральный коэффициент, для региона discoefreg 
+									fn.value as max_v_coef,   --предельный размер коффициента
+									f1.value as dop_pay_chairman,
+									f2.value as dop_pay_prchairman,
+									f3.value as dop_pay_secret,
+									f4.value as dop_pay_otherman,
+									case  
+										when ik.levelelcommittee = 'district' then (select kk.rnameec from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
+										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.rnameec 
+									end as rod_tik,
+                                    r.enddate-r.begindate+1 as count_w,
+									(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = el.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсация%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_all_uik,
+									(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = el.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_all_uik_dop,
+									IK.name as name_ik,
+									IK.CODE AS id_ik,
+									ik.elecdistnumb as num_ik,
+									el.countvtr as count_ik,
+									p_report_members_from_registerlist(r.id,1,'fio') as fio1,   p_report_members_from_registerlist(r.id,1,'post') AS post1,   p_report_members_from_registerlist(r.id,1,'bdate') as bdate1,   p_report_members_from_registerlist(r.id,1,'edate') as edate1,  p_report_members_from_registerlist(r.id,1,'fio_code') as id_fio1,  (case p_report_members_from_registerlist(r.id,1,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,1,'avgsum') end)::numeric as avg_sum1,  
+									p_report_members_from_registerlist(r.id,2,'fio') as fio2,   p_report_members_from_registerlist(r.id,2,'post') AS post2,   p_report_members_from_registerlist(r.id,2,'bdate') as bdate2,   p_report_members_from_registerlist(r.id,2,'edate') as edate2,  p_report_members_from_registerlist(r.id,2,'fio_code') as id_fio2,  (case p_report_members_from_registerlist(r.id,2,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,2,'avgsum') end)::numeric as avg_sum2,  
+									p_report_members_from_registerlist(r.id,3,'fio') as fio3,   p_report_members_from_registerlist(r.id,3,'post') AS post3,   p_report_members_from_registerlist(r.id,3,'bdate') as bdate3,   p_report_members_from_registerlist(r.id,3,'edate') as edate3,  p_report_members_from_registerlist(r.id,3,'fio_code') as id_fio3,  (case p_report_members_from_registerlist(r.id,3,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,3,'avgsum') end)::numeric as avg_sum3,  
+									p_report_members_from_registerlist(r.id,4,'fio') as fio4,   p_report_members_from_registerlist(r.id,4,'post') AS post4,   p_report_members_from_registerlist(r.id,4,'bdate') as bdate4,   p_report_members_from_registerlist(r.id,4,'edate') as edate4,  p_report_members_from_registerlist(r.id,4,'fio_code') as id_fio4,  (case p_report_members_from_registerlist(r.id,4,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,4,'avgsum') end)::numeric as avg_sum4,  
+									p_report_members_from_registerlist(r.id,5,'fio') as fio5,   p_report_members_from_registerlist(r.id,5,'post') AS post5,   p_report_members_from_registerlist(r.id,5,'bdate') as bdate5,   p_report_members_from_registerlist(r.id,5,'edate') as edate5,  p_report_members_from_registerlist(r.id,5,'fio_code') as id_fio5,  (case p_report_members_from_registerlist(r.id,5,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,5,'avgsum') end)::numeric as avg_sum5,  
+									p_report_members_from_registerlist(r.id,6,'fio') as fio6,   p_report_members_from_registerlist(r.id,6,'post') AS post6,   p_report_members_from_registerlist(r.id,6,'bdate') as bdate6,   p_report_members_from_registerlist(r.id,6,'edate') as edate6,  p_report_members_from_registerlist(r.id,6,'fio_code') as id_fio6,  (case p_report_members_from_registerlist(r.id,6,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,6,'avgsum') end)::numeric as avg_sum6,  
+									p_report_members_from_registerlist(r.id,7,'fio') as fio7,   p_report_members_from_registerlist(r.id,7,'post') AS post7,   p_report_members_from_registerlist(r.id,7,'bdate') as bdate7,   p_report_members_from_registerlist(r.id,7,'edate') as edate7,  p_report_members_from_registerlist(r.id,7,'fio_code') as id_fio7,  (case p_report_members_from_registerlist(r.id,7,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,7,'avgsum') end)::numeric as avg_sum7,  
+									p_report_members_from_registerlist(r.id,8,'fio') as fio8,   p_report_members_from_registerlist(r.id,8,'post') AS post8,   p_report_members_from_registerlist(r.id,8,'bdate') as bdate8,   p_report_members_from_registerlist(r.id,8,'edate') as edate8,  p_report_members_from_registerlist(r.id,8,'fio_code') as id_fio8,  (case p_report_members_from_registerlist(r.id,8,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,8,'avgsum') end)::numeric as avg_sum8,  
+									p_report_members_from_registerlist(r.id,9,'fio') as fio9,   p_report_members_from_registerlist(r.id,9,'post') AS post9,   p_report_members_from_registerlist(r.id,9,'bdate') as bdate9,   p_report_members_from_registerlist(r.id,9,'edate') as edate9,  p_report_members_from_registerlist(r.id,9,'fio_code') as id_fio9,  (case p_report_members_from_registerlist(r.id,9,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,9,'avgsum') end)::numeric as avg_sum9,  
+									p_report_members_from_registerlist(r.id,10,'fio') as fio10, p_report_members_from_registerlist(r.id,10,'post') AS post10, p_report_members_from_registerlist(r.id,10,'bdate') as bdate10, p_report_members_from_registerlist(r.id,10,'edate') as edate10,p_report_members_from_registerlist(r.id,10,'fio_code') as id_fio10,(case p_report_members_from_registerlist(r.id,10,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,10,'avgsum') end)::numeric as avg_sum10,
+									p_report_members_from_registerlist(r.id,11,'fio') as fio11, p_report_members_from_registerlist(r.id,11,'post') AS post11, p_report_members_from_registerlist(r.id,11,'bdate') as bdate11, p_report_members_from_registerlist(r.id,11,'edate') as edate11,p_report_members_from_registerlist(r.id,11,'fio_code') as id_fio11,(case p_report_members_from_registerlist(r.id,11,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,11,'avgsum') end)::numeric as avg_sum11,
+									p_report_members_from_registerlist(r.id,12,'fio') as fio12, p_report_members_from_registerlist(r.id,12,'post') AS post12, p_report_members_from_registerlist(r.id,12,'bdate') as bdate12, p_report_members_from_registerlist(r.id,12,'edate') as edate12,p_report_members_from_registerlist(r.id,12,'fio_code') as id_fio12,(case p_report_members_from_registerlist(r.id,12,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,12,'avgsum') end)::numeric as avg_sum12,
+									p_report_members_from_registerlist(r.id,13,'fio') as fio13, p_report_members_from_registerlist(r.id,13,'post') AS post13, p_report_members_from_registerlist(r.id,13,'bdate') as bdate13, p_report_members_from_registerlist(r.id,13,'edate') as edate13,p_report_members_from_registerlist(r.id,13,'fio_code') as id_fio13,(case p_report_members_from_registerlist(r.id,13,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,13,'avgsum') end)::numeric as avg_sum13,
+									p_report_members_from_registerlist(r.id,14,'fio') as fio14, p_report_members_from_registerlist(r.id,14,'post') AS post14, p_report_members_from_registerlist(r.id,14,'bdate') as bdate14, p_report_members_from_registerlist(r.id,14,'edate') as edate14,p_report_members_from_registerlist(r.id,14,'fio_code') as id_fio14,(case p_report_members_from_registerlist(r.id,14,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,14,'avgsum') end)::numeric as avg_sum14,
+									p_report_members_from_registerlist(r.id,15,'fio') as fio15, p_report_members_from_registerlist(r.id,15,'post') AS post15, p_report_members_from_registerlist(r.id,15,'bdate') as bdate15, p_report_members_from_registerlist(r.id,15,'edate') as edate15,p_report_members_from_registerlist(r.id,15,'fio_code') as id_fio15,(case p_report_members_from_registerlist(r.id,15,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,15,'avgsum') end)::numeric as avg_sum15,
+									p_report_members_from_registerlist(r.id,16,'fio') as fio16, p_report_members_from_registerlist(r.id,16,'post') AS post16, p_report_members_from_registerlist(r.id,16,'bdate') as bdate16, p_report_members_from_registerlist(r.id,16,'edate') as edate16,p_report_members_from_registerlist(r.id,16,'fio_code') as id_fio16,(case p_report_members_from_registerlist(r.id,16,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,16,'avgsum') end)::numeric as avg_sum16,
+									p_report_members_from_registerlist(r.id,17,'fio') as fio17, p_report_members_from_registerlist(r.id,17,'post') AS post17, p_report_members_from_registerlist(r.id,17,'bdate') as bdate17, p_report_members_from_registerlist(r.id,17,'edate') as edate17,p_report_members_from_registerlist(r.id,17,'fio_code') as id_fio17,(case p_report_members_from_registerlist(r.id,17,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,17,'avgsum') end)::numeric as avg_sum17,
+									p_report_members_from_registerlist(r.id,18,'fio') as fio18, p_report_members_from_registerlist(r.id,18,'post') AS post18, p_report_members_from_registerlist(r.id,18,'bdate') as bdate18, p_report_members_from_registerlist(r.id,18,'edate') as edate18,p_report_members_from_registerlist(r.id,18,'fio_code') as id_fio18,(case p_report_members_from_registerlist(r.id,18,'avgsum') when '' then '0' else p_report_members_from_registerlist(r.id,18,'avgsum') end)::numeric as avg_sum18,
+									ik.rnameec as rod_uik,
+									ik.dnameec as dat_uik,
+									ik.tnameec as tv_uik
+								from register r			--Расчетные документы
+									inner join electcommincamp el on el.id = r.electcommincampid	--Избирательные комиссии, участвующие в кампании
+									inner join ELECTCOMMITTEE IK on ik.id = el.electcommitteeid	--Избирательные комиссии
+									inner join electcampaign e on e.id = r.electcampaignid		--Избирательные кампании
+									inner join regionsrf reg on reg.id = ik.regionsrfid		--Субъекты Российской Федерации
+									left join FEDELECCAMP f on f.id = e.fedeleccampid		--Федеральные избирательные кампании
+									left join NORMSFEDEC fk on fk.fedeleccampid = f.id
+															and fk.namenorms = 'limitcomp'  --Предельный размер компенсации за полный месяц работы для региона
+															and fk.regionsrfid = reg.id	--Нормы оплаты труда при проведении федеральных выборов (для компенсации)
+									left join NORMSFEDEC fn on fn.fedeleccampid = f.id
+															and fn.namenorms = 'depcoeffmax'  --Предельный размер компенсации за полный месяц работы для региона
+									left join NORMSFEDEC f1 on f1.fedeleccampid = f.id
+                                                            and f1.namenorms = 'reward'  --Предельный размер компенсации за полный месяц работы для региона
+                                                            and f1.postsid = (select p.id from posts p where upper(p.postprint) = 'CHAIRMAN' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f1.mcircuit = el.mcircuit
+                                    left join NORMSFEDEC f2 on f2.fedeleccampid = f.id
+                                                            and f2.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
+                                                            and f2.postsid = (select p.id from posts p where upper(p.postprint) = 'DEPCHAIRMAN' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f2.mcircuit = el.mcircuit
+                                    left join NORMSFEDEC f3 on  f3.fedeleccampid = f.id
+                                                            and f3.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
+                                                            and f3.postsid = (select p.id from posts p where upper(p.postprint) = 'SECRETARY' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f3.mcircuit = el.mcircuit
+                                    left join NORMSFEDEC f4 on  f4.fedeleccampid = f.id
+                                                            and f4.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
+                                                            and f4.postsid = (select p.id from posts p where upper(p.postprint) = 'ZOTHERCM' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
+                                                            and f4.mcircuit = el.mcircuit
+								where r.id = ${id}::bigint
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_spec1" orientation="H">
+				<queries>
+                     <query name="shedule_spec1" type="sql">
+                        <script>
+							    select d2s(w.datetbl) as date1, t.code as type1
+								 from registerlist r
+								      left join worktbl w on w.registerlistid = r.id
+									  left join typeday t on t.id = w.typedayid
+								where r.registerid = ${id}::bigint
+								group by w.datetbl, t.code
+								order by w.datetbl
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="shedule_floor" orientation="H">
+				<queries>
+                     <query name="shedule_floor" type="sql">
+                        <script>
+								select
+								(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсация%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_comp,
+								(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_dop
+								from register r
+								inner join electcampaign el on el.id = r.electcampaignid
+								inner join electcommincamp i on i.id = r.electcommincampid
+								inner join electcommittee ik on ik.id = i.electcommitteeid 
+								left join mfin m on m.electcommitteeid = ik.id and now() >= m.begindate and (m.enddate >=now() or m.enddate is null) and m.mfin::integer in (1,3)
+								where r.id = ${id}::bigint
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

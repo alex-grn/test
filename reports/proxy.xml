@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="proxy.xls" documentPath="proxy.xls" outputType="xls" outputNamePattern="proxy.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								 select p.docnumb as num_d,
+										d2s(p.DOCDATE) as date_v,
+										d2s(p.ENDDATE) as valid,
+										k.code as post_fio,
+										a.name as postav,
+										'Договор № '||c.docnumb||' от '||d2s(c.docdate) as num_date,
+										i.officialname as org,
+										COALESCE(acc.bankacc,'')||' в '||COALESCE(a.name,'')||', БИК '||
+										COALESCE(b.bic,'')||', к/с '||COALESCE(b.corracc,'') as num_acc,
+										COALESCE(k.surname,'')||' '||COALESCE(k.firstname,'')||' '||
+										COALESCE(k.middlename,'') as dover,
+										d.docseries as p_ser,
+										d.docnumb as p_num,
+										d.docoutagent as who_give,
+										d2s(d.docoutdate) as date_vid,
+										'Договор № '||COALESCE(c.DOCNUMB,'')||' от '||COALESCE(d2s(c.DOCDATE),'')||', '||
+										COALESCE(p.DOCNAME,'')||' №:'||COALESCE(p.DOCNUMBER,'')||' от '||
+										COALESCE(d2s(p.DOCNAMEDATE),'') as mat_cen
+									from proxy p
+									left join person k on k.id = p.personid
+									left join contracts c on c.id = p.contractid
+									left join agent a on a.id = c.agentid
+									left join jurpersons j on j.id = p.jurpersonsid
+									left join electcommittee i on i.id = j.electcommitteeid
+									left join agentacc acc on acc.id = c.agentaccid
+									left join agentbanks b on b.id = acc.agentbanksid
+									left join persdocs d on d.personid = k.id
+									where p.id = ${id}::integer
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+								select g.numbpp as pp,
+									d.code as mat_cen,
+									m.name as ed_iz,
+									g.quantity||' ('||substr(p_tools_to_propis(g.quantity),1, strpos(p_tools_to_propis(g.quantity),' р')-1)||')' as count_p
+								from GOODS g
+								left join stages s on s.id = g.STAGESID
+								left join DICNOMNS d on d.id = s.dicnomnsid
+								left join DICMUNTS m on m.id = d.dicmuntsid
+								where g.proxyid = ${id}::integer
+								order by g.numbpp
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H"/>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

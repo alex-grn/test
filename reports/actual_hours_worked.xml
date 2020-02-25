@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="actual_hours_worked.xls" documentPath="actual_hours_worked.xls" outputType="xls" outputNamePattern="actual_hours_worked.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select 	
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${chairman}::bigint) as fio_chairman,
+									(SELECT E.NAME FROM REGISTER R, ELECTCOMMINCAMP I, ELECTCOMMITTEE E WHERE R.ID = ${id}::bigint AND I.ID = R.ELECTCOMMINCAMPID AND E.ID = I.ELECTCOMMITTEEID) as name_ik,
+									(SELECT E.RNAMEEC FROM REGISTER R, ELECTCOMMINCAMP I, ELECTCOMMITTEE E WHERE R.ID = ${id}::bigint AND I.ID = R.ELECTCOMMINCAMPID AND E.ID = I.ELECTCOMMITTEEID) as name_ik_r,
+									(SELECT E.NAME FROM REGISTER R, ELECTCAMPAIGN E WHERE R.ID = ${id}::bigint AND E.ID = R.ELECTCAMPAIGNID) as election,
+									(select case p_tools_dmonth_to_nmonth(r.begindate)-p_tools_dmonth_to_nmonth(r.enddate) 
+									       when 0 then p_tools_dmonth_to_smonth(r.begindate) 
+										   else p_tools_dmonth_to_smonth(r.begindate)||'-'||p_tools_dmonth_to_smonth(r.enddate) 
+										   end  
+									 from register r where r.id = ${id}::bigint) as months,
+									 (select to_char(r.begindate,'yyyy') from register r where r.id = ${id}::bigint) as year,
+								   col1 as fio1,
+								   col2 as fio2,
+								   col3 as fio3,
+								   col4 as fio4,
+								   col5 as fio5,
+								   col6 as fio6,
+								   col7 as fio7,
+								   col8 as fio8,
+								   col9 as fio9,
+								   col10 as fio10,
+								   col11 as fio11,
+								   col12 as fio12,
+								   col13 as fio13,
+								   col14 as fio14,
+								   col15 as fio15,
+								   col16 as fio16,
+								   col17 as fio17,
+								   col18 as fio18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'fio'
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							  select
+								   date as dates,
+								   type_day,
+								   col1 as times1,
+								   col2 as times2,
+								   col3 as times3,
+								   col4 as times4,
+								   col5 as times5,
+								   col6 as times6,
+								   col7 as times7,
+								   col8 as times8,
+								   col9 as times9,
+								   col10 as times10,
+								   col11 as times11,
+								   col12 as times12,
+								   col13 as times13,
+								   col14 as times14,
+								   col15 as times15,
+								   col16 as times16,
+								   col17 as times17,
+								   col18 as times18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'time'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec2" orientation="H">
+				<queries>
+                     <query name="spec2" type="sql">
+                        <script>
+							  select
+								   col1 as worked_hours1,
+								   col2 as worked_hours2,
+								   col3 as worked_hours3,
+								   col4 as worked_hours4,
+								   col5 as worked_hours5,
+								   col6 as worked_hours6,
+								   col7 as worked_hours7,
+								   col8 as worked_hours8,
+								   col9 as worked_hours9,
+								   col10 as worked_hours10,
+								   col11 as worked_hours11,
+								   col12 as worked_hours12,
+								   col13 as worked_hours13,
+								   col14 as worked_hours14,
+								   col15 as worked_hours15,
+								   col16 as worked_hours16,
+								   col17 as worked_hours17,
+								   col18 as worked_hours18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'worked_hours'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec3" orientation="H">
+				<queries>
+                     <query name="spec3" type="sql">
+                        <script>
+							  select
+								   col1 as compensation1,
+								   col2 as compensation2,
+								   col3 as compensation3,
+								   col4 as compensation4,
+								   col5 as compensation5,
+								   col6 as compensation6,
+								   col7 as compensation7,
+								   col8 as compensation8,
+								   col9 as compensation9,
+								   col10 as compensation10,
+								   col11 as compensation11,
+								   col12 as compensation12,
+								   col13 as compensation13,
+								   col14 as compensation14,
+								   col15 as compensation15,
+								   col16 as compensation16,
+								   col17 as compensation17,
+								   col18 as compensation18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'compensation'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec4" orientation="H">
+				<queries>
+                     <query name="spec4" type="sql">
+                        <script>
+							  select
+								   col1 as extra_pay1,
+								   col2 as extra_pay2,
+								   col3 as extra_pay3,
+								   col4 as extra_pay4,
+								   col5 as extra_pay5,
+								   col6 as extra_pay6,
+								   col7 as extra_pay7,
+								   col8 as extra_pay8,
+								   col9 as extra_pay9,
+								   col10 as extra_pay10,
+								   col11 as extra_pay11,
+								   col12 as extra_pay12,
+								   col13 as extra_pay13,
+								   col14 as extra_pay14,
+								   col15 as extra_pay15,
+								   col16 as extra_pay16,
+								   col17 as extra_pay17,
+								   col18 as extra_pay18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'extra_pay'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec5" orientation="H">
+				<queries>
+                     <query name="spec5" type="sql">
+                        <script>
+							  select
+								   col1 as night_time1,
+								   col2 as night_time2,
+								   col3 as night_time3,
+								   col4 as night_time4,
+								   col5 as night_time5,
+								   col6 as night_time6,
+								   col7 as night_time7,
+								   col8 as night_time8,
+								   col9 as night_time9,
+								   col10 as night_time10,
+								   col11 as night_time11,
+								   col12 as night_time12,
+								   col13 as night_time13,
+								   col14 as night_time14,
+								   col15 as night_time15,
+								   col16 as night_time16,
+								   col17 as night_time17,
+								   col18 as night_time18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'night_time'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec6" orientation="H">
+				<queries>
+                     <query name="spec6" type="sql">
+                        <script>
+							  select
+								   col1 as weekend_time1,
+								   col2 as weekend_time2,
+								   col3 as weekend_time3,
+								   col4 as weekend_time4,
+								   col5 as weekend_time5,
+								   col6 as weekend_time6,
+								   col7 as weekend_time7,
+								   col8 as weekend_time8,
+								   col9 as weekend_time9,
+								   col10 as weekend_time10,
+								   col11 as weekend_time11,
+								   col12 as weekend_time12,
+								   col13 as weekend_time13,
+								   col14 as weekend_time14,
+								   col15 as weekend_time15,
+								   col16 as weekend_time16,
+								   col17 as weekend_time17,
+								   col18 as weekend_time18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'weekend_time'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec7" orientation="H">
+				<queries>
+                     <query name="spec7" type="sql">
+                        <script>
+							  select
+								   col1 as others_days1,
+								   col2 as others_days2,
+								   col3 as others_days3,
+								   col4 as others_days4,
+								   col5 as others_days5,
+								   col6 as others_days6,
+								   col7 as others_days7,
+								   col8 as others_days8,
+								   col9 as others_days9,
+								   col10 as others_days10,
+								   col11 as others_days11,
+								   col12 as others_days12,
+								   col13 as others_days13,
+								   col14 as others_days14,
+								   col15 as others_days15,
+								   col16 as others_days16,
+								   col17 as others_days17,
+								   col18 as others_days18
+							  FROM T_REPORT_REGISTER_HOURS_WORKED T 
+							  WHERE T.UID = ${uid}::bigint
+							    and t.block = 'others_days'
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select sum(sr.sumtrn) as itogo, p_tools_to_propis(sum(sr.sumtrn)) as summ_prop,
+								  (SELECT S.NAME FROM PERSON S WHERE S.ID = ${vicechairman}::bigint) as fio_zam,
+								  (SELECT S.NAME FROM PERSON S WHERE S.ID = ${secretary}::bigint) as fio_secret
+							  from REGISTERSTRANSFERS r,
+								   SLREGTRNPR sr,
+							  	   PERSON p
+							  where r.id = ${id}::bigint 
+							  and sr.REGISTERSTRANSFERSid = r.id
+							  and p.id = sr.trpersonid
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
