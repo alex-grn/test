@@ -107,7 +107,8 @@
 		</TABLE>
 		<TABLE id="CASHRECEIPT_HEADER" name="Приходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
-				<GA name="Основание" caption="Основание">
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<GA name="Основание" caption="Основание">
 					<A id="DOCTYPEID" visible="false" readonly="true" value="21" labelwidth="50" width="100"/>
 					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" type="number" width="50" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 					<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
@@ -143,6 +144,7 @@
 		</TABLE>
 		<TABLE id="CASHPAYMENT_HEADER" name="Расходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 				<GA name="Основание" caption="Основание">
 					<A id="DOCTYPEID" visible="false" readonly="true" value="23" labelwidth="50" width="100" nulls="false"/>
 					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -180,6 +182,7 @@
 		</TABLE>
 		<TABLE id="STATEMENT_HEADER" name="Платежные ведомости">
 			<A id="CASHDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 				<GA name="Основание" caption="Основание">
 					<A id="DOCTYPEID" visible="false" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
 					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -221,20 +224,28 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			
 		</TABLE>
-		<TABLE id="EXPENSE_DOCS" name="Документы аванса">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
-			<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-			<A id="DOCDATE" labelwidth="50" width="43"/>
-			<A id="PERSONID" name="Контрагент" caption="Контрагент" nulls="true" labelwidth="160"/>
-			<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
-			<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
+		<TABLE id="EXPENSE_DOCS" name="Авансовые отчеты">
+			<GA name="Авансовый отчет" caption="Авансовый отчет">
+				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="DOCDATE" labelwidth="50" width="43"/>
+				<A id="PERSONID" name="Контрагент" caption="Контрагент" nulls="true" labelwidth="160"/>
+				<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
+				<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
+			</GA>				
+			<GA name="Предыдущий аванс" caption="Предыдущий аванс">
+				<A id="BALANCESUMM" name="Остаток" readonly="false" type="number" len="8.2" nulls="true" labelwidth="50" width="50"/>			
+				<A id="OVERSPENDING" name="Перерасход" readonly="false" type="number" len="8.2" nulls="true" labelwidth="50" width="50"/>	
+			</GA>
 		</TABLE>
 		<TABLE id="PREPAID_EXPENSE" name="Аванс">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
 			<GA name="Получено" caption="Получено">
 				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-				<A id="CASHPAYMENTHEADERID" name="Документ" width="50"/>
+				<A id="CASHPAYMENTHEADERID" pid="ELECTCAMPAIGNID" name="Документ" width="50"/>
 				<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
 			</GA>				
 		</TABLE>
@@ -252,13 +263,14 @@
 		</TABLE>
 		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
 			<GA name="Перерасход выдан" caption="Перерасход выдан">
-				<A id="CASHPAYMENTHEADERID" name="Документ" width="50"/>
-				<A id="SUMMPAYMENT" name="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
+				<A id="CASHPAYMENTHEADERID" name="Документ" width="50"  pid="CAMPAIGNID"  pid_ref="CAMPAIGNID"/>
+				<A id="SUMMPAYMENT" name="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula="select sum(x.SUMMPAY) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID"/>
 			</GA>
 			<GA name="Остаток внесен" caption="Остаток внесен">
-				<A id="CASHRECEIPTHEADERID" name="Документ" width="50"/>
-				<A id="SUMMRECEIPT" name="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
+				<A id="CASHRECEIPTHEADERID"  pid="CAMPAIGNID" name="Документ" width="50"  pid_ref="CAMPAIGNID"/>
+				<A id="SUMMRECEIPT" name="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula="select sum(x.SUMMPAY) from CASHRECEIPT x where x.CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID"/>
 			</GA>
 		</TABLE>
 		<TABLE id="EXPENSE_OPERATIONS" name="Типовые операции">
@@ -285,10 +297,11 @@
 		<ACTION id="StatusINPUTKRF4" name="Смена статуса" type="procedure" procedure="p_action_status">
 			<P id="values" value="4"/>
 		</ACTION>
-		<ACTION id="uploadFileInINPUTKRF" name="Загрузка файла" type="script" actionlist="StatusINPUTKRF1;uploadFilelinks;StatusINPUTKRF2"/>
+		<ACTION id="uploadFileInINPUTKRF" name="Загрузка файла" type="script" actionlist="StatusINPUTKRF1;uploadFilelinks;StatusINPUTKRF2;FilelinksToFilebuffer"/>
 		<ACTION id="ConvertFileFromINPUTKRF" name="Конвертировать файл" type="procedure" procedure="p_action_file_convert"/>
-		<ACTION id="FileTreatment" name="" type="script" actionlist="StatusINPUTKRF3;FilelinksToFilebuffer;p_action_file_convert;StatusINPUTKRF4"/>
+		<ACTION id="FileTreatment" name="" type="script" actionlist="StatusINPUTKRF3;FilelinksToFilebuffer;p_action_file_convert;StatusINPUTKRF4;CheckErrorsKRF"/>
 		<ACTION id="AutoRunConvINPUTKRF" name="Автоматическая загрузка КРФ" schedule_period="30" schedule_start="0" type="procedure" procedure="p_action_schedule_file_convert"/>
+		<ACTION id="CheckErrorsKRF" name="Проверка на ошибки КРФ" type="procedure" procedure="p_action_filling_errorkrf"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 			<REPORT id="PROXYREP" name="Доверенность" procedure="" template="proxy.xls"/>
@@ -355,25 +368,29 @@
 			<GRID id="Expense_ReportsGR" name="Авансовые отчеты избирательной кампании" table="EXPENSE_REPORTS">
 			</GRID>
 			<TABS>
-				<TAB name="Документы аванса">
+				<TAB name="Авансовые отчеты">
 					<GRID id="EXPENSE_DOCSGR" name="Документы аванса" table="EXPENSE_DOCS">
 					</GRID>					
 				</TAB>
-				<TAB name="Аванс">
-					<GRID id="PREPAID_EXPENSEGR" name="Аванс" table="PREPAID_EXPENSE">
-					</GRID>					
-				</TAB>
-				<TAB name="Израсходовано">
-					<GRID id="EXPENDEDGR" name="Израсходовано" table="EXPENDED">
-					</GRID>					
-				</TAB>
-				<TAB name="Сведения о выдаче остатка, внесениии перерасхода">
-					<GRID id="BALANCE_INFORMATIONGR" name="Сведения о выдаче остатка, внесениии перерасхода" table="BALANCE_INFORMATION">
-					</GRID>					
-				</TAB>
-				<TAB name="Типовые операции">
-					<GRID id="EXPENSE_OPERATIONSGR" name="Типовые операции" table="EXPENSE_OPERATIONS">
-					</GRID>					
+				<TAB name="Расшифровка авансового отчета">
+				<TABS>
+					<TAB name="Аванс">
+						<GRID id="PREPAID_EXPENSEGR" name="Аванс" table="PREPAID_EXPENSE">
+						</GRID>					
+					</TAB>
+					<TAB name="Израсходовано">
+						<GRID id="EXPENDEDGR" name="Израсходовано" table="EXPENDED">
+						</GRID>					
+					</TAB>
+					<TAB name="Сведения о выдаче остатка, внесениии перерасхода">
+						<GRID id="BALANCE_INFORMATIONGR" name="Сведения о выдаче остатка, внесениии перерасхода" table="BALANCE_INFORMATION">
+						</GRID>					
+					</TAB>
+					<TAB name="Типовые операции">
+						<GRID id="EXPENSE_OPERATIONSGR" name="Типовые операции" table="EXPENSE_OPERATIONS">
+						</GRID>					
+					</TAB>
+				</TABS>
 				</TAB>				
 			</TABS>	
 		</FORM>			
