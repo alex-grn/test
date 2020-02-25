@@ -182,6 +182,7 @@
 		</TABLE>
 		<TABLE id="STATEMENT_HEADER" name="Платежные ведомости">
 			<A id="CASHDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 				<GA name="Основание" caption="Основание">
 					<A id="DOCTYPEID" visible="false" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
 					<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -225,13 +226,19 @@
 			</GA>
 			
 		</TABLE>
-		<TABLE id="EXPENSE_DOCS" name="Документы аванса">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
-			<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-			<A id="DOCDATE" labelwidth="50" width="43"/>
-			<A id="PERSONID" name="Контрагент" caption="Контрагент" nulls="true" labelwidth="160"/>
-			<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
-			<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
+		<TABLE id="EXPENSE_DOCS" name="Авансовые отчеты">
+			<GA name="Авансовый отчет" caption="Авансовый отчет">
+				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="DOCDATE" labelwidth="50" width="43"/>
+				<A id="PERSONID" name="Контрагент" caption="Контрагент" nulls="true" labelwidth="160"/>
+				<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
+				<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
+			</GA>				
+			<GA name="Предыдущий аванс" caption="Предыдущий аванс">
+				<A id="BALANCESUMM" name="Остаток" readonly="false" type="number" len="8.2" nulls="true" labelwidth="50" width="50"/>			
+				<A id="OVERSPENDING" name="Перерасход" readonly="false" type="number" len="8.2" nulls="true" labelwidth="50" width="50"/>	
+			</GA>
 		</TABLE>
 		<TABLE id="PREPAID_EXPENSE" name="Аванс">
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
