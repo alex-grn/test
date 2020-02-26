@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="payment_statement.xlsx" documentPath="payment_statement.xlsx" outputType="xlsx" outputNamePattern="payment_statement.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select right(to_char(s.electdate,'yyyy'),2) as year, 
+									${dateform} as datee, 
+									case 
+                                    when ik.levelelcommittee = 'district' then CASE 
+                                    						when p_tools_dmonth_to_nmonth(i.begindate)-p_tools_dmonth_to_nmonth(i.enddate) != 0 then p_tools_dmonth_to_smonth(i.begindate)||'-'||p_tools_dmonth_to_smonth(i.enddate)--уик
+                                                            else p_tools_dmonth_to_smonth(i.begindate)
+                                                         end
+                                    when  ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then CASE 
+                                    						when p_tools_dmonth_to_nmonth(i.begindateter)-p_tools_dmonth_to_nmonth(i.enddateter) != 0 then p_tools_dmonth_to_smonth(i.begindateter)||'-'||p_tools_dmonth_to_smonth(i.enddateter)--уик
+                                                            else p_tools_dmonth_to_smonth(i.begindateter)
+                                                         end --тик
+								   end	as month, 
+								  case 
+                                  when ik.levelelcommittee = 'district' then 
+									(select k.name from ELECTCOMMITTEE k where k.idgasecom = c.IDGASPARECOM)		
+                                  when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then 
+									c.name
+								   end	as institution,
+                                    case 
+                                  when ik.levelelcommittee = 'district' then 
+									(select k.inn from ELECTCOMMITTEE k where k.idgasecom = c.IDGASPARECOM)		
+                                  when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then 
+									c.inn
+								   end	as inn,
+                                    case 
+                                  when ik.levelelcommittee = 'district' then 
+									(select k.kpp from ELECTCOMMITTEE k where k.idgasecom = c.IDGASPARECOM)		
+                                  when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then 
+									c.kpp
+								   end	as kpp,
+							      (SELECT S.NAME FROM PERSON S WHERE S.ID = ${supervisor}::bigint) as ruk
+							  from sheets s,
+  							  	   ELECTCOMMINCAMP ik, 
+  							  	   ELECTCOMMITTEE c,
+                                   ELECTCAMPAIGN i
+ 							  where s.id = ${id}::bigint
+  							    and ik.id = s.electcommincampid
+  							    and c.id = ik.electcommitteeid
+								and i.id = s.electcampaignid
+								;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="header2" orientation="H"/>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select row_number() over() as pp, COALESCE(sp.sumcomp,0)+COALESCE(sp.sumextra12,0)+COALESCE(sp.extraa,0) as summ,COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio
+							  from sheets s,
+							       SHEETDETAILS sp,
+ 							       COMMITTEEMAN ik,
+								   posts pp,
+							        person p
+							   where s.id = ${id}::bigint
+							     and sp.sheetsid = s.id 
+							     and ik.id = sp.committeemanid
+							     and p.id = ik.personid
+								 and pp.id = ik.postsid
+								 and sp.personaccid is null
+                                 order by ik.postbegindate, pp.postprint
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select sum(COALESCE(sp.sumcomp,0)+COALESCE(sp.sumextra12,0)+COALESCE(sp.extraa,0)) as itogo,
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${distributor}::bigint) as r_fio, 
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${composed}::bigint) as s_fio,
+									(SELECT S.NAME FROM PERSON S WHERE S.ID = ${checked}::bigint) as p_fio
+							  from sheets s,
+							       SHEETDETAILS sp,
+ 							       COMMITTEEMAN ik,
+							        person p
+							   where s.id = ${id}::bigint
+							     and sp.sheetsid = s.id 
+							     and ik.id = sp.committeemanid
+								 and sp.personaccid is null
+							     and p.id = ik.personid
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
