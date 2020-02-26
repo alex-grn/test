@@ -16,7 +16,7 @@
 										a.name as postav,
 										'Договор № '||c.docnumb||' от '||d2s(c.docdate) as num_date,
 										i.officialname as org,
-										COALESCE(acc.bankacc,'')||' в '||COALESCE(a.name,'')||', БИК '||
+										COALESCE(ecc.bankacc,'')||' в '||COALESCE(x.name,'')||', БИК '||
 										COALESCE(b.bic,'')||', к/с '||COALESCE(b.corracc,'') as num_acc,
 										COALESCE(k.surname,'')||' '||COALESCE(k.firstname,'')||' '||
 										COALESCE(k.middlename,'') as dover,
@@ -33,8 +33,9 @@
 									left join agent a on a.id = c.agentid
 									left join jurpersons j on j.id = p.jurpersonsid
 									left join electcommittee i on i.id = j.electcommitteeid
-									left join agentacc acc on acc.id = c.agentaccid
-									left join agentbanks b on b.id = acc.agentbanksid
+									left join elcmtacc ecc on ecc.electcommitteeid = j.electcommitteeid
+									left join agentbanks b on b.id = ecc.agentbanksid
+									left join agent x on x.id = b.agentid
 									left join persdocs d on d.personid = k.id
 									where p.id = ${id}::integer
    							   ;
