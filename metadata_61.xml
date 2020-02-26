@@ -242,7 +242,7 @@
 		</A>
 		<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
 		<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
-		<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200" type="ref" table="TYPICALOPERS" ret="CODE" nulls="false"/>
+		<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200" type="ref" table="TYPICALOPERS" ret="CODE" nulls="false" form="TypicalOpersFRM"/>
 		<A id="ACCOUNTDTID" name="Номер счета дебета" caption="Номер счета дебета" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
 		<A id="ACCOUNTKTID" name="Номер счета кредита" caption="Номер счета кредита" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
 		<A id="ECONCLASSDTID" name="КОСГУ дебета" caption="КОСГУ дебета" labelwidth="200" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
@@ -272,6 +272,7 @@
 			<AI id="0" name="без НДС"/>
 		</A>
 		<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" type="ref" table="PAYDOCS" ret="PAYDOCSVIRT" nulls="false"/>
+		<A id="RECEIPTSDOCSID" name="Кассовое поступление" caption="Кассовое поступление" type="ref" table="RECEIPTSDOCS" ret="DOCNUMB" nulls="false"/>
 		<A id="PERSDOCTYPEID" name="Тип персонального документа" caption="Тип персонального документа" labelwidth="400" type="list" nulls="true">
 			<AI id="passport" name="Паспорт гражданина РФ"/>
 		</A>
@@ -1016,7 +1017,7 @@
 						<A id="DOCTYPEID" readonly="true" value="16"/>
 						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
 						<A id="DOCDATE" width="50"/>
-						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||f.docdate from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
 						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" width="50"/>
 						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="round((select sum(t.SUMM) from PAYDOCSCONS t where t.PAYDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '1' end)::numeric ,2)" local="true"/>
@@ -1083,6 +1084,29 @@
 			<A id="TYPEEXPID" labelwidth="200" nulls="true"/>
 			<A id="TYPICALOPERSID" labelwidth="200" nulls="false"/>
 			<TI unique="PAYDOCSID, NUMBPP"/>
+		</TABLE>
+		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
+			<A id="PAYACCOUNTSID" parentkey="cascade"/>
+			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="70" width="40"/>
+			<A id="DOCDATE" name="Дата" labelwidth="45" width="20"/>
+			<A id="SUMM" name="Сумма" caption="Сумма" readonly="false" type="number" len="8.2" nulls="true" labelwidth="49" width="40"/>
+			<GA name="Контрагент" caption="Контрагент">
+				<A id="TRPERSONID" name="Плательщик" caption="Плательщик" labelwidth="70" width="50" nulls="true"/>
+				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+			</GA>
+			<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
+			<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+		</TABLE>
+		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
+			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
+			<GA name="Типовая операция" caption="Типовая операция">
+				<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+				<A id="TYPEEXPID" labelwidth="150" width="100"/>
+				<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
+				<A id="MEMORDERID" labelwidth="150"/>
+			</GA>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1622,10 +1646,23 @@
 						</TAB>
 						<TAB name="Расшифровка платежа">
 							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
-							<A id="PAYDOCSVIRT" caption="Документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||f.docdate from PAYDOCS f, DOCTYPES d where f.id = @PAYDOCSID and f.doctypeid = d.id" local="true"/>
+							<A id="PAYDOCSVIRT" caption="Документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @PAYDOCSID and f.doctypeid = d.id" local="true"/>
 							<GRID id="PaydocsconsGR" name="Расшифровка платежа" table="PAYDOCSCONS"/>
 						</TAB>
 					</TABS>
+				</TAB>
+				<TAB name="Кассовые поступления">				
+					<TABS>					
+						<TAB name="Кассовые поступления">
+							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
+							<GRID id="ReceiptsDocsGR" name="Документ" table="RECEIPTSDOCS" actionlist="setLID"/>
+						</TAB>
+						<TAB name="Типовая операция">
+							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
+							<A id="RECEIPTSVIRT" caption="Документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Кассовое поступление № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from RECEIPTSDOCS f where f.id = @RECEIPTSDOCSID" local="true"/>
+							<GRID id="ReceiptsDocsConsGR" name="Расшифровка платежа" table="RECEIPTSDOCSCONS"/>
+						</TAB>
+					</TABS>	
 				</TAB>
 			</TABS>
 		</FORM>
