@@ -9,22 +9,34 @@
 			<MI name="Отчётность ТИК" formlist="AccountabilityTik"/>
 			<MI name="Отчётность ИКСРФ" formlist="AccountabilityIksrf"/>
 		</MENU>
+		
+		
 	<ATTRIBUTES name="Атрибуты">
+		<A id="WORDINGOFTHEFORMSID" name="Редакции форм" caption="Редакции форм" type="ref" table="WORDINGOFTHEFORMS" ret="CODE" form="WordingOfTheForms" nulls="true"/>
+		<A id="ACCOUNTABILITYUIKID" name="Отчёты УИК" caption="Отчёты УИК" type="ref" table="ACCOUNTABILITYUIK" ret="CODE" form="AccountabilityUik" nulls="true"/>
 	</ATTRIBUTES>
-	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
+	
+	
+	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+	</GROUPS_ATTRIBUTES>
+	
+	
 	<TABLES name="Таблицы">
+		
 		
 		<COMMENT name="Редакция форм, верхнее расположение"/>
 		<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
-			<A id="CODE" name="Код строки" caption="Код строки" labelwidth="400" type="string" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование показателей" caption="Наименование показателей" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="CODE" name="Код формы" caption="Код формы" labelwidth="400" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="false" local="true"/>
 			'Как сделать сменную дату при исправлении записи'
 			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" nulls="false" local="true"/>
+			<TI unique="CODE,REVISIONDATE"/>
 		</TABLE>
 		<COMMENT name="Показатели форм, нижнее расположение"/>
-		<TABLE id="MEASURESOFSHAPE" name="Показатели формы" >
-			<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="string" nulls="false" local="true"/>
-			<A id="CODE" name="Код строки формы" caption="Код" labelwidth="600" type="string" nulls="false" local="true"/>
+		<TABLE id="MEASURESOFSHAPE" name="Показатели формы">
+			<A id="WORDINGOFTHEFORMSID" parentkey="cascade"/>
+			<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="CODE" name="Код строки формы" caption="Код строки формы" labelwidth="600" type="string" nulls="false" local="true"/>
 			<GA id="CONTROLOFFILLING" name="Контроль заполнения показателя" caption="Контроль заполнения показателя">
 				<A id="COMPLETIONUIK" name="УИК" caption="УИК" width="15" type="boolean" local="true"/>
 				<A id="COMPLETIONTIK" name="ТИК" caption="ТИК" width="15" type="boolean" local="true"/>
@@ -32,7 +44,9 @@
 				<A id="COMPLETIONTIKWITHOIK" name="ТИК с полномочиями ОИК" caption="ТИК с полномочиями ОИК" width="30" type="boolean" local="true"/>
 				<A id="COMPLETIONIKSRF" name="ИКСРФ" caption="ИКСРФ" width="15" type="boolean" local="true"/>
 			</GA>
+			<TI unique="CODE"/>
 		</TABLE>
+		
 		
 		<COMMENT name="Отчётность УИК, верхнее расположение"/>
 		<TABLE id="ACCOUNTABILITYUIK" name="Отчёты УИК">
@@ -43,23 +57,25 @@
 			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 		</TABLE>
 		<TABLE id="SECTION1SOURCEDATA" name="Раздел 1. Исходные данные">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="NAMES1S" name="Наименование показателя" caption="Наименование показателя">
-				<A id="NAME" name="Наименование показателя (гр.1)" caption="Наименование показателя (гр.1)" labelwidth="200" type="string" visible="form" nulls="false" local="true"/>
+				<A id="NAME" name="Наименование показателя (гр.1)" caption="Наименование показателя (гр.1)" labelwidth="200" type="string" visible="true" nulls="false" local="true"/>
 				<!-- <A id="EMPTYATT" name="1" caption="1" type="string" visible="grid" local="true"/> -->
 			</GA>
 			<GA id="CODES1S" name="Код строки" caption="Код строки">
-				<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" type="string" visible="form" nulls="false" local="true"/>
+				<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" type="string" visible="true" nulls="false" local="true"/>
 				<!-- <A id="EMPTYATT" name="2" caption="2" type="string" visible="grid" local="true"/> -->
 			</GA>
 			<GA id="TOTALS1S" name="Всего" caption="Всего">
-				<A id="TOTAL" name="Всего (гр.3)" caption="Всего (гр.3)" type="string" labelwidth="200" visible="form" nulls="false" local="true"/>
+				<A id="TOTAL" name="Всего (гр.3)" caption="Всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" local="true"/>
 				<!-- <A id="EMPTYATT" name="3" caption="3" type="string" visible="grid" local="true"/> -->
 			</GA>
 			<GA id="UIKREFERENDUMCOMMISSIONS1S" name="Участковые избирательные комиссии (комиссий референдума)" caption="Участковые избирательные комиссии (комиссий референдума)">
-				<A id="UIKREFERENDUMCOMMISSION" name="Участковые избирательные комиссии (комиссий референдума) (гр.7)" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="string" visible="form" nulls="false" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION" name="Участковые избирательные комиссии (комиссий референдума) (гр.7)" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
 				<!-- <A id="EMPTYATT" name="7" caption="7" type="string" visible="grid" local="true"/> -->
 			</GA>
 		</TABLE>
+		
 		
 		<!-- <COMMENT name="Отчётность ТИК, верхнее расположение"/> -->
 		<!-- <TABLE id="ACCOUNTABILITYTIK" name="Отчёты ТИК"> -->
@@ -84,9 +100,16 @@
 		<!-- </TABLE> -->
 		
 	</TABLES>
+	
+	
 	<ACTIONS name="Действия"/>
+	
+	
 	<REPORTS name="Отчеты"/>
+	
+	
 	<FORMS id="Forms" name="Формы">
+		
 		
 		<FORM id="ReportingIndicators" name="Показатели отчётности">
 			<GRID id="WordingOfTheForms" name="Редакции форм" table="WORDINGOFTHEFORMS"/>
@@ -96,6 +119,7 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		
 		
 		<FORM id="AccountabilityUik" name="Отчётность УИК">
 			<GRID id="AccountabilityUik" name="Отчётность УИК" table="ACCOUNTABILITYUIK"/>
@@ -109,6 +133,7 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		
 		
 		<!-- <FORM id="AccountabilityTik" name="Отчётность ТИК"> -->
 			<!-- <GRID id="AccountabilityTik" name="Отчётность ТИК" table="ACCOUNTABILITYTIK"/> -->
