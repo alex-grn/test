@@ -1038,7 +1038,7 @@
 				<A id="JURPERSONSID"/>
 				<A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
 				<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID"/>
-				<A id="ACCBALANCE" name="Остаток на счете" caption="Остаток на счете" labelwidth="400" virtual="true" type="number" formula="select (select sum(s.summ) from receiptsdocscons s left join receiptsdocs r on s.receiptsdocsid = r.id where r.payaccountsid=@ID) - (select sum(c.summ) from paydocscons c left join paydocs d on c.paydocsid = d.id where d.payaccountsid=@ID)"/>				
+				<A id="ACCBALANCE" name="Остаток на счете" caption="Остаток на счете" labelwidth="400" virtual="true" type="number" formula="select COALESCE((select sum(s.summ) from receiptsdocscons s left join receiptsdocs r on s.receiptsdocsid = r.id where r.payaccountsid=@ID and now() > r.docdate),0) - COALESCE((select sum(c.summ) from paydocscons c left join paydocs d on c.paydocsid = d.id where d.payaccountsid=@ID and d.status='2'),0)"/>				
 			</GA>
 		</TABLE>
 		<TABLE id="PAYDOCS" name="Платежные поручения">
