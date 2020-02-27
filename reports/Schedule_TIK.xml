@@ -104,8 +104,8 @@
                      <query name="shedule_floor" type="sql">
                         <script>
 								select
-								(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсация%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_comp,
-								(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_dop
+								(select sum((COALESCE(fs.SUMFINTIK,0)+COALESCE(fs.SUMFINTIKCEN,0)+COALESCE(fs.SUMFINUIK,0))-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсация%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_comp,
+								(select sum((COALESCE(fs.SUMFINTIK,0)+COALESCE(fs.SUMFINTIKCEN,0)+COALESCE(fs.SUMFINUIK,0))-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_dop
 								from register r
 								inner join electcampaign el on el.id = r.electcampaignid
 								inner join electcommincamp i on i.id = r.electcommincampid
