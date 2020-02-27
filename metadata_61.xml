@@ -1038,6 +1038,7 @@
 				<A id="JURPERSONSID"/>
 				<A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
 				<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID"/>
+				<A id="ACCBALANCE" name="Остаток на счете" caption="Остаток на счете" labelwidth="400" virtual="true" type="number" formula="select (select sum(s.summ) from receiptsdocscons s left join receiptsdocs r on s.receiptsdocsid = r.id where r.payaccountsid=@ID) - (select sum(c.summ) from paydocscons c left join paydocs d on c.paydocsid = d.id where d.payaccountsid=@ID)"/>				
 			</GA>
 		</TABLE>
 		<TABLE id="PAYDOCS" name="Платежные поручения">
@@ -1130,7 +1131,7 @@
 			<A id="PAYACCOUNTSID" parentkey="cascade"/>
 			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="70" width="40"/>
 			<A id="DOCDATE" name="Дата" labelwidth="45" width="20"/>
-			<A id="SUMM" name="Сумма" caption="Сумма" readonly="false" type="number" len="8.2" nulls="true" labelwidth="49" width="40"/>
+			<A id="SUMM" name="Сумма" caption="Сумма" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID"/>
 			<GA name="Контрагент" caption="Контрагент">
 				<A id="TRPERSONID" name="Плательщик" caption="Плательщик" labelwidth="70" width="50" nulls="true"/>
 				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
@@ -1142,6 +1143,7 @@
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
 			<GA id="TYPICALOPERATION"/>
+			<A id="SUMM" name="Сумма" caption="Сумма" readonly="false" type="number" len="8.2" nulls="true" labelwidth="49" width="40"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
