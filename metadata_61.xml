@@ -1047,7 +1047,7 @@
 					<GA name="Документ" caption="Документ">
 						<A id="STATUS" name="Статус" caption="Статус" width="50" type="list" value="0" local="true">
 							<AI id="0" name="В работе"/>
-							<AI id="1" name="На исполнении" readonly="true"/>
+							<AI id="1" name="На исполнении" readonly="false"/>
 							<AI id="2" name="Исполнен" readonly="true"/>
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" width="50" type="date" local="true"/>
@@ -1061,6 +1061,7 @@
 					</GA>
 					<GA name="Реквизиты платежа" caption="Реквизиты платежа">
 						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24)" type="text" nulls="false" local="true"/>
+						<A id="PURPOSELENGHT" type="string" name="Длинна строки" readonly="true" virtual="true" formula="select 'Назначение платежа ('||length(PURPOSE)||' симв., макс 235 симв.)' from PAYDOCS t where t.ID = @ID"/>
 						<A id="EXPDATE" name="Срок платежа (19)" caption="Срок платежа (19)" type="date" local="true"/>
 						<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
 							<AI id="1" name="1"/>
@@ -1110,6 +1111,8 @@
 				</TAB>
 			</TABS>
 			<TI unique="PAYACCOUNTSID, DOCNUMB"/>
+			<TI id="PURPOSE_CHECK" name="Превышена максимальная длинна поля Назначение платежа (24)" check="235 > length(PURPOSE)"/>
+			<TI id="STATUS_CHECK" name="Отсутствует дата оплаты по выписке" check="STATUS != '2' and PAYDATE is null"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
 			<TI id="NULLSREC_CHECK" name="Должно быть задано или Юридическое лицо или физическое лицо" check="AGENTID is null and PERSONID is not null or AGENTID is not null and PERSONID is null"/>
 		</TABLE>
