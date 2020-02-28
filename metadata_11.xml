@@ -15,6 +15,7 @@
 				<MI name="Бюджеты" formlist="Budgets"/>
 				<MI name="Виды бюджетов и внебюджетных средств" formlist="OffBudgetKinds"/>
 				<MI name="Перечень кодов целевых субсидий" formlist="Subsidies"/>
+				<MI name="Информация об аналитических кодах, используемых в целях санкционирования операций с целевыми расходами" formlist="Acodes"/>
 			</MENU>
 			<MENU name="Бюджетная классификация">
 				<MENU name="Классификация доходов бюджетов">
@@ -56,6 +57,7 @@
 				<MI name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" formlist="OKOPF"/>
 				<MI name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" formlist="OKOGU"/>
 				<MI name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" formlist="Okved"/>
+				<MI name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов" formlist="Okpdtr"/>
 			</MENU>
 			<MENU name="Юридические лица">
 				<MI name="Получатели/распорядители бюджетных средств" formlist="Agent2"/>
@@ -72,16 +74,19 @@
 				<MI name="Физические лица" formlist="Person"/>
 				<MI name="Структурные подразделения" formlist="Depart"/>
 				<MI name="Объекты капитального строительства" formlist="CapObjects"/>
+				<MI name="Мероприятия" formlist="Events"/>
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
+		<A id="YEAR_U" name="Учетный год" caption="Учетный год" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 		<COMMENT name="Контрольная сумма служит для проверки того, что в записи ничего не поменялось. Вместо 'Какой то текст' надо написать выражение из полей, которые мы хотим контролировать на неизменяемость.  Например COALESCE(@CODE,'')|| COALESCE(@NAME,'')"/>
 		<A id="CHECK_SUM" name="Контрольная сумма" caption="Контрольная сумма" labelwidth="400" type="string" visible="false" readonly="true" formula="select md5('Какой то текст')"/>
 		<COMMENT name="Ссылки на структуру бюджета"/>
 		<A id="OFFBUDGETKINDS_ID" name="Вид бюджета и внебюджетных средств" caption="Вид бюджета и внебюджетных средств" labelwidth="500" type="ref" table="OFFBUDGETKINDS" ret="CODE" form="OffBudgetKinds"/>
 		<A id="BUDGETS_ID" name="Бюджет" caption="Бюджет" labelwidth="300" type="ref" table="BUDGETS" ret="CODE" form="Budgets"/>
 		<A id="SUBSIDIES_ID" name="Код целевой субсидии" caption="Код целевой субсидии" labelwidth="500" type="ref" table="SUBSIDIES" ret="CODE" form="Subsidies"/>
+		<A id="ACODES_ID" name="Аналитический код" caption="Аналитический код" labelwidth="500" type="ref" table="ACODES" ret="CODE" form="Acodes"/>
 		<COMMENT name="Ссылки на бюджетную классификацию"/>
 		<A id="DIR_RECIPID" name="Главный распорядитель и администратор" caption="Главный распорядитель и администратор" labelwidth="400" type="ref" table="DIR_RECIP" ret="CODE" form="DirRecip"/>
 		<A id="ECON_CLASS_ID" name="КОСГУ" caption="КОСГУ" labelwidth="400" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass"/>
@@ -101,6 +106,7 @@
 		<A id="OKOPF_ID" name="ОКОПФ" caption="Общероссийский классификатор организационно-правовых форм (ОКОПФ)" labelwidth="500" type="ref" table="OKOPF" ret="CODE" form="OKOPF"/>
 		<A id="OKOGU_ID" name="ОКОГУ" caption="Общероссийский классификатор органов государственной власти и управления (ОКОГУ)" labelwidth="550" type="ref" table="OKOGU" ret="CODE" form="OKOGU"/>
 		<A id="OKVED_ID" name="ОКВЭД" caption="Общероссийский классификатор видов экономической деятельности (ОКВЭД)" labelwidth="500" type="ref" table="OKVED" ret="CODE" form="Okved"/>
+		<A id="OKPDTR_ID" name="ОКПДТР" caption="Типовая должность (ОКПДТР)" labelwidth="300" type="ref" table="OKPDTR" ret="CODE" form="Okpdtr"/>
 		<COMMENT name="Ссылки на юридические лица"/>
 		<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="500" type="ref" table="AGENT" ret="CODE" form="Agent"/>
 		<A id="AGENT1_ID" name="Организация" caption="Организация" labelwidth="500" type="ref" table="AGENT1" ret="CODE" form="Agent1"/>
@@ -115,6 +121,7 @@
 		<A id="PERSON_ID" name="Физическое лицо" caption="Физическое лицо" labelwidth="500" type="ref" table="PERSON" ret="CODE" form="Person"/>
 		<A id="DEPART_ID" name="Подразделение" caption="Структурные подразделения" labelwidth="500" type="ref" table="DEPART" ret="NAME" form="Depart"/>
 		<A id="CAPOBJECTS_ID" name="Объект" caption="Объект капитального строительства" labelwidth="500" type="ref" table="CAPOBJECTS" ret="CODE" form="CapObjects"/>
+		<A id="EVENT_ID" name="Мероприятие" caption="Мероприятие" labelwidth="500" type="ref" table="EVENTS" ret="CODE" form="Events"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Простой справочник с Полным и кратким наименованием"/>
@@ -127,6 +134,10 @@
 			<A id="BEGIN_DATE" name="Дата начала действия" caption="Дата начала действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
 			<A id="END_DATE" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" local="true"/>
 			<A id="ACTIVE" name="Актуальная запись" caption="Актуальная запись" labelwidth="220" type="boolean" nulls="false" value="true" local="true"/>
+		</GA>
+		<GA id="YEAR_BUDGET" caption="Годовой бюджет">
+			<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+			<A id="YEAR_U" name="Учетный год" labelwidth="150" width="40"/>
 		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
@@ -249,7 +260,7 @@
 				<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500" visible="form"/>
 				<A id="CODE" name="Код КРБ" caption="Код классификации расходов бюджетов" labelwidth="300" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from FUN_CLASS v where v.id = @FUN_CLASSID),'0000')||COALESCE((select  v.CODE from PURP_ARTICLE v where v.id = @PURP_ARTICLEID),'0000000000')||COALESCE((select  v.CODE from EXP_TYPE v where v.id = @EXP_TYPEID),'000')" value="00000000000000000000"/>
 			</GA>
-			<A id="NAME" labelwidth="100" formula="COALESCE(@NAME,(select  v.NAME from FUN_CLASS v where v.id = @FUN_CLASSID)||'. '||(select v.NAME from PURP_ARTICLE v where v.id = @PURP_ARTICLEID)||'. '||(select v.NAME from EXP_TYPE v where v.id = @EXP_TYPEID))"/>
+			<A id="NAME" labelwidth="100" formula="COALESCE(NULLIF(@NAME,''),(select  v.NAME from FUN_CLASS v where v.id = @FUN_CLASSID)||'. '||(select v.NAME from PURP_ARTICLE v where v.id = @PURP_ARTICLEID)||'. '||(select v.NAME from EXP_TYPE v where v.id = @EXP_TYPEID))"/>
 			<GA id="DictionaryParam"/>
 			<TI id="iKBR_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iKBR_ACTIVE" index="ACTIVE"/>
@@ -278,6 +289,17 @@
 			<TI id="iOKVED_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iOKVED_ACTIVE" index="ACTIVE"/>
 		</TABLE>
+		<TABLE id="OKPDTR" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов">
+			<A id="NAME" name="Наименование" caption="Наименование должности" labelwidth="250" type="text" nulls="true"/>
+			<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
+			<A id="OKPDTRCODE" name="Код" caption="Код" labelwidth="550" type="string" formula="NULLIF(@KPP,'')" local="true"/>
+			<A id="OKPDTRC" name="Контрольное число" caption="Контрольное число" labelwidth="550" type="string" formula="NULLIF(@KPP,'')" local="true"/>
+			<A id="OKPDTRK" name="Код категории" caption="Код категории" labelwidth="550" type="string" formula="NULLIF(@KPP,'')" local="true"/>
+			<A id="OKPDTROKZ" name="Код по ОКЗ" caption="Код по ОКЗ" labelwidth="550" type="string" formula="NULLIF(@KPP,'')" local="true"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iOKPDTR_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iOKPDTR_ACTIVE" index="ACTIVE"/>
+		</TABLE>
 		<TABLE id="OFFBUDGETKINDS" name="Виды бюджетов и внебюджетных средств">
 			<A id="LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="650" type="int" nulls="false" value="1" local="true"/>
 			<A id="CODE" labelwidth="500" nulls="false"/>
@@ -298,10 +320,10 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="SUBJECTMSB" name="Субъект МСП" caption="Субъект малого и среднего предпринимательства" labelwidth="400" type="boolean" local="true"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@NAME)"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
@@ -312,23 +334,23 @@
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
-					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" local="true"/>
+					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" formula="NULLIF(@CODESR,'')" local="true"/>
 					<A id="DIR_RECIPID" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="500"/>
 					<A id="TYPEU" name="Тип учреждения" caption="Тип учреждения" labelwidth="500" type="list" local="true">
 						<AI id="1" name="Казенное"/>
 						<AI id="2" name="Бюджетное"/>
 						<AI id="3" name="Автономное"/>
 					</A>
-					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" local="true"/>
+					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" formula="NULLIF(@NRZ,'')" local="true"/>
 					<A id="DATESR" name="Дата" caption="Дата включения организации в Сводный реестр" labelwidth="600" type="date" local="true"/>
-					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" local="true"/>
+					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" formula="NULLIF(@NUR,'')" local="true"/>
 					<A id="BUDGETS_ID"/>
 					<COMMENT name="Только для казначейства"/>
-					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" local="true"/>
+					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" formula="NULLIF(@CODETOFK,'')" local="true"/>
 				</TAB>
 				<TAB name="Банковское учреждение">
 					<COMMENT name="Только для банка"/>
-					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" local="true"/>
+					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" formula="NULLIF(@BIC,'')" local="true"/>
 					<A id="ACC" name="Счет" caption="Счет" labelwidth="500" type="string" len="20" visible="form" local="true"/>
 					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" visible="form" local="true"/>
 				</TAB>
@@ -345,6 +367,11 @@
 				</TAB>
 			</TABS>
 			<TI id="iAGENT_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iAGENT_INN" unique="INN,KPP"/>
+			<TI id="iAGENT_CODESR" unique="CODESR"/>
+			<TI id="iAGENT_NRZ" unique="NRZ"/>
+			<TI id="iAGENT_CODETOFK" unique="CODETOFK"/>
+			<TI id="iAGENT_BIC" unique="BIC"/>
 			<TI id="iAGENT_ACTIVE" index="ACTIVE"/>
 		</TABLE>
 		<TABLE id="AGENT1" name="Коммерческие организации" tablename="AGENT" virtual="true" query="select * from AGENT where TYPE in ('1')">
@@ -352,10 +379,10 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="SUBJECTMSB" name="Субъект МСП" caption="Субъект малого и среднего предпринимательства" labelwidth="400" type="boolean"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@NAME)"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
@@ -383,9 +410,9 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@NAME)"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
@@ -396,16 +423,16 @@
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
-					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" local="true"/>
+					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" formula="NULLIF(@CODESR,'')" local="true"/>
 					<A id="DIR_RECIPID" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="500"/>
 					<A id="TYPEU" name="Тип учреждения" caption="Тип учреждения" labelwidth="500" type="list" local="true">
 						<AI id="1" name="Казенное"/>
 						<AI id="2" name="Бюджетное"/>
 						<AI id="3" name="Автономное"/>
 					</A>
-					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" local="true"/>
+					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" formula="NULLIF(@NRZ,'')" local="true"/>
 					<A id="DATESR" name="Дата" caption="Дата включения организации в Сводный реестр" labelwidth="600" type="date" local="true"/>
-					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" local="true"/>
+					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" formula="NULLIF(@NUR,'')" local="true"/>
 					<A id="BUDGETS_ID"/>
 					<COMMENT name="Только для казначейства"/>
 				</TAB>
@@ -427,9 +454,9 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@BIC)"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''),@BIC)"/>
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
@@ -441,7 +468,7 @@
 				</TAB>
 				<TAB name="Банковское учреждение">
 					<COMMENT name="Только для банка"/>
-					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" local="true"/>
+					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" formula="NULLIF(@BIC,'')" local="true"/>
 					<A id="ACC" name="Счет" caption="Счет" labelwidth="500" type="string" len="20" visible="form" local="true"/>
 					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" visible="form" local="true"/>
 				</TAB>
@@ -463,9 +490,9 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@CODETOFK)"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''),@CODETOFK)"/>
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
@@ -476,19 +503,19 @@
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
-					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" local="true"/>
+					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" formula="NULLIF(@CODESR,'')" local="true"/>
 					<A id="DIR_RECIPID" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="500"/>
 					<A id="TYPEU" name="Тип учреждения" caption="Тип учреждения" labelwidth="500" type="list" value="1" local="true">
 						<AI id="1" name="Казенное"/>
 						<AI id="2" name="Бюджетное"/>
 						<AI id="3" name="Автономное"/>
 					</A>
-					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" local="true"/>
+					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" formula="NULLIF(@NRZ,'')" local="true"/>
 					<A id="DATESR" name="Дата" caption="Дата включения организации в Сводный реестр" labelwidth="600" type="date" local="true"/>
-					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" local="true"/>
+					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" formula="NULLIF(@NUR,'')" local="true"/>
 					<A id="BUDGETS_ID"/>
 					<COMMENT name="Только для казначейства"/>
-					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" local="true"/>
+					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" formula="NULLIF(@CODETOFK,'')" local="true"/>
 				</TAB>
 				<TAB name="Действие записи">
 					<A id="CHECK_SUM"/>
@@ -508,9 +535,9 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(@CODE,@NAME)"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
@@ -521,16 +548,16 @@
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
-					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" local="true"/>
+					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" formula="NULLIF(@CODESR,'')" local="true"/>
 					<A id="DIR_RECIPID" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="500"/>
 					<A id="TYPEU" name="Тип учреждения" caption="Тип учреждения" labelwidth="500" type="list" visible="false" readonly="true" value="1" local="true">
 						<AI id="1" name="Казенное"/>
 						<AI id="2" name="Бюджетное"/>
 						<AI id="3" name="Автономное"/>
 					</A>
-					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" local="true"/>
+					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" formula="NULLIF(@NRZ,'')" local="true"/>
 					<A id="DATESR" name="Дата" caption="Дата включения организации в Сводный реестр" labelwidth="600" type="date" local="true"/>
-					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" local="true"/>
+					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" formula="NULLIF(@NUR,'')" local="true"/>
 					<A id="BUDGETS_ID"/>
 					<COMMENT name="Только для казначейства"/>
 				</TAB>
@@ -553,8 +580,8 @@
 				<TAB name="Основная информация">
 					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
-					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" local="true"/>
-					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" local="true"/>
+					<A id="INN" name="ИНН" caption="Идентификационный номер налогоплательщика (ИНН)" labelwidth="500" type="string" len="10" formula="NULLIF(@INN,'')" local="true"/>
+					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="SUBJECTMSB" name="Субъект МСП" caption="Субъект малого и среднего предпринимательства" labelwidth="400" type="boolean"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false"/>
 					<GA caption="Коды классификаторов">
@@ -567,23 +594,23 @@
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
-					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" local="true"/>
+					<A id="CODESR" name="Код" caption="Код организации по Сводному реестру" labelwidth="500" type="string" len="8" formula="NULLIF(@CODESR,'')" local="true"/>
 					<A id="DIR_RECIPID" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="500"/>
 					<A id="TYPEU" name="Тип учреждения" caption="Тип учреждения" labelwidth="500" type="list" local="true">
 						<AI id="1" name="Казенное"/>
 						<AI id="2" name="Бюджетное"/>
 						<AI id="3" name="Автономное"/>
 					</A>
-					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" local="true"/>
+					<A id="NRZ" name="Номер реестровой записи" caption="Номер реестровой записи" labelwidth="500" type="string" len="20" formula="NULLIF(@NRZ,'')" local="true"/>
 					<A id="DATESR" name="Дата" caption="Дата включения организации в Сводный реестр" labelwidth="600" type="date" local="true"/>
-					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" local="true"/>
+					<A id="NUR" name="Номер учреждения" caption="Номер учреждения по распоряжению" labelwidth="500" type="string" formula="NULLIF(@NUR,'')" local="true"/>
 					<A id="BUDGETS_ID"/>
 					<COMMENT name="Только для казначейства"/>
-					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" local="true"/>
+					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" visible="form" formula="NULLIF(@CODETOFK,'')" local="true"/>
 				</TAB>
 				<TAB name="Банковское учреждение">
 					<COMMENT name="Только для банка"/>
-					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" local="true"/>
+					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" formula="NULLIF(@BIC,'')" local="true"/>
 					<A id="ACC" name="Счет" caption="Счет" labelwidth="500" type="string" len="20" visible="form" local="true"/>
 					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" visible="form" local="true"/>
 				</TAB>
@@ -603,7 +630,7 @@
 		<TABLE id="AGENT_ACC" name="Лицевые счета">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(@NAME, (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -614,7 +641,7 @@
 		<TABLE id="AGENT1_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(@NAME, (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT1"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -623,7 +650,7 @@
 		<TABLE id="AGENT2_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(@NAME, (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT2"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -632,7 +659,7 @@
 		<TABLE id="AGENT4_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(@NAME, (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT4"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -641,7 +668,7 @@
 		<TABLE id="AGENT5_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(@NAME, (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT5"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -661,13 +688,16 @@
 				<AI id="1" name="мужской"/>
 				<AI id="2" name="женский"/>
 			</A>
-			<A id="INN" name="ИНН" caption="ИНН" labelwidth="400" type="string" len="12" nulls="true"/>
-			<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="400" type="string" len="14"/>
-			<A id="POST" name="Должность" caption="Должность" type="string" local="true"/>
+			<A id="INN" name="ИНН" caption="ИНН" labelwidth="400" type="string" len="12" nulls="true" formula="NULLIF(@INN,'')"/>
+			<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="400" type="string" len="14" formula="NULLIF(@SNILS,'')"/>
+			<A id="OKPDTR_ID"/>
+			<A id="POST" name="Должность" caption="Должность" type="text" local="true"/>
 			<A id="NOTE"/>
 			<GA id="DictionaryParam"/>
 			<TI id="iPERSON_UK" unique="CODE,BEGIN_DATE"/>
-			<TI id="iPERSON_NAME" index="ACTIVE"/>
+			<TI id="iPERSON_INN" unique="INN"/>
+			<TI id="iPERSON_SNILS" unique="SNILS"/>
+			<TI id="iPERSON_ACTIVE" index="ACTIVE"/>
 		</TABLE>
 		<TABLE id="DEPART" name="Структурные подразделения" hid="CODE">
 			<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
@@ -682,6 +712,19 @@
 			<TI id="iDEPART_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iDEPART_ACTIVE" index="ACTIVE"/>
 		</TABLE>
+		<TABLE id="EVENTS" name="Мероприятия">
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200"/>
+			<A id="DESCRIPTION" name="Описание" caption="Описание" labelwidth="200"/>
+			<A id="CODE" name="Код" caption="Код для отображения" labelwidth="200" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
+			<A id="PERSON_ID" name="Ответственный" caption="Ответственный за проведение" labelwidth="500" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+			<GA>
+				<A id="CURATOR_ID" name="Куратор" caption="Куратор мероприятия" labelwidth="150" width="70" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="CODE_CURATOR" name="Код куратора" caption="Код" labelwidth="100" width="30" type="string" local="true"/>
+			</GA>
+			<GA id="DictionaryParam"/>
+			<TI id="iEVENTS_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iEVENTS_ACTIVE" index="ACTIVE"/>
+		</TABLE>
 		<TABLE id="CAPOBJECTS" name="Объекты капитального строительства">
 			<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
 			<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
@@ -692,10 +735,18 @@
 			<TI id="iCAPOBJECT_ACTIVE" index="ACTIVE"/>
 		</TABLE>
 		<TABLE id="SUBSIDIES" name="Перечень кодов целевых субсидий" hid="CODE">
-			<GA id="DictionaryBC"/>
+			<A id="CODE" name="Код" caption="Код цели (аналитический код)" labelwidth="500"/>
+			<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование"/>
+			<A id="NOTE" name="Полное наименование" caption="Полное наименование"/>
 			<GA id="DictionaryParam"/>
 			<TI id="iSUBSIDIES_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="iSUBSIDIES_ACTIVE" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="ACODES" name="Аналитические коды" hid="CODE">
+			<GA id="DictionaryBC"/>
+			<GA id="DictionaryParam"/>
+			<TI id="iACODES_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="iACODES_ACTIVE" index="ACTIVE"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия"/>
@@ -761,6 +812,9 @@
 		<FORM id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности">
 			<GRID id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" table="OKVED"/>
 		</FORM>
+		<FORM id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов">
+			<GRID id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов" table="OKPDTR"/>
+		</FORM>
 		<FORM id="Budgets" name="Бюджеты">
 			<GRID id="Budgets" name="Бюджеты" table="BUDGETS"/>
 		</FORM>
@@ -805,11 +859,17 @@
 		<FORM id="Depart" name="Структурные подразделения">
 			<GRID id="Depart" name="Структурные подразделения" table="DEPART"/>
 		</FORM>
+		<FORM id="Events" name="Мероприятия">
+			<GRID id="Events" name="Мероприятия" table="EVENTS"/>
+		</FORM>
 		<FORM id="CapObjects" name="Объекты капитального строительства">
 			<GRID id="CapObjects" name="Объекты капитального строительства" table="CAPOBJECTS"/>
 		</FORM>
 		<FORM id="Subsidies" name="Перечень кодов целевых субсидий">
 			<GRID id="Subsidies" name="Перечень кодов целевых субсидий" table="SUBSIDIES"/>
+		</FORM>
+		<FORM id="Acodes" name="Аналитические коды, используемые в целях санкционирования операций с целевыми расходами">
+			<GRID id="Acodes" name="Аналитические коды" table="ACODES"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
