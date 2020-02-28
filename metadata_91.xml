@@ -263,8 +263,8 @@
 		<TABLE id="INFOPAYDOC" name="Обработка и детализация платежей">
 			<GA name="Данные о платеже" caption="Данные о платеже">
 				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="150" width="100" type="string" nulls="false"/>
-				<A id="STATEMENTADBDONEID" name="GUID операции" caption="GUID операции" labelwidth="150" width="100" type="ref" pid="" table="STATEMENTADBDONE" ret="GUID"/>
-				<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="240" width="50" type="list" nulls="true" visible="grid" local="true">
+				<A id="STATEMENTADBDONEID" name="GUID операции" caption="GUID операции" labelwidth="150" width="100" type="ref" table="STATEMENTADBDONE" ret="GUID" local="true"/>
+				<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="240" width="50" type="list" nulls="true" visible="true" local="true">
 					<AI id="0" name="Платежное поручение"/>
 					<AI id="1" name="Платежное поручение с реестром"/>
 					<AI id="2" name="Платежное поручение с расшифровкой"/>
@@ -273,7 +273,7 @@
 				</A>
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
-				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" virtual="true" formula="select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID"/>
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" formula="select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true"/>
 				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" formula="select DATE_OTCH from STATEMENTADB where id = @STATEMENTADBID" local="true"/>
 			</GA>
 			<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
@@ -307,18 +307,18 @@
 		<TABLE id="JOURNALPAYS" name="Журнал платежей">
 			<GA name="Данные о платеже" caption="Данные о платеже">
 				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="150" width="1000" type="string" nulls="false"/>
-				<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="100" type="list" nulls="true" visible="grid" local="true">
+				<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="100" type="list" nulls="true" visible="true" local="true">
 					<AI id="0" name="Платежное поручение"/>
 					<AI id="1" name="Строка реестра к платежному поручению с реестром"/>
 					<AI id="2" name="Строка расшифровки платежного поручения"/>
 					<AI id="3" name="Уведомление (зачет)"/>
 					<AI id="4" name="Возврат"/>
 				</A>
-				<A id="INFOPAYDOCID" name="GUID операции" form=""/>
+				<A id="INFOPAYDOCID" name="GUID операции" caption="GUID операции" labelwidth="100" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID" local="true"/>
 				<A id="INFOPAYDOCDETAILID" name="Номер строки реестра" form=""/>
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
-				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" virtual="true" formula="select STATEMENTADBID from INFOPAYDOC where id = @INFOPAYDOCID"/>
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" formula="select STATEMENTADBID from INFOPAYDOC where id = @INFOPAYDOCID" local="true"/>
 				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" formula="select DOC_DATE_STATE from INFOPAYDOC where id = @INFOPAYDOCID" local="true"/>
 			</GA>
 			<GA name="Данные о результатах отработки" caption="Данные о результатах отработки">
@@ -331,10 +331,10 @@
 				<A id="DOCZLINK" name="Связанный документ" caption="Связанный документ" labelwidth="150" width="100" type="string" nulls="true" local="true"/>
 				<A id="DATE_EXP" name="Дата выгрузки в МАИС" caption="Дата выгрузки в МАИС" labelwidth="150" width="100" type="date" nulls="true" local="true"/>
 			</GA>
-			<TI id="iJOURNALPAYS_UK" unique="OWNERID,STATEMENTADBID,INFOPAYDOCID,INFOPAYDOCDETAILID"/>
+			<TI id="iJOURNALPAYS_UK" unique="OWNERID,INFOPAYDOCID,INFOPAYDOCDETAILID"/>
 		</TABLE>
 		<TABLE id="STATEMENTADB" name="Выписки администратора доходов бюджета">
-			<A id="VID_OTCH" name="Тип записи" caption="Тип записи" type="list" local="true">
+			<A id="VID_OTCH" name="Тип отчета" caption="Тип отчета" type="list" local="true">
 				<AI id="0" name="Итоговый"/>
 				<AI id="1" name="Промежуточный"/>
 			</A>
