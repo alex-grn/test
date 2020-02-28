@@ -1047,12 +1047,12 @@
 				<TAB name="Документ">
 					<A id="PAYACCOUNTSID" parentkey="cascade"/>
 					<GA name="Документ" caption="Документ">
-						<A id="STATUS" name="Статус" caption="Статус" width="50" type="list" value="0" local="true">
+						<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" value="0" local="true">
 							<AI id="0" name="В работе"/>
 							<AI id="1" name="На исполнении" readonly="false"/>
 							<AI id="2" name="Исполнен" readonly="true"/>
 						</A>
-						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" width="50" type="date" local="true"/>
+						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" labelwidth="250" width="70" type="date" local="true"/>
 						<A id="DOCTYPEID" readonly="true" value="16"/>
 						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
 						<A id="DOCDATE" width="50"/>
@@ -1077,36 +1077,36 @@
 				</TAB>
 				<TAB name="Плательщик">
 					<GA name="Плательщик" caption="Плательщик">
-						<A id="ELECTCOMMITTEE" name="Избирательная комиссия" caption="Юр. лицо" labelwidth="200" type="string" readonly="true" virtual="true" formula="select k.code from  PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
-						<A id="ELCMTACCCODE" name="Расчетный счет избирательной комиссии" caption="Счет плательщика" labelwidth="200" type="string" readonly="true" virtual="true" formula="select e.BANKACC from PAYACCOUNTS p, ELCMTACC e where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID" local="true"/>
-						<A id="ELECTCOMMITTEENAME" name="Наименование плательщика" caption="Наименование плательщика" labelwidth="100" type="text" readonly="true" virtual="true" formula="select k.name from  PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
-						<A id="INNEC" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select k.INN from PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
+						<A id="ELECTCOMMITTEE" name="Избирательная комиссия" caption="Юр. лицо" labelwidth="120" type="string" readonly="true" virtual="true" formula="select k.code from  PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
+						<A id="ELCMTACCCODE" name="Расчетный счет избирательной комиссии" caption="Счет плательщика" labelwidth="120" type="string" readonly="true" virtual="true" formula="select e.BANKACC from PAYACCOUNTS p, ELCMTACC e where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID" local="true"/>
+						<A id="ELECTCOMMITTEENAME" name="Наименование плательщика" caption="Наименование плательщика" labelwidth="120" type="text" readonly="true" virtual="true" formula="select k.name from  PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
+						<A id="INNEC" name="ИНН" caption="ИНН" labelwidth="120" width="50" type="string" readonly="true" virtual="true" formula="select k.INN from PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
 						<A id="KPPEC" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select k.KPP from PAYACCOUNTS p,JURPERSONS j, ELECTCOMMITTEE k where p.id = @PAYACCOUNTSID and j.id = p.JURPERSONSID and k.id = j.ELECTCOMMITTEEID" local="true"/>
-						<A id="AGENTBANKSEC" name="Банк плательщика" caption="Банк плательщика" labelwidth="100" type="text" readonly="true" virtual="true" formula="select b.CODE from PAYACCOUNTS p, ELCMTACC e, AGENTBANKS b where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID and b.id = e.AGENTBANKSID" local="true"/>
-						<A id="BICBANKEC" name="БИК" caption="БИК" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select b.BIC from PAYACCOUNTS p, ELCMTACC e, AGENTBANKS b where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID and b.id = e.AGENTBANKSID" local="true"/>
+						<A id="AGENTBANKSEC" name="Банк плательщика" caption="Банк плательщика" labelwidth="120" type="text" readonly="true" virtual="true" formula="select a.NAME from PAYACCOUNTS p, ELCMTACC e, AGENTBANKS b, AGENT a where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID and b.id = e.AGENTBANKSID and a.id=b.agentid" local="true"/>
+						<A id="BICBANKEC" name="БИК" caption="БИК" labelwidth="120" width="50" type="string" readonly="true" virtual="true" formula="select b.BIC from PAYACCOUNTS p, ELCMTACC e, AGENTBANKS b where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID and b.id = e.AGENTBANKSID" local="true"/>
 						<A id="CORRACCEC" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select b.CORRACC from PAYACCOUNTS p, ELCMTACC e, AGENTBANKS b where p.id = @PAYACCOUNTSID and e.id = p.ELCMTACCID and b.id = e.AGENTBANKSID" local="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Получатель">
 					<GA name="Получатель" caption="Получатель">
 						<GA name="Юридическое лицо" caption="Юридическое лицо">
-							<A id="AGENTID" name="Юр. лицо" caption="Юр. лицо" labelwidth="200" nulls="true"/>
-							<A id="AGENTACCID" name="Счет получателя" caption="Счет получателя" labelwidth="200" nulls="true"/>
+							<A id="AGENTID" name="Юр. лицо" caption="Юр. лицо" labelwidth="100" nulls="true"/>
+							<A id="AGENTACCID" name="Счет получателя" caption="Счет получателя" labelwidth="100" nulls="true"/>
 							<A id="AGENTNAME" name="Наименование получателя" caption="Наименование получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="select a.name from agent a where a.id = @AGENTID" local="true"/>
-							<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select a.INN from agent a where a.id = @AGENTID" local="true"/>
+							<A id="INNAG" name="ИНН" caption="ИНН" labelwidth="100" width="50" type="string" readonly="true" virtual="true" formula="select a.INN from agent a where a.id = @AGENTID" local="true"/>
 							<A id="KPPAG" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select a.KPP from agent a where a.id = @AGENTID" local="true"/>
-							<A id="AGENTBANKSAGID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="select a.CODE from AGENTACC p,AGENTBANKS a where p.ID = @AGENTACCID and a.ID = p.AGENTBANKSID" local="true"/>
-							<A id="BICBANKAGENT" name="БИК" caption="БИК" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select a.BIC from AGENTACC p,AGENTBANKS a where p.ID = @AGENTACCID and a.ID = p.AGENTBANKSID" local="true"/>
+							<A id="AGENTBANKSAGID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="select a.NAME from AGENTACC p, AGENTBANKS b, AGENT a where p.ID = @AGENTACCID and b.ID = p.AGENTBANKSID and a.id=b.agentid" local="true"/>
+							<A id="BICBANKAGENT" name="БИК" caption="БИК" labelwidth="100" width="50" type="string" readonly="true" virtual="true" formula="select a.BIC from AGENTACC p,AGENTBANKS a where p.ID = @AGENTACCID and a.ID = p.AGENTBANKSID" local="true"/>
 							<A id="CORRACCAG" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select a.CORRACC from AGENTACC p,AGENTBANKS a where p.ID = @AGENTACCID and a.ID = p.AGENTBANKSID" local="true"/>
 						</GA>
 						<GA name="Физическое лицо" caption="Физическое лицо">
-							<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="200" nulls="true"/>
-							<A id="PERSONACCDOCID" name="Счет получателя" caption="Счет получателя" labelwidth="200" nulls="true"/>
+							<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="100" nulls="true"/>
+							<A id="PERSONACCDOCID" name="Счет получателя" caption="Счет получателя" labelwidth="100" nulls="true"/>
 							<A id="PERSONNAME" name="Наименование получателя" caption="Наименование получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="select p.NAME from person p where p.ID = @PERSONID" local="true"/>
-							<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select p.INN from personacc p where p.ID = @PERSONACCDOCID" local="true"/>
+							<A id="INNPRS" name="ИНН" caption="ИНН" labelwidth="100" width="50" type="string" readonly="true" virtual="true" formula="select p.INN from personacc p where p.ID = @PERSONACCDOCID" local="true"/>
 							<A id="KPPPRS" name="КПП" caption="КПП" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select p.KPP from personacc p where p.ID = @PERSONACCDOCID" local="true"/>
-							<A id="AGENTBANKSPRSID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="select a.CODE from PERSONACC p, AGENTBANKS a where p.ID = @PERSONACCDOCID and a.ID = p.AGENTBANKSID" local="true"/>
-							<A id="BICBANKPERSON" name="БИК" caption="БИК" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select a.BIC from PERSONACC p, AGENTBANKS a where p.ID = @PERSONACCDOCID and a.ID = p.AGENTBANKSID" local="true"/>
+							<A id="AGENTBANKSPRSID" name="Банк получателя" caption="Банк получателя" labelwidth="100" type="text" readonly="true" virtual="true" formula="select a.NAME from PERSONACC p, AGENTBANKS b, AGENT a where p.ID = @PERSONACCDOCID and b.ID = p.AGENTBANKSID and a.id=b.agentid" local="true"/>
+							<A id="BICBANKPERSON" name="БИК" caption="БИК" labelwidth="100" width="50" type="string" readonly="true" virtual="true" formula="select a.BIC from PERSONACC p, AGENTBANKS a where p.ID = @PERSONACCDOCID and a.ID = p.AGENTBANKSID" local="true"/>
 							<A id="CORRACCPRS" name="Корр.счет" caption="Корр.счет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select a.CORRACC from PERSONACC p, AGENTBANKS a where p.ID = @PERSONACCDOCID and a.ID = p.AGENTBANKSID" local="true"/>
 						</GA>
 					</GA>
@@ -1129,22 +1129,25 @@
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
-			<A id="PAYACCOUNTSID" parentkey="cascade"/>
-			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="70" width="40"/>
-			<A id="DOCDATE" name="Дата" labelwidth="45" width="20"/>
-			<A id="SUMM" name="Сумма" caption="Сумма" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID"/>
-			<GA name="Контрагент" caption="Контрагент">
-				<A id="TRPERSONID" name="Плательщик" caption="Плательщик" labelwidth="70" width="50" nulls="true"/>
-				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
-			</GA>
-			<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
-			<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
+					<A id="PAYACCOUNTSID" parentkey="cascade"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="40" width="30"/>
+					<A id="DOCDATE" name="Дата" labelwidth="40" width="20"/>
+					<A id="SUMM" name="Сумма" caption="Сумма" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID" width="40" labelwidth="50"/>
+					<GA name="Контрагент" caption="Контрагент">
+						<A id="TRPERSONID" name="Плательщик" caption="Плательщик" labelwidth="70" width="50" nulls="true"/>
+						<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+					</GA>
+					<A id="BASIS" name="Первичный документ" caption="Первичный документ" labelwidth="120" type="string"/>
+					<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="120" type="string"/>
+					<A id="TYPICALOPERSID" labelwidth="120" width="100"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
-			<GA id="TYPICALOPERATION"/>
-			<A id="SUMM" name="Сумма" caption="Сумма" readonly="false" type="number" len="8.2" nulls="true" labelwidth="49" width="40"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="70" readonly="true" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
+			<A id="SUMM" name="Сумма" caption="Сумма" readonly="false" type="number" len="8.2" nulls="true" labelwidth="70" width="50"/>
+			<A id="BUDGCLASSID" labelwidth="70" width="50"/>
+			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="70" width="50"/>
+			<A id="TYPEEXPID" labelwidth="150" width="100"/>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1703,7 +1706,7 @@
 							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
 							<GRID id="ReceiptsDocsGR" name="Документ" table="RECEIPTSDOCS" actionlist="setLID"/>
 						</TAB>
-						<TAB name="Типовая операция">
+						<TAB name="Расшифровка платежа">
 							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
 							<A id="RECEIPTSVIRT" caption="Документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Кассовое поступление № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from RECEIPTSDOCS f where f.id = @RECEIPTSDOCSID" local="true"/>
 							<GRID id="ReceiptsDocsConsGR" name="Расшифровка платежа" table="RECEIPTSDOCSCONS"/>
