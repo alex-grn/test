@@ -14,12 +14,18 @@
 			<MENU name="Документы">
 				<MI name="Казначейские уведомления" formlist="Ufk_Notif"/>
 			</MENU>
+			<MENU name="Учет">
+				<MI name="Журнал операций по исполнению расходной части бюджета" formlist="Jurnalexp"/>
+			</MENU>
 		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты"/>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
 		<TABLE id="UFK_NOTIF" name="Казначейские уведомления">
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
 			<TABS>
 				<TAB name="Основная информация">
 					<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="400" type="string" nulls="false" local="true"/>
@@ -39,7 +45,7 @@
 					</GA>
 					<A id="DATE_VKU" name="Дата введения в действие" caption="Дата введения в действие казначейского уведомления" labelwidth="600" type="date" local="true"/>
 					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
-					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')"   local="true"/>
+					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="SECRET_KU" name="Признак секретности" caption="Признак секретности казначейского уведомления" labelwidth="400" type="list" visible="form" value="Не секретно" local="true">
 						<AI id="Не секретно" name="Не секретно"/>
 						<AI id="ДСП" name="ДСП"/>
@@ -53,9 +59,9 @@
 						<AI id="2" name="Источники внешнего финансирования дефицита бюджета"/>
 					</A>
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="grid" value="0" local="true">
-						<AI id="0" name="Черновик"/>
-						<AI id="1" name="Отработан" readonly="true"/>
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" value="0" local="true">
+						<AI id="0" name="Черновик" actionlist="MakeEntryKU"/>
+						<AI id="1" name="Отработан" actionlist="DeleteEntryKU" readonly="true"/>
 					</A>
 				</TAB>
 				<TAB name="Ответственные исполнители">
@@ -77,9 +83,9 @@
 		<TABLE id="UFK_NOTIF_BA" name="Бюджетные ассигнования">
 			<A id="UFK_NOTIFID" name="Казначейские уведомления" caption="Казначейские уведомления" labelwidth="300" parentkey="cascade" type="ref" table="UFK_NOTIF" ret="NOM_KU" form="Ufk_Notif" local="true"/>
 			<A id="KBR_ID"/>
-			<A id="SUM_BA_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" local="true"/>
-			<A id="SUM_BA_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" local="true"/>
-			<A id="SUM_BA_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" local="true"/>
+			<A id="SUM_BA_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_BA_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_BA_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_BA_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<TI id="iUFK_NOTIF_BA_ID" index="UFK_NOTIFID"/>
 		</TABLE>
@@ -88,18 +94,83 @@
 			<A id="KBR_ID"/>
 			<A id="CAPOBJECTS_ID"/>
 			<A id="FAIP_CODE" name="Код  ФАИП" caption="Код объекта ФАИП (КМИ)" labelwidth="350" type="string" local="true"/>
-			<A id="SUM_LBO_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" local="true"/>
-			<A id="SUM_LBO_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" local="true"/>
-			<A id="SUM_LBO_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" local="true"/>
+			<A id="SUM_LBO_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_LBO_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_LBO_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_LBO_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<TI id="iUFK_NOTIF_LBO_ID" index="UFK_NOTIFID"/>
 		</TABLE>
 		<TABLE id="UFK_NOTIF_POF" name="Предельные объемы">
 			<A id="UFK_NOTIFID" name="Казначейские уведомления" caption="Казначейские уведомления" labelwidth="300" parentkey="cascade" type="ref" table="UFK_NOTIF" ret="NOM_KU" form="Ufk_Notif" local="true"/>
 			<A id="KBR_ID"/>
-			<A id="SUM_POF_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" local="true"/>
+			<A id="SUM_POF_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_POF_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<TI id="iUFK_NOTIF_POF_ID" index="UFK_NOTIFID"/>
+		</TABLE>
+		<TABLE id="JURNALEXP" name="Журнал операций по исполнению расходной части бюджета">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="DOCLINKS_IN"/>
+					<GA caption="Операция">
+						<A id="RECORD_TYPE" name="Тип" caption="Тип" labelwidth="50" width="80" type="list" nulls="false" local="true">
+							<AI id="IN_LBO" name="Поступление ЛБО"/>
+							<AI id="IN_BA" name="Поступление ассигнований"/>
+							<AI id="IN_POF" name="Поступление ПОФ"/>
+							<AI id="SEP_LBO" name="Детализация ЛБО"/>
+							<AI id="SEP_BA" name="Детализация ассигнований"/>
+							<AI id="SEP_POF" name="Детализация ПОФ"/>
+							<AI id="COR_LBO" name="Корректировка ЛБО"/>
+							<AI id="COR_BA" name="Корректировка ассигнований"/>
+							<AI id="COR_POF" name="Корректировка ПОФ"/>
+							<AI id="OUT03_LBO" name="Перечисление на счета ПБС ЛБО"/>
+							<AI id="OUT03_BA" name="Перечисление на счета ПБС ассигнований"/>
+							<AI id="OUT03_POF" name="Перечисление на счета ПБС ПОФ"/>
+							<AI id="OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО"/>
+							<AI id="OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований"/>
+							<AI id="OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ"/>
+							<AI id="OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО"/>
+							<AI id="OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований"/>
+							<AI id="OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ"/>
+							<AI id="NEED" name="Согласование потребности"/>
+							<AI id="PLAN_OUT" name="Планирование расходов"/>
+							<AI id="PBO" name="Принимаемые бюджетные обязательства"/>
+							<AI id="BO" name="Принятые бюджетные обязательства"/>
+							<AI id="DO" name="Принятые денежные обязательства"/>
+							<AI id="KR" name="Кассовый расход"/>
+						</A>
+						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
+					</GA>
+					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="KBR_ID" labelwidth="350"/>
+					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
+					<GA caption="Документы">
+						<GA caption="Документ, подтверждающий проведение операции">
+							<A id="DOCTYPE" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
+							<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
+							<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
+						</GA>
+						<GA caption="Документ получателя бюджетных средств или иное основание для проведения операции">
+							<A id="DOCTYPEP" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
+							<A id="DOCNUMBP" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
+							<A id="DOCDATEP" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
+						</GA>
+					</GA>
+					<A id="SUM" name="Сумма" caption="Сумма операции" labelwidth="550" type="number" len="18.2" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA caption="Подразделения, курирующие расходы">
+						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+					</GA>
+					<A id="ECON_CLASS_ID"/>
+					<A id="SUBSIDIES_ID"/>
+					<A id="CAPOBJECTS_ID"/>
+					<A id="EVENT_ID"/>
+					<A id="ACODES_ID"/>
+					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+				</TAB>
+			</TABS>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -123,4 +194,7 @@
 			</TABS>
 		</FORM>
 	</FORMS>
+	<FORM id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета">
+		<GRID id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" table="JURNALEXP"/>
+	</FORM>
 </SYSTEM>
