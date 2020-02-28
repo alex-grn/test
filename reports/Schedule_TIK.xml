@@ -22,7 +22,7 @@
 										when ik.levelelcommittee = 'district' then (select kk.rnameec from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
 										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.rnameec 
 									end as rod_tik,
-                                    r.enddate-r.begindate+1 as count_w,
+                                    (select sum(rr.enddate-rr.begindate+1) from register rr where rr.id = any(P_SYSTEM_GET_SELECTLIST(${idlist})) ) as count_w,
 									(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = el.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсаци€%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_all_uik,
 									(select sum((fs.SUMFINTIK+fs.SUMFINTIKCEN+fs.SUMFINUIK)-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = el.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_all_uik_dop,
 									IK.name as name_ik,
@@ -77,7 +77,8 @@
                                                             and f4.namenorms = 'reward'  --–азмер дополнительной оплаты труда (вознаграждени€) за один час работы в будние дни с 6.00 до 22.00
                                                             and f4.postsid = (select p.id from posts p where upper(p.postprint) = 'ZOTHERCM' and p.levelelcommittee = COALESCE(nullif(ik.levelelcommittee,'circuit'),'territory'))
                                                             and f4.mcircuit = el.mcircuit
-								where r.id = ${id}::bigint
+								where r.id = any(P_SYSTEM_GET_SELECTLIST(${idlist}))
+								limit 1
 								;
 						</script>
                      </query>
@@ -87,13 +88,13 @@
 				<queries>
                      <query name="shedule_spec1" type="sql">
                         <script>
-							    select d2s(w.datetbl) as date1, t.code as type1
-								 from registerlist r
-								      left join worktbl w on w.registerlistid = r.id
-									  left join typeday t on t.id = w.typedayid
-								where r.registerid = ${id}::bigint
-								group by w.datetbl, t.code
-								order by w.datetbl
+							    select d2s(generate_series(tbl.begindate,tbl.enddate,'1 day')::date) as date1
+									FROM(
+									select r.begindate,r.enddate
+										from register r
+										where r.id = any(P_SYSTEM_GET_SELECTLIST(${idlist}))) tbl
+									group by generate_series(tbl.begindate,tbl.enddate,'1 day') 
+									order by generate_series(tbl.begindate,tbl.enddate,'1 day') 
 								;
 						</script>
                      </query>
@@ -104,14 +105,15 @@
                      <query name="shedule_floor" type="sql">
                         <script>
 								select
-								(select sum((COALESCE(fs.SUMFINTIK,0)+COALESCE(fs.SUMFINTIKCEN,0)+COALESCE(fs.SUMFINUIK,0))-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсаци€%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_comp,
-								(select sum((COALESCE(fs.SUMFINTIK,0)+COALESCE(fs.SUMFINTIKCEN,0)+COALESCE(fs.SUMFINUIK,0))-p_action_finexp_sumpay(f.ID)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_dop
+								(select sum(COALESCE(fs.SUMFINTIK,0)) from finexp f, TYPEEXP ts, financeelcom fs where f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%компенсаци€%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_comp,
+								(select sum(COALESCE(fs.SUMFINTIK,0)) from finexp f, TYPEEXP ts, financeelcom fs where fs.LEVELESTIMATE = 'territory' and f.electcommincampid = i.id and ts.id = f.typeexpid and lower(trim(ts.code)) like '%вознаграждение%' and fs.TYPEEXPID = f.TYPEEXPID and fs.ELECTCOMMINCAMPID = f.ELECTCOMMINCAMPID) as sum_dop
 								from register r
 								inner join electcampaign el on el.id = r.electcampaignid
 								inner join electcommincamp i on i.id = r.electcommincampid
 								inner join electcommittee ik on ik.id = i.electcommitteeid 
 								left join mfin m on m.electcommitteeid = ik.id and now() >= m.begindate and (m.enddate >=now() or m.enddate is null) and m.mfin::integer in (1,3)
-								where r.id = ${id}::bigint
+								where r.id = any(P_SYSTEM_GET_SELECTLIST(${idlist}))
+								limit 1
 								;
 						</script>
                      </query>
