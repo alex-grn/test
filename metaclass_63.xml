@@ -1,13 +1,163 @@
 <SYSTEM id="63" name="Учет расходов на выборы 3">
 	<MODULES id="Modules" name="Модули"/>
 	<GROUPS_MENU name="Группы меню"/>
+		<MENU name="Справочники по отчётности">
+			<MI name="Показатели отчётности" formlist="ReportingIndicators"/>
+			<MI name="Формы показателей" formlist="ReportingForm"/>
+		</MENU>
+		<MENU name="Отчётность ИК">
+			<MI name="Отчётность УИК" formlist="AccountabilityUik"/>
+			<MI name="Отчётность ТИК" formlist="AccountabilityTik"/>
+			<MI name="Отчётность ИКСРФ" formlist="AccountabilityIksrf"/>
+		</MENU>
+		
+		
 	<ATTRIBUTES name="Атрибуты">
+		<A id="WORDINGOFTHEFORMSID" name="Редакции форм" caption="Редакции форм" type="ref" table="WORDINGOFTHEFORMS" ret="CODE" form="WordingOfTheForms" nulls="true"/>
+		<A id="ACCOUNTABILITYUIKID" name="Отчёты УИК" caption="Отчёты УИК" type="ref" table="ACCOUNTABILITYUIK" ret="CODE" form="AccountabilityUik" nulls="true"/>
+		<A id="REPORTINGFORMID" name="Код формы" caption="Код формы" type="ref" table="REPORTINGFORM" ret="CODEFORM" form="ReportingForm" nulls="false"/>
 	</ATTRIBUTES>
-	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
+	
+	
+	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+	</GROUPS_ATTRIBUTES>
+	
+	
 	<TABLES name="Таблицы">
+		
+		
+		<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
+			<A id="REPORTINGFORMID" name="Код формы" limit="50" caption="Код формы" labelwidth="400"/>
+			<A id="REPORTINGFORMVIRT" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMEFORM from REPORTINGFORM where ID = @REPORTINGFORMID" local="true"/>
+			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" nulls="false" local="true"/>
+			<TI unique="CODEFORMID,REVISIONDATE"/>
+		</TABLE>
+		<TABLE id="MEASURESOFSHAPE" name="Показатели формы">
+			<A id="WORDINGOFTHEFORMSID" parentkey="cascade"/>
+			<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="CODE" name="Код строки формы" caption="Код строки формы" labelwidth="600" type="string" nulls="false" local="true"/>
+			<GA id="CONTROLOFFILLING" name="Контроль заполнения показателя" caption="Контроль заполнения показателя">
+				<A id="COMPLETIONUIK" name="УИК" caption="УИК" width="15" type="boolean" local="true"/>
+				<A id="COMPLETIONTIK" name="ТИК" caption="ТИК" width="15" type="boolean" local="true"/>
+				<A id="COMPLETIONOIK" name="ОИК" caption="ОИК" width="15" type="boolean" local="true"/>
+				<A id="COMPLETIONTIKWITHOIK" name="ТИК с полномочиями ОИК" caption="ТИК с полномочиями ОИК" width="30" type="boolean" local="true"/>
+				<A id="COMPLETIONIKSRF" name="ИКСРФ" caption="ИКСРФ" width="15" type="boolean" local="true"/>
+			</GA>
+			<TI unique="CODE"/>
+		</TABLE>
+		
+		
+		<TABLE id="REPORTINGFORM" name="Формы отчётности">
+			<A id="CODEFORM" name="Код формы" caption="Код формы" labelwidth="400" type="string" nulls="false" local="true"/>
+			<A id="NAMEFORM" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="false" local="true"/>
+		</TABLE>
+		
+		
+		<TABLE id="ACCOUNTABILITYUIK" name="Отчётность ИК">
+			<A id="CODE" name="Код отчетности" caption="Код отчетности" labelwidth="400" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="REVISIONDATE" name="Дата отчёта" caption="Дата отчёта" labelwidth="400" type="date" nulls="false" local="true"/>
+			<A id="ELECTCAMPAIGNID"/>
+			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+		</TABLE>
+		<TABLE id="SECTION1SOURCEDATA" name="Раздел 1. Исходные данные">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="NAMES1S" name="Наименование показателя" caption="Наименование показателя">
+				<A id="NAME" name="Наименование показателя (гр.1)" caption="Наименование показателя (гр.1)" labelwidth="200" type="string" visible="true" nulls="false" local="true"/>
+			</GA>
+			<GA id="CODES1S" name="Код строки" caption="Код строки">
+				<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" type="string" visible="true" nulls="false" local="true"/>
+			</GA>
+			<GA id="TOTALS1S" name="Всего" caption="Всего">
+				<A id="TOTAL" name="Всего (гр.3)" caption="Всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" local="true"/>
+			</GA>
+			<GA id="UIKREFERENDUMCOMMISSIONS1S" name="Участковые избирательные комиссии (комиссий референдума)" caption="Участковые избирательные комиссии (комиссий референдума)">
+				<A id="UIKREFERENDUMCOMMISSION" name="Участковые избирательные комиссии (комиссий референдума) (гр.7)" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
+			</GA>
+		</TABLE>
+		
+		
+		<!-- <TABLE id="ACCOUNTABILITYTIK" name="Отчёты ТИК"> -->
+			<!-- <A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/> -->
+			<!-- <A id="CODE" name="Код" caption="Код" labelwidth="400" type="int" nulls="false" local="true"/> -->
+			<!-- <A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="400" readonly="true" type="date" nulls="false" formula="now()" local="true"/> -->
+		<!-- </TABLE> -->
+		<!-- <TABLE id="ACCOUNTABILITYTIK2" name="Спецификации"> -->
+			<!-- <A id="CODE" name="Код строки" caption="Код строки" labelwidth="600" type="int" len="10" nulls="false" local="true"/> -->
+			<!-- <A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/> -->
+		<!-- </TABLE> -->
+		
+		
+		<!-- <TABLE id="ACCOUNTABILITYIKSRF" name="Отчёты ИКСРФ"> -->
+			<!-- <A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/> -->
+			<!-- <A id="CODE" name="Код" caption="Код" labelwidth="400" type="int" nulls="false" local="true"/> -->
+			<!-- <A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="400" readonly="true" type="date" nulls="false" formula="now()" local="true"/> -->
+		<!-- </TABLE> -->
+		<!-- <TABLE id="ACCOUNTABILITYIKSRF2" name="Спецификации"> -->
+			<!-- <A id="CODE" name="Код строки" caption="Код строки" labelwidth="600" type="int" len="10" nulls="false" local="true"/> -->
+			<!-- <A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/> -->
+		<!-- </TABLE> -->
+		
+		
 	</TABLES>
+	
+	
 	<ACTIONS name="Действия"/>
+	
+	
 	<REPORTS name="Отчеты"/>
+	
+	
 	<FORMS id="Forms" name="Формы">
+		
+		
+		<FORM id="ReportingIndicators" name="Показатели отчётности">
+			<GRID id="WordingOfTheForms" name="Редакции форм" table="WORDINGOFTHEFORMS"/>
+			<TABS>
+				<TAB name="Показатели формы">
+					<GRID id="MeasuresOfShape" name="Показатели формы" table="MEASURESOFSHAPE"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		
+		
+		<FORM id="ReportingForm" name="Формы отчётности">
+			<GRID id="ReportingForm" name="Формы отчётности" table="REPORTINGFORM"/>
+		</FORM>
+		
+		
+		<FORM id="AccountabilityUik" name="Отчётность УИК">
+			<GRID id="AccountabilityUik" name="Отчётность УИК" table="ACCOUNTABILITYUIK"/>
+			<TABS>
+				<TAB name="Спецификации">
+					<TABS>
+						<TAB name="Раздел 1. Исходные данные">
+							<GRID id="Section1SourceData" name="Раздел 1. Исходные данные" table="SECTION1SOURCEDATA"/>
+						</TAB>
+					</TABS>
+				</TAB>
+			</TABS>
+		</FORM>
+		
+		
+		<!-- <FORM id="AccountabilityTik" name="Отчётность ТИК"> -->
+			<!-- <GRID id="AccountabilityTik" name="Отчётность ТИК" table="ACCOUNTABILITYTIK"/> -->
+			<!-- <TABS> -->
+				<!-- <TAB name="Спецификации"> -->
+					<!-- <GRID id="AccountabilityTik2" name="Спецификации" table="ACCOUNTABILITYTIK2"/> -->
+				<!-- </TAB> -->
+			<!-- </TABS> -->
+		<!-- </FORM> -->
+		
+		<!-- <FORM id="AccountabilityIksrf" name="Отчётность ИКСРФ"> -->
+			<!-- <GRID id="AccountabilityIksrf" name="Отчётность ИКСРФ" table="ACCOUNTABILITYIKSRF"/> -->
+			<!-- <TABS> -->
+				<!-- <TAB name="Спецификации"> -->
+					<!-- <GRID id="AccountabilityIksrf2" name="Спецификации" table="ACCOUNTABILITYIKSRF2"/> -->
+				<!-- </TAB> -->
+			<!-- </TABS> -->
+		<!-- </FORM> -->
+		
+		
 	</FORMS>
 </SYSTEM>
