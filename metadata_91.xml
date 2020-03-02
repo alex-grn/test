@@ -102,7 +102,8 @@
 			<AI id="0" name="Нет"/>
 			<AI id="1" name="Да"/>
 		</A>
-		<A id="INFOPAYDOCID" name="Платежи" caption="Платежи" labelwidth="300" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID" form="Infopaydoc"/>
+<!-- 		<A id="INFOPAYDOCID" name="Платежи" caption="Платежи" labelwidth="300" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID" form="Infopaydoc"/> -->
+		<A id="INFOPAYDOCID" name="Платежи" caption="Платежи" labelwidth="300" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" form="Infopaydoc"/>
 		<A id="JOURNALPAYSID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYS" ret="INFOPAYDOCID" form="Journalpays"/>
 		<A id="INFOPAYDOCDETAILID" name="Детализация платежа" caption="Детализация платежа" labelwidth="300" type="ref" pid="INFOPAYDOCID" table="INFOPAYDOCDETAIL" ret="RRNUM" form="Infopaydoc"/>
 		<A id="STATEMENTADBID" name="Выписки и реестры платежей" caption="Выписки и реестры платежей" labelwidth="300" type="ref" table="STATEMENTADB" ret="GUID_FK" form="Statementadb"/>
@@ -261,8 +262,14 @@
 			<A id="STATUSELOAD"/>
 		</TABLE>
 		<TABLE id="INFOPAYDOC" name="Обработка и детализация платежей">
+		<TABS>
+		<TAB name="Платеж">
+		<GA name="Информация для подбора начисления">
+		    <A id="DOCTP" name="Документ" caption="Документ" labelwidth="150" width="100" type="string" virtual="true" formula="select COALESCE(KOD_DOC_ADB, KOD_DOC) from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true" />
+			<A id="DOCNM" name="Номер" caption="Номер" labelwidth="150" width="100" type="string" virtual="true" formula="select COALESCE(NOM_DOC_ADB, NOM_DOC) from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true" />
+			<A id="DOCDT" name="Дата" caption="Дата" labelwidth="150" width="100" type="date" virtual="true" formula="select COALESCE(DATE_DOC_ADB, DATE_DOC) from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true" />
 			<GA name="Данные о платеже" caption="Данные о платеже">
-				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="150" width="100" type="string" nulls="false"/>
+				<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 				<A id="STATEMENTADBDONEID" name="GUID операции" caption="GUID операции" labelwidth="150" width="100" type="ref" table="STATEMENTADBDONE" ret="GUID" local="true"/>
 				<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="240" width="50" type="list" nulls="true" visible="true" local="true">
 					<AI id="0" name="Платежное поручение"/>
@@ -273,8 +280,9 @@
 				</A>
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
-				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" virtual="true" formula="select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID" />
-				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" formula="select DATE_OTCH from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" virtual="true" formula="(select GUID_FK from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
+				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" formula="(select DATE_OTCH from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
+			</GA>
 			</GA>
 			<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
 				<AI id="0" name="Получено"/>
@@ -283,6 +291,8 @@
 				<AI id="3" name="Детализировано и отравлено в журнал"/>
 			</A>
 			<TI id="iINFOPAYDOC_UK" unique="OWNERID,STATEMENTADBID,STATEMENTADBDONEID"/>
+			</TAB>
+			</TABS>
 		</TABLE>
 		<TABLE id="INFOPAYDOCDETAIL" name="Детализация платежей">
 			<A id="INFOPAYDOCID" parentkey="cascade"/>
@@ -306,7 +316,7 @@
 		</TABLE>
 		<TABLE id="JOURNALPAYS" name="Журнал платежей">
 			<GA name="Данные о платеже" caption="Данные о платеже">
-				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="150" width="1000" type="string" nulls="false"/>
+				<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 				<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="100" type="list" nulls="true" visible="true" local="true">
 					<AI id="0" name="Платежное поручение"/>
 					<AI id="1" name="Строка реестра к платежному поручению с реестром"/>
@@ -314,7 +324,7 @@
 					<AI id="3" name="Уведомление (зачет)"/>
 					<AI id="4" name="Возврат"/>
 				</A>
-				<A id="INFOPAYDOCID" name="GUID операции" caption="GUID операции" labelwidth="100" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID" local="true"/>
+				<A id="INFOPAYDOCID" name="GUID операции" caption="GUID операции" labelwidth="100" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" local="true"/>
 				<A id="INFOPAYDOCDETAILID" name="Номер строки реестра" form=""/>
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
@@ -338,7 +348,13 @@
 				<AI id="0" name="Итоговый"/>
 				<AI id="1" name="Промежуточный"/>
 			</A>
-			<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="150" width="25" type="string" len="1" nulls="true" local="true"/>
+			<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="150" width="25" type="list" len="1" nulls="true" local="true">
+				<AI id="1" name="федеральный бюджет"/>
+				<AI id="2" name="бюджет субъекта РФ"/>
+				<AI id="3" name="местный бюджет"/>
+				<AI id="4" name="бюджет ГВФ РФ"/>
+				<AI id="5" name="бюджет ТГВФ"/>
+			</A>
 			<A id="KOD_UBP" name="Код УБП" caption="Код УБП" width="25" type="string" len="8" nulls="true" local="true"/>
 			<A id="NAME_UBP" name="Наименование УБП" caption="Наименование" width="50" type="string" len="2000" nulls="true" visible="form" local="true"/>
 			<A id="GUID_FK" name="GUID" caption="GUID выписки" type="string" len="36" nulls="false" visible="form" local="true"/>
@@ -357,6 +373,7 @@
 			<TI id="iSTATEMENTADB_UK" unique="GUID_FK,LS_ADB,DATE_OTCH,VID_OTCH"/>
 		</TABLE>
 		<TABLE id="STATEMENTADBDONE" name="Информация по исполненным операциям">
+			<A id="OWNERID" name="Принадлежность" labelwidth="100" width="50"/>
 			<A id="STATEMENTADBID" parentkey="cascade"/>
 			<A id="STATUSDOC" name="Статус взятия в работу" caption="Статус взятия в работу" labelwidth="100" width="100" type="list" nulls="false">
 				<AI id="0" name="не в работе"/>
@@ -366,14 +383,30 @@
 			<A id="GUID" name="GUID" caption="GUID операции" labelwidth="100" width="50" type="string" len="36" nulls="true" local="true"/>
 			<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" nulls="true" local="true"/>
 			<GA name="Данные о документе, подтверждающем проведение операции" caption="Данные о документе, подтверждающем проведение операции">
-				<A id="KOD_DOC" name="Код" caption="Код" type="string" len="2" nulls="true" local="true"/>
-				<A id="NOM_DOC" name="Номер" caption="Номер" type="string" len="15" nulls="true" local="true"/>
-				<A id="DATE_DOC" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
+				<A id="KOD_DOC" name="Код" caption="Код" labelwidth="50" width="35" type="list" nulls="false" local="true">
+					<AI id="IZ" name="Извещение о поступлении в иностранной валюте"/>
+					<AI id="PP" name="Платежный документ"/>
+					<AI id="SF" name="Справка ОрФК"/>
+					<AI id="UF" name="Уведомление об уточнении"/>
+					<AI id="UN" name="Уведомление об уточнении, зачете (ФНС)"/>
+					<AI id="SP" name="Бухгалтерская справка ф. 0504833"/>
+					<AI id="RC" name="Реестр платежей, ошибочно зачисленных на счет другого ОрФК (используется только для выписки АДБ-ОрФК)"/>
+					<AI id="RD" name="Реестр перечисленных поступлений (используется только для выписки АДБ-ОрФК)"/>
+					<AI id="XX" name="прочие документы"/>
+				</A>
+				<A id="NOM_DOC" name="Номер" caption="Номер"  labelwidth="50" width="40" type="string" len="15" nulls="true" local="true"/>
+				<A id="DATE_DOC" name="Дата" caption="Дата" labelwidth="50" width="25" type="date" nulls="true" local="true"/>
 			</GA>
 			<GA name="Данные о документе администратора доходов бюджета" caption="Данные о документе администратора доходов бюджета">
-				<A id="KOD_DOC_ADB" name="Код" caption="Код" type="string" len="2" nulls="true" local="true"/>
-				<A id="NOM_DOC_ADB" name="Номер" caption="Номер" type="string" len="15" nulls="true" local="true"/>
-				<A id="DATE_DOC_ADB" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
+				<A id="KOD_DOC_ADB" name="Код" caption="Код" labelwidth="50" width="35" type="list" nulls="true" local="true">
+					<AI id="ZV" name="Заявка на возврат"/>
+					<AI id="UF" name="Уведомление об уточнении"/>
+					<AI id="UN" name="Уведомление об уточнении, зачете (ФНС)"/>
+					<AI id="UM" name="Межрегиональный зачет"/>
+					<AI id="XX" name="прочие документы"/>
+				</A>
+				<A id="NOM_DOC_ADB" name="Номер" caption="Номер" labelwidth="50" width="40" type="string" len="15" nulls="true" local="true"/>
+				<A id="DATE_DOC_ADB" name="Дата" caption="Дата" labelwidth="50" width="25" type="date" nulls="true" local="true"/>
 			</GA>
 			<GA name="Суммы" caption="Суммы">
 				<A id="SUM_IN" name="Поступило" caption="Сумма поступления" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
@@ -396,7 +429,11 @@
 				<AI id="0" name="зачисление"/>
 				<AI id="1" name="списание"/>
 			</A>
-			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="string" len="2" nulls="true" visible="false" local="true"/>
+			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="list" nulls="true" visible="form" local="true">
+				<AI id="20" name="доходы"/>
+				<AI id="31" name="ИВФДБ"/>
+				<AI id="32" name="ИВнФДБ"/>
+			</A>
 			<A id="KBK" name="Код по БК" caption="Код по БК" type="string" len="20" nulls="true" local="true"/>
 			<A id="ADD_KLASS" name="Код цели" caption="Код цели" type="string" len="20" nulls="true" local="true"/>
 			<GA name="Данные о получателе" caption="Данные о получателе">
@@ -417,7 +454,9 @@
 			<A id="KOD_UBP" name="Код по Сводному реестру ПБС/АДБ/АИФДБ" caption="Код по Сводному реестру ПБС/АДБ/АИФДБ" type="string" len="8" nulls="true" visible="form" local="true"/>
 			<A id="NAME_GRS" name="Наименование ГРБС/ГАДБ/ГАИФДБ" caption="Наименование ГРБС/ГАДБ/ГАИФДБ" type="string" len="2000" nulls="true" visible="form" local="true"/>
 			<A id="KOD_GRS" name="Код ГРБС/ГАДБ/ГАИФДБ" caption="Код ГРБС/ГАДБ/ГАИФДБ" type="string" len="3" nulls="true" visible="form" local="true"/>
-			<A id="NAME_BUD" name="Наименование бюджета" caption="Наименование бюджета" type="string" len="512" nulls="true" visible="form" local="true"/>
+			<A id="NAME_BUD" name="Наименование бюджета" caption="Наименование бюджета" type="list" len="512" nulls="true" visible="form" local="true">
+				<AI id="0" name="Федеральный бюджет"/>
+			</A>
 			<A id="NAME_UBP_FO" name="Финансовый орган" caption="Финансовый орган" type="string" len="2000" nulls="true" visible="form" local="true"/>
 			<A id="OKPO_FO" name="Код по ОКПО" caption="Код по ОКПО" type="string" len="8" nulls="true" visible="form" local="true"/>
 			<A id="CNAME_PL" name="Наименование плательщика" caption="Наименование плательщика" type="string" len="500" nulls="true" local="true"/>
@@ -434,7 +473,9 @@
 			<A id="INN_PP" name="ИНН получателя" caption="ИНН получателя" type="string" len="12" nulls="true" visible="form" local="true"/>
 			<A id="KPP_PP" name="КПП получателя" caption="КПП получателя" type="string" len="9" nulls="true" visible="form" local="true"/>
 			<A id="KBK_PP" name="КБК" caption="КБК" type="string" len="20" nulls="true" local="true"/>
-			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="string" len="2" nulls="true" local="true"/>
+			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="list" nulls="true" visible="form" local="true">
+				<AI id="20" name="доходы"/>
+			</A>			
 			<A id="ADD_KLASS" name="Код цели субсидии (субвенции)" caption="Код цели субсидии (субвенции)" type="string" len="20" nulls="true" local="true"/>
 			<A id="OKATO_PP" name="ОКТMО" caption="ОКТMО" type="string" len="8" nulls="true" local="true"/>
 			<A id="SUM_PP" name="Сумма для уточнения" caption="Сумма для уточнения" type="number" nulls="true" local="true"/>
@@ -486,61 +527,118 @@
 			<A id="GUID" name="Глобальный идентификатор" caption="Глобальный идентификатор" type="string"/>
 		</TABLE>
 		<TABLE id="REFINENOTIF" name="Уведомление об уточнении вида и принадлежности платежа">
-			<A id="GUID_FK" name="Глобальный уникальный идентификатор" caption="Глобальный уникальный идентификатор" type="string" nulls="true" local="true"/>
-			<A id="NOM_UF" name="Номер Уведомления" caption="Номер Уведомления" type="string" len="15" nulls="true" local="true"/>
-			<A id="DATE_UF" name="Дата Уведомления" caption="Дата Уведомления" type="date" nulls="true" local="true"/>
-			<A id="NAME_UBP" name="Наименование ПБС/АДБ/АИФДБ" caption="Наименование ПБС/АДБ/АИФДБ" type="string" len="2000" nulls="true" local="true"/>
-			<A id="KOD_UBP" name="Код по Сводному реестру ПБС/АДБ/АИФДБ" caption="Код по Сводному реестру ПБС/АДБ/АИФДБ" type="string" len="8" nulls="true" local="true"/>
-			<A id="LS_UBP" name="Номер лицевого счета ПБС/АДБ/АИФДБ" caption="Номер лицевого счета ПБС/АДБ/АИФДБ" type="string" len="11" nulls="true" local="true"/>
-			<A id="NAME_GRS" name="Наименование ГРБС/ГАДБ/ГАИФДБ" caption="Наименование ГРБС/ГАДБ/ГАИФДБ" type="string" len="2000" nulls="true" local="true"/>
-			<A id="GLAVA_GRS" name="Глава по БК ГРБС/ГАДБ/ГАИФДБ" caption="Глава по БК ГРБС/ГАДБ/ГАИФДБ" type="string" len="3" nulls="true" local="true"/>
-			<A id="NAME_BUD" name="Наименование бюджета" caption="Наименование бюджета" type="string" len="512" nulls="true" local="true"/>
-			<A id="NAME_UBP_FO" name="Наименование финансового органа" caption="Наименование финансового органа" type="string" len="2000" nulls="true" local="true"/>
-			<A id="OKPO_FO" name="Код по ОКПО" caption="Код по ОКПО" type="string" len="8" nulls="true" local="true"/>
-			<A id="LS_FO" name="Лицевой счет финансового органа" caption="Лицевой счет финансового органа" type="string" len="11" nulls="true" local="true"/>
-			<A id="NAME_TOFK" name="Наименование органа ФК" caption="Наименование органа ФК" type="string" len="2000" nulls="true" local="true"/>
-			<A id="KOD_TOFK" name="Код органа ФК" caption="Код органа ФК" type="string" len="4" nulls="true" local="true"/>
-			<A id="FUND_SOURCE" name="Вид средств" caption="Вид средств" type="string" len="1" nulls="true" local="true"/>
-			<A id="NOM_ZF" name="Номер запроса ОрФК" caption="Номер запроса ОрФК" type="string" len="15" nulls="true" local="true"/>
-			<A id="DATE_ZF" name="Дата запроса" caption="Дата запроса" type="date" nulls="true" local="true"/>
-			<A id="CNAME_PL" name="Наименование плательщика" caption="Наименование плательщика" type="string" len="500" nulls="true" local="true"/>
-			<A id="INN_PL" name="ИНН плательщика" caption="ИНН плательщика" type="string" len="12" nulls="true" local="true"/>
-			<A id="KPP_PL" name="КПП плательщика" caption="КПП плательщика" type="string" len="9" nulls="true" local="true"/>
-			<A id="PASP" name="Паспортные данные плательщика" caption="Паспортные данные плательщика" type="string" len="1000" nulls="true" local="true"/>
-			<A id="BS_PL" name="Номер банковского счета плательщика" caption="Номер банковского счета плательщика" type="string" len="20" nulls="true" local="true"/>
-			<A id="DOL_RUK" name="Должность руководителя" caption="Должность руководителя" type="string" len="100" nulls="true" local="true"/>
-			<A id="NAME_RUK" name="ФИО руководителя" caption="ФИО руководителя" type="string" len="50" nulls="true" local="true"/>
-			<A id="DOL_ISP" name="Должность ответственного исполнителя" caption="Должность ответственного исполнителя" type="string" len="100" nulls="true" local="true"/>
-			<A id="NAME_ISP" name="ФИО ответственного исполнителя" caption="ФИО ответственного исполнителя" type="string" len="50" nulls="true" local="true"/>
-			<A id="TEL_ISP" name="Телефон ответственного исполнителя" caption="Телефон ответственного исполнителя" type="string" len="50" nulls="true" local="true"/>
-			<A id="DATE_POD" name="Дата подписания документа" caption="Дата подписания документа" type="date" nulls="true" local="true"/>
-			<A id="DOL_RUK_TOFK" name="Должность руководителя ОрФК" caption="Должность руководителя ОрФК" type="string" len="100" nulls="true" local="true"/>
-			<A id="NAME_RUK_TOFK" name="Руководитель ОрФК" caption="Руководитель ОрФК" type="string" len="50" nulls="true" local="true"/>
-			<A id="DOL_ISP_TOFK" name="Должность исполнителя ОрФК" caption="Должность исполнителя ОрФК" type="string" len="100" nulls="true" local="true"/>
-			<A id="NAME_ISP_TOFK" name="Исполнитель ОрФК" caption="Исполнитель ОрФК" type="string" len="50" nulls="true" local="true"/>
-			<A id="TEL_ISP_TOFK" name="Телефон исполнителя ОрФК" caption="Телефон исполнителя ОрФК" type="string" len="50" nulls="true" local="true"/>
-			<A id="DATE_TOFK" name="Дата отметки" caption="Дата отметки" type="date" nulls="true" local="true"/>
+		<GA name="Уведомление" caption="Уведомление">
+			<A id="GUID_FK" name="GUID" caption="GUID" type="string" width="40" nulls="true" local="true"/>
+			<A id="NOM_UF" name="Номер" caption="Номер" width="30" type="string" len="15" nulls="true" local="true"/>
+			<A id="DATE_UF" name="Дата" caption="Дата" width="30" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Участник бюджетного процесса" caption="Участник бюджетного процесса">
+			<A id="NAME_UBP" name="Наименование" caption="Наименование" width="100" visible="form" type="string" len="2000" nulls="true" local="true"/>
+			<A id="KOD_UBP" name="Код" caption="Код" visible="form" width="50" type="string" len="8" nulls="true" local="true"/>
+			<A id="LS_UBP" name="Л/с" caption="Л/с" visible="form" width="50" type="string" len="11" nulls="true" local="true"/>
+			</GA>
+			<GA name="Глава" caption="Глава">
+			<A id="NAME_GRS" name="Наименование" caption="Наименование" width="50" visible="form" type="string" len="2000" nulls="true" local="true"/>
+			<A id="GLAVA_GRS" name="Код" caption="Код" type="string" width="50" visible="form" len="3" nulls="true" local="true"/>
+			</GA>
+			<A id="NAME_BUD" name="Бюджет" caption="Бюджет" width="100" visible="form" type="string" len="512" nulls="true" local="true"/>
+			<A id="NAME_UBP_FO" name="Финансовый орган" caption="Финансовый орган" width="100" visible="form" type="string" len="2000" nulls="true" local="true"/>
+			<A id="OKPO_FO" name="ОКПО" caption="ОКПО" width="50" visible="form" type="string" len="8" nulls="true" local="true"/>
+			<A id="LS_FO" name="Л/с финансового органа" width="50" caption="Л/с финансового органа" visible="form" type="string" len="11" nulls="true" local="true"/>
+			<GA name="Получатель уведомления" caption="Получатель уведомления">
+			<A id="NAME_TOFK" name="ОФК" caption="ОФК" width="50" visible="form" type="string" len="2000" nulls="true" local="true"/>
+			<A id="KOD_TOFK" name="Код ОФК" caption="Код ОФК" width="50" visible="form" type="string" len="4" nulls="true" local="true"/>
+			</GA>
+			<A id="FUND_SOURCE" name="Вид средств" caption="Вид средств" visible="form" type="list" nulls="true" local="true">
+				<AI id="1" name="средства бюджета"/>
+				<AI id="3" name="средства дополнительного бюджетного финансирования"/>
+				<AI id="4" name="средства для финансирования мероприятий по оперативно-розыскной деятельности"/>
+				<AI id="5" name="средства, поступающие во временное распоряжение казенных учреждений"/>
+				<!-- Обязательно для заполнения при уточнении на едином счете бюджета.
+					Не заполняется при уточнении на счете учета поступлений. -->
+			</A>
+			<GA name="Запрос" caption="Запрос">
+			<A id="NOM_ZF" name="Номер" caption="Номер" width="50" type="string" len="15" nulls="true" local="true"/>
+			<A id="DATE_ZF" name="Дата" caption="Дата" width="50" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Плательщик" caption="Плательщик">
+			<A id="CNAME_PL" name="Наименование" caption="Наименование" width="100" type="string" len="500" nulls="true" local="true"/>
+			<A id="INN_PL" name="ИНН" caption="ИНН" type="string" width="50" len="12" nulls="true" local="true"/>
+			<A id="KPP_PL" name="КПП" caption="КПП" type="string" width="50" len="9" nulls="true" local="true"/>
+			<A id="PASP" name="Паспортные данные" caption="Паспортные данные" width="100" type="text" len="1000" nulls="true" local="true"/>
+			<A id="BS_PL" name="Номер счета" caption="Номер счета" type="string" width="100" len="20" nulls="true" local="true"/>
+			</GA>
+			<GA name="Подписная часть" caption="Подписная часть">
+			<A id="DOL_RUK" name="Должность руководителя" caption="Должность руководителя" width="50" visible="form" type="string" len="100" nulls="true" local="true"/>
+			<A id="NAME_RUK" name="ФИО руководителя" caption="ФИО руководителя" width="50" visible="form" type="string" len="50" nulls="true" local="true"/>
+			<A id="DOL_ISP" name="Должность ответственного исполнителя" caption="Должность ответственного исполнителя" width="50" visible="form" type="string" len="100" nulls="true" local="true"/>
+			<A id="NAME_ISP" name="ФИО ответственного исполнителя" caption="ФИО ответственного исполнителя" width="50" visible="form" type="string" len="50" nulls="true" local="true"/>
+			<A id="TEL_ISP" name="Телефон ответственного исполнителя" caption="Телефон ответственного исполнителя" width="100" visible="form" type="string" len="50" nulls="true" local="true"/>
+			<A id="DATE_POD" name="Дата подписания документа" caption="Дата подписания документа" width="100" visible="form" type="date" nulls="true" local="true"/>
+			</GA>
+			<A id="DOL_RUK_TOFK" name="Должность руководителя ОрФК" caption="Должность руководителя ОрФК" visible="false" type="string" len="100" nulls="true" local="true"/>
+			<A id="NAME_RUK_TOFK" name="Руководитель ОрФК" caption="Руководитель ОрФК" visible="false" type="string" len="50" nulls="true" local="true"/>
+			<A id="DOL_ISP_TOFK" name="Должность исполнителя ОрФК" caption="Должность исполнителя ОрФК" visible="false" type="string" len="100" nulls="true" local="true"/>
+			<A id="NAME_ISP_TOFK" name="Исполнитель ОрФК" caption="Исполнитель ОрФК" visible="false" type="string" len="50" nulls="true" local="true"/>
+			<A id="TEL_ISP_TOFK" name="Телефон исполнителя ОрФК" caption="Телефон исполнителя ОрФК" visible="false" type="string" len="50" nulls="true" local="true"/>
+			<A id="DATE_TOFK" name="Дата отметки" caption="Дата отметки" type="date" nulls="true" visible="false" local="true"/>
 		</TABLE>
 		<TABLE id="REFINENOTIFPP" name="Реквизиты уточняемого платежного документа">
 			<A id="REFINENOTIFID" parentkey="cascade"/>
 			<A id="LINE_NOM" name="Номер записи" caption="Номер записи" type="number" nulls="true" local="true"/>
-			<A id="GUID" name="Глобальный идентификатор платежного документа" caption="Глобальный идентификатор платежного документа" type="string" nulls="true" local="true"/>
-			<A id="KOD_DOC" name="Код платежного документа" caption="Код платежного документа" type="string" len="2" nulls="true" local="true"/>
-			<A id="NAME_PP" name="Наименование платежного документа" caption="Наименование платежного документа" type="string" len="160" nulls="true" local="true"/>
-			<A id="NOM_PP" name="Номер платежного документа" caption="Номер платежного документа" type="string" len="20" nulls="true" local="true"/>
-			<A id="DATE_PP" name="Дата платежного документа" caption="Дата платежного документа" type="date" nulls="true" local="true"/>
-			<A id="CNAME_PP" name="Наименование получателя" caption="Наименование получателя" type="string" len="500" nulls="true" local="true"/>
-			<A id="INN_PP" name="ИНН получателя" caption="ИНН получателя" type="string" len="12" nulls="true" local="true"/>
-			<A id="KPP_PP" name="КПП получателя" caption="КПП получателя" type="string" len="9" nulls="true" local="true"/>
-			<A id="OKATO" name="Код по ОКТМО" caption="Код по ОКТМО" type="string" len="8" nulls="true" local="true"/>
-			<A id="KBK" name="КБК" caption="КБК" type="string" len="20" nulls="true" local="true"/>
-			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="string" len="2" nulls="true" local="true"/>
+			<GA name="Уточняемый документ" caption="Уточняемый документ">
+			<A id="GUID" name="GUID операции" caption="GUID операции" type="string" nulls="true" local="true"/>
+			<A id="KOD_DOC" name="Код" caption="Код" type="list" nulls="true" local="true">
+				<!-- При уточнении на счете учета поступлений может принимать значение: -->
+				<AI id="PP" name="Расчетный документ (при уточнении поступления)"/>
+				<AI id="ZV" name="Заявка на возврат"/>
+			<!-- При уточнении на едином счете бюджета может принимать следующие значения:
+			PP - Платежное поручение;
+			ZR - Заявка на кассовый расход;
+			ZK - Сводная заявка на кассовый расход (для уплаты налогов);
+			ZS - Заявка на получение наличных денег;
+			ZN - Заявка на получение денежных средств, перечисляемых на карту;
+			UF - Уведомление об уточнении вида и принадлежности платежа;
+			SP - Бухгалтерская справка ф. 0504833;
+			ZV - Заявка на возврат;
+			AT - Акт приемки-передачи;
+			SF - Справка органа Федерального казначейства;
+			ZP - Заявка для обеспечения наличными денежными средствами;
+			ZI - Заявление на проведение операций с иностранной валютой;
+			IZ - Извещение о поступлении в иностранной валюте;
+			OC - Объявление на взнос наличных денег;
+			MR - Распоряжение о перечислении денежных средств на банковские карты «Мир» физических лиц.
+			Не заполняется при уточнении на счете учета поступлений в случае формирования уведомления без указания реквизитов платежного документа.
+			Не заполняется при уточнении на едином счете бюджета в случае изменения КБК на основании НПА.
+			Обязательно для заполнения, если уточняется КБК «Невыясненные поступления» или операция с иностранной валютой. -->
+			</A>			
+			<A id="NAME_PP" name="Наименование" caption="Наименование" type="list" nulls="true" local="true">
+				<!-- При уточнении на счете учета поступлений может принимать значение: -->
+				<AI id="Платежное поручение" name="Платежное поручение"/>
+				<AI id="Заявка на возврат" name="Заявка на возврат"/>
+			</A>			
+			<A id="NOM_PP" name="Номер" caption="Номер" type="string" len="20" nulls="true" local="true"/>
+			<A id="DATE_PP" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Данные о получателе" caption="Данные о получателе">
+			<A id="CNAME_PP" name="Наименование" caption="Наименование" type="string" len="500" nulls="true" local="true"/>
+			<A id="INN_PP" name="ИНН" caption="ИНН" type="string" len="12" nulls="true" local="true"/>
+			<A id="KPP_PP" name="КПП" caption="КПП" type="string" len="9" nulls="true" local="true"/>
+			<A id="OKATO" name="ОКТМО" caption="ОКТМО" type="string" len="8" nulls="true" local="true"/>
+			</GA>
+			<A id="KBK" name="КБК" caption="КБК" type="string" len="20" nulls="true" local="true"/>			
+			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="list" nulls="true" visible="form" local="true">
+				<AI id="10" name="расходы"/>
+				<AI id="20" name="доходы"/>
+				<AI id="31" name="ИВФДБ"/>
+				<AI id="32" name="ИВнФДБ"/>
+			</A>
 			<A id="ADD_KLASS" name="Код цели" caption="Код цели" type="string" len="20" nulls="true" local="true"/>
 			<A id="SUM_PP" name="Сумма" caption="Сумма" type="number" nulls="true" local="true"/>
-			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" type="string" len="500" nulls="true" local="true"/>
-			<A id="NOM_ZR" name="Номер заявки" caption="Номер заявки" type="string" len="15" nulls="true" local="true"/>
-			<A id="DATE_ZR" name="Дата заявки" caption="Дата заявки" type="date" nulls="true" local="true"/>
-			<A id="NOTE" name="Примечание" caption="Примечание" type="string" len="254" nulls="true" local="true"/>
+			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" type="text" len="500" nulls="true" local="true"/>
+			<A id="NOM_ZR" name="Номер заявки" caption="Номер заявки" type="string" len="15" nulls="true" visible="false" local="true"/>
+			<A id="DATE_ZR" name="Дата заявки" caption="Дата заявки" type="date" nulls="true" visible="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" type="text" len="254" nulls="true" local="true"/>
 		</TABLE>
 		<TABLE id="REFINENOTIFNEW" name="Новые реквизиты платежного документа">
 			<A id="REFINENOTIFPPID" parentkey="cascade"/>
@@ -551,7 +649,12 @@
 			<A id="OKATO" name="Код по ОКТМО" caption="Код по ОКТМО" type="string" len="8" nulls="true" local="true"/>
 			<A id="LS_UBP" name="Лицевой счет Получателя" caption="Лицевой счет Получателя" type="string" len="11" nulls="true" local="true"/>
 			<A id="KBK" name="Код по БК" caption="Код по БК" type="string" len="20" nulls="true" local="true"/>
-			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="string" len="2" nulls="true" local="true"/>
+			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="list" nulls="true" visible="form" local="true">
+				<AI id="10" name="расходы"/>
+				<AI id="20" name="доходы"/>
+				<AI id="31" name="ИВФДБ"/>
+				<AI id="32" name="ИВнФДБ"/>
+			</A>			
 			<A id="ADD_KLASS" name="Код цели" caption="Код цели" type="string" len="20" nulls="true" local="true"/>
 			<A id="SUM" name="Сумма" caption="Сумма" type="number" nulls="true" local="true"/>
 			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" type="string" len="210" nulls="true" local="true"/>
@@ -587,7 +690,12 @@
 		</TABLE>
 		<TABLE id="RETURNREQDOC" name="Реквизиты заявки на возврат">
 			<A id="RETURNREQID" parentkey="cascade"/>
-			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="string" len="2" nulls="true" local="true"/>
+			<A id="TYPE_KBK" name="Тип КБК" caption="Тип КБК" type="list" nulls="true" visible="form" local="true">
+				<AI id="10" name="расходы"/>
+				<AI id="20" name="доходы"/>
+				<AI id="31" name="ИВФДБ"/>
+				<AI id="32" name="ИВнФДБ"/>
+			</A>				
 			<A id="KBK" name="КБК, по которому осуществляется возврат" caption="КБК, по которому осуществляется возврат" type="string" len="20" nulls="true" local="true"/>
 			<A id="ADD_KLASS" name="Код цели (аналитический код)" caption="Код цели (аналитический код)" type="string" len="20" nulls="true" local="true"/>
 			<A id="VID_S" name="Вид средств для осуществления возврата" caption="Вид средств для осуществления возврата" type="string" len="1" nulls="true" local="true"/>
