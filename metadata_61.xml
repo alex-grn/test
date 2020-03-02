@@ -1071,8 +1071,8 @@
 						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="round((select sum(t.SUMM) from PAYDOCSCONS t where t.PAYDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '1' end)::numeric ,2)" local="true"/>
 					</GA>
 					<GA name="Реквизиты платежа" caption="Реквизиты платежа">
-						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24)" type="text" nulls="false" local="true"/>
-						<A id="PURPOSELENGHT" name="Длинна строки" type="string" readonly="true" virtual="true" formula="select 'Назначение платежа ('||length(PURPOSE)||' симв., макс 235 симв.)' from PAYDOCS t where t.ID = @ID"/>
+						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24) (макс. 235 символов)" type="text" nulls="false" local="true"/>
+						<A id="PURPOSELENGHT" name="Длина строки" type="string" readonly="true" visible="false" virtual="true" formula="select 'Назначение платежа ('||length(PURPOSE)||' симв., макс 235 симв.)' from PAYDOCS t where t.ID = @ID"/>
 						<A id="EXPDATE" name="Срок платежа (19)" caption="Срок платежа (19)" type="date" local="true"/>
 						<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
 							<AI id="1" name="1"/>
@@ -1122,7 +1122,7 @@
 				</TAB>
 			</TABS>
 			<TI unique="PAYACCOUNTSID, DOCNUMB"/>
-			<TI id="PURPOSE_CHECK" name="Превышена максимальная длинна поля Назначение платежа (24)" check="235 > length(PURPOSE)"/>
+			<TI id="PURPOSE_CHECK" name="Превышена максимальная длина поля Назначение платежа (24) (макс. 235 символов)" check="235 > length(PURPOSE)"/>
 			<TI id="STATUS_CHECK" name="Отсутствует дата оплаты по выписке" check="(STATUS != '2' or (STATUS = '2' and PAYDATE is not null))"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
 			<TI id="NULLSREC_CHECK" name="Должно быть задано или Юридическое лицо или физическое лицо" check="AGENTID is null and PERSONID is not null or AGENTID is not null and PERSONID is null"/>
@@ -1146,7 +1146,11 @@
 				<A id="TRPERSONID" name="Плательщик" caption="Плательщик" labelwidth="70" width="50" nulls="true"/>
 				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
 			</GA>
-			<A id="BASIS" name="Первичный документ" caption="Первичный документ" labelwidth="120" type="string"/>
+			<GA name="Первичный документ" caption="Первичный документ">
+			<A id="BASIS" name="Наименование первичного документа" caption="Наименование" labelwidth="85" type="string" width="60"/>
+			<A id="BASISNUMB" name="Номер первичного документа" caption="Номер" labelwidth="35" type="string" width="20"/>
+			<A id="BASISDATE" name="Дата первичного документа" caption="Дата" labelwidth="30" type="date" width="20"/>
+			</GA>
 			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="120" type="string"/>
 			<A id="TYPICALOPERSID" labelwidth="120" width="100"/>
 		</TABLE>
