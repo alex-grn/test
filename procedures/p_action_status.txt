@@ -1,0 +1,35 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_status(tablename  text,  idlist  text,  "values"  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+  
+begin
+
+      if  tablename  ilike  'inputkrf'  THEN
+            /*
+                В  модуле  "Учет  расходов  на  федеральные  выборы"  в  меню  "Файл"-"Загрузка  форм  КРФ"  на  форме  "Файлы  КРФ  входящие"  реализовать:
+                  1.  Смену  значения  поля  STATUS  на  "1"  и  значения  поля  UPLOADDATE  на  текущую  дату/время  после  добавления  файла
+                  2.  Смену  значения  поля  STATUS  на  "2"  и  значения  поля  LOADDATE  на  текущую  дату/время  после  загрузки  добавленного  файла
+                  3.  Смену  значения  поля  STATUS  на  "3"  и  значение  поля  IDKRF  на  ID  записи  в  таблице  REGISTER  получаемой  на  действиии  2  алгоритма  
+                        "Загрузка  данных  из  комплекта  расчетных  форм"  (если  установлен  другой  алгоритм  обработки  в  данном  поле  оставлять  значение  NULL)  
+                        после  начала  обработки  добавленного  файла  алгоритмом  конвертера
+                  4.  Смену  значения  поля  STATUS  на  "4";  значения  поля  CONVDATE  на  текущую  дату/время;  значения  поля  LOG  на  сообщение  конвертера  
+                        после  окончания  обработки  добавленного  файла  алгоритмом  конвертера
+            */
+            if  values  =  '1'  then
+                    update  inputkrf  f  set  status  =  '1',  uploaddate  =  NOW()  where  f.id  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST));
+            elsif  values  =  '2'  THEN
+                    update  inputkrf  f  set  status  =  '2',  loaddate  =  NOW()  where  f.id  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST));        
+            elsif  values  =  '3'  THEN
+                    update  inputkrf  f  set  status  =  '3'  where  f.id  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST));
+            elsif  values  =  '4'  THEN        
+                    update  inputkrf  f  set  status  =  '4',  convdate  =  NOW()  where  f.id  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST));  
+            end  if;
+      
+      end  if;
+	  return  null;
+    
+end;
+$function$
+ 

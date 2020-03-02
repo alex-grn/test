@@ -1,9 +1,11 @@
- CREATE  OR  REPLACE  FUNCTION  public.p_workcalendars_to_form(begindate  date,  enddate  date,  updatewc  boolean)
+ CREATE  OR  REPLACE  FUNCTION  public.p_workcalendars_to_form(begindate  date,  enddate  date,  updatewc  boolean,  uid  bigint)
   RETURNS  void
   LANGUAGE  plpgsql
 AS  $function$
 declare
     TEMP                      integer;
+    nUID                      bigint:=UID;
+    nLID                      bigint;
     WC                          record;  --work  calendary
     SWC                        record;  --specification  work  calendary
     HOL                        record;  --holiday
@@ -15,12 +17,24 @@ declare
     FL                          integer;
     REGION_DEFAULT  TEXT  =  'Российская  Федерация';  --ищем  по  умолчанию  в  субъектах
     REGIONID              integer;
+    doing                    boolean:=false;
+    sLID                      text;
 begin
+    --если  пользователь  админ,  то  нужно  брать  уровень  доступа  ЦИК  России  (мац-4065)
+    if  exists(  select  1  from  users  u  where  u.id  =  nUID  and  (u.login  ilike  'admin'  or    u.login  ilike  'CIKRF')  )  then  
+          select  l.id  into  nLID  from  levaccess  l  where  trim(l.name)  ilike  'цик  россии';
+          if  nLID  is  not  null  THEN
+                doing:=true;
+          end  if;
+    else  
+          select  u.levaccessid,  l.name  into  nLID,  sLID  from  users  u,  levaccess  l  where  u.id  =  NUID  and  l.id  =  u.levaccessid;    
+    end  if;
+    
     KM        :=  ABS(FLOOR((('01.'  ||  TO_CHAR(ENDDATE,  'mm.yyyy'))  ::date  -  ('01.'  ||  TO_CHAR(BEGINDATE,  'mm.yyyy'))  ::date)  /  29.3));
     NYEAR  :=  TO_NUMBER(TO_CHAR(BEGINDATE,  'yyyy'),  '9999');
 
     begin
-        select  R.ID  into  REGIONID  from  REGIONSRF  R  where  R.PR_INFOPAYDOC_LIST_REP1  =  '00';  --РФ
+        select  R.ID  into  REGIONID  from  REGIONSRF  R  where  R.IDGASREGIONSRF  =  '00';  --РФ
     exception
         when  others  then
             raise
@@ -58,14 +72,14 @@ begin
             NMONTH  :=  12;
         end  if;
         if  UPDATEWC  then
-        
+          if  doing  then
             if  (select  count(*)
                         from  WORKCALENDARS  S
                       where  S.YEAR  =  NYEAR
                           and  S.MONTH  =  NMONTH  ::TEXT
                           and  S.CODE  =  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR
                           and  S.REGIONSRFID  =  REGIONID)  =  0  then
-                insert  into  WORKCALENDARS  (CODE,  month,  year,  REGIONSRFID)  values  (LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH  ::TEXT,  NYEAR,  REGIONID)  returning  ID  into  WCID;
+                insert  into  WORKCALENDARS  (uid,  lid,  CODE,  month,  year,  REGIONSRFID)  values  (nuid,  nlid,  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH  ::TEXT,  NYEAR,  REGIONID)  returning  ID  into  WCID;
             else
                 select  S.ID
                     into  WCID
@@ -84,8 +98,10 @@ begin
             
             end  if;
             insert  into  DAYSWORKCALENDARS
-                (DATEWC,  WORKCALENDARSID,  TYPEDAYID)
-                select  D  as  FIRST_DAY,
+                (uid,  lid,  DATEWC,  WORKCALENDARSID,  TYPEDAYID)
+                select  nUID,
+                              nLID,
+                              D  as  FIRST_DAY,
                               WCID,
                               case
                                   when  (select  H.ID
@@ -116,10 +132,12 @@ begin
                               where  H.WORKCALENDARSID  =  WCID
                                   and  H.TYPEDAYID  is  null)
               where  S.ID  =  WCID;
+          end  if;    
             --делаем  для  регионов  если  они  есть  с  доп  праздниками
             for  HOL  in  (select  H.REGIONSRFID  as  REGIONID
                                         from  HOLIDAYS  H
                                       where  H.REGIONSRFID  is  not  null
+                                          and  (H.REGIONSRFID  =  (select  r.id  from  regionsrf  r  where  r.idgasregionsrf  =  sLID)  or  sLID  is  NULL)
                                           and  H.REGIONSRFID  !=  REGIONID
                                           and  TO_CHAR(H.DATEHD,  'mm.yyyy')  =  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR)
             loop
@@ -129,7 +147,7 @@ begin
                               and  S.MONTH  =  NMONTH  ::TEXT
                               and  S.YEAR  =  NYEAR
                               and  REGIONSRFID  =  HOL.REGIONID)  =  0  then
-                    insert  into  WORKCALENDARS  (CODE,  month,  year,  REGIONSRFID)  values  (LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH  ::TEXT,  NYEAR,  HOL.REGIONID)  returning  ID  into  WCID;
+                    insert  into  WORKCALENDARS  (UID,  LID,  CODE,  month,  year,  REGIONSRFID)  values  (NUID,  NLID,  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH  ::TEXT,  NYEAR,  HOL.REGIONID)  returning  ID  into  WCID;
                 else
                     select  S.ID
                         into  WCID
@@ -147,14 +165,16 @@ begin
                                                                                     and  REGIONSRFID  =  HOL.REGIONID);
                 end  if;
                 insert  into  DAYSWORKCALENDARS
-                    (DATEWC,  WORKCALENDARSID,  TYPEDAYID)
-                    select  D  as  FIRST_DAY,
+                    (UID,  LID,  DATEWC,  WORKCALENDARSID,  TYPEDAYID)
+                    select  NUID,
+                                  NLID,
+                                  D  as  FIRST_DAY,
                                   WCID,
                                   case
                                       when  (select  H.ID
                                                       from  HOLIDAYS  H
                                                     where  H.DATEHD  =  D
-                                                        and  H.REGIONSRFID  =  HOL.REGIONID)  >  0  then
+                                                        and  H.REGIONSRFID  in  (HOL.REGIONID,REGIONID))  >  0  then
                                         (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'П')
                                       when  trim(BOTH  '  '  from  TO_CHAR(D,  'day'))  =  'saturday'  then
                                         (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'С')
@@ -163,12 +183,12 @@ begin
                                       when  (select  trim(BOTH  '  '  from  TO_CHAR(H.DATEHD,  'day'))
                                                       from  HOLIDAYS  H
                                                     where  H.DATETR  =  D
-                                                        and  H.REGIONSRFID  =  HOL.REGIONID)  =  'saturday'  then
+                                                        and  H.REGIONSRFID  in  (HOL.REGIONID,REGIONID))  =  'saturday'  then
                                         (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'С')
                                       when  (select  trim(BOTH  '  '  from  TO_CHAR(H.DATEHD,  'day'))
                                                       from  HOLIDAYS  H
                                                     where  H.DATETR  =  D
-                                                        and  H.REGIONSRFID  =  HOL.REGIONID)  =  'sunday'  then
+                                                        and  H.REGIONSRFID  in  (HOL.REGIONID,REGIONID))  =  'sunday'  then
                                         (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'В')
                                   end
                         from  GENERATE_SERIES((NYEAR  ||  '-'  ||  NMONTH  ||  '-01')  ::date,  (DATE_TRUNC('month',  (NYEAR  ||  '-'  ||  NMONTH  ||  '-01')  ::date)  +  interval  '1  month'  -  interval  '1  day')  ::date,  '1  day')  as  D;
@@ -180,10 +200,12 @@ begin
                                       and  H.TYPEDAYID  is  null)
                   where  S.ID  =  WCID;
             end  loop;
+          
             ------------------
         else
             ------------------
             FL  :=  0;
+          if  doing  then
             begin
                 if  (select  count(*)
                             from  WORKCALENDARS  S
@@ -191,7 +213,7 @@ begin
                               and  S.MONTH  =  NMONTH  ::TEXT
                               and  S.YEAR  =  NYEAR
                               and  REGIONSRFID  =  REGIONID)  =  0  then
-                    insert  into  WORKCALENDARS  (CODE,  month,  year,  REGIONSRFID)  values  (LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH,  NYEAR,  REGIONID)  returning  ID  into  WCID;
+                    insert  into  WORKCALENDARS  (UID,  LID,  CODE,  month,  year,  REGIONSRFID)  values  (NUID,  NLID,  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH,  NYEAR,  REGIONID)  returning  ID  into  WCID;
                 else
                     select  S.ID
                         into  WCID
@@ -201,9 +223,12 @@ begin
                           and  S.YEAR  =  NYEAR
                           and  REGIONSRFID  =  REGIONID;
                 end  if;
+                
                 insert  into  DAYSWORKCALENDARS
-                    (DATEWC,  WORKCALENDARSID,  TYPEDAYID)
-                    select  D  as  FIRST_DAY,
+                    (UID,  LID,  DATEWC,  WORKCALENDARSID,  TYPEDAYID)
+                    select  NUID,
+                                  NLID,
+                                  D  as  FIRST_DAY,
                                   WCID,
                                   case
                                       when  (select  H.ID
@@ -238,11 +263,13 @@ begin
                 when  others  then
                     null;
             end;
+          end  if;
             --делаем  для  регионов  если  они  есть  с  доп  праздниками
         
             for  HOL  in  (select  H.REGIONSRFID  as  REGIONID
                                         from  HOLIDAYS  H
                                       where  H.REGIONSRFID  is  not  null
+                                          and  (H.REGIONSRFID  =  (select  r.id  from  regionsrf  r  where  r.idgasregionsrf  =  sLID)  or  sLID  is  NULL)
                                           and  H.REGIONSRFID  !=  REGIONID
                                           and  (TO_CHAR(H.DATEHD,  'mm.yyyy')  =  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR  or  TO_CHAR(H.DATETR,  'mm.yyyy')  =  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR))
             loop
@@ -253,7 +280,7 @@ begin
                                   and  S.MONTH  =  NMONTH  ::TEXT
                                   and  S.YEAR  =  NYEAR
                                   and  REGIONSRFID  =  HOL.REGIONID)  =  0  then
-                        insert  into  WORKCALENDARS  (CODE,  month,  year,  REGIONSRFID)  values  (LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH  ::TEXT,  NYEAR,  HOL.REGIONID)  returning  ID  into  WCID;
+                        insert  into  WORKCALENDARS  (UID,  LID,  CODE,  month,  year,  REGIONSRFID)  values  (NUID,  NLID,  LPAD(NMONTH  ::TEXT,  2,  '0')  ||  '.'  ||  NYEAR,  NMONTH  ::TEXT,  NYEAR,  HOL.REGIONID)  returning  ID  into  WCID;
                     else
                         select  S.ID
                             into  WCID
@@ -264,14 +291,16 @@ begin
                               and  REGIONSRFID  =  HOL.REGIONID;
                     end  if;
                     insert  into  DAYSWORKCALENDARS
-                        (DATEWC,  WORKCALENDARSID,  TYPEDAYID)
-                        select  D  as  FIRST_DAY,
+                        (UID,  LID,  DATEWC,  WORKCALENDARSID,  TYPEDAYID)
+                        select  NUID,
+                                      NLID,            
+                                      D  as  FIRST_DAY,
                                       WCID,
                                       case
                                           when  (select  H.ID
                                                           from  HOLIDAYS  H
                                                         where  H.DATEHD  =  D
-                                                            and  H.REGIONSRFID  =  HOL.REGIONID)  >  0  then
+                                                            and  H.REGIONSRFID  in  (HOL.REGIONID,REGIONID))  >  0  then
                                             (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'П')
                                           when  trim(BOTH  '  '  from  TO_CHAR(D,  'day'))  =  'saturday'  then
                                             (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'С')
@@ -280,12 +309,12 @@ begin
                                           when  (select  trim(BOTH  '  '  from  TO_CHAR(H.DATEHD,  'day'))
                                                           from  HOLIDAYS  H
                                                         where  H.DATETR  =  D
-                                                            and  H.REGIONSRFID  =  HOL.REGIONID)  =  'saturday'  then
+                                                            and  H.REGIONSRFID  in  (HOL.REGIONID,REGIONID))  =  'saturday'  then
                                             (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'С')
                                           when  (select  trim(BOTH  '  '  from  TO_CHAR(H.DATEHD,  'day'))
                                                           from  HOLIDAYS  H
                                                         where  H.DATETR  =  D
-                                                            and  H.REGIONSRFID  =  HOL.REGIONID)  =  'sunday'  then
+                                                            and  H.REGIONSRFID  in  (HOL.REGIONID,REGIONID))  =  'sunday'  then
                                             (select  D.ID  from  TYPEDAYS  D  where  D.CODE  =  'В')
                                       end
                             from  GENERATE_SERIES((NYEAR  ||  '-'  ||  NMONTH  ||  '-01')  ::date,  (DATE_TRUNC('month',  (NYEAR  ||  '-'  ||  NMONTH  ||  '-01')  ::date)  +  interval  '1  month'  -  interval  '1  day')  ::date,  '1  day')  as  D;

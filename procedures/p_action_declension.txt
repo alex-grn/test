@@ -1,0 +1,327 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_declension(sslovo  text,  spadeg  text,  npol  integer,  spr  text)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+/*
+sSLOVO            --  исходное  слово,  при  выходе  -  нужный  падеж
+sPADEG            --  падеж  (и,р,д,в,т,п)
+nPOL                --  род  (1-мужской,  2-женский)
+sPR                  --  признак  (ф-фамилия,  и-имя,  о-отчество)
+*/
+declare
+
+    tmp_sSLOVO                text;
+    tmp_sIM                      text;
+    tmp_sROD                    text;
+    tmp_sDAT                    text;
+    tmp_sVIN                    text;
+    tmp_sTVO                    text;
+    tmp_sPRE                    text;
+    tmp_sPADEG                char(1);
+    tmp_nPOL                    integer;
+    tmp_sPR                      char(1);
+    tmp_tT                        TEXT[];
+    tmp_tB                        TEXT[];
+    tmp_tPAD                    TEXT[];
+    tmp_nI                        integer;
+    tmp_nJ                        integer;
+    tmp_nLN                      integer;
+    
+begin
+    
+    /*  инициализация  массива  */
+    for  i  in  1..30
+    loop
+        if  i  <  6  then
+            tmp_tT[i]  :=  '';
+            tmp_tB[i]  :=  '';
+        end  if;
+        tmp_tPAD[i]  :=  '';
+    end  loop;
+    /*  Разбор  параметров  */
+    tmp_sSLOVO  :=  trim(sSLOVO);
+    if  tmp_sSLOVO  is  null  then
+        return  '';
+    end  if;
+    tmp_sPADEG  :=  lower(substr(trim(sPADEG),1,1));
+    if  (tmp_sPADEG  is  null)  or  (not  tmp_sPADEG  in  ('и','р','д','в','т','п'))  then
+        tmp_sPADEG  :=  'и';
+    end  if;
+    tmp_nPOL  :=  nPOL;
+    if  (tmp_nPOL  is  null)  or  (not  tmp_nPOL  in  (1,  2))  then
+        tmp_nPOL  :=  1;
+    end  if;
+    tmp_sPR  :=  lower(substr(trim(sPR),1,1));
+    if  (tmp_sPR  is  null)  or  (not  tmp_sPR  in  ('ф','и','о'))  then
+        tmp_sPR  :=  'ф';
+    end  if;
+    tmp_sIM  :=  lower(tmp_sSLOVO);
+    tmp_sROD  :=  '';
+    tmp_sDAT  :=  '';
+    tmp_sVIN  :=  '';
+    tmp_sTVO  :=  '';
+    tmp_sPRE  :=  '';
+    tmp_nLN    :=  length(tmp_sIM);                                                        --  длина  слова
+    tmp_nI      :=  tmp_nLN;
+    tmp_nJ      :=  5;
+    while  (tmp_nI  >  0)  and  (tmp_nJ  >  0)  loop
+        --  последние  пять  букв
+        tmp_tB[tmp_nJ]  :=  substr(tmp_sIM,  tmp_nI::integer,  1);
+        --  признак  гласной  буквы
+        if  tmp_tB[tmp_nJ]  in  ('е','и','о','у','ы','а','э','ю','я')  then
+            tmp_tT[tmp_nJ]  :=  'г';
+        else
+            tmp_tT[tmp_nJ]  :=  'с';
+        end  if;
+        tmp_nI  :=  tmp_nI  -  1;
+        tmp_nJ  :=  tmp_nJ  -  1;
+    end  loop;
+    if  tmp_nPOL  =  1  then
+        /*  таблица  окончаний  для  МУЖСКОГО  РОДА  */
+        tmp_tPAD[01]  :=  'я        ю        я        ем      е        ';                    --    паскал  Ь
+        tmp_tPAD[02]  :=  'ы        е        ы        ой      е        ';                    --    учав  А
+        tmp_tPAD[03]  :=  'ю        и        и        ей      и        ';                    --    хурдИ  Я
+        tmp_tPAD[04]  :=  'ю        е        и        ей      е        ';                    --    кана  Я
+        tmp_tPAD[05]  :=  'ого    ому    ого    им      ом      ';                    --    хуторецК  ИЙ,  островерХ  ИЙ
+        tmp_tPAD[06]  :=  'его    ему    его    им      ем      ';                    --    вехН  ИЙ,  злюЩ  ИЙ.  пороШ  ИЙ
+        tmp_tPAD[07]  :=  'ого    ому    ого    ым      ом      ';                    --    зорев  ОЙ,  колодн  ЫЙ
+        tmp_tPAD[08]  :=  'я        ю        я        ем      е        ';                    --    каравА  Й
+        tmp_tPAD[09]  :=  'ка      ку      ка      ком    ке      ';                    --    казан  ОК
+        tmp_tPAD[10]  :=  'ьца    ьцу    ьца    ьцом  ьце    ';                    --    гоЛ  ЕЦ
+        tmp_tPAD[11]  :=  'йца    йцу    йца    йцем  йце    ';                    --    коломИ  ЕЦ
+        tmp_tPAD[12]  :=  'а        у        а        ом      е        ';                    --    моКРЕЦ
+        tmp_tPAD[13]  :=  'ца      цу      ца      цем    це      ';                    --    померАН  ЕЦ
+        tmp_tPAD[14]  :=  'а        у        а        ом      е        ';                    --    криХ,пыХ,мичУк,пин
+        tmp_tPAD[15]  :=  'а        у        а        ем      е        ';                    --    стратовИЧ
+        tmp_tPAD[16]  :=  'а        у        а        ым      е        ';                    --    карпачев,  тимохов
+        tmp_tPAD[17]  :=  'и        е        у        ой      е        ';                    --    шульГА
+        tmp_tPAD[18]  :=  'ы        е        у        ой      е        ';                    --    Никит  А
+        tmp_tPAD[19]  :=  'и        е        ю        ей      е        ';                    --    Иль  Я
+        tmp_tPAD[20]  :=  '                                                  ';                    --    карпачев,  тимохов
+        tmp_tPAD[21]  :=  '                                                  ';                    --
+        tmp_tPAD[22]  :=  '                                                  ';                    --
+        tmp_tPAD[23]  :=  '                                                  ';                    --
+        tmp_tPAD[24]  :=  '                                                  ';                    --
+        tmp_tPAD[25]  :=  'ья      ью      ья      ем      ье      ';                    --    СОЛОВ  ЕЙ
+        tmp_tPAD[26]  :=  'я        ю        я        ем      е        ';                    --    ЕВГЕНИ  Й,  АРСЕНИ  Й
+        tmp_tPAD[27]  :=  'ьва    ьву    ьва    ьвом  ьве    ';                    --    Л  ЕВ
+        tmp_tPAD[28]  :=  'ла      лу      ла      лом    ле      ';                    --    ПАВ  ЕЛ
+        tmp_tPAD[29]  :=  '                                                  ';                    --
+        tmp_tPAD[30]  :=  '                                                  ';                    --
+        /*  исключения  */
+        if  'соловей'  =  tmp_sIM  then                                                      --  Хуторецкий
+            tmp_nI  :=  4;                                                                                --  с  предпоследнего  символа
+            tmp_nJ  :=  25;                                                                              --  строка  таблицы
+        elsif  ('евгений'  =  tmp_sIM)  or  ('арсений'  =  tmp_sIM)  then
+            tmp_nI  :=  5;                                                                                --  с  последнего
+            tmp_nJ  :=  26;
+        elsif  'лев'  =  tmp_sIM  then
+            tmp_nI  :=  4;                                                                                --  с  предпоследнего
+            tmp_nJ  :=  27;
+        elsif  ('павел'  =  tmp_sIM)  or  ('орел'  =  tmp_sIM)  then
+            tmp_nI  :=  4;                                                                                --  с  предпоследнего
+            tmp_nJ  :=  28;
+        elsif  tmp_tB[5]  =  'ь'  then                                                        --  Паскаль
+            tmp_nI  :=  5;                                                                                --  последний  заменить
+            tmp_nJ  :=  1;
+        elsif  (tmp_tB[4]||tmp_tB[5])
+            in  ('га',  'ка',  'ха')  then                                                    --  Шульга
+            tmp_nI  :=  5;                                                                                --  последний
+            tmp_nJ  :=  17;
+        elsif  tmp_tB[5]  =  'а'  and  tmp_sPR  =  'ф'  then                    --  Учава
+            tmp_nI  :=  5;                                                                                --  последний  заменить
+            tmp_nJ  :=  2;
+        elsif  tmp_tB[4]||tmp_tB[5]  =  'ия'  then                                --  Хурдия
+            tmp_nI  :=  5;                                                                                --  последний  заменить
+            tmp_nJ  :=  3;
+        elsif  tmp_tB[5]  =  'а'  then                                                        --  Никита
+            tmp_nI  :=  5;                                                                                --  последний  заменить
+            tmp_nJ  :=  18;
+        elsif  tmp_tB[4]||tmp_tB[5]  =  'ья'  then                                --  Илья
+            tmp_nI  :=  5;                                                                                --  последний  заменить
+            tmp_nJ  :=  19;
+        elsif  tmp_tB[5]  =  'я'  then                                                        --  Каная
+            tmp_nI  :=  5;                                                                                --  последний  заменить
+            tmp_nJ  :=  4;
+        elsif  tmp_tT[5]  =  'г'  or  ascii(tmp_tB[5])  <  192  then    --  остальные  гласные  и  символы
+            tmp_nI  :=  0;                                                                                --  не  склоняется
+            tmp_nJ  :=  0;
+        elsif  tmp_tB[3]||tmp_tB[4]||tmp_tB[5]  =  'кий'  then        --  Хуторецкий
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  5;
+        elsif  tmp_tB[3]||tmp_tB[4]||tmp_tB[5]  =  'хий'  then        --  Островерхий
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  5;
+        elsif  tmp_tB[3]||tmp_tB[4]||tmp_tB[5]  =  'ний'  then        --  Верхний
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  6;
+        elsif  tmp_tB[3]||tmp_tB[4]||tmp_tB[5]  =  'щий'  then        --  Злющий
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  6;
+        elsif  tmp_tB[3]||tmp_tB[4]||tmp_tB[5]  =  'ший'  then        --  Хороший
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  6;
+        elsif  tmp_tB[4]||tmp_tB[5]  =  'ой'  then                                --  Заревой
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  7;
+        elsif  tmp_tB[4]||tmp_tB[5]  =  'ый'  then                                --  Колодный
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  7;
+        elsif  tmp_tT[4]  =  'г'  AND  tmp_tB[5]  =  'й'  then                --  Славий
+            tmp_nI  :=  5;                                                                                --  последний
+            tmp_nJ  :=  8;
+        elsif  tmp_tB[4]||tmp_tB[5]  =  'ок'  then                                --  Казанок
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  9;
+        elsif  tmp_tT[2]='г'  AND  tmp_tB[3]||tmp_tB[4]
+            ||tmp_tB[5]  =  'лец'  then                                                        --  Голец
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  10;
+        elsif  tmp_tT[3]='г'  AND  tmp_tB[4]||
+            tmp_tB[5]  =  'ец'  then                                                              --  Коломиец
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  11;
+        elsif  tmp_tT[2]||tmp_tT[3]  =  'сс'  AND
+            tmp_tB[4]||tmp_tB[5]  =  'ец'  then                                        --  Мокрец
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  12;
+        elsif  tmp_tT[2]||tmp_tT[3]  =  'гс'  AND
+            tmp_tB[4]||tmp_tB[5]  =  'ец'  then                                        --  Поморец
+            tmp_nI  :=  4;                                                                                --  предпоследний
+            tmp_nJ  :=  13;
+        elsif  tmp_nLN<=4  AND  tmp_tB[4]||
+            tmp_tB[5]  =  'их'  then                                                              --  Пих
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  14;
+        elsif  tmp_nLN<=4  AND  tmp_tB[4]||tmp_tB[5]  =
+            'ых'  then                                                                                      --  Пых
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  14;
+        elsif  tmp_tB[5]  =  'к'  then                                                        --  Мячик
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  14;
+        elsif  tmp_nLN<=3  then                                                                  --  Пин
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  14;
+        elsif  tmp_tB[4]||tmp_tB[5]  =  'ич'  then                                --  Стратович
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  15;
+        elsif  tmp_sPR  =  'ф'  and  tmp_tB[4]||tmp_tB[5]  in
+          ('ев',  'ов',  'ын',  'ин')  then                                                --  Карпачев,  Базаров,  Куницын,  Пупырин
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  16;
+        elsif  tmp_tB[4]||tmp_tB[5]  in  ('их','ых')  then                --  Хоробрых,  Широких
+            tmp_nI  :=  0;                                                                                --  не  склонять
+            tmp_nJ  :=  0;
+        else                                                                                                    --  прочие
+            tmp_nI  :=  6;                                                                                --  после  последнего
+            tmp_nJ  :=  14;
+        end  if;
+    else
+        /*  таблица  окончаний  для  ФАМИЛИЙ  ЖЕНСКОГО  РОДА  */
+        tmp_tPAD[01]  :=  'ой      ой      ую      ой      ой      ';                    --    белецк  АЯ
+        tmp_tPAD[02]  :=  'ей      ей      юю      ей      ей      ';                    --    зимн  ЯЯ
+        tmp_tPAD[03]  :=  'ой      ой      у        ой      ой      ';                    --    зуеВ  А,  погодиН  А
+        tmp_tPAD[04]  :=  '                                                  ';                    --
+        tmp_tPAD[05]  :=  '                                                  ';                    --
+        tmp_tPAD[06]  :=  '                                                  ';                    --
+        tmp_tPAD[07]  :=  '                                                  ';                    --
+        tmp_tPAD[08]  :=  '                                                  ';                    --
+        tmp_tPAD[09]  :=  'и        е        у        ой      е        ';                    --    ольГ  А,  собаК  А,  солоХ  А
+        tmp_tPAD[10]  :=  'ы        е        у        ой      е        ';                    --    ирин  А
+        tmp_tPAD[11]  :=  'и        е        ю        ей      е        ';                    --    наталь  Я
+        tmp_tPAD[12]  :=  'и        и        ю        ей      и        ';                    --    викторИ  Я
+        tmp_tPAD[13]  :=  'и        и        ь        ью      и        ';                    --    любов  Ь
+        tmp_tPAD[14]  :=  '                                                  ';                    --
+        tmp_tPAD[15]  :=  '                                                  ';                    --
+        if  tmp_sPR  =  'ф'  then                                                                  --  ФАМИЛИЯ
+            if  tmp_tB[4]||tmp_tB[5]  =  'ая'  then                                  --  Белецкая
+                tmp_nI  :=  4;                                                                            --  предпоследний  заменить
+                tmp_nJ  :=  1;
+            elsif  tmp_tB[4]||tmp_tB[5]  =  'яя'  then                            --  Зимняя
+                tmp_nI  :=  4;                                                                            --  предпоследний  заменить
+                tmp_nJ  :=  2;
+            elsif  (tmp_tB[3]||tmp_tB[4]||tmp_tB[5])
+                in  ('ова',  'ева',  'ёва')  then                                                        --  Зуева
+                tmp_nI  :=  5;                                                                            --  последний  заменить
+                tmp_nJ  :=  3;
+            elsif  (tmp_tB[3]||tmp_tB[4]||tmp_tB[5])  in
+                ('ина',  'ына')  then                                                              --  Погодина,  Брусницына
+                tmp_nI  :=  5;                                                                            --  последний  заменить
+                tmp_nJ  :=  3;
+            elsif  (tmp_tB[4]||tmp_tB[5])  in
+                ('га',  'ка',  'ха')  then                                                      --  Шульга,  Собака,  Солоха
+                tmp_nI  :=  5;                                                                            --  последний  заменить
+                tmp_nJ  :=  9;
+            elsif  tmp_tB[5]  =  'а'  then                                                    --  Коляда
+                tmp_nI  :=  5;                                                                            --  последний  заменить
+                tmp_nJ  :=  10;
+            else                                                                                                --  прочии  не  склонять
+                tmp_nI  :=  0;
+                tmp_nJ  :=  0;
+            end  if;
+        else                                                                                                    --  ИМЕНА,  ОТЧЕСТВА
+            if  (tmp_tB[4]||tmp_tB[5])
+                in  ('га',  'ка',  'ха')  then                                                --  Ольга,  Собака,  Солоха
+                tmp_nI  :=  5;                                                                            --  последний  заменить
+                tmp_nJ  :=  9;
+            elsif  tmp_tB[5]  =  'а'  then                                                    --  Ирина,  Ивановна
+                tmp_nI  :=  5;                                                                            --  последний
+                tmp_nJ  :=  10;
+            elsif  (tmp_tB[4]||tmp_tB[5])  =  'ия'  then                        --  Виктория
+                tmp_nI  :=  5;                                                                            --  предпоследний
+                tmp_nJ  :=  12;
+            elsif  tmp_tB[5]  =  'я'  then                                                    --  Наталья
+                tmp_nI  :=  5;                                                                            --  предпоследний
+                tmp_nJ  :=  11;
+            elsif  tmp_tB[5]  =  'ь'  then                                                    --  Любовь
+                tmp_nI  :=  5;                                                                            --  предпоследний
+                tmp_nJ  :=  13;
+            else                                                                                                --  прочие  не  склонять
+                tmp_nI  :=  0;                                                                            --  предпоследний
+                tmp_nJ  :=  0;
+            end  if;
+        end  if;
+    end  if;
+    /*  добавление  соответствующего  окончания  */
+    tmp_sIM  :=  tmp_sSLOVO;                                                                    --  восстановить  начальное  слово
+    if  (tmp_nI  >=  4)  and  (tmp_nI  <=  6)  and  (tmp_nJ  >=  1)  and  (tmp_nJ  <=  30)  then
+        tmp_nLN      :=  tmp_nLN  +  tmp_nI  -  6;                                        --  уменьшение  длины  слова  на  отбрасываемую  часть
+        tmp_sROD    :=  trim(substr(tmp_sIM,  1,  tmp_nLN::integer)  ||
+            substr(tmp_tPAD[tmp_nJ],  1,  5));                                      --  родительный
+        tmp_sDAT    :=  trim(substr(tmp_sIM,  1,  tmp_nLN)  ||
+            substr(tmp_tPAD[tmp_nJ],  6,  5));                                      --  дательный
+        tmp_sVIN    :=  trim(substr(tmp_sIM,  1,  tmp_nLN)  ||
+            substr(tmp_tPAD[tmp_nJ],  11,  5));                                      --  винительный
+        tmp_sTVO    :=  trim(substr(tmp_sIM,  1,  tmp_nLN)  ||
+            substr(tmp_tPAD[tmp_nJ],  16,  5));                                      --  творительный
+        tmp_sPRE    :=  trim(substr(tmp_sIM,  1,  tmp_nLN)  ||
+            substr(tmp_tPAD[tmp_nJ],  21,  5));                                      --  предложный
+    else
+        tmp_sROD  :=  tmp_sIM;
+        tmp_sDAT  :=  tmp_sIM;
+        tmp_sVIN  :=  tmp_sIM;
+        tmp_sTVO  :=  tmp_sIM;
+        tmp_sPRE  :=  tmp_sIM;
+    end  if;
+    /*  нужный  падеж  */
+    if  tmp_sPadeg  =  'р'  then
+        tmp_sSLOVO  :=  tmp_sROD;
+    elsif  tmp_sPADEG  =  'д'  then
+        tmp_sSLOVO  :=  tmp_sDAT;
+    elsif  tmp_sPADEG  =  'в'  then
+        tmp_sSLOVO  :=  tmp_sVIN;
+    elsif  tmp_sPADEG  =  'т'  then
+        tmp_sSLOVO  :=  tmp_sTVO;
+    elsif  tmp_sPADEG  =  'п'  then
+        tmp_sSLOVO  :=  tmp_sPRE;
+    end  if;
+    if  (sSLOVO  =  upper(sSLOVO))  then
+        return  upper(tmp_sSLOVO);
+    else
+        return  tmp_sSLOVO;
+    end  if;
+
+end;
+$function$
+ 

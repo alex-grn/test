@@ -1,0 +1,27 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_schedule_file_convert()
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+DECLARE
+rec  record;
+tresult  TEXT;
+BEGIN
+		FOR  rec  IN  (
+			SELECT
+				f.ID  AS  KID,  b.ident  as  bident
+			FROM
+				INPUTKRF  f,
+				filebuffer  b
+			WHERE
+				f.status  =  '2'  --загружен  для  обработки
+			  and  b.document  =  f.id
+		)
+		loop
+                        update  inputkrf  f  set  status  =  '3'  where  f.id  =  rec.KID;
+			tresult  :=  p_action_file_convert(rec.KID::text,  rec.bIDENT,  nUID);
+                        update  inputkrf  f  set  status  =  '4',  convdate  =  now()  where  f.id  =  rec.KID;
+		END  loop;
+	RETURN  null;
+END;
+$function$
+ 

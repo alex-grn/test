@@ -1,0 +1,65 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_declension_fio(idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+declare
+    rec  record;
+begin
+    --Бежим  по  людям  и  склоняем  их  ФИО
+        for  rec  in(
+                select  p.id,
+                              p.code,
+                              p.surname,
+                              p.firstname,
+                              p.middlename,
+                              p.rodsurname,
+                              p.datmiddlename,
+                              p.vinmiddlename,
+                              p.tvorsurname,
+                              p.datsurname,
+                              p.tvormiddlename,
+                              p.vinfirstname,
+                              p.vinsurname,
+                              p.rodmiddlename,
+                              p.rodfirstname,
+                              p.datfirstname,
+                              p.tvorfirstname,
+                              --пол  только  м  или  ж,  иначе  будем  ругаться
+                              p.sex::integer
+                    from  PERSON  p
+                  where  p.id  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+        )
+        LOOP
+        
+          if  rec.sex  =  '0'  then  raise  using  message  =  'У  физического  лица  '||rec.code||'  не  задан  пол.  Склонировать  ФИО  невозможно!';  end  if;
+          rec.rodsurname        :=  p_action_declension(rec.surname,'р',rec.sex,'ф');
+          rec.rodfirstname    :=  p_action_declension(rec.firstname,'р',rec.sex,'и');
+          rec.rodmiddlename  :=  p_action_declension(rec.middlename,'р',rec.sex,'о');
+          rec.datsurname        :=  p_action_declension(rec.surname,'д',rec.sex,'ф');
+          rec.datfirstname    :=  p_action_declension(rec.firstname,'д',rec.sex,'и');
+          rec.datmiddlename  :=  p_action_declension(rec.middlename,'д',rec.sex,'о');
+          rec.vinsurname        :=  p_action_declension(rec.surname,'в',rec.sex,'ф');
+          rec.vinfirstname    :=  p_action_declension(rec.firstname,'в',rec.sex,'и');
+          rec.vinmiddlename  :=  p_action_declension(rec.middlename,'в',rec.sex,'о');
+          rec.tvorsurname      :=  p_action_declension(rec.surname,'т',rec.sex,'ф');
+          rec.tvorfirstname  :=  p_action_declension(rec.firstname,'т',rec.sex,'и');
+          rec.tvormiddlename:=  p_action_declension(rec.middlename,'т',rec.sex,'о');  
+          update  PERSON  p  set  
+                                      rodsurname            =  rec.rodsurname        ,
+                                      rodfirstname        =  rec.rodfirstname    ,
+                                      rodmiddlename      =  rec.rodmiddlename  ,
+                                      datsurname            =  rec.datsurname        ,
+                                      datfirstname        =  rec.datfirstname    ,
+                                      datmiddlename      =  rec.datmiddlename  ,
+                                      vinsurname            =  rec.vinsurname        ,
+                                      vinfirstname        =  rec.vinfirstname    ,
+                                      vinmiddlename      =  rec.vinmiddlename  ,
+                                      tvorsurname          =  rec.tvorsurname      ,
+                                      tvorfirstname      =  rec.tvorfirstname  ,
+                                      tvormiddlename    =  rec.tvormiddlename
+              where  p.id  =  rec.id;
+      end  loop;      
+          
+end;
+$function$
+ 

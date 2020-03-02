@@ -29,20 +29,34 @@ SELECT  SUM(P.SUMPAY)
               COMMITTEEMAN  C,
               POSTS  PO,
               PAYS  P
-  WHERE  F.ID  =  P_ACTION_FINEXP_SUMPAY.ID
+  WHERE  F.ID  =  p_action_finexp_sumpay.id
       AND  T.ID  =  F.TYPEEXPID
       AND  TS.TYPEEXPID  =  T.ID
       AND  E.ID  =  F.ELECTCOMMINCAMPID
-      AND  T.MESTIMATE  =  TRUE
+      --AND  T.MESTIMATE  =  TRUE
       AND  R.ELECTCOMMINCAMPID  =  E.ID
       AND  RS.REGISTERID  =  R.ID
       AND  C.ID  =  RS.COMMITTEEMANID
       AND  PO.ID  =  C.POSTSID
       AND  P.REGISTERLISTID  =  RS.ID
       AND  P.SLCOMPCHARGESID  =  TS.SLCOMPCHARGESID
-      AND  PO.LEVELELCOMMITTEE  =  F.LEVELESTIMATE;
-  
-  RETURN  ROUND(NSUM,2);
+      AND  P.SHEETSID  IS  NOT  NULL
+      --AND  PO.LEVELELCOMMITTEE  =  (select  f.LEVELESTIMATE  from  FINANCEELCOM  f  where  f.TYPEEXPID  =  f.TYPEEXPID  and  f.ELECTCOMMINCAMPID  =  f.ELECTCOMMINCAMPID)
+      /*AND  ((((select  f.LEVELESTIMATE  from  FINANCEELCOM  f  where  f.TYPEEXPID  =  T.ID  and  f.ELECTCOMMINCAMPID  =  E.ID)  ilike  'terdist')  
+              and  c.electcommitteeid  !=  E.electcommitteeid  )
+      OR  ((select  f.LEVELESTIMATE  from  FINANCEELCOM  f  where  f.TYPEEXPID  =  T.ID  and  f.ELECTCOMMINCAMPID  =  E.ID)  NOT  ilike  'terdist')  
+              and  c.electcommitteeid  =  E.electcommitteeid  )*/
+              
+              
+      and  EXISTS(select  1  from  FINANCEELCOM  f  
+        where  f.TYPEEXPID  =  T.ID  and  f.ELECTCOMMINCAMPID  =  E.ID  
+        and  (c.electcommitteeid  =  E.electcommitteeid  and  f.LEVELESTIMATE  NOT  ilike  'terdist'
+                  or  c.electcommitteeid  !=  E.electcommitteeid  and  f.LEVELESTIMATE  ilike  'terdist')  
+        )
+      ;
+      
+      
+  RETURN  ROUND(COALESCE(NSUM,0),2);
   
 end;
 $function$

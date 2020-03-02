@@ -1,0 +1,40 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_filling_errorkrf(idlist  text,  uid  bigint  DEFAULT  1)
+  RETURNS  text
+  LANGUAGE  plpgsql
+AS  $function$
+	DECLARE
+	nUID  BIGINT  =  uid;
+rec  record;
+tresult  TEXT;
+nID  bigint;
+BEGIN
+
+		insert  into  errorkrf(inputkrfid,numbpp,error)
+		select  f.id,  
+					  row_number()  over(),  
+					  COALESCE(p.surname,'')||'  '||COALESCE(p.firstname,'')||'  '||COALESCE(p.middlename,'')||'  '||
+									d2s(w.datetbl)  ||'  '||
+									w.errwh  as  result
+		    from  INPUTKRF  f,
+					  register  r,
+					  registerlist  rs,
+					  committeeman  c,
+					  person  p,
+					  worktbl  w
+			where  f.id  =  ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+			    and  f.status  =  '4'
+			    and  r.id  =  f.idkrf
+				and  rs.registerid  =  r.id
+				and  c.id  =  rs.committeemanid
+				and  w.registerlistid  =  rs.id
+				and  p.id  =  c.personid
+				and  (w.errwh  is  not  null  and  w.errwh  !=  '')  RETURNING  errorkrf.id  into  nID;
+                                
+                  if  nID  is  null  THEN
+                        tresult:='Ошибок  нет!';
+                  end  if;
+		
+	RETURN  tresult;
+END;
+$function$
+ 

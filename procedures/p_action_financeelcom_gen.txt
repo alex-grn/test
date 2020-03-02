@@ -1,0 +1,77 @@
+ CREATE  OR  REPLACE  FUNCTION  public.p_action_financeelcom_gen(idlist  text)
+  RETURNS  void
+  LANGUAGE  plpgsql
+AS  $function$
+/*Действие:  Сформировать  комплекты  расчетных  форм*/
+declare
+  REC        record;
+    IZ          record;
+    RK          record;
+    STEMP    TEXT;
+    NID        BIGINT;
+    COMPIT  TEXT  :=  'Компенсация';  --таблица  pays  всегда  компенсация
+    COMID    BIGINT;
+    REGID    BIGINT;
+    SUBID    BIGINT;  --ID  субъекта  РФ
+    TDOC      BIGINT;
+    TIK        TEXT  :=  'territory';  --код  ТИК  в  системе
+    IKMO      TEXT  :=  'circuit';  --код  ИКМО
+    J            integer  :=  1;
+begin
+                                                                                                        --ПЕРЕДЕЛАТЬ  ↓
+    select  R.ID  into  SUBID  from  REGIONSRF  R  where  R.IDGASREGIONSRF  =  '00';    --Российская  Федерация
+    
+    
+    for  REC  in  (select  S.*,
+                                          LOWER(IK.LEVELELCOMMITTEE)  as  LEVELCOM,
+                                          I.BEGINDATE,
+                                          I.ENDDATE,
+                                          I.BEGINDATETER,
+                                          I.ENDDATETER,
+                                          UPPER(I.LEVELELCAMPAIGN)  as  level,
+                                          IK.REGIONSRFID  as  REGION,
+                                          I.ELECTDATE
+                                from  ELECTCOMMINCAMP  S,
+                                          ELECTCAMPAIGN      I,
+                                          ELECTCOMMITTEE    IK
+                              where  S.ID  =  any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                                  and  I.ID  =  S.ELECTCAMPAIGNID
+                                  and  IK.ID  =  S.ELECTCOMMITTEEID)
+    loop
+          --raise  using  message  =  REC.REGION;
+        --заполняем  "сведения  о  финансировании  в  зависимости  от  уровня  избирательной  компании"
+        if  REC.LEVEL  =  'REGION'  then
+            --Уровень  избирательной  коммисии  региональная
+            for  RK  in  (select  T.ID
+                                      from  TYPEEXP  T
+                                    where  T.MESTIMATE  =  true
+                                        and  T.REGIONSRFID  =  REC.REGION)
+            loop
+                --Проверяем  есть  ли  записи  в  таблице.
+                if  (select  count(*)
+                            from  FINANCEELCOM  S
+                          where  S.TYPEEXPID  =  RK.ID
+                              and  S.ELECTCOMMINCAMPID  =  REC.ID)  =  0  then  
+                    insert  into  FINANCEELCOM  (TYPEEXPID,  ELECTCOMMINCAMPID)  values  (RK.ID,  REC.ID);
+                end  if;
+            end  loop;
+        elsif  REC.LEVEL  =  'CENTRAL'  then
+            --Федеральная
+            for  RK  in  (select  T.ID,
+                                                REC.ID
+                                      from  TYPEEXP  T
+                                    where  T.MESTIMATE  =  true
+                                        and  T.REGIONSRFID  =  SUBID)
+            loop
+                if  (select  count(*)
+                            from  FINANCEELCOM  S
+                          where  S.TYPEEXPID  =  RK.ID
+                              and  S.ELECTCOMMINCAMPID  =  REC.ID)  =  0  then
+                    insert  into  FINANCEELCOM  (TYPEEXPID,  ELECTCOMMINCAMPID)  values  (RK.ID,  REC.ID);
+                end  if;
+            end  loop;
+        end  if;
+    end  loop;
+end;
+$function$
+ 
