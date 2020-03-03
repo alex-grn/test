@@ -166,13 +166,14 @@
 			<GA name="Выдать" caption="Выдать">
 				<A id="PERSONID" nulls="false" labelwidth="120"/>
 			</GA>
-			<A id="STATEMENTHEADERID" nulls="true"/>
+			<A id="STATEMENTHEADERID" caption="Ведомость на выдачу подотчетным лицам" labelwidth="280" nulls="true" pid="ELECTCAMPAIGNID"/>
 			<GA name="Основание" caption="Основание">
 				<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<TI id="CASHPAYMENTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="((electdate + interval '30 day') >= DOCDATE) and (DOCDATE > (electdate - interval '100 day'))"/>
+			<TI id="STATMENT_CHECK" name="Одновременное заполнение данных физического лица и ведомости недопустимо" check="STATEMENTHEADERID is null or PERSONID is null"/>	
 		</TABLE>
 		<TABLE id="CASHPAYMENT" name="РКО Расшифровка платежа">
 			<A id="CASHPAYMENTHEADERID" parentkey="cascade"/>
@@ -190,7 +191,7 @@
 		</TABLE>
 		<TABLE id="STATEMENT_HEADER" name="Ведомости на выдачу подотчетным лицам (0504501)">
 			<A id="CASHDOCSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="false" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" visible="false" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
