@@ -51,9 +51,9 @@
 				<A id="PERSONID" labelwidth="100" caption="ФИО МОЛ" visible="true" nulls="false"/>
 			</GA>
 			<GA name="Поставщик" caption="Поставщик">
-				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор"/>
+				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" pid="ELECTCAMPAIGNID"/>
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
-				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
 			</GA>
 			<GA name="По документу" caption="По документу">
@@ -65,7 +65,7 @@
 		<TABLE id="GOODS" name="Товары">
 			<A id="PROXYID" parentkey="cascade"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0" local="true"/>
-			<A id="CONTRACTSDOCS" labelwidth="120" width="40" readonly="true" virtual="true" visible="false" formula="select t.CONTRACTSDOCSID from PROXY t where t.id = @PROXYID"/>
+			<A id="CONTRACTSDOCSID" labelwidth="120" width="40" readonly="true" virtual="true" visible="false" formula="select t.CONTRACTSDOCSID from PROXY t where t.id = @PROXYID"/>
 			<GA name="Спецификация договора" caption="Спецификация договора">
 				<A id="STAGESID" name="Спецификация" type="ref" table="STAGES" pid="CONTRACTSDOCSID" nulls="false" local="true"/>
 				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" type="string" labelwidth="125" width="60" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
@@ -304,9 +304,9 @@
 			</GA>
 			<GA name="Контрагент" caption="Контрагент">
 				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор"/>
-				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTS t where t.id = @CONTRACTID"/>
-				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTS t where t.id = @CONTRACTID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
-				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTS t, AGENT a where t.id = @CONTRACTID and a.id=t.agentid"/>
+				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
+				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
 				<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, CONTRACTSDOCS cd where cd.id=@CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 			</GA>
 		</TABLE>
