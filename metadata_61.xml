@@ -21,13 +21,12 @@
 				<MI name="Финансовое обеспечение избирательных комиссий" formlist="FinanceelcomFRM"/>
 			</MENU>
 			<MENU name="Бухгалтерия ТИК">
-				<MI name="Договоры с юридическими лицами" formlist="ContractsFRM"/>
+				<MI name="Договоры с юр. и физ. лицами" formlist="ContractsFRM"/>
 				<MI name="Договоры о мат. ответственности" formlist="LiabilityFRM"/>
 				<MI name="Доверенности" formlist="ProxyFRM"/>
 				<MI name="Касса избирательной кампании" formlist="CashFRM"/>
 				<MI name="Расчетно-платежные документы" formlist="PayaccountsFRM"/>
 				<MI name="Авансовые отчеты" formlist="Expense_ReportsFRM"/>
-				<MI name="Договоры с физическими лицами" formlist="PersonsContractsFRM"/>
 				<MI name="Акты выполненных работ и услуг" formlist="ActsWorkServiceFRM"/>
 			</MENU>
 			<MENU name="Справочники">
@@ -252,6 +251,7 @@
 		<A id="MEMORDERID" name="Журнал операций" caption="Журнал операций" labelwidth="200" type="ref" table="MEMORDER" ret="CODE" nulls="false"/>
 		<A id="CONTRACTSID" name="Договоры Изибательных кампаний" caption="Договоры Изибательных кампаний" labelwidth="200" type="ref" table="CONTRACTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTSDOCSID" name="Договоры" caption="Договоры" labelwidth="200" type="ref" table="CONTRACTSDOCS" ret="SUBJECT" nulls="false"/>
+		<A id="PERSON_CONTRACTSDOCSID" name="Договоры с физлицами" caption="Договоры с физлицами" labelwidth="200" type="ref" table="PERSON_CONTRACTSDOCS" ret="SUBJECT" nulls="false"/>
 		<A id="JURPERSONSID" name="Принадлежность" caption="Принадлежность" labelwidth="200" type="ref" table="JURPERSONS" ret="CODEJURPERS" nulls="false"/>
 		<A id="BUDGCLASSID" name="КПС" caption="КПС" labelwidth="200" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
 		<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="200" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
@@ -1040,6 +1040,54 @@
 			</GA>
 			<TI unique="CONTRACTSID, NUMBPP"/>
 		</TABLE>
+		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
+			<A id="CONTRACTSID" parentkey="cascade"/>
+			<GA name="Договор" caption="Договор">
+				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="90" width="30" type="list" nulls="false" local="true">
+					<AI id="product" name="Поставка товара"/>
+					<AI id="service" name="Оказание услуг"/>
+					<AI id="worksexec" name="Выполнение работ"/>
+				</A>
+				<A id="DOCNUMB" caption="Номер" labelwidth="45" width="50"/>
+				<A id="DOCDATE" labelwidth="45" width="20"/>
+			</GA>
+			<GA name="Поставщик/подрядчик" caption="Поставщик/подрядчик">
+				<A id="TRPERSONID" name="Получатель" caption="Получатель" labelwidth="70" width="50" nulls="true"/>
+				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+			</GA>
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
+				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
+			</GA>
+			<GA name="Предмет договора" caption="Предмет договора">
+				<A id="SUBJECT" name="Предмет договора" caption="Предмет договора" labelwidth="150" type="text" nulls="false" local="true"/>
+				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="150" type="string" nulls="true" local="true"/>
+				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERSONS_STAGES t where t.PERSON_CONTRACTSDOCSID = @ID"/>
+			</GA>
+		</TABLE>
+		<TABLE id="PERSONS_STAGES" name="Этапы договора с физ.лицами">
+			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" width="50" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
+			<A id="BUDGCLASSID" labelwidth="150" width="50" />
+			<A id="TYPEEXPID" labelwidth="150" />
+			<GA name="Период действия" caption="Период действия">
+				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="150" width="40" nulls="false"/>
+				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="150" width="40" nulls="false"/>
+			</GA>
+			<GA name="Номенклатура" caption="Номенклатура">
+				<A id="DICNOMNSID" labelwidth="150"/>
+				<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
+				<A id="DICMUNTSID" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+				<A id="QUANTITY" labelwidth="150"  width="50" nulls="false"/>
+				<A id="SUMM" labelwidth="150"  width="50" nulls="false"/>
+			</GA>
+			<GA name="Исполнение" caption="Исполнение">
+				<A id="SUMMPAY" readonly="true" virtual="true" width="50" formula=""/>
+				<A id="SUMMEXEC" readonly="true" virtual="true" width="50" formula=""/>
+			</GA>
+			<TI unique="PERSONS_CONTRACTSID, NUMBPP"/>
+		</TABLE>
+
 		<TABLE id="PAYACCOUNTS" name="Расчетный (лицевой счет) в банке">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
@@ -1684,12 +1732,26 @@
 		<FORM id="ContractsFRM" name="Договоры">
 			<GRID id="ContractsGR" name="Договоры" table="CONTRACTS" actionlist="setLID"/>
 			<TABS>
-				<TAB name="Договор">
-					<GRID id="ContractsDocsGR" name="Договор" table="CONTRACTSDOCS"/>
+				<TAB name="Договоры с юридическими лицами">
+					<TABS>
+						<TAB name="Договор">
+							<GRID id="ContractsDocsGR" name="Договор" table="CONTRACTSDOCS"/>
+						</TAB>
+						<TAB name="Проводки">
+							<GRID id="StagesGR" name="Проводки" table="STAGES" actionlist="setLID"/>
+						</TAB>
+					</TABS>		
 				</TAB>
-				<TAB name="Проводки">
-					<GRID id="StagesGR" name="Проводки" table="STAGES" actionlist="setLID"/>
-				</TAB>
+				<TAB name="Договоры с физическими лицами">
+					<TABS>
+						<TAB name="Договор">
+							<GRID id="PersonsStagesGR" name="Договор" table="PERSON_CONTRACTSDOCS"/>
+						</TAB>
+						<TAB name="Проводки">
+							<GRID id="PersonsStagesGR" name="Проводки" table="PERSONS_STAGES"/>
+						</TAB>
+					</TABS>		
+				</TAB>				
 			</TABS>
 		</FORM>
 		<FORM id="JurpersonsFRM" name="Принадлежность">

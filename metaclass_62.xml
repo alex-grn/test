@@ -11,8 +11,6 @@
 		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
-		<A id="PERSONS_CONTRACTSID" name="Договоры с физ.лицами Избирательной кампании" caption="Договоры с физ.лицами Избирательной кампании" labelwidth="200" type="ref" table="PERSON_CONTRACTS" ret="ID" nulls="false"/>
-		<A id="PERSON_CONTRACTSDOCSID" name="Договоры с физлицами" caption="Договоры с физлицами" labelwidth="200" type="ref" table="PERSON_CONTRACTSDOCS" ret="SUBJECT" nulls="false"/>
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
 		<A id="ACTSDOCSID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="ACTSDOCS" ret="NUMBPP" nulls="false"/>
 	</ATTRIBUTES>
@@ -286,53 +284,6 @@
 				<A id="JURPERSONSID" labelwidth="200"/>
 			</GA>
 		</TABLE>
-		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
-			<A id="PERSONS_CONTRACTSID" parentkey="cascade"/>
-			<GA name="Договор" caption="Договор">
-				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="90" width="30" type="list" nulls="false" local="true">
-					<AI id="product" name="Поставка товара"/>
-					<AI id="service" name="Оказание услуг"/>
-					<AI id="worksexec" name="Выполнение работ"/>
-				</A>
-				<A id="DOCNUMB" caption="Номер" labelwidth="45" width="50"/>
-				<A id="DOCDATE" labelwidth="45" width="20"/>
-			</GA>
-			<GA name="Поставщик/подрядчик" caption="Поставщик/подрядчик">
-				<A id="TRPERSONID" name="Получатель" caption="Получатель" labelwidth="70" width="50" nulls="true"/>
-				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
-			</GA>
-			<GA name="Период действия" caption="Период действия">
-				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
-				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
-			</GA>
-			<GA name="Предмет договора" caption="Предмет договора">
-				<A id="SUBJECT" name="Предмет договора" caption="Предмет договора" labelwidth="150" type="text" nulls="false" local="true"/>
-				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="150" type="string" nulls="true" local="true"/>
-				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERSONS_STAGES t where t.PERSON_CONTRACTSDOCSID = @ID"/>
-			</GA>
-		</TABLE>
-		<TABLE id="PERSONS_STAGES" name="Этапы договора с физ.лицами">
-			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" width="50" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PPERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
-			<A id="BUDGCLASSID" labelwidth="150" width="50" />
-			<A id="TYPEEXPID" labelwidth="150" />
-			<GA name="Период действия" caption="Период действия">
-				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="150" width="40" nulls="false"/>
-				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="150" width="40" nulls="false"/>
-			</GA>
-			<GA name="Номенклатура" caption="Номенклатура">
-				<A id="DICNOMNSID" labelwidth="150"/>
-				<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
-				<A id="DICMUNTSID" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
-				<A id="QUANTITY" labelwidth="150"  width="50" nulls="false"/>
-				<A id="SUMM" labelwidth="150"  width="50" nulls="false"/>
-			</GA>
-			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" readonly="true" virtual="true" width="50" formula=""/>
-				<A id="SUMMEXEC" readonly="true" virtual="true" width="50" formula=""/>
-			</GA>
-			<TI unique="PERSONS_CONTRACTSID, NUMBPP"/>
-		</TABLE>
 		<TABLE id="ACTS" name="Акты выполненных работ и услуг избирательных кампаний">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200"/>
@@ -498,17 +449,6 @@
 					</TABS>
 				</TAB>
 			</TABS>
-		</FORM>
-		<FORM id="PersonsContractsFRM" name="Договоры с физ. лицами">
-			<GRID id="PersonsContractsGR" name="Договоры с физ. лицами Избирательной кампании" table="PERSON_CONTRACTS"/>
-			<TABS>
-				<TAB name="Договор">
-					<GRID id="PersonsStagesGR" name="Договор" table="PERSON_CONTRACTSDOCS"/>
-				</TAB>
-				<TAB name="Проводки">
-					<GRID id="PersonsStagesGR" name="Проводки" table="PERSONS_STAGES"/>
-				</TAB>
-			</TABS>	
 		</FORM>
 		<FORM id="ActsWorkServiceFRM" name="Акты выполненных работ и услуг">
 			<GRID id="ActsWorkServiceGR" name="Акты выполненных работ и услуг избирательных кампаний" table="ACTS"/>
