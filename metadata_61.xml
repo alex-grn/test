@@ -985,7 +985,7 @@
 			<A id="CODEOKEI" name="Код ОКЕИ" caption="Код ОКЕИ" labelwidth="400" type="number" len="4" nulls="true" local="true"/>
 			<TI unique="CODE"/>
 		</TABLE>
-		<TABLE id="CONTRACTS" name="Договоры с юр.лицами Избирательных кампаний">
+		<TABLE id="CONTRACTS" name="Договоры с юр. и физ. лицами Избирательных кампаний">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID"/>
 				<A id="LEVELELCAMPAIGN" labelwidth="350" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
@@ -995,6 +995,7 @@
 		</TABLE>
 		<TABLE id="CONTRACTSDOCS" name="Договоры с юридическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id=@CONTRACTSID"/>
 			<GA name="Договор" caption="Договор">
 				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" nulls="false" local="true">
 					<AI id="product" name="Поставка товара"/>
@@ -1038,7 +1039,7 @@
 				<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
 				<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
 			</GA>
-			<TI unique="CONTRACTSID, NUMBPP"/>
+			<TI unique="CONTRACTSDOCSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
@@ -1067,6 +1068,7 @@
 		</TABLE>
 		<TABLE id="PERSONS_STAGES" name="Этапы договора с физ.лицами">
 			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
+			<A id="TRPERSONID" parentkey="nocascade" name="Получатель" virtual="true" visible="false" caption="Получатель" labelwidth="70" width="50" nulls="true" formula="select TRPERSONID from PERSON_CONTRACTSDOCS where id=@PERSON_CONTRACTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" width="50" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
 			<A id="BUDGCLASSID" labelwidth="150" width="50" />
 			<A id="TYPEEXPID" labelwidth="150" />
