@@ -41,7 +41,7 @@
 		<A id="AGENTID" name="Организация" caption="Организация" labelwidth="100" type="ref" table="AGENT" ret="CODE" form="fAgent" nulls="false"/>
 		<A id="WEBSITE" name="Web-сайт" caption="Web-сайт" type="string" len="50" nulls="true"/>
 		<A id="JOBID" name="Должность" caption="Должность" labelwidth="150" type="ref" table="JOB" ret="CODE" form="fJob" nulls="false"/>
-		<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="300" type="ref" table="OWNER" ret="CODE" nulls="false"/>
+		<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="300" type="ref" table="OWNER" ret="NAME" nulls="false"/>
 		<A id="STATUSELOAD" name="Статус загрузки" caption="Статус загрузки" labelwidth="300" type="list" nulls="false" readonly="true" value="0">
 			<AI id="0" name="новый"/>
 			<AI id="1" name="не загружено"/>
@@ -207,7 +207,7 @@
 			<A id="SUMMCANCEL" name="Сумма отмены/списания" caption="Сумма отмены/списания" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
 			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
 			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - @SUMMPAY " local="true"/>
-			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else null end)" local="true"/>
+			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else null end)" local="true"/>
 		</TABLE>
 		<TABLE id="FINEHISTORY" name="История изменения">
 			<A id="FINEID" parentkey="cascade"/>
@@ -635,7 +635,7 @@
 			<A id="LINE_NOM" name="Номер записи" caption="Номер записи" type="number" nulls="true" local="true"/>
 			<GA name="Уточняемый документ" caption="Уточняемый документ">
 			<A id="GUID" name="GUID операции" caption="GUID операции" type="string" nulls="true" local="true"/>
-			<A id="KOD_DOC" name="Код" caption="Код" type="list" nulls="true" local="true">
+			<A id="KOD_DOC" name="Код" caption="Код" type="list" nulls="true" visible="false" local="true">
 				<!-- При уточнении на счете учета поступлений может принимать значение: -->
 				<AI id="PP" name="Расчетный документ (при уточнении поступления)"/>
 				<AI id="ZV" name="Заявка на возврат"/>
@@ -661,8 +661,8 @@
 			</A>			
 			<A id="NAME_PP" name="Наименование" caption="Наименование" type="list" nulls="true" local="true">
 				<!-- При уточнении на счете учета поступлений может принимать значение: -->
-				<AI id="Платежное поручение" name="Платежное поручение"/>
-				<AI id="Заявка на возврат" name="Заявка на возврат"/>
+				<AI id="PP" name="Платежное поручение"/>
+				<AI id="ZV" name="Заявка на возврат"/>
 			</A>			
 			<A id="NOM_PP" name="Номер" caption="Номер" type="string" len="20" nulls="true" local="true"/>
 			<A id="DATE_PP" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
@@ -870,13 +870,14 @@
 		<ACTION id="DetailPP" name="Детализировать платёж" type="procedure" procedure="p_gen_detail_infopaydoc"/>
 		<ACTION id="LinkTo" name="Установить связь с документом" type="procedure" procedure="p_infopaydoc_link_to"/>
 		<ACTION id="UnlinkTo" name="Разорвать связь с документом" type="procedure" procedure="p_infopaydoc_unlink_to"/>
-		<ACTION id="ReturnToState" name="Вернуть платёж в Выписку" type="procedure" procedure="p_return_to_statement"/>
+		<ACTION id="ReturnToState" name="Вернуть платёж в Выписку" type="procedure" procedure="p_return_to_statement">
 		<FORM>
 		<A id="SURE" name="Вы уверены в том, что хотите удалить строку платежа и все связи?" type="list">
 		<AI id="NO" name="Нет"/>
 		<AI id="YES" name="Да"/>
 		</A>
 		</FORM>
+		</ACTION>
 		<ACTION id="Verification" name="Верифицировать уведомления" type="procedure" procedure="p_verificate_done"/>
 		<ACTION id="CallTechsupport" name="Пожаловаться Родиону" type="href"/>
 		<ACTION id="SendtoJornal" name="Отправить в журнал" type="procedure" procedure="p_send_to_journal"/>
@@ -898,15 +899,6 @@
 					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
-			<TABS>
-				<TAB name="Должности">
-					<GRID id="gPersonJobPerf" name="Должности" table="PERSON_JOB_PERF">
-						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
-						</MENU>
-					</GRID>
-				</TAB>
-			</TABS>
 		</FORM>
 		<FORM id="Enactment" name="Законы и иные нормативные правовые акты">
 			<GRID id="Enactment" name="Законы и иные нормативные правовые акты" table="ENACTMENT"/>
@@ -937,8 +929,18 @@
 			<GRID id="Journalpays" name="Журнал платежей" table="JOURNALPAYS" actionlist="FineSelect;GenUved;GenReturn;ReturnToState"/>
 		</FORM>
 		<FORM id="Statementadb" name="Выписки">
+		<TABS>
+		<TAB name="Выписки">
 			<GRID id="Statementadb" name="Выписки администратора доходов бюджета" table="STATEMENTADB"/>
+		</TAB>
+		<TAB name="Исполненные операции">
+		<A id="IDENTSTATEVIRT" name="Выписка" caption="Выписка" labelwidth="70" width="15" type="date" readonly="true" virtual="true" formula="select DATE_OTCH from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+		<A id="SUM_IN_ITOG_VIRT" name="Поступило" caption="Поступило" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_IN_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+		<A id="SUM_OUT_ITOG_VIRT" name="Возвращено" caption="Возвращено" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_OUT_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+		<A id="SUM_ZACH_ITOG_VIRT" name="Зачтено" caption="Зачтено" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_ZACH_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true" />
 			<GRID id="Statementadbdone" name="Информация по исполненным операциям администратора доходов бюджета" table="STATEMENTADBDONE" actionlist="TakeToWork;Verification"/>
+		</TAB>
+		</TABS>
 		</FORM>
 		<FORM id="Refinereq" name="Невыясненные поступления">
 					<GRID id="Refinereq" name="Запросы на уточнение вида и принадлежности платежа" table="REFINEREQ" actionlist="GenUved"/>
