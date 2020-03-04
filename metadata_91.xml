@@ -280,7 +280,7 @@
 			<A id="DOCDT" name="Дата" caption="Дата" labelwidth="50" width="25" type="date" virtual="true" formula="select COALESCE(DATE_DOC_ADB, DATE_DOC) from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true" />
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
-				<A id="DOC_DATE_STATE" name="Дата" caption="Дата" labelwidth="100" width="39" type="date" nulls="true" formula="(select DATE_OTCH from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
+				<A id="DOC_DATE_STATE" name="Дата" caption="Дата" labelwidth="100" width="39" type="date" nulls="true" virtual="true" formula="(select DATE_OTCH from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
 				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="90" width="61" type="string" virtual="true" formula="(select GUID_FK from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
 			</GA>
 			<GA name="Данные о плательщике" caption="Данные о плательщике">
@@ -335,8 +335,8 @@
 				<A id="INFOPAYDOCDETAILID" name="Номер строки реестра" form=""/>
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
-				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" formula="select STATEMENTADBID from INFOPAYDOC where id = @INFOPAYDOCID" local="true"/>
-				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" formula="select DOC_DATE_STATE from INFOPAYDOC where id = @INFOPAYDOCID" local="true"/>
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" virtual="true" formula="(select GUID_FK from STATEMENTADB where id= (select STATEMENTADBID from STATEMENTADBDONE where id= (select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
+				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" virtual="true" formula="(select DATE_OTCH from STATEMENTADB where id=(select STATEMENTADBID from STATEMENTADBDONE where  id=(select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
 			</GA>
 			<GA name="Данные о результатах отработки" caption="Данные о результатах отработки">
 				<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
@@ -808,36 +808,36 @@
 		<ACTION id="FileloadingImport" name="Загрузить данные" type="procedure" procedure="p_fileloading_importevidence"/>
 		<ACTION id="ResetStatus" name="Сменить статус на «Новый»" type="procedure" procedure="p_reset_status"/>
 		<ACTION id="FineloadingImport" name="Загрузить данные" type="procedure" procedure="p_fineloading_importevidence"/>
-		<ACTION id="StatusTo1" name="Не вступил в силу" type="procedure" procedure="p_status_change">
+		<ACTION id="StatusTo1" name="Не вступил в силу" type="procedure" procedure="p_action_status_change">
 			<FORM>
 				<A id="STATUS_FROM" caption="Статус откуда" type="string" visible="false" value="0" local="true"/>
 				<A id="STATUS_TO" caption="Статус куда" type="string" visible="false" value="1" local="true"/>
 				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="StatusTo2" name="Вступил в силу" type="procedure" procedure="p_status_change">
+		<ACTION id="StatusTo2" name="Вступил в силу" type="procedure" procedure="p_action_status_change">
 			<FORM>
 				<A id="STATUS_FROM" caption="Статус откуда" type="string" visible="false" value="1;3;4" local="true"/>
 				<A id="STATUS_TO" caption="Статус куда" type="string" visible="false" value="2" local="true"/>
 				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="StatusTo3" name="Передан в суд" type="procedure" procedure="p_status_change">
+		<ACTION id="StatusTo3" name="Передан в суд" type="procedure" procedure="p_action_status_change">
 			<FORM>
 				<A id="STATUS_FROM" caption="Статус откуда" type="string" visible="false" value="2" local="true"/>
 				<A id="STATUS_TO" caption="Статус куда" type="string" visible="false" value="3" local="true"/>
 				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="StatusTo4" name="Передан судебным приставам" type="procedure" procedure="p_status_change">
+		<ACTION id="StatusTo4" name="Передан судебным приставам" type="procedure" procedure="p_action_status_change">
 			<FORM>
 				<A id="STATUS_FROM" caption="Статус откуда" type="string" visible="false" value="2;3" local="true"/>
 				<A id="STATUS_TO" caption="Статус куда" type="string" visible="false" value="4" local="true"/>
 				<A id="DATE_FIX" caption="Дата" type="date" nulls="false" formula="now()" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="CancelLastOperation" name="Отменить последнее изменение" type="procedure" procedure="p_cancel_lastoperation"/>
-		<ACTION id="PaySelect" name="Подбор оплаты" type="procedure" procedure="p_select_pay">
+		<ACTION id="CancelLastOperation" name="Отменить последнее изменение" type="procedure" procedure="p_action_cancel_lastoperation"/>
+		<ACTION id="PaySelect" name="Подбор оплаты" type="procedure" procedure="p_action_select_pay">
 			<FORM>
 				<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
 				<A id="AOFFENDER" name="Правонарушитель" caption="Правонарушитель" type="boolean" nulls="false" local="true"/>
@@ -858,19 +858,19 @@
 			</A>
 		</FORM>
 		</ACTION>
-		<ACTION id="FineSelect" name="Подбор начисления" type="procedure" procedure="p_select_fine"/>
-		<ACTION id="GenUved" name="Сформировать уведомление об уточнении" type="procedure" procedure="p_gen_uved"/>
+		<ACTION id="FineSelect" name="Подбор начисления" type="procedure" procedure="p_action_select_fine"/>
+		<ACTION id="GenUved" name="Сформировать уведомление об уточнении" type="procedure" procedure="p_action_gen_uved"/>
 		<FORM>
 			<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
 		</FORM>
-		<ACTION id="GenReturn" name="Сформировать заявку на возврат" type="procedure" procedure="p_gen_return"/>
+		<ACTION id="GenReturn" name="Сформировать заявку на возврат" type="procedure" procedure="p_action_gen_return"/>
 		<FORM>
 			<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
 		</FORM>
-		<ACTION id="DetailPP" name="Детализировать платёж" type="procedure" procedure="p_gen_detail_infopaydoc"/>
+		<ACTION id="DetailPP" name="Детализировать платёж" type="procedure" procedure="p_action_gen_detail_infopaydoc"/>
 		<ACTION id="LinkTo" name="Установить связь с документом" type="procedure" procedure="p_infopaydoc_link_to"/>
 		<ACTION id="UnlinkTo" name="Разорвать связь с документом" type="procedure" procedure="p_infopaydoc_unlink_to"/>
-		<ACTION id="ReturnToState" name="Вернуть платёж в Выписку" type="procedure" procedure="p_return_to_statement">
+		<ACTION id="ReturnToState" name="Вернуть платёж в Выписку" type="procedure" procedure="p_action_return_to_statement">
 		<FORM>
 		<A id="SURE" name="Вы уверены в том, что хотите удалить строку платежа и все связи?" type="list">
 		<AI id="NO" name="Нет"/>
@@ -878,10 +878,10 @@
 		</A>
 		</FORM>
 		</ACTION>
-		<ACTION id="Verification" name="Верифицировать уведомления" type="procedure" procedure="p_verificate_done"/>
+		<ACTION id="Verification" name="Верифицировать уведомления" type="procedure" procedure="p_action_verificate_done"/>
 		<ACTION id="CallTechsupport" name="Пожаловаться Родиону" type="href"/>
-		<ACTION id="SendtoJornal" name="Отправить в журнал" type="procedure" procedure="p_send_to_journal"/>
-		<ACTION id="LoadRR" name="Загрузить реестр" type="procedure" procedure="p_load_rr"/>
+		<ACTION id="SendtoJornal" name="Отправить в журнал" type="procedure" procedure="p_action_send_to_journal"/>
+		<ACTION id="LoadRR" name="Загрузить реестр" type="procedure" procedure="p_action_load_rr"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
