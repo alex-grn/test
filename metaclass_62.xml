@@ -244,9 +244,11 @@
 			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
 			<GA name="Получено" caption="Получено">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-				<A id="CASHPAYMENTHEADERID" pid="ELECTCAMPAIGNID" name="Документ" width="50"/>
-				<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="50" virtual="true" formula=""/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="CASHPAYMENTHEADERID" caption="Кассовый документ" labelwidth="120" pid="ELECTCAMPAIGNID" name="Кассовый документ" width="50"/>
+				<A id="SUMMCASH" caption="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="30" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID::BIGINT"/>
+				<A id="PAYDOCSID" caption="Платежное поручение" labelwidth="150" pid="ELECTCAMPAIGNID" name="Платежное поручение" width="70"/>
+				<A id="SUMMPAYDOC" caption="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="30" virtual="true" formula="select round(sum(x.SUMM),2) from PAYDOCSCONS x where x.PAYDOCSID = @PAYDOCSID::BIGINT"/>
 			</GA>
 		</TABLE>
 		<TABLE id="EXPENDED" name="Израсходовано">
