@@ -1,0 +1,52 @@
+CREATE OR REPLACE FUNCTION public.p_action_send_to_journal (
+  idlist text,
+  uid bigint
+)
+RETURNS void AS
+$body$
+declare 
+  nUID bigint:=uid;
+  rec  record;
+  nID  bigint;
+  sTYPEPAYDOC text;
+begin
+ 
+ for rec in(
+     select f.id,
+            f.statementadbdoneid,
+            COALESCE(fs.typeinfo, f.typepaydoc) as typepaydoc,
+            f.statementadbid,
+            f.doc_date_state,
+            f.sign_fait,
+            f.ownerid,
+            fs.id as specid
+       from INFOPAYDOC f
+       left join INFOPAYDOCDETAIL fs on fs.infopaydocid = f.id
+      where f.id = ANY(P_SYSTEM_GET_SELECTLIST(idlist))
+      
+ ) 
+ LOOP
+   update infopaydoc f set sign_fait = '1' where f.id = rec.id;
+      insert into journalpays(typepaydoc,               
+                              infopaydocid,             
+                              infopaydocdetailid,           
+                              sign_fait, 
+                              ownerid)
+                       values(rec.typepaydoc,
+                              rec.id,
+                              rec.specid,
+                              '3',
+                              rec.ownerid);
+   update statementadbdone s set statusdoc = '2' where s.id = rec.statementadbdoneid;
+ end loop; 
+ 
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_send_to_journal (idlist text, uid bigint)
+  OWNER TO postgres;

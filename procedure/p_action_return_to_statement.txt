@@ -1,0 +1,56 @@
+CREATE OR REPLACE FUNCTION public.p_action_return_to_statement (
+  idlist text,
+  uid bigint,
+  sure text,
+  tablename text
+)
+RETURNS void AS
+$body$
+declare 
+  nUID bigint:=uid;
+  rec  record;
+  nID  bigint;
+  sTYPEPAYDOC text;
+begin
+  if sure not ilike 'yes' then exit; end if;
+  if tablename ilike 'INFOPAYDOC' then
+     
+     for rec in(
+         select d.*
+           from INFOPAYDOC d
+          where d.id = ANY(p_system_get_selectlist(idlist))
+     )
+     loop
+         update STATEMENTADBDONE s set statusdoc = '0' where s.id = rec.STATEMENTADBDONEID;
+         delete from JOURNALPAYS j where j.infopaydocid = rec.id;
+         delete from DOCLINKS d where d.tableout = 'INFOPAYDOC' and d.keyout = rec.id; 
+         delete from INFOPAYDOC f where f.id = rec.id;
+     end loop;
+     
+     
+  elsif tablename ilike 'JOURNALPAYS' then 
+  
+        for rec in(
+         select j.*
+           from JOURNALPAYS j
+          where j.id = ANY(p_system_get_selectlist(idlist))
+     )
+     loop
+         update STATEMENTADBDONE s set statusdoc = '0' where s.id = (select f.STATEMENTADBDONEID from infopaydoc f where f.id = rec.infopaydocid);
+         delete from JOURNALPAYS j where j.id = rec.id; 
+         delete from INFOPAYDOC f where f.id = rec.INFOPAYDOCid;
+         delete from DOCLINKS d where d.tableout = 'INFOPAYDOC' and d.keyout = rec.INFOPAYDOCid; 
+     end loop;
+  
+  end if;
+
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_return_to_statement (idlist text, uid bigint, sure text, tablename text)
+  OWNER TO postgres;
