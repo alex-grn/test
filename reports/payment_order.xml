@@ -10,40 +10,38 @@
                      <query name="header" type="sql">
                         <script>
 								 select d.docnumb,
-									d2s(d.docdate) as docdate,
+									d.docdate,
 									upper(SUBSTR(p_tools_to_propis((select sum(COALESCE(c.summ,0)) from PAYDOCSCONS c where c.paydocsid = d.id)),1,1))||
 									lower(SUBSTR(p_tools_to_propis((select sum(COALESCE(c.summ,0)) from PAYDOCSCONS c where c.paydocsid = d.id)),2)) as summ_prop,
-									'ИНН '||COALESCE(k.INN,'') as innec,
-									'КПП '||COALESCE(k.KPP,'') as kppec,
+									k.INN as innec,
+									k.KPP as kppec,
 									(select sum(COALESCE(c.summ,0)) from PAYDOCSCONS c where c.paydocsid = d.id) as summ,
 									k.name as electcommitteename,
 									e.BANKACC as elcmtacccode,
-									(select UL.NAME from AGENT UL where UL.ID = b.AGENTID) as agentbanksec,
+									b.CODE as agentbanksec,
 									b.BIC as bicbankec,
-									COALESCE(af.NAME,aj.NAME) as agentbank,
+									COALESCE(bf.CODE,bj.CODE) as agentbank,
 									COALESCE(bf.bic,bj.bic) as agentbankbic,
-									'ИНН '||COALESCE(pf.inn,pj.inn,'') as paydocinn,
-									'КПП '||COALESCE(pf.kpp,pj.kpp,'') as paydockpp,
-									COALESCE(pf.code,pj.code) as paydocsacc,
-									COALESCE(f.name,a.name) as paydocsname,
+									COALESCE(pf.inn,pj.inn) as paydocinn,
+									COALESCE(pf.kpp,pj.kpp) as paydockpp,
+									e.bankacc as paydocsacc,
+									COALESCE(f.name,a.name) as paydockpp,
 									'01' as vid_op,
 									d.PRIORITY as paydocsprior,
 									d.PURPOSE as paydocspurpose
-								from PAYDOCS d
-								inner join PAYACCOUNTS p on p.id = d.payaccountsid
+								from PAYACCOUNTS p
+								inner join PAYDOCS d on d.payaccountsid = p.id
 								left join JURPERSONS j on j.id = p.jurpersonsid
 								left join ELECTCOMMITTEE k on k.id = j.electcommitteeid
 								left join ELCMTACC e on e.id = p.elcmtaccid
 								left join AGENTBANKS b on b.id = e.agentbanksid
 								left join PERSONACC pf on pf.id = d.personaccdocid        --счет физлица
 								left join AGENTBANKS bf on bf.id = pf.agentbanksid
-								left join AGENT af on af.id = bf.agentid
 								left join PERSONACC pj on pj.id = d.agentaccid            --счет юрлица
 								left join AGENTBANKS bj on bj.id = pj.agentbanksid
-								left join AGENT aj on aj.id = bj.agentid
 								left join PERSON f on f.id = d.personid
 								left join AGENT a on a.id = d.agentid
-								where d.id = ${id}::bigint
+								where p.id = ${id}::bigint
    							   ;
 						</script>
                      </query>
