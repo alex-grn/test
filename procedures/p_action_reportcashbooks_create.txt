@@ -43,13 +43,13 @@ begin
               and r.CASHRECEIPTHEADERID = c.ID
               and r.TYPICALOPERSID = t.TYPICALOPERSID
               and d.ID = t.ACCOUNTDTID
-              and d.ACCTYPE = '1'       --Балансовый
+              and d.ACCBALANCE = '1'       --Балансовый
             group by c.DOCNUMB,
                      c.PERSONID,
                      t.ACCOUNTKTID
        )
        LOOP
-            select COALESCE((select MAX(r.NUMBSHEET)+1 from REPORTCASHBOOKS r where r.cashdocsid = c.id),1) into next_num;
+            select COALESCE((select MAX(r.NUMBPP)+1 from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = nID),1) into next_num;
             insert into REPORTCASHBOOKSSPEC(uid,lid,REPORTCASHBOOKSID,NUMBPP,DOCNUMB,PERSONID,DICACCSID,INCOMECASH)
                                      values(nUID,nLID,nID,next_num,ORD.DOCNUMB,ORD.PERSONID,ORD.DICACCSID,ORD.INCOMECASH);
        
@@ -69,13 +69,13 @@ begin
               and r.CASHPAYMENTHEADERID = c.ID
               and r.TYPICALOPERSID = t.TYPICALOPERSID
               and k.ID = t.ACCOUNTKTID
-              and k.ACCTYPE = '1'       --Балансовый
+              and k.ACCBALANCE = '1'       --Балансовый
             group by c.DOCNUMB,
                      c.PERSONID,
                      t.ACCOUNTDTID
        )
        LOOP
-            select COALESCE((select MAX(r.NUMBSHEET)+1 from REPORTCASHBOOKS r where r.cashdocsid = c.id),1) into next_num;
+            select COALESCE((select MAX(r.NUMBPP)+1 from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = nID),1) into next_num;
             insert into REPORTCASHBOOKSSPEC(uid,lid,REPORTCASHBOOKSID,NUMBPP,DOCNUMB,PERSONID,DICACCSID,EXPENDCASH)
                                      values(nUID,nLID,nID,next_num,ORD.DOCNUMB,ORD.PERSONID,ORD.DICACCSID,ORD.INCOMECASH);
        
