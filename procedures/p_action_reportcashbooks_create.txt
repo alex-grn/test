@@ -1,0 +1,99 @@
+CREATE OR REPLACE FUNCTION public.p_action_reportcashbooks_create (
+  idlist text,
+  uid bigint,
+  ddate date
+)
+RETURNS void AS
+$body$
+declare
+  nUID        bigint:=UID;
+  nLID        bigint;
+  nID         bigint;
+  REC         record;
+  ORD         record;
+  next_num    integer;
+begin
+  --найдем уровень доступа для данного пользователя
+  select u.levaccessid into nLID from users u where u.id = nUID;
+
+  for REC in (
+      select c.id as cashdocsid,
+             COALESCE((select MAX(r.NUMBSHEET)+1 from REPORTCASHBOOKS r where r.cashdocsid = c.id),1) as gen_num, --сгенерим след номер для кассовых отчетов
+             --найдем сумму на начало
+             COALESCE((select r.outbalance from REPORTCASHBOOKS r where r.cashdocsid = c.ID and r.docdate < ddate order by r.docdate desc),0) as open_balance
+        from CASHDOCS c
+       where c.ID = ANY(p_system_get_selectlist(idlist))
+  )
+  LOOP
+       
+       insert into REPORTCASHBOOKS(uid,lid,CASHDOCSID,DOCDATE,NUMBSHEET,OPENBALANCE)
+                            values(nUID,nLID,REC.CASHDOCSID,DDATE,REC.GEN_NUM,REC.OPEN_BALANCE) returning REPORTCASHBOOKS.ID into nID;
+      --Приходные кассовые документы 
+       for ORD in (
+           select c.DOCNUMB,
+                  c.PERSONID,
+                  t.ACCOUNTKTID as DICACCSID,
+                  sum(r.SUMMPAY) as INCOMECASH 
+             from CASHRECEIPT_HEADER c,
+                  CASHRECEIPT r,
+                  TYPICALOPERSPEC t,
+                  DICACCS d
+            where c.CASHDOCSID = REC.CASHDOCSID
+              and c.DOCDATE = DDATE
+              and r.CASHRECEIPTHEADERID = c.ID
+              and r.TYPICALOPERSID = t.TYPICALOPERSID
+              and d.ID = t.ACCOUNTDTID
+              and d.ACCTYPE = '1'       --Балансовый
+            group by c.DOCNUMB,
+                     c.PERSONID,
+                     t.ACCOUNTKTID
+       )
+       LOOP
+            select COALESCE((select MAX(r.NUMBSHEET)+1 from REPORTCASHBOOKS r where r.cashdocsid = c.id),1) into next_num;
+            insert into REPORTCASHBOOKSSPEC(uid,lid,REPORTCASHBOOKSID,NUMBPP,DOCNUMB,PERSONID,DICACCSID,INCOMECASH)
+                                     values(nUID,nLID,nID,next_num,ORD.DOCNUMB,ORD.PERSONID,ORD.DICACCSID,ORD.INCOMECASH);
+       
+       END LOOP;
+      --Расходные кассовые документы 
+       for ORD in (
+           select c.DOCNUMB,
+                  c.PERSONID,
+                  t.ACCOUNTDTID as DICACCSID,
+                  sum(r.SUMMPAY) as INCOMECASH
+             from CASHPAYMENT_HEADER c,
+                  CASHPAYMENT r,
+                  TYPICALOPERSPEC t,
+                  DICACCS k
+            where c.CASHDOCSID = REC.CASHDOCSID
+              and c.DOCDATE = DDATE
+              and r.CASHPAYMENTHEADERID = c.ID
+              and r.TYPICALOPERSID = t.TYPICALOPERSID
+              and k.ID = t.ACCOUNTKTID
+              and k.ACCTYPE = '1'       --Балансовый
+            group by c.DOCNUMB,
+                     c.PERSONID,
+                     t.ACCOUNTDTID
+       )
+       LOOP
+            select COALESCE((select MAX(r.NUMBSHEET)+1 from REPORTCASHBOOKS r where r.cashdocsid = c.id),1) into next_num;
+            insert into REPORTCASHBOOKSSPEC(uid,lid,REPORTCASHBOOKSID,NUMBPP,DOCNUMB,PERSONID,DICACCSID,EXPENDCASH)
+                                     values(nUID,nLID,nID,next_num,ORD.DOCNUMB,ORD.PERSONID,ORD.DICACCSID,ORD.INCOMECASH);
+       
+       END LOOP;
+       --Посчитаем количество листов
+       update REPORTCASHBOOKS r set COUNTSHEETS = floor((select count(*)/17 from REPORTCASHBOOKS s where s.ID = nID)) where r.ID = nID;
+       
+       
+  END LOOP;
+
+
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_reportcashbooks_create (idlist text, uid bigint, ddate date)
+  OWNER TO magicbox;
