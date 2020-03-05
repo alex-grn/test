@@ -176,6 +176,15 @@
 			<AI id="5" name="По семейным обстоятельствам"/>
 			<AI id="6" name="По иным обстоятельствам"/>
 		</A>
+		<A id="YEARCALC" name="Год расчета" caption="Год расчета" labelwidth="150" type="int" nulls="false" visible="true" local="true"/>
+		<A id="PERCALC" name="Период расчета" caption="Период расчета" labelwidth="150" type="list" nulls="false" visible="true" local="true">
+			<AI id="1" name="Февраль - Июль"/>
+			<AI id="2" name="Август - Январь"/>
+		</A>
+		<A id="STATUSCALC" name="Статус расчета" caption="Статус расчета" labelwidth="600" type="list" value="1" readonly="true" local="true">
+			<AI id="1" name="Не рассчитан"/>
+			<AI id="2" name="Рассчитан"/>
+		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="FL" name="ФЛ" caption="ФЛ">
@@ -678,15 +687,9 @@
 		</TABLE>
 		<COMMENT name="Рассчетная таблица 1 - АГС"/>
 		<TABLE id="CALCTABAGS" name="Расчетная таблица 1 - АГС">
-			<A id="YEARCALC" name="Год расчета" caption="Год расчета" labelwidth="150" type="int" nulls="false" visible="true" local="true"/>
-			<A id="PERCALC" name="Период расчета" caption="Период расчета" labelwidth="150" type="list" nulls="false" visible="true" local="true">
-				<AI id="1" name="Февраль - Июль"/>
-				<AI id="2" name="Август - Январь"/>
-			</A>
-			<A id="STATUSCALC" name="Статус расчета" caption="Статус расчета" labelwidth="600" type="list" value="1" readonly="true" local="true">
-				<AI id="1" name="Не рассчитан"/>
-				<AI id="2" name="Рассчитан"/>
-			</A>
+			<A id="YEARCALC"/>
+			<A id="PERCALC"/>
+			<A id="STATUSCALC"/>
 		</TABLE>
 		<TABLE id="FEDDIS" name="Федеральные округа" virtual="true" query="select cast(mp.code as bigint) as id, t.hid,t.lid,t.cid,t.uid,t.tim,mp.name, t.id as calctabagsid from (select * from calctabags limit 1) t, metaclass m, metaclass mp where m.code='DISTRICTFEDERAL' and m.id = mp.hid and mp.classnode='AI'">
 			<A id="NAME" name="Федеральный округ" caption="Федеральный округ" labelwidth="150" type="string"/>
@@ -730,7 +733,13 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="JobPlanSelectClear" name="Очистить подбор" type="procedure" procedure="p_action_jobplan_select_clear"/>
-		<ACTION id="Calculate" name="Рассчитать" type=""/>
+		<ACTION id="Calculate" name="Рассчитать" type="procedure" procedure="p_action_calctabags_calc">
+			<FORM>
+				<A id="YEARCALC"/>
+				<A id="PERCALC"/>
+				<A id="RECREATE" caption="Пересобрать существующие данные" width="100" type="boolean" visible="form"/>
+			</FORM>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="PrintCard" name="Печать карточки" procedure="" template="test_actionreport.xlsx"/>
