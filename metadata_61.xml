@@ -281,6 +281,7 @@
 			<AI id="passport" name="Паспорт гражданина РФ"/>
 		</A>
 		<A id="REPORTCASHBOOKSID" name="Отчет кассира" caption="Отчет кассира" type="ref" table="REPORTCASHBOOKS" ret="DOCDATE" nulls="false"/>
+		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="DOCNUMB" nulls="false"/>
 		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
@@ -841,16 +842,25 @@
 				<A id="SUMEXTRA12" name="Начислено дополнительной оплаты труда за ФОВ" caption="Начислено дополнительной оплаты труда за ФОВ" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
 				<A id="EXTRAA" name="Начислено дополнительной оплаты труда за активную работу" caption="Начислено дополнительной оплаты труда за активную работу" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
 			</GA>
-			<GA name="Перечислено" caption="Перечислено">
-				<A id="SUMTRN" name="Сумма" caption="Сумма" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
-				<A id="REGISTERSTRANSFERSID" labelwidth="200" width="20" nulls="true"/>
+			<GA name="Реквизиты перечислений" caption="Реквизиты перечислений">
 				<A id="TRPERSONID" name="Получатель" caption="Получатель" labelwidth="200" nulls="true"/>
 				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="200" nulls="true"/>
 			</GA>
-			<GA name="Получено на руки (заполняется вручную)" caption="Получено на руки (заполняется вручную)">
-				<A id="SUMPS" name="Сумма" caption="Сумма" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
-				<A id="DOCNUMB" name="Номер документа" caption="Номер документа" labelwidth="100" width="20" nulls="true"/>
-				<A id="DOCDATE" name="Дата документа" caption="Дата документа" labelwidth="100" width="20" nulls="true"/>
+			<GA name="Перечислено реестром" caption="Перечислено реестром">
+				<A id="SUMTRN" name="Сумма" caption="Сумма" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
+				<A id="REGISTERSTRANSFERSID" labelwidth="200" width="20" nulls="true"/>
+			</GA>
+			<GA name="Перечислено на лицевой счет" caption="Перечислено на лицевой счет">
+				<A id="PAYDOCSID" labelwidth="200" width="100" nulls="true" readonly="true" visible="false"/>
+				<A id="DOCNUMBPD" width="30" type="number" name="Номер ПП" caption="Номер ПП" labelwidth="70" virtual="true" local="true" readonly="true" formula="select x.DOCNUMB from paydocs x where x.ID = @PAYDOCSID"/>
+				<A id="DOCDATEPD" width="40" type="date" name="Дата" caption="Дата" labelwidth="40" virtual="true" local="true" readonly="true" formula="select x.DOCDATE from paydocs x where x.ID = @PAYDOCSID"/>
+				<A id="SUMTPD" width="30" name="Сумма ПП" caption="Сумма ПП" labelwidth="70" type="number" len="8.2" virtual="true" local="true" readonly="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @PAYDOCSID"/>
+			</GA>
+			<GA name="Получено на руки" caption="Получено на руки">
+				<A id="CASHPAYMENTHEADERID" nulls="true" readonly="true" visible="false"/>
+				<A id="DOCNUMBPS" width="30" type="number" name="Номер РКО" caption="Номер РКО" labelwidth="70" virtual="true" local="true" readonly="true" formula="select x.DOCNUMB from CASHPAYMENT_HEADER x where x.ID = @CASHPAYMENTHEADERID"/>
+				<A id="DOCDATEPS" width="40" type="date" name="Дата" caption="Дата" labelwidth="40" virtual="true" local="true" readonly="true" formula="select x.DOCDATE from CASHPAYMENT_HEADER x where x.ID = @CASHPAYMENTHEADERID"/>
+				<A id="SUMPS" name="Сумма РКО" caption="Сумма РКО" width="30" labelwidth="70" type="number" len="8.2" virtual="true" local="true" readonly="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID"/>
 			</GA>
 			<TI unique="SHEETSID, COMMITTEEMANID"/>
 		</TABLE>

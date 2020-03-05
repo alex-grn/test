@@ -9,11 +9,11 @@
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
-		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
 		<A id="ACTSDOCSID" name="Документы актов" caption="Документы актов" labelwidth="200" type="ref" table="ACTSDOCS" ret="NUMBPP" nulls="false"/>
 		<A id="PERSACTSDOCSID" name="Документы актов" caption="Документы актов" labelwidth="200" type="ref" table="PERS_ACTSDOCS" ret="NUMBPP" nulls="false"/>
+		<A id="INVENTORYID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY" ret="ID" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -184,13 +184,13 @@
 			<GA name="Типовая операция" caption="Типовая операция">
 				<A id="BUDGCLASSID" labelwidth="150" width="50"/>
 				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
-				<A id="TYPEEXPID" labelwidth="150" width="100"/>
+				<A id="TYPEEXPID" labelwidth="150" width="100" nulls="true"/>
 				<A id="TYPICALOPERSID" labelwidth="150" width="100" pid="DOCTYPEID"/>
 			</GA>
 		</TABLE>
 		<TABLE id="STATEMENT_HEADER" name="Ведомости на выдачу подотчетным лицам (0504501)">
 			<A id="CASHDOCSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="false" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" virtual="false" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" visible="false" readonly="true" value="13" labelwidth="50" width="55" nulls="false"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -362,6 +362,24 @@
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSOPERATIONS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
+		<TABLE id="INVENTORY" name="Поступление МЗ избирательной кампании">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+			</GA>
+		</TABLE>
+		<TABLE id="INVENTORY_DOCS" name="Поступление МЗ">
+			<A id="INVENTORYID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
+			<GA name="Контрагент" caption="Контрагент">
+				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" pid="ELECTCAMPAIGNID"/>
+				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
+				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
+			</GA>
+		</TABLE>	
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="StatusINPUTKRF1" name="Смена статуса" type="procedure" procedure="p_action_status">
