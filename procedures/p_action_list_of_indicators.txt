@@ -1,0 +1,124 @@
+CREATE OR REPLACE FUNCTION public.p_action_list_of_indicators (
+  idlist text,
+  uid bigint
+)
+RETURNS void AS
+$body$
+ declare
+   nUID bigint:=UID;     
+   rec  record;
+   last_date date;
+ begin
+ 
+   for rec in (
+       select t.id
+         from ACCOUNTABILITYUIK t
+        where t.id = ANY(p_system_get_selectlist(idlist))
+   )
+   loop
+   
+      insert into ACCOUNTABILITYUIKS1SD(uid,
+                                        accountabilityuikid,
+                                        wordingoftheformsid,
+                                        measuresofshapeid,
+                                        total,
+                                        uikreferendumcommission)
+      select nUID,
+             rec.id,
+             w.id,
+             m.id,
+             0,
+             0
+        from REPORTINGFORM r,
+             PKTO p,
+             WORDINGOFTHEFORMS w,
+             MEASURESOFSHAPE m
+       where p.REPORTINGFORMID = r.id
+         and p_find_name_from_list('PKTO','NAMETABLEUIK',p.nametableuik) = 'ACCOUNTABILITYUIKS1SD'
+         and w.reportingformid = r.id
+         and w.revisiondate = (select MAX(wm.revisiondate) from WORDINGOFTHEFORMS wm where wm.reportingformid = w.reportingformid)
+         and m.wordingoftheformsid = w.id
+         and m.completionuik
+         and not EXISTS(select 1
+                          from ACCOUNTABILITYUIKS1SD t
+                         where t.measuresofshapeid = m.id);
+        
+       select w.revisiondate into last_date from ACCOUNTABILITYUIKS1SD t, WORDINGOFTHEFORMS w where t.accountabilityuikid = rec.id and w.id = t.wordingoftheformsid;
+       
+       delete from ACCOUNTABILITYUIKS1SD tt where tt.id in (select t2.id
+                                                            from ACCOUNTABILITYUIKS1SD t,
+                                                                 MEASURESOFSHAPE m,
+                                                                 WORDINGOFTHEFORMS w,
+                                                                 
+                                                                 ACCOUNTABILITYUIKS1SD t2,
+                                                                 MEASURESOFSHAPE m2,
+                                                                 WORDINGOFTHEFORMS w2
+                                                           where t.accountabilityuikid = rec.id
+                                                             and m.id = t.measuresofshapeid
+                                                             and w.id = m.wordingoftheformsid
+                                                             and w.revisiondate = last_date
+                                                             
+                                                             and t2.accountabilityuikid = t.accountabilityuikid
+                                                             and m2.id = t2.measuresofshapeid
+                                                             and w2.id = m2.wordingoftheformsid
+                                                             and w2.revisiondate < last_date
+                                                             and m.code = m2.code);
+         
+      insert into ACCOUNTABILITYUIKS2AE(uid,
+                                        accountabilityuikid,
+                                        wordingoftheformsid,
+                                        measuresofshapeid,
+                                        total,
+                                        uikreferendumcommission)   
+      select nUID,
+             rec.id,
+             w.id,
+             m.id,
+             0,
+             0
+        from REPORTINGFORM r,
+             PKTO p,
+             WORDINGOFTHEFORMS w,
+             MEASURESOFSHAPE m
+       where p.REPORTINGFORMID = r.id
+         and p_find_name_from_list('PKTO','NAMETABLEUIK',p.nametableuik) = 'ACCOUNTABILITYUIKS2AE'
+         and w.reportingformid = r.id
+         and w.revisiondate = (select MAX(wm.revisiondate) from WORDINGOFTHEFORMS wm where wm.reportingformid = w.reportingformid)
+         and m.wordingoftheformsid = w.id
+         and m.completionuik
+         and not EXISTS(select 1
+                          from ACCOUNTABILITYUIKS2AE t
+                         where t.measuresofshapeid = m.id); 
+         
+       select w.revisiondate into last_date from ACCOUNTABILITYUIKS2AE t, WORDINGOFTHEFORMS w where t.accountabilityuikid = rec.id and w.id = t.wordingoftheformsid;
+       
+       delete from ACCOUNTABILITYUIKS2AE tt where tt.id in (select t2.id
+                                                            from ACCOUNTABILITYUIKS2AE t,
+                                                                 MEASURESOFSHAPE m,
+                                                                 WORDINGOFTHEFORMS w,
+                                                                 
+                                                                 ACCOUNTABILITYUIKS2AE t2,
+                                                                 MEASURESOFSHAPE m2,
+                                                                 WORDINGOFTHEFORMS w2
+                                                           where t.accountabilityuikid = rec.id
+                                                             and m.id = t.measuresofshapeid
+                                                             and w.id = m.wordingoftheformsid
+                                                             and w.revisiondate = last_date
+                                                             
+                                                             and t2.accountabilityuikid = t.accountabilityuikid
+                                                             and m2.id = t2.measuresofshapeid
+                                                             and w2.id = m2.wordingoftheformsid
+                                                             and w2.revisiondate < last_date
+                                                             and m.code = m2.code);
+         
+   end loop;
+ end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_list_of_indicators (idlist text, uid bigint)
+  OWNER TO magicbox;
