@@ -15,6 +15,7 @@
 				<MI name="Казначейские уведомления" formlist="Ufk_Notif"/>
 			</MENU>
 			<MENU name="Учет">
+				<MI name="Исполнение бюджета" formlist="Exec_Bud"/>			
 				<MI name="Журнал операций по исполнению расходной части бюджета" formlist="Jurnalexp"/>
 			</MENU>
 		</MENU>
@@ -107,6 +108,22 @@
 			<A id="NOTE_POF_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<TI id="iUFK_NOTIF_POF_ID" index="UFK_NOTIFID"/>
 		</TABLE>
+
+		<TABLE id="EXEC_BUD" name="Исполнение бюджета">	
+					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="SUM_IN_LBO" name="Сумма поступления ЛБО" caption="Сумма поступления ЛБО" labelwidth="550" type="number" len="18.2" local="true"/>
+		<A id="NOTE" name="Примечание" caption="Примечание" />
+	
+	</TABLE>	
+<TABLE id="EXEC_BUD_KBR" name="Исполнение бюджета: статьи">	
+<A id="EXEC_BUD_ID" name="Исполнение бюджета" caption="Исполнение бюджета" labelwidth="300" type="ref" table="EXEC_BUD" ret="YEAR_KU" form="Exec_Bud"/>
+					<A id="KBR_ID" labelwidth="350"/>
+					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
+					<A id="SUM_IN_LBO" name="Сумма поступления ЛБО" caption="Сумма поступления ЛБО" labelwidth="550" type="number" len="18.2" local="true"/>
+</TABLE>	
+
+		
 		<TABLE id="JURNALEXP" name="Журнал операций по исполнению расходной части бюджета">
 			<TABS>
 				<TAB name="Основная информация">
@@ -174,8 +191,8 @@
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
-		<ACTION id="MakeEntryKU" name="Отработать" type="procedure" procedure="p_ubd_makeentryku"/>
-		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_ubd_deleteentryku"/>
+		<ACTION id="MakeEntryKU" name="Отработать" type="procedure" procedure="p_fin_makeentryku"/>
+		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_fin_deleteentryku"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -194,6 +211,11 @@
 			</TABS>
 		</FORM>
 	</FORMS>
+<FORM id="Exec_Bud" name="Исполнение бюджета">
+<GRID id="Exec_Bud" name="Исполнение бюджета" table="EXEC_BUD"/>
+<GRID id="Exec_Bud_Kbr" name="Исполнение бюджета: статьи" table="EXEC_BUD_KBR"/>
+</FORM>
+
 	<FORM id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета">
 		<GRID id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" table="JURNALEXP"/>
 	</FORM>
