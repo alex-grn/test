@@ -13,7 +13,8 @@
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
 		<A id="ACTSDOCSID" name="Документы актов" caption="Документы актов" labelwidth="200" type="ref" table="ACTSDOCS" ret="NUMBPP" nulls="false"/>
 		<A id="PERSACTSDOCSID" name="Документы актов" caption="Документы актов" labelwidth="200" type="ref" table="PERS_ACTSDOCS" ret="NUMBPP" nulls="false"/>
-		<A id="INVENTORYID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY" ret="ID" nulls="false"/>
+		<A id="INVENTORYID" name="Поступление МЗ Избирательной кампании" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY" ret="ID" nulls="false"/>
+		<A id="INVENTORY_DOCSID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY_DOCS" ret="ID" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -375,13 +376,22 @@
 		<TABLE id="INVENTORY_DOCS" name="Поступление МЗ">
 			<A id="INVENTORYID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
-			<GA name="Контрагент" caption="Контрагент">
-				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" pid="ELECTCAMPAIGNID"/>
-				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
-				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
-				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
+
+		</TABLE>
+		<TABLE id="INVENTORY_GOODS" name="Номенклатура поступления МЗ">
+			<A id="INVENTORY_DOCSID" parentkey="cascade"/>
+			<A id="CONTRACTSDOCSID" virtual="true" name="Договор" caption="Договор" type="bigint" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_GOODS where INVENTORY_DOCSID = @INVENTORY_DOCSID and cid=0"/>
+			<GA name="Спецификация договора" caption="Спецификация договора">
+				<A id="STAGESID" name="Спецификация" type="ref" table="STAGES" pid="CONTRACTSDOCSID" nulls="false" local="true"/>
+				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" type="string" labelwidth="125" width="60" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
+				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" type="string" labelwidth="120" width="25" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@STAGESID"/>
+				<A id="STAGEQUANTITY" name="Количество" caption="Количество" type="number" labelwidth="95" width="15" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
 			</GA>
-		</TABLE>	
+			<A id="QUANTITY" name="Количество" type="number" labelwidth="90" width="50" nulls="false"/>	
+			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
+			<GA id="TYPICALOPERATION"/>			
+		</TABLE>		
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="StatusINPUTKRF1" name="Смена статуса" type="procedure" procedure="p_action_status">
@@ -422,6 +432,12 @@
 			<FORM name="Параметры">
 				<A id="PERSONID" name="Главный бухгалтер" caption="Главный бухгалтер"/>
 				<A id="KPERSONID" name="Кассир" caption="Кассир" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="СashiersReport" name="Отчет кассира" procedure="" template="сashiers_report.xls">
+			<FORM name="Параметры">
+				<A id="KPERSONID" name="Кассир" caption="Кассир" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
+				<A id="BPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
 			</FORM>
 		</REPORT>
 	</REPORTS>
@@ -476,7 +492,7 @@
 				<TAB name="Отчеты кассира">
 					<TABS>
 						<TAB name="Отчеты кассира">
-							<GRID id="ReportcashbooksGR" name="Отчеты кассира" table="REPORTCASHBOOKS"/>
+							<GRID id="ReportcashbooksGR" name="Отчеты кассира" table="REPORTCASHBOOKS" reportlist="СashiersReport"/>
 						</TAB>
 						<TAB name="Расшифровка отчета кассира">
 							<GRID id="ReportcashbooksspecGR" name="Расшифровка отчета кассира" table="REPORTCASHBOOKSSPEC"/>
@@ -543,6 +559,17 @@
 						</TAB>
 					</TABS>
 				</TAB>					
+			</TABS>		
+		</FORM>
+		<FORM id="InventoryFRM" name="Поступление МЗ">
+			<GRID id="InventoryGR" name="Поступление МЗ избирательных кампаний" table="INVENTORY"/>
+			<TABS>
+				<TAB name="Поступление МЗ">
+					<GRID id="InventoryDocsGR" name="Поступление МЗ" table="INVENTORY_DOCS"/>				
+				</TAB>
+				<TAB name="Номенклатура поступления МЗ">
+					<GRID id="InventoryGoodsGR" name="Номенклатура поступления МЗ" table="INVENTORY_GOODS"/>
+				</TAB>
 			</TABS>		
 		</FORM>
 	</FORMS>
