@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="payment_of_the_money.xls" documentPath="payment_of_the_money.xls" outputType="xls" outputNamePattern="payment_of_the_money.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select to_char(h.docdate,'dd')||' '||
+										p_tools_dmonth_to_smonth(h.docdate,1) as cell1_1,
+										to_char(h.docdate,'dd') as cell25_1,
+										p_tools_dmonth_to_smonth(h.docdate,1) as cell25_2,
+										substr(to_char(h.docdate,'yyyy'),3,2) as cell25_3,
+										k.name as cell2,
+										dk.ACCNUMB as cell3,
+										dd.accnumb as cell4,
+										ch.docnumb as cell5,
+										d2s(ch.docdate) as cell6,
+										d2s(h.docdate) as cell7,
+										upper(SUBSTR(p_tools_to_propis(sum(COALESCE(hs.summpay,0))),1,1))||
+										lower(SUBSTR(p_tools_to_propis(sum(COALESCE(hs.summpay,0))),2)) as cell22,
+										(select pp.name from person pp where pp.id = ${rpersonid}::bigint) as cell23,
+										(select pp.name from person pp where pp.id = ${bpersonid}::bigint) as cell24
+									from STATEMENT_HEADER h
+									left join STATEMENT hs on hs.statementheaderid = h.id
+									inner join CASHDOCS c   on c.id = h.cashdocsid
+									left join jurpersons j on j.id = c.jurpersonsid
+									inner join electcommittee k on k.id = j.electcommitteeid
+									left join TYPICALOPERS t on t.id = hs.typicalopersid
+									left join TYPICALOPERSPEC ts on ts.typicalopersid = t.id
+									left join DICACCS dk on dk.id = ts.accountktid and dk.accbalance = '1'
+									left join DICACCS dd on dd.id = ts.accountdtid and dd.accbalance = '1'
+									left join CASHPAYMENT_HEADER ch on ch.statementheaderid = h.id
+									where h.id = ${id}::bigint 
+									group by to_char(h.docdate,'dd'),
+											p_tools_dmonth_to_smonth(h.docdate,1),
+											to_char(h.docdate,'yyyy'),
+											k.name,
+											dk.ACCNUMB,
+											dd.accnumb,
+											ch.docnumb,
+											d2s(ch.docdate),
+											d2s(h.docdate)
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+								 select p.name as row_8,
+										dk.accnumb as row_9,
+										hs.summpay as row_10,
+										upper(SUBSTR(p_tools_to_propis(COALESCE(hs.summpay,0)),1,1))||
+										lower(SUBSTR(p_tools_to_propis(COALESCE(hs.summpay,0)),2)) as row_11
+									from STATEMENT_HEADER h
+									left join STATEMENT hs on hs.statementheaderid = h.id
+									left join person p on p.id = hs.personid
+									inner join TYPICALOPERS t on t.id = hs.typicalopersid
+									inner join TYPICALOPERSPEC ts on ts.typicalopersid = t.id
+									inner join DICACCS dk on dk.id = ts.accountktid and dk.accbalance = '1'
+									where h.id = ${id}::bigint 
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select  to_char(h.docdate,'dd') as cell25_1,
+								p_tools_dmonth_to_smonth(h.docdate,1) as cell25_2,
+								substr(to_char(h.docdate,'yyyy'),3,2) as cell25_3,
+								sum(COALESCE(hs.summpay,0)) as cell12,
+								upper(SUBSTR(p_tools_to_propis(sum(COALESCE(hs.summpay,0))),1,1))||
+								lower(SUBSTR(p_tools_to_propis(sum(COALESCE(hs.summpay,0))),2)) as cell13,
+								(select pp.name from posts pp where pp.id = ${ipostsid}::bigint) as cell14,
+								(select pp.name from person pp where pp.id = ${ipersonid}::bigint) as cell15,
+								(select pp.name from person pp where pp.id = ${kpersonid}::bigint) as cell17,
+								(select pp.name from posts pp where pp.id = ${opostsid}::bigint) as cell19,
+								(select pp.name from person pp where pp.id = ${opersonid}::bigint) as cell20
+							from STATEMENT_HEADER h
+							left join STATEMENT hs on hs.statementheaderid = h.id
+							inner join TYPICALOPERS t on t.id = hs.typicalopersid
+							inner join TYPICALOPERSPEC ts on ts.typicalopersid = t.id
+							inner join DICACCS dk on dk.id = ts.accountktid and dk.accbalance = '1'
+							where h.id = ${id}::bigint 
+							group by to_char(h.docdate,'dd'),
+								p_tools_dmonth_to_smonth(h.docdate,1),
+								to_char(h.docdate,'yyyy')
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
