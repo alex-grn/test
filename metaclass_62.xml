@@ -10,6 +10,8 @@
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
 		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
+		<A id="TRANSACTIONLOGID" name="Журналы операций" caption="Журналы операций" type="ref" table="TRANSACTIONLOG" ret="ID" nulls="false"/>
+		<A id="TRANSACTIONLOG_DOCSID" name="Журнал операций" caption="Журнал операций" type="ref" table="TRANSACTIONLOG_DOCS" ret="ID" nulls="false"/>
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
 		<A id="ACTSDOCSID" name="Документы актов" caption="Документы актов" labelwidth="200" type="ref" table="ACTSDOCS" ret="NUMBPP" nulls="false"/>
 		<A id="PERSACTSDOCSID" name="Документы актов" caption="Документы актов" labelwidth="200" type="ref" table="PERS_ACTSDOCS" ret="NUMBPP" nulls="false"/>
@@ -420,6 +422,56 @@
 			<A id="QUANTITY" name="Количество" type="number" labelwidth="150" width="50" nulls="false"/>	
 			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
 			<GA id="TYPICALOPERATION"/>			
+		</TABLE>
+		<TABLE id="TRANSACTIONLOG" name="Журналы операций избирательной кампании">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+			</GA>
+		</TABLE>
+		<TABLE id="TRANSACTIONLOG_DOCS" name="Журнал операций">
+			<A id="TRANSACTIONLOGID" parentkey="cascade"/>
+			<GA name="Операция" caption="Операция">
+				<A id="TRANSACTIONNUMB" name="Номер операции" caption="Номер" type="string" labelwidth="100" width="55" nulls="false"/>
+				<A id="TRANSACTIONDATE" name="Дата операции" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
+			</GA>
+			<GA name="Документ" caption="Документ">
+				<A id="DOCTYPEID"/>
+				<A id="DOCNUMB" name="Номер документа" caption="Номер" type="string" labelwidth="100" width="55" nulls="false"/>
+				<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
+				<A id="DOCSUM" name="Сумма документа" caption="Сумма" type="number" labelwidth="100" width="10" nulls="false"/>
+			</GA>
+			<GA id="TYPICALOPERATION"/>	
+		</TABLE>
+		<TABLE id="TRANSACTIONLOG_STAGES" name="Журнал операций">
+			<A id="TRANSACTIONLOG_DOCSID" parentkey="cascade"/>
+			<GA name="Дебет" caption="Дебет">
+				<A id="DTFINSECURITY" name="КФО" caption="КФО" type="number" labelwidth="140" width="100" nulls="false" value="1"/>
+				<A id="DTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
+				<A id="DTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
+				<A id="DTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
+				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="140" width="100"/>
+				<A id="DTANALYTICS1" name="Аналитика 1" caption="Аналитика 1" labelwidth="140" width="100" type="string"/>
+				<A id="DTANALYTICS2" name="Аналитика 2" caption="Аналитика 2" labelwidth="140" width="100" type="string"/>
+				<A id="DTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" labelwidth="140" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
+				<A id="DTDICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="140" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
+				<A id="DTQUANTITY" name="Количество" caption="Количество" labelwidth="140" type="number" width="100" nulls="false"/>
+			</GA>
+			<GA name="Кредит" caption="Кредит">
+				<A id="KTFINSECURITY" name="КФО" caption="КФО" type="number" labelwidth="140" width="100" nulls="false" value="1"/>
+				<A id="KTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
+				<A id="KTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
+				<A id="KTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
+				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="140" width="100"/>
+				<A id="KTANALYTICS1" name="Аналитика 1" caption="Аналитика 1" labelwidth="140" width="100" type="string"/>
+				<A id="KTANALYTICS2" name="Аналитика 2" caption="Аналитика 2" labelwidth="140" width="100" type="string"/>
+				<A id="KTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" labelwidth="140" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
+				<A id="KTDICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="140" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
+				<A id="KTQUANTITY" name="Количество" caption="Количество" type="number" labelwidth="140" width="100" nulls="false"/>
+			</GA>
+			<A id="SUMM" name="Сумма" type="number" labelwidth="130" width="100" nulls="false"/>
 		</TABLE>		
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -598,6 +650,17 @@
 				</TAB>
 				<TAB name="Номенклатура поступления МЗ">
 					<GRID id="InventoryGoodsGR" name="Номенклатура поступления МЗ" table="INVENTORY_GOODS"/>
+				</TAB>
+			</TABS>		
+		</FORM>
+		<FORM id="TRANSACTIONLOGFRM" name="Журнал операций">
+			<GRID id="TRANSACTIONLOGGR" name="Журналы операций избирательных кампаний" table="TRANSACTIONLOG"/>
+			<TABS>
+				<TAB name="Журнал операций">
+					<GRID id="TRANSACTIONLOGDocsGR" name="Журнал операций" table="TRANSACTIONLOG_DOCS"/>				
+				</TAB>
+				<TAB name="Проводка хозяственной операции">
+					<GRID id="RANSACTIONLOGStagesGR" name="Проводка хозяственной операции" table="TRANSACTIONLOG_STAGES"/>
 				</TAB>
 			</TABS>		
 		</FORM>
