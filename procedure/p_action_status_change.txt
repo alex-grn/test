@@ -46,6 +46,12 @@ begin
         3 -> 2;
     Данные по переходам получаем из входных параметров: status_from, status_to.
 */
+  if STIN is NULL then 
+    raise using message = 'Входящий(текущий) статус NULL!';
+  end if;
+  if STOUT is NULL then
+    raise using message = 'Входящий статус NULL!';
+  end if;
   --проверка по переходам статуса
   if not exists (select 1 from FINE F where F.ID = ANY(P_SYSTEM_GET_SELECTLIST(idlist)) and F.STATUSEAF in (select REGEXP_SPLIT_TO_TABLE(STATUS_FROM, ';'))) then
     raise using MESSAGE = 'Из статуса «' || STIN || '» нельзя выполнить переход в статус «' || STOUT || '».';
