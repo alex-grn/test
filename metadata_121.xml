@@ -15,7 +15,7 @@
 				<MI name="Казначейские уведомления" formlist="Ufk_Notif"/>
 			</MENU>
 			<MENU name="Учет">
-				<MI name="Исполнение бюджета" formlist="Exec_Bud"/>			
+				<MI name="Исполнение бюджета" formlist="Exec_Bud"/>
 				<MI name="Журнал операций по исполнению расходной части бюджета" formlist="Jurnalexp"/>
 			</MENU>
 		</MENU>
@@ -24,11 +24,11 @@
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
 		<TABLE id="UFK_NOTIF" name="Казначейские уведомления">
-			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
-				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
-			</A>
 			<TABS>
 				<TAB name="Основная информация">
+					<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+					</A>
 					<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="400" type="string" nulls="false" local="true"/>
 					<A id="DATE_KU" name="Дата" caption="Дата формирования казначейского уведомления" labelwidth="600" type="date" nulls="false" formula="now()" local="true"/>
 					<GA caption="Участник бюджетного процесса">
@@ -108,22 +108,226 @@
 			<A id="NOTE_POF_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<TI id="iUFK_NOTIF_POF_ID" index="UFK_NOTIFID"/>
 		</TABLE>
-
-		<TABLE id="EXEC_BUD" name="Исполнение бюджета">	
+		<TABLE id="EXEC_BUD" name="Исполнение бюджета">
+			<TABS>
+				<TAB name="Бюджет">
 					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
 					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
-					<A id="SUM_IN_LBO" name="Сумма поступления ЛБО" caption="Сумма поступления ЛБО" labelwidth="550" type="number" len="18.2" local="true"/>
-		<A id="NOTE" name="Примечание" caption="Примечание" />
-	
-	</TABLE>	
-<TABLE id="EXEC_BUD_KBR" name="Исполнение бюджета: статьи">	
-<A id="EXEC_BUD_ID" name="Исполнение бюджета" caption="Исполнение бюджета" labelwidth="300" type="ref" table="EXEC_BUD" ret="YEAR_KU" form="Exec_Bud"/>
+					<A id="NOTE" name="Примечание" caption="Примечание"/>
+				</TAB>
+				<TAB name="Поступления">
+					<GA caption="Казначейские уведомления">
+						<A id="SUM_IN_BA" name="Поступило ассигнований" caption="Поступило ассигнований" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000*1.2" local="true"/>
+						<A id="SUM_IN_LBO" name="Поступило ЛБО" caption="Поступило ЛБО" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000*1" local="true"/>
+						<A id="PER_IN_VIRT" name="% разблокировано" caption="% разблокировано" labelwidth="250" width="40" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_IN_LBO*100)/NULLIF(@SUM_IN_BA,0))" local="true"/>
+						<A id="SUM_IN_POF" name="Поступило ПОФ" caption="Поступило ПОФ" labelwidth="150" width="50" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					</GA>
+					<GA caption="Лимиты бюджетных обязательств">
+						<A id="SUM_SEP_LBO" name="Детализировано ЛБО" caption="Детализировано" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_COR_LBO" name="Корректировка ЛБО" caption="Корректировка" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_LBO_VIRT" name="Итого ЛБО" caption="ИТОГО" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_SEP_LBO+@SUM_COR_LBO" local="true"/>
+					</GA>
+					<GA caption="Бюджетные ассигнования">
+						<A id="SUM_SEP_BA" name="Детализировано ассигнований" caption="Детализировано" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_COR_BA" name="Корректировка ассигнований" caption="Корректировка" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_BA_VIRT" name="Итого ассигнований" caption="ИТОГО" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_SEP_BA+@SUM_COR_BA" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Перечисления">
+					<GA caption="Лимиты бюджетных обязательств">
+						<A id="SUM_OUTIN_LBO" name="Перечислено на свой счет ПБС ЛБО" caption="Перечислено на свой счет ПБС ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_LBO" name="Перечислено на счета ПБС ЛБО" caption="Перечислено на счета ПБС ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_LBO" name="Перечислено на счета по переданным полномочиям ЛБО" caption="Перечислено на счета по переданным полномочиям ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_LBO_VIRT" name="Итого распределено ЛБО" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO" local="true"/>
+						<A id="SUM_REST_LBO_VIRT" name="Нераспределенный остаток ЛБО" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_LBO+@SUM_COR_LBO)-(@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)" local="true"/>
+						<A id="PER_OUT_LBO_VIRT" name="% распределено к ЛБО" caption="% распределено к ЛБО" labelwidth="200" width="50" type="int" visible="form" readonly="true" virtual="true" formula="round(((@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)*100)/NULLIF((@SUM_SEP_LBO+@SUM_COR_LBO),0))" local="true"/>
+						<A id="PER_OUT_BA_VIRT" name="% распределено" caption="% распределено" labelwidth="200" width="50" type="int" visible="form" readonly="true" virtual="true" formula="round(((@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+					</GA>
+					<GA caption="Бюджетные ассигнования">
+						<A id="SUM_OUTIN_BA" name="Перечислено на свой счет ПБС ассигнований" caption="Перечислено на свой счет ПБС ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_BA" name="Перечислено на счета ПБС ассигнований" caption="Перечислено на счета ПБС ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_BA" name="Перечислено на счета по переданным полномочиям ассигнований" caption="Перечислено на счета по переданным полномочиям ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_BA_VIRT" name="Итого распределено ассигнований" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_OUTIN_BA+@SUM_OUT03_BA+@SUM_OUT14_BA" local="true"/>
+						<A id="SUM_REST_BA_VIRT" name="Нераспределенный остаток ассигнований" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_BA+@SUM_COR_BA)-(@SUM_OUTIN_BA+@SUM_OUT03_BA+@SUM_OUT14_BA)" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Распределение ПОФ">
+					<GA caption="Предельные объемы финансирования">
+						<A id="SUM_OUTIN_POF" name="Перечислено на свой счет ПБС ПОФ" caption="Перечислено на свой счет ПБС ПОФ" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_POF" name="Перечислено на счета ПБС ПОФ" caption="Перечислено на счета ПБС ПОФ" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_POF" name="Перечислено на счета по переданным полномочиям ПОФ" caption="Перечислено на счета по переданным полномочиям ПОФ" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_POF_VIRT" name="Распределено ПОФ" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_OUTIN_POF+@SUM_OUT03_POF+@SUM_OUT14_POF" local="true"/>
+						<A id="SUM_REST_POF_VIRT" name="Нераспределенный остаток ПОФ" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_IN_POF-(@SUM_OUTIN_POF+@SUM_OUT03_POF+@SUM_OUT14_POF)" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Планируемые расходы">
+					<A id="SUM_NEED" name="Согласованные потребности" caption="Согласованные потребности" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+					<A id="SUM_PLAN_OUT" name="Запланированные расходы" caption="Запланированные расходы" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+					<GA caption="Обязательства">
+						<A id="SUM_PBO" name="Принимаемые бюджетные обязательства" caption="Принимаемые бюджетные обязательства" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_BO" name="Принятые бюджетные обязательства" caption="Принятые бюджетные обязательства" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_DO" name="Принятые денежные обязательства" caption="Принятые денежные обязательства" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+					</GA>
+					<A id="SUM_BO_PLAN_VIRT" name="Разница между Принято БО и планом" caption="Разница между Принято БО и планом" labelwidth="300" width="65" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_BO-@SUM_PLAN_OUT" local="true"/>
+					<A id="PER_BO_PLAN_VIRT" name="% принятия БО к плану" caption="% принятия БО к плану" labelwidth="150" width="35" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_BO*100)/NULLIF(@SUM_PLAN_OUT,0))" local="true"/>
+					<A id="SUM_BA_BO_VIRT" name="Разница между БА и принятыми БО" caption="Разница между БА и принятыми БО" labelwidth="300" width="65" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_BA+@SUM_COR_BA)-@SUM_BO" local="true"/>
+					<A id="PER_BA_BO_VIRT" name="% принятия БО к БА" caption="% принятия БО к БА" labelwidth="150" width="35" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_BO*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+				</TAB>
+				<TAB name="Кассовое исполнение">
+					<A id="SUM_KR" name="Кассовое исполнение" caption="Кассовое исполнение" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+					<A id="PER_KR_BO_VIRT" name="% кассового исполнения к принятым БО" caption="% кассового исполнения к принятым БО" labelwidth="650" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF(@SUM_BO,0))" local="true"/>
+					<A id="PER_KR_BA_VIRT" name="% кассового исполнения к БА" caption="% кассового исполнения факт" labelwidth="650" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+				</TAB>
+				<TAB name="Параметры">
+					<GA caption="Показывать исполнение бюджета в разрезе:">
+						<GA caption="Подразделений, курирующих расходы">
+							<A id="DEPART_L" name="КАР" caption="Кураторов расходов" labelwidth="60" type="boolean" visible="form" local="true"/>
+							<A id="DEPART_L_KOM" name="КОМ" caption="Кураторов основных мероприятий" labelwidth="60" type="boolean" visible="form" local="true"/>
+						</GA>
+						<A id="ECON_CLASS_L" name="КОСГУ" caption="Кодов операций сектора государственного управления (КОСГУ)" labelwidth="40" type="boolean" visible="form" local="true"/>
+						<A id="SUBSIDIES_L" name="Код целевых субсидий" caption="Кодов целевых субсидий" labelwidth="40" type="boolean" visible="form" local="true"/>
+						<A id="CAPOBJECTS_L" name="ФАИП" caption="Объектов капитального строительства" labelwidth="40" type="boolean" visible="form" local="true"/>
+						<A id="EVENT_L" name="Мероприятие" caption="Мероприятий" labelwidth="40" type="boolean" visible="form" local="true"/>
+						<A id="ACODES_L" name="Аналитический код" caption="Аналитических кодов, используемых в целях санкционирования расходов" labelwidth="40" type="boolean" visible="form" local="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+			<TI id="iEXEC_BUD_UK" unique="BUDGETS_ID, YEAR_KU"/>
+		</TABLE>
+		<TABLE id="EXEC_BUD_KBR" name="Исполнение бюджета: КБК">
+			<TABS>
+				<TAB name="КБК">
+					<A id="EXEC_BUD_ID" name="Исполнение бюджета" caption="Исполнение бюджета" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD" ret="YEAR_KU" form="Exec_Bud" local="true"/>
 					<A id="KBR_ID" labelwidth="350"/>
+					<A id="KBR_NAME_VIRT" name="Наименование" caption="Наименование" labelwidth="200" type="text" visible="form" readonly="true" virtual="true" formula="select inv.name from kbr inv where inv.id = @KBR_ID ::bigint" local="true"/>
+				</TAB>
+				<TAB name="Поступления">
+					<GA caption="Казначейские уведомления">
+						<A id="SUM_IN_BA" name="Поступило ассигнований" caption="Поступило ассигнований" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000*1.2" local="true"/>
+						<A id="SUM_IN_LBO" name="Поступило ЛБО" caption="Поступило ЛБО" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000*1" local="true"/>
+						<A id="PER_IN_VIRT" name="% разблокировано" caption="% разблокировано" labelwidth="250" width="40" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_IN_LBO*100)/NULLIF(@SUM_IN_BA,0))" local="true"/>
+					</GA>
+					<GA caption="Лимиты бюджетных обязательств">
+						<A id="SUM_SEP_LBO" name="Детализировано ЛБО" caption="Детализировано" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_COR_LBO" name="Корректировка ЛБО" caption="Корректировка" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_LBO_VIRT" name="Итого ЛБО" caption="ИТОГО" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_SEP_LBO+@SUM_COR_LBO" local="true"/>
+					</GA>
+					<GA caption="Бюджетные ассигнования">
+						<A id="SUM_SEP_BA" name="Детализировано ассигнований" caption="Детализировано" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_COR_BA" name="Корректировка ассигнований" caption="Корректировка" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_BA_VIRT" name="Итого ассигнований" caption="ИТОГО" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_SEP_BA+@SUM_COR_BA" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Перечисления">
+					<GA caption="Лимиты бюджетных обязательств">
+						<A id="SUM_OUTIN_LBO" name="Перечислено на свой счет ПБС ЛБО" caption="Перечислено на свой счет ПБС ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_LBO" name="Перечислено на счета ПБС ЛБО" caption="Перечислено на счета ПБС ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_LBO" name="Перечислено на счета по переданным полномочиям ЛБО" caption="Перечислено на счета по переданным полномочиям ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_LBO_VIRT" name="Итого распределено ЛБО" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO" local="true"/>
+						<A id="SUM_REST_LBO_VIRT" name="Нераспределенный остаток ЛБО" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="(@SUM_SEP_LBO+@SUM_COR_LBO)-(@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)" local="true"/>
+						<A id="PER_OUT_LBO_VIRT" name="% распределено к ЛБО" caption="% распределено к ЛБО" labelwidth="200" width="50" type="int" visible="form" readonly="true" virtual="true" formula="round(((@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)*100)/NULLIF((@SUM_SEP_LBO+@SUM_COR_LBO),0))" local="true"/>
+						<A id="PER_OUT_BA_VIRT" name="% распределено" caption="% распределено" labelwidth="200" width="50" type="int" visible="form" readonly="true" virtual="true" formula="round(((@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+					</GA>
+					<GA caption="Бюджетные ассигнования">
+						<A id="SUM_OUTIN_BA" name="Перечислено на свой счет ПБС ассигнований" caption="Перечислено на свой счет ПБС ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_BA" name="Перечислено на счета ПБС ассигнований" caption="Перечислено на счета ПБС ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_BA" name="Перечислено на счета по переданным полномочиям ассигнований" caption="Перечислено на счета по переданным полномочиям ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_BA_VIRT" name="Итого распределено ассигнований" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_OUTIN_BA+@SUM_OUT03_BA+@SUM_OUT14_BA" local="true"/>
+						<A id="SUM_REST_BA_VIRT" name="Нераспределенный остаток ассигнований" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_BA+@SUM_COR_BA)-(@SUM_OUTIN_BA+@SUM_OUT03_BA+@SUM_OUT14_BA)" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Планируемые расходы">
+					<A id="SUM_NEED" name="Согласованные потребности" caption="Согласованные потребности" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					<A id="SUM_PLAN_OUT" name="Запланированные расходы" caption="Запланированные расходы" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					<GA caption="Обязательства">
+						<A id="SUM_PBO" name="Принимаемые бюджетные обязательства" caption="Принимаемые бюджетные обязательства" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_BO" name="Принятые бюджетные обязательства" caption="Принятые бюджетные обязательства" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_DO" name="Принятые денежные обязательства" caption="Принятые денежные обязательства" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					</GA>
+					<A id="SUM_BO_PLAN_VIRT" name="Разница между Принято БО и планом" caption="Разница между Принято БО и планом" labelwidth="300" width="65" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_BO-@SUM_PLAN_OUT" local="true"/>
+					<A id="PER_BO_PLAN_VIRT" name="% принятия БО к плану" caption="% принятия БО к плану" labelwidth="150" width="35" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_BO*100)/NULLIF(@SUM_PLAN_OUT,0))" local="true"/>
+					<A id="SUM_BA_BO_VIRT" name="Разница между БА и принятыми БО" caption="Разница между БА и принятыми БО" labelwidth="300" width="65" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_BA+@SUM_COR_BA)-@SUM_BO" local="true"/>
+					<A id="PER_BA_BO_VIRT" name="% принятия БО к БА" caption="% принятия БО к БА" labelwidth="150" width="35" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_BO*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+				</TAB>
+				<TAB name="Кассовое исполнение">
+					<A id="SUM_KR" name="Кассовое исполнение" caption="Кассовое исполнение" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					<A id="PER_KR_BO_VIRT" name="% кассового исполнения к принятым БО" caption="% кассового исполнения к принятым БО" labelwidth="650" type="int" visible="true" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF(@SUM_BO,0))" local="true"/>
+					<A id="PER_KR_BA_VIRT" name="% кассового исполнения к БА" caption="% кассового исполнения факт" labelwidth="650" type="int" visible="true" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+				</TAB>
+			</TABS>
+			<TI id="iEXEC_BUD_KBR_UK" unique="EXEC_BUD_ID, KBR_ID"/>
+		</TABLE>
+		<TABLE id="EXEC_BUD_DETAIL" name="Исполнение бюджета: Детализация">
+			<TABS>
+				<TAB name="Детальная информация">
+					<A id="EXEC_BUD_KBR_ID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID" local="true"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
-					<A id="SUM_IN_LBO" name="Сумма поступления ЛБО" caption="Сумма поступления ЛБО" labelwidth="550" type="number" len="18.2" local="true"/>
-</TABLE>	
-
-		
+					<GA caption="Подразделения, курирующие расходы">
+						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+					</GA>
+					<A id="ECON_CLASS_ID"/>
+					<A id="SUBSIDIES_ID"/>
+					<A id="CAPOBJECTS_ID"/>
+					<A id="EVENT_ID"/>
+					<A id="ACODES_ID"/>
+				</TAB>
+				<TAB name="Поступления">
+					<GA caption="Казначейские уведомления">
+						<A id="SUM_IN_BA" name="Поступило ассигнований" caption="Поступило ассигнований" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000*1.2" local="true"/>
+						<A id="SUM_IN_LBO" name="Поступило ЛБО" caption="Поступило ЛБО" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000*1" local="true"/>
+						<A id="PER_IN_VIRT" name="% разблокировано" caption="% разблокировано" labelwidth="250" width="40" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_IN_LBO*100)/NULLIF(@SUM_IN_BA,0))" local="true"/>
+					</GA>
+					<GA caption="Лимиты бюджетных обязательств">
+						<A id="SUM_SEP_LBO" name="Детализировано ЛБО" caption="Детализировано" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_COR_LBO" name="Корректировка ЛБО" caption="Корректировка" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_LBO_VIRT" name="Итого ЛБО" caption="ИТОГО" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_SEP_LBO+@SUM_COR_LBO" local="true"/>
+					</GA>
+					<GA caption="Бюджетные ассигнования">
+						<A id="SUM_SEP_BA" name="Детализировано ассигнований" caption="Детализировано" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_COR_BA" name="Корректировка ассигнований" caption="Корректировка" labelwidth="200" width="50" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_BA_VIRT" name="Итого ассигнований" caption="ИТОГО" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_SEP_BA+@SUM_COR_BA" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Перечисления">
+					<GA caption="Лимиты бюджетных обязательств">
+						<A id="SUM_OUTIN_LBO" name="Перечислено на свой счет ПБС ЛБО" caption="Перечислено на свой счет ПБС ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_LBO" name="Перечислено на счета ПБС ЛБО" caption="Перечислено на счета ПБС ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_LBO" name="Перечислено на счета по переданным полномочиям ЛБО" caption="Перечислено на счета по переданным полномочиям ЛБО" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_LBO_VIRT" name="Итого распределено ЛБО" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO" local="true"/>
+						<A id="SUM_REST_LBO_VIRT" name="Нераспределенный остаток ЛБО" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="(@SUM_SEP_LBO+@SUM_COR_LBO)-(@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)" local="true"/>
+						<A id="PER_OUT_LBO_VIRT" name="% распределено к ЛБО" caption="% распределено к ЛБО" labelwidth="200" width="50" type="int" visible="form" readonly="true" virtual="true" formula="round(((@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)*100)/NULLIF((@SUM_SEP_LBO+@SUM_COR_LBO),0))" local="true"/>
+						<A id="PER_OUT_BA_VIRT" name="% распределено" caption="% распределено" labelwidth="200" width="50" type="int" visible="form" readonly="true" virtual="true" formula="round(((@SUM_OUTIN_LBO+@SUM_OUT03_LBO+@SUM_OUT14_LBO)*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+					</GA>
+					<GA caption="Бюджетные ассигнования">
+						<A id="SUM_OUTIN_BA" name="Перечислено на свой счет ПБС ассигнований" caption="Перечислено на свой счет ПБС ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT03_BA" name="Перечислено на счета ПБС ассигнований" caption="Перечислено на счета ПБС ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT14_BA" name="Перечислено на счета по переданным полномочиям ассигнований" caption="Перечислено на счета по переданным полномочиям ассигнований" labelwidth="550" type="number" len="18.2" visible="form" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_OUT_BA_VIRT" name="Итого распределено ассигнований" caption="Итого распределено" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_OUTIN_BA+@SUM_OUT03_BA+@SUM_OUT14_BA" local="true"/>
+						<A id="SUM_REST_BA_VIRT" name="Нераспределенный остаток ассигнований" caption="Нераспределенный остаток" labelwidth="400" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_BA+@SUM_COR_BA)-(@SUM_OUTIN_BA+@SUM_OUT03_BA+@SUM_OUT14_BA)" local="true"/>
+					</GA>
+				</TAB>
+				<TAB name="Планируемые расходы">
+					<A id="SUM_NEED" name="Согласованные потребности" caption="Согласованные потребности" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					<A id="SUM_PLAN_OUT" name="Запланированные расходы" caption="Запланированные расходы" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					<GA caption="Обязательства">
+						<A id="SUM_PBO" name="Принимаемые бюджетные обязательства" caption="Принимаемые бюджетные обязательства" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_BO" name="Принятые бюджетные обязательства" caption="Принятые бюджетные обязательства" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+						<A id="SUM_DO" name="Принятые денежные обязательства" caption="Принятые денежные обязательства" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					</GA>
+					<A id="SUM_BO_PLAN_VIRT" name="Разница между Принято БО и планом" caption="Разница между Принято БО и планом" labelwidth="300" width="65" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="@SUM_BO-@SUM_PLAN_OUT" local="true"/>
+					<A id="PER_BO_PLAN_VIRT" name="% принятия БО к плану" caption="% принятия БО к плану" labelwidth="150" width="35" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_BO*100)/NULLIF(@SUM_PLAN_OUT,0))" local="true"/>
+					<A id="SUM_BA_BO_VIRT" name="Разница между БА и принятыми БО" caption="Разница между БА и принятыми БО" labelwidth="300" width="65" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="(@SUM_SEP_BA+@SUM_COR_BA)-@SUM_BO" local="true"/>
+					<A id="PER_BA_BO_VIRT" name="% принятия БО к БА" caption="% принятия БО к БА" labelwidth="150" width="35" type="int" visible="form" readonly="true" virtual="true" formula="round((@SUM_BO*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+				</TAB>
+				<TAB name="Кассовое исполнение">
+					<A id="SUM_KR" name="Кассовое исполнение" caption="Кассовое исполнение" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" formula="1000000" local="true"/>
+					<A id="PER_KR_BO_VIRT" name="% кассового исполнения к принятым БО" caption="% кассового исполнения к принятым БО" labelwidth="650" type="int" visible="true" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF(@SUM_BO,0))" local="true"/>
+					<A id="PER_KR_BA_VIRT" name="% кассового исполнения к БА" caption="% кассового исполнения факт" labelwidth="650" type="int" visible="true" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
+				</TAB>
+			</TABS>
+			<TI id="iEXEC_BUD_DETAIL_UK" unique="EXEC_BUD_KBR_ID, AGENT_ACC_ID, DEPART_ID,DEPART_ID_KOM,ECON_CLASS_ID,SUBSIDIES_ID,CAPOBJECTS_ID,EVENT_ID,ACODES_ID"/>
+		</TABLE>
 		<TABLE id="JURNALEXP" name="Журнал операций по исполнению расходной части бюджета">
 			<TABS>
 				<TAB name="Основная информация">
@@ -193,6 +397,8 @@
 	<ACTIONS name="Действия">
 		<ACTION id="MakeEntryKU" name="Отработать" type="procedure" procedure="p_fin_makeentryku"/>
 		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_fin_deleteentryku"/>
+		<ACTION id="CalculateEXEC_BUD" name="Рассчитать показатели" type="procedure" procedure=""/>
+		<ACTION id="ClearEXEC_BUD" name="Очистить" type="procedure" procedure=""/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -211,11 +417,19 @@
 			</TABS>
 		</FORM>
 	</FORMS>
-<FORM id="Exec_Bud" name="Исполнение бюджета">
-<GRID id="Exec_Bud" name="Исполнение бюджета" table="EXEC_BUD"/>
-<GRID id="Exec_Bud_Kbr" name="Исполнение бюджета: статьи" table="EXEC_BUD_KBR"/>
-</FORM>
-
+	<FORM id="Exec_Bud" name="Исполнение бюджета">
+		<TABS>
+			<TAB name="Годовой бюджет">
+				<GRID id="Exec_Bud" name="Исполнение бюджета" table="EXEC_BUD" actionlist="CalculateEXEC_BUD;ClearEXEC_BUD"/>
+			</TAB>
+			<TAB name="Коды классификации расходов бюджета">
+				<GRID id="Exec_Bud_Kbr" name="Исполнение бюджета: КБК" table="EXEC_BUD_KBR"/>
+			</TAB>
+			<TAB name="Детализация">
+				<GRID id="Exec_Bud_Detail" name="Исполнение бюджета: Детализация" table="EXEC_BUD_DETAIL"/>
+			</TAB>
+		</TABS>
+	</FORM>
 	<FORM id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета">
 		<GRID id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" table="JURNALEXP"/>
 	</FORM>
