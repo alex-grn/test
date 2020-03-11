@@ -1,0 +1,76 @@
+CREATE OR REPLACE FUNCTION public.p_action_sheetdetails_form_pp (
+  idlist text,
+  uid bigint,
+  ddate date,
+  budgclassid bigint,
+  econclassktid bigint
+)
+RETURNS void AS
+$body$
+declare
+  NUID            BIGINT := UID;
+  NID             BIGINT;
+  REC             record;
+  NPAYACCOUNTSID  BIGINT;
+  NDOCTYPEID      BIGINT;
+  NBUDGCLASSID    BIGINT := BUDGCLASSID;
+  NECONCLASSKTID  BIGINT := ECONCLASSKTID;
+  NTYPICALOPERSID BIGINT;
+begin
+  for REC in (select S.ID,
+                     S.PERSONID,
+                     S.PERSONACCID,
+                     SS.ELECTCAMPAIGNID,
+                     E.ELECTCOMMITTEEID,
+                     COALESCE(P.RODSURNAME, '') || ' ' || COALESCE(P.RODFIRSTNAME, '') || ' ' || COALESCE(P.RODMIDDLENAME, '') as FIO,
+                     COALESCE(S.SUMCOMP, 0) + COALESCE(S.SUMEXTRA12, 0) + COALESCE(S.EXTRAA, 0) as SUMM
+                from SHEETDETAILS    S,
+                     SHEETS          SS,
+                     ELECTCOMMINCAMP E,
+                     PERSON          P
+               where S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                 and SS.ID = S.SHEETSID
+                 and E.ID = SS.ELECTCOMMINCAMPID
+                 and P.ID = S.TRPERSONID)
+  loop
+   begin
+    --Найдем расчетный счет в банке
+    select P.ID
+      into STRICT NPAYACCOUNTSID
+      from PAYACCOUNTS P,
+           JURPERSONS  J
+     where J.ID = P.JURPERSONSID
+       and J.ELECTCOMMITTEEID = REC.ELECTCOMMITTEEID
+       and P.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID;
+   exception when no_data_found then raise using MESSAGE = 'Не найдено соответствущих записей в разделе "Расчетные(лицевые) счета в банке"';
+             when too_many_rows then raise using MESSAGE = 'Критическая ошибка, найдено больше записей чем предполагалось. Обратитесь к администратору.';
+   end;    
+   
+    --Найдем тип документа "Платежное поручение"
+    select D.ID into NDOCTYPEID from DOCTYPES D where D.CODE ILIKE '%плат_жное%';
+    
+    --Вставим строку в документ платежного поручения
+    insert into PAYDOCS
+      (UID, PAYACCOUNTSID, DOCTYPEID, DOCDATE, NTAX, PERSONID, PERSONACCDOCID, PURPOSE, PRIORITY, STATUS)
+    values
+      (NUID, NPAYACCOUNTSID, NDOCTYPEID, DDATE, '', REC.PERSONID, REC.PERSONACCID, 'Оплата труда ' || REC.FIO, '1', '0')
+    returning PAYDOCS.ID into NID;
+    
+    --Найдем в типовых операциях "Перечисление на лицевой счет члена избирательной комиссии"
+    select T.ID into NTYPICALOPERSID from TYPICALOPERS T where T.CODE ILIKE '%Перечисление на лицевой сч_т физ%';
+    
+    --Добавим строку расшифровки для платежного поручения
+    insert into PAYDOCSCONS (UID, PAYDOCSID, SUMM, BUDGCLASSID, ECONCLASSKTID, TYPEEXPID, TYPICALOPERSID) values (nUID, NID, REC.SUMM, NBUDGCLASSID, NECONCLASSKTID, '', NTYPICALOPERSID);
+    update SHEETDETAILS S set PAYDOCSID = NID where S.ID = REC.ID;
+  end loop;
+
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_sheetdetails_form_pp (idlist text, uid bigint, ddate date, budgclassid bigint, econclassktid bigint)
+  OWNER TO magicbox;
