@@ -7,7 +7,7 @@
 		<A id="CASHDOCSID" name="Касса" caption="Касса" type="ref" table="CASHDOCS" ret="ID" nulls="false"/>
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
-		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
+		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
 		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="TRANSACTIONLOGID" name="Журналы операций" caption="Журналы операций" type="ref" table="TRANSACTIONLOG" ret="ID" nulls="false"/>
@@ -308,7 +308,7 @@
 				<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="54" virtual="true" formula=""/>
 			</GA>
 			<GA name="Контрагент" caption="Контрагент">
-				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор"/>
+				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100"/>
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
@@ -381,11 +381,7 @@
 			<GA name="Документ" caption="Документ">
 				<A id="INVTYPE" name="Тип поступления" caption="Тип поступления" labelwidth="100" type="list" nulls="false">
 					<AI id="1" name="Поступление от поставщика"/>
-					<AI id="2" name="Возврат из безвозмездного пользования"/>
-					<AI id="3" name="Прочие поступления"/>
-					<AI id="4" name="Возврат от покупателя"/>
-					<AI id="5" name="Возврат из аренды"/>
-					<AI id="6" name="Возврат из личного пользования"/>					
+					<AI id="2" name="Прочие поступления"/>
 				</A>
 				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="100" width="55" nulls="false"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
@@ -411,7 +407,7 @@
 		</TABLE>
 		<TABLE id="INVENTORY_GOODS" name="Номенклатура поступления МЗ">
 			<A id="INVENTORY_DOCSID" parentkey="cascade"/>
-			<A id="CONTRACTSDOCSID" labelwidth="150" virtual="true" name="Договор" caption="Договор" type="bigint" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
+			<A id="CONTRACTSDOCSID" labelwidth="150" visible="false" virtual="true" name="Договор" caption="Договор" type="bigint" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_GOODS where INVENTORY_DOCSID = @INVENTORY_DOCSID and cid=0"/>
 			<GA name="Спецификация договора" caption="Спецификация договора">
 				<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="150" type="ref" table="STAGES" pid="CONTRACTSDOCSID" nulls="false" local="true"/>
@@ -443,33 +439,33 @@
 				<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
 				<A id="DOCSUM" name="Сумма документа" caption="Сумма" type="number" labelwidth="100" width="10" nulls="false"/>
 			</GA>
-			<GA id="TYPICALOPERATION"/>	
+			<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
 		</TABLE>
-		<TABLE id="TRANSACTIONLOG_STAGES" name="Журнал операций">
+		<TABLE id="TRANSACTIONLOG_STAGES" name="Проводки журнала операций">
 			<A id="TRANSACTIONLOG_DOCSID" parentkey="cascade"/>
 			<GA name="Дебет" caption="Дебет">
 				<A id="DTFINSECURITY" name="КФО" caption="КФО" type="number" labelwidth="140" width="100" nulls="false" value="1"/>
-				<A id="DTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
-				<A id="DTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
+				<A id="DTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
+				<A id="DTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
 				<A id="DTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
 				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="140" width="100"/>
 				<A id="DTANALYTICS1" name="Аналитика 1" caption="Аналитика 1" labelwidth="140" width="100" type="string"/>
 				<A id="DTANALYTICS2" name="Аналитика 2" caption="Аналитика 2" labelwidth="140" width="100" type="string"/>
-				<A id="DTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" labelwidth="140" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
-				<A id="DTDICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="140" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
-				<A id="DTQUANTITY" name="Количество" caption="Количество" labelwidth="140" type="number" width="100" nulls="false"/>
+				<A id="DTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" labelwidth="140" table="MTRESPONSPERS" ret="PERSONID_RET" nulls="false"/>
+				<A id="DTDICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="140" width="70" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
+				<A id="DTQUANTITY" name="Количество" caption="Количество" labelwidth="140" width="30" type="number"  nulls="false"/>
 			</GA>
 			<GA name="Кредит" caption="Кредит">
 				<A id="KTFINSECURITY" name="КФО" caption="КФО" type="number" labelwidth="140" width="100" nulls="false" value="1"/>
-				<A id="KTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
-				<A id="KTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
+				<A id="KTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
+				<A id="KTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" type="ref" width="50" table="ECONCLASS" ret="CODE" nulls="false"/>
 				<A id="KTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
 				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="140" width="100"/>
 				<A id="KTANALYTICS1" name="Аналитика 1" caption="Аналитика 1" labelwidth="140" width="100" type="string"/>
 				<A id="KTANALYTICS2" name="Аналитика 2" caption="Аналитика 2" labelwidth="140" width="100" type="string"/>
-				<A id="KTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" labelwidth="140" table="MTRESPONSPERS" ret="PERSONID" nulls="false"/>
-				<A id="KTDICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="140" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
-				<A id="KTQUANTITY" name="Количество" caption="Количество" type="number" labelwidth="140" width="100" nulls="false"/>
+				<A id="KTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" labelwidth="140" table="MTRESPONSPERS" ret="PERSONID_RET" nulls="false"/>
+				<A id="KTDICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="140" width="70" type="ref" table="DICNOMNS" ret="CODE" nulls="false"/>
+				<A id="KTQUANTITY" name="Количество" caption="Количество" type="number" width="30" labelwidth="140" nulls="false"/>
 			</GA>
 			<A id="SUMM" name="Сумма" type="number" labelwidth="130" width="100" nulls="false"/>
 		</TABLE>		
