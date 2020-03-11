@@ -1243,9 +1243,9 @@
 			<A id="NUMBSHEET" name="Номер листа" caption="Номер листа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
 			<A id="COUNTSHEETS" name="Количество листов" caption="Количество листов" labelwidth="600" type="number" len="2" nulls="false" readonly="false" local="true"/>
 			<A id="OPENBALANCE" name="Остаток на начало дня" caption="Остаток на начало дня" labelwidth="300" type="number" len="8.2" nulls="false" readonly="false" local="true"/>
-			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" formula="select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
-			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" formula="select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
-			<A id="OUTBALANCE" name="Остаток на конец дня" caption="Остаток на конец дня" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" formula="COALESCE(@OPENBALANCE,0) + (select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID) - (select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID)" local="true"/>
+			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="300" type="number" len="8.2" nulls="false" virtual="true" readonly="true" formula="select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
+			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="300" type="number" len="8.2" nulls="false" virtual="true" readonly="true" formula="select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
+			<A id="OUTBALANCE" name="Остаток на конец дня" caption="Остаток на конец дня" labelwidth="300" virtual="true" type="number" len="8.2" nulls="false" readonly="true" formula="COALESCE(@OPENBALANCE,0) + (select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID) - (select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID)" local="true"/>
 			<TI unique="CASHDOCSID, DOCDATE"/>
 		</TABLE>
 		<TABLE id="REPORTCASHBOOKSSPEC" name="Данные отчета кассира">
@@ -1376,6 +1376,9 @@
 				<A id="ECONCLASSKTID"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="Exception" name="Проверка на ошибки" type="procedure" procedure="p_action_exception"/>
+		<ACTION id="ExceptionPP" name="Проверка на ошибки и формирование ПП" type="script" actionlist="Exception;SheetdetailsFormPP"/>
+		<ACTION id="ExceptionRKO" name="Проверка на ошибки и формирование РКО" type="script" actionlist="Exception;SheetdetailsFormRKO"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="PaylistReport" name="Платежная ведомость (0504403)" procedure="" template="payment_statement.xls">
@@ -1717,7 +1720,7 @@
 			</GRID>
 			<GRID id="SheetdetailsGR" name="Состав" table="SHEETDETAILS">
 				<MENU>
-					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables;SheetdetailsFormPP;SheetdetailsFormRKO"/>
+					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables;ExceptionPP;ExceptionRKO"/>
 				</MENU>
 			</GRID>
 		</FORM>
