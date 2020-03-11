@@ -4,6 +4,7 @@
 			<MENU name="Справочники по отчётности">
 				<MI name="Показатели отчётности" formlist="ReportingIndicators"/>
 				<MI name="Формы отчётности" formlist="ReportingForm"/>
+				<MI name="Перечень проверок и пересчетов" formlist="ListOfChecks"/>
 			</MENU>
 			<MENU name="Отчётность ИК">
 				<MI name="Отчётность УИК" formlist="AccountabilityUik"/>
@@ -32,6 +33,7 @@
 		<TABLES name="Таблицы">
 			
 			
+			<COMMENT name="Справочники"/>
 			<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
 				<A id="REPORTINGFORMID" name="Код формы" limit="50" caption="Код формы" labelwidth="400"/>
 				<A id="REPORTINGFORMVIRT" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMEFORM from REPORTINGFORM where ID = @REPORTINGFORMID" local="true"/>
@@ -107,8 +109,20 @@
 			</TABLE>
 			
 			
+			<TABLE id="LISTOFCHECKS" name="Перечень проверок и пересчетов">
+				<A id="NAME" name="Имя" caption="Имя" labelwidth="150" type="text" local="true"/>
+			</TABLE>
+			<TABLE id="RECALCULATIONS" name="Пересчеты">
+				<A id="NAME" name="Имя" caption="Имя" labelwidth="150" type="text" local="true"/>
+			</TABLE>
+			<TABLE id="TERMS" name="Слагаемые">
+				<A id="NAME" name="Имя" caption="Имя" labelwidth="150" type="text" local="true"/>
+			</TABLE>
+			
+			
+			<COMMENT name="Отчётность ИК"/>
 			<TABLE id="ACCOUNTABILITYUIK" name="Отчётность УИК">
-				<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="false" local="true"/>
+				<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string"  nulls="false" local="true"/>
 				<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
 				<A id="ELECTCAMPAIGNID"/>
 				<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
@@ -125,29 +139,28 @@
 			<TABLE id="ACCOUNTABILITYUIKS1SD" name="Раздел 1. Исходные данные">
 				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 				<GA id="EDITIONFORMS1">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" width="60"/>
-					<A id="REVISIONDATE" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" width="60"/>
 				</GA>
-				<GA id="REPINDS1" name="Показатель отчётности (гр. 1)">
+				<GA id="REPIND1" name="Показатель отчётности (гр. 1)">
 					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
 				</GA>
 				<GA id="CODELINE1" name="Код строки (гр.2)">
 					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="200" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
 				</GA>
-				<GA id="TOTALS1" name="Всего (гр. 3)">
+				<GA id="TOTAL1" name="Всего (гр. 3)">
 					<A id="TOTAL" name="3" caption="Всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" local="true"/>
 				</GA>
 				<GA id="UIKREFCOMS1" name="Участковые избирательные комиссии (комиссий референдума) (гр.7)">
 					<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
 				</GA>
+				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			</TABLE>
 			<TABLE id="ACCOUNTABILITYUIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 				<GA id="EDITIONFORMS2">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" width="60"/>
-					<A id="REVISIONDATE" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID" />
+					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" width="60"/>
 				</GA>
-				<GA id="REPINDS2" name="Показатель отчётности (гр. 1)">
+				<GA id="REPIND2" name="Показатель отчётности (гр. 1)">
 					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
 				</GA>
 				<GA id="CODELINE2" name="Код строки (гр.2)">
@@ -157,8 +170,9 @@
 					<A id="TOTAL" name="3" caption="Сумма расходов, всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" local="true"/>
 				</GA>
 				<GA id="UIKREFCOMS2" name="Участковых избирательных комиссий (комиссий референдума) (гр. 13)">
-					<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковые избирательные комиссии (комиссий референдума) (гр.13)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
+					<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковые избирательные комиссии (комиссий референдума) (гр.13)" labelwidth="415" type="string" visible="true" nulls="false" local="true"/>
 				</GA>
+				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID" />
 			</TABLE>
 			<TABLE id="AUDITREPORTSUIK" name="Протоколы проверок">
 				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
@@ -176,6 +190,7 @@
 				<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
 				<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
 			</TABLE>
+			
 			
 			
 			<TABLE id="ACCOUNTABILITYTIK" name="Отчеты ТИК">
@@ -242,11 +257,13 @@
 			</TABLE>
 			
 			
+			
 			<!-- <TABLE id="ACCOUNTABILITYIKSRF" name="Отчеты ИКСРФ"> -->
 				<!-- <A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="string" nulls="false" local="true"/> -->
 				<!-- <A id="CODE" name="Код" caption="Код" labelwidth="400" type="int" nulls="false" local="true"/> -->
 				<!-- <A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="400" readonly="true" type="date" nulls="false" formula="now()" local="true"/> -->
 			<!-- </TABLE> -->
+			
 			
 			
 		</TABLES>
@@ -289,10 +306,18 @@
 					<TAB name="Спецификации">
 						<TABS>
 							<TAB name="Раздел 1. Исходные данные">
-								<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD"/>
+								<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD" readonly="true">
+									<MENU>
+										<MI actionlist="Update;View;ConfigTables"/>
+									</MENU>
+								</GRID>
 							</TAB>
 							<TAB name="Раздел 2. Фактические расходы">
-								<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE"/>
+								<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE" readonly="true">
+									<MENU>
+										<MI actionlist="Update;View;ConfigTables"/>
+									</MENU>
+								</GRID>
 							</TAB>
 						</TABS>
 					</TAB>
@@ -303,7 +328,6 @@
 							</TAB>
 							<TAB name="Результаты проверок">
 								<GRID id="TestResultsUik" name="Результаты проверок" table="TESTRESULTSUIK"/>
-								<!-- <A id="MEASURESOFSHAPEVIRT" name="Форма отчёта" caption="Форма отчёта" labelwidth="150" type="string" readonly="true" virtual="true" formula="select e. from WORDINGOFTHEFORMS p, where p.id = @PAYACCOUNTSID" local="true"/>/> -->
 							</TAB>
 						</TABS>
 					</TAB>
@@ -335,6 +359,11 @@
 						</TABS>
 					</TAB>
 				</TABS>
+			</FORM>
+			<FORM id="ListOfChecks" name="Перечень проверок и пересчетов">
+				<GRID id="ListOfChecks" name="Перечень проверок и пересчетов" table="LISTOFCHECKS"/>
+				<GRID id="Recalculations" name="Пересчеты" table="RECALCULATIONS"/>
+				<GRID id="Terms" name="Слагаемые" table="TERMS"/>
 			</FORM>
 			
 			<!-- <FORM id="AccountabilityIksrf" name="Отчетность ИКСРФ"> -->
