@@ -1,0 +1,83 @@
+CREATE OR REPLACE FUNCTION public.p_action_sheetdetails_form_rko (
+  idlist text,
+  uid bigint,
+  ddate date,
+  budgclassid bigint,
+  econclassktid bigint
+)
+RETURNS void AS
+$body$
+declare
+  NUID            BIGINT := UID;
+  NID             BIGINT;
+  REC             record;
+  NCASHDOCSID     BIGINT;
+  NDOCTYPEID      BIGINT;
+  NBUDGCLASSID    BIGINT := BUDGCLASSID;
+  NECONCLASSKTID  BIGINT := ECONCLASSKTID;
+  NTYPICALOPERSID BIGINT;
+begin
+  for REC in (select S.ID,
+                     S.PERSONID,
+                     S.PERSONACCID,
+                     SS.ELECTCAMPAIGNID,
+                     E.ELECTCOMMITTEEID,
+                     COALESCE(P.RODSURNAME, '') || ' ' || COALESCE(P.RODFIRSTNAME, '') || ' ' || COALESCE(P.RODMIDDLENAME, '') as FIO,
+                     COALESCE(S.SUMCOMP, 0) + COALESCE(S.SUMEXTRA12, 0) + COALESCE(S.EXTRAA, 0) as SUMM,
+                     S.DOCNUMB,
+                     S.DOCDATE
+                from SHEETDETAILS    S,
+                     SHEETS          SS,
+                     ELECTCOMMINCAMP E,
+                     PERSON          P
+               where S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST))
+                 and SS.ID = S.SHEETSID
+                 and E.ID = SS.ELECTCOMMINCAMPID
+                 and P.ID = S.TRPERSONID)
+  loop
+    begin
+      --Найдем расчетный счет в банке
+      select C.ID
+        into STRICT NCASHDOCSID
+        from CASHDOCS   C,
+             JURPERSONS J
+       where J.ID = C.JURPERSONSID
+         and J.ELECTCOMMITTEEID = REC.ELECTCOMMITTEEID
+         and C.ELECTCAMPAIGNID = REC.ELECTCAMPAIGNID;
+    exception
+      when NO_DATA_FOUND then
+        raise
+          using MESSAGE = 'Не найдено соответствущих записей в разделе "Расчетные(лицевые) счета в банке"';
+      when TOO_MANY_ROWS then
+        raise
+          using MESSAGE = 'Критическая ошибка, найдено больше записей чем предполагалось. Обратитесь к администратору.';
+    end;
+  
+    --Найдем тип документа "Расходный кассовый ордер"
+    select D.ID into NDOCTYPEID from DOCTYPES D where D.CODE ILIKE '%расходны_%касс%';
+  
+    --Вставим строку в документ платежного поручения
+    insert into CASHPAYMENT_HEADER
+      (UID, CASHDOCSID, DOCTYPEID, DOCSTATUS, DOCDATE, PERSONID, BASIS)
+    values
+      (NUID, NCASHDOCSID, NDOCTYPEID, '1', DDATE, REC.PERSONID, 'Расчетно-платежная ведомость № ' || REC.DOCNUMB || ' от ' || REC.DOCDATE)
+    returning CASHPAYMENT_HEADER.ID into NID;
+  
+    --Найдем в типовых операциях "Выдача наличных на оплату труда члену избирательной комиссии"
+    select T.ID into NTYPICALOPERSID from TYPICALOPERS T where T.CODE ILIKE '%Выдача%наличных%на%оплату%труда%члену%';
+  
+    --Добавим строку расшифровки для платежного поручения
+    insert into CASHPAYMENT (UID, CASHPAYMENTHEADERID, SUMMPAY, BUDGCLASSID, ECONCLASSKTID, TYPEEXPID, TYPICALOPERSID) values (NUID, NID, REC.SUMM, NBUDGCLASSID, NECONCLASSKTID, '', NTYPICALOPERSID);
+    update SHEETDETAILS S set CASHPAYMENTHEADERID = NID where S.ID = REC.ID;
+  end loop;
+
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_sheetdetails_form_rko (idlist text, uid bigint, ddate date, budgclassid bigint, econclassktid bigint)
+  OWNER TO magicbox;
