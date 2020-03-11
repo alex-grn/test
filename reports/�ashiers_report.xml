@@ -10,7 +10,7 @@
                      <query name="header" type="sql">
                         <script>
 								 select k.name as org,
-										r.docdate as dates,
+										d2s(r.docdate) as dates,
 										r.numbsheet as sheets
 								from REPORTCASHBOOKS r
 								inner join CASHDOCS c on c.id = r.cashdocsid
@@ -33,7 +33,7 @@
 											when COALESCE(rs.incomecash,0) > 0 then COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'')
 											when COALESCE(rs.expendcash,0) > 0 then COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') 
 										end as beginer,
-										'1.'||d.accnumb as corr_acc,
+										'1.'||d.accnumb as cor_acc,
 										rs.incomecash as prih,
 										rs.expendcash as rash
 									from REPORTCASHBOOKS r
@@ -42,7 +42,7 @@
 									left join PERSON p on p.id = rs.personid
 									where r.id = ${id}::bigint 
 									union 
-									select null as pp, null as n_doc, null as beginer, NULL as corr_acc, r.openbalance as prih, null as rash
+									select null as pp, null as n_doc, 'Остаток на начало дня' as beginer, NULL as corr_acc, r.openbalance as prih, null as rash
 									from REPORTCASHBOOKS r
 									where r.id = ${id}::bigint 
 									order by pp nulls first  
@@ -84,7 +84,7 @@
 											when COALESCE(rs.incomecash,0) > 0 then COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'')
 											when COALESCE(rs.expendcash,0) > 0 then COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') 
 										end as beginer,
-										'1.'||d.accnumb as corr_acc,
+										'1.'||d.accnumb as cor_acc,
 										rs.incomecash as prih,
 										rs.expendcash as rash
 									from REPORTCASHBOOKS r

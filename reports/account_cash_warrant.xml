@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="account_cash_warrant.xls" documentPath="account_cash_warrant.xls" outputType="xls" outputNamePattern="account_cash_warrant.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select tbl.org_name,
+									tbl.num_doc,
+									tbl.date_doc,
+									tbl.cor_acc,
+									tbl.credit,
+									replace(trim(to_char(tbl.summ,'999999999D99')),',','-') as summ,
+									tbl.give_out,
+									tbl.basis,
+									tbl.summ_all,
+									tbl.attachment,
+									split_part(trim(to_char(tbl.summ,'999999999D99')),',',1) as money,
+									split_part(trim(to_char(tbl.summ,'999999999D99')),',',2) as money1,
+									(select p_find_name_from_list('posts','postprint',${postprint})) as ruk_org,
+									(select pp.name from person pp where pp.id = ${personid}::bigint) as podp,
+									(select pp.name from person pp where pp.id = ${bpersonid}::bigint) as accountent,
+									(select pp.name from person pp where pp.id = ${kpersonid}::bigint) as kass_podp
+								from (
+								select e.name as org_name,
+									h.docnumb as num_doc,
+									d2s(h.docdate) as date_doc,
+									'1.'||rdd.accnumb as cor_acc,
+									'1.'||k.accnumb as credit,
+									--REPLACE((select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = h.id)::text,'.','-') as summ,
+									sum(COALESCE(p.SUMMPAY,0)) as summ,
+									COALESCE(f.datsurname,'')||' '||COALESCE(f.datfirstname,'')||' '||COALESCE(f.datmiddlename,'') as give_out,
+									h.basis,
+									upper(SUBSTR(p_tools_to_propis(sum(COALESCE(p.SUMMPAY,0))),1,1))||
+									lower(SUBSTR(p_tools_to_propis(sum(COALESCE(p.SUMMPAY,0))),2)) as summ_all,
+									h.attachment
+								from  cashpayment_header h    -- Расходные кассовые документы  
+								inner join cashdocs c on c.id = h.cashdocsid
+								inner join jurpersons j on j.id = c.jurpersonsid          -- Принадлежность
+								left join electcommittee e on e.id = j.electcommitteeid     
+								left join cashpayment p on p.cashpaymentheaderid = h.id  -- РКО Расшифровка платежа    
+								left join typicalopers t on t.id = p.typicalopersid      -- Типовые операции    
+								left join typicaloperspec ts on ts.typicalopersid = t.id -- Проводка типовой операции    
+								inner join dicaccs d on d.id = ts.accountdtid             -- План счетов для дебета
+								inner join dicaccs rd on rd.id = d.hid                    -- Родственник счета дебета
+								inner join dicaccs rdd on rdd.id = rd.id                  -- Родственник счета родственника счета дебета
+								inner join dicaccs k on k.id = ts.accountktid and k.accbalance = '1'             -- План счетов для кредита  
+								left join person f on f.id = h.personid                  -- Физические лица 
+								where h.id = ${id}::bigint
+								group by e.name,
+										h.docnumb,
+										d2s(h.docdate),
+										rdd.accnumb,
+										k.accnumb,
+										COALESCE(f.datsurname,'')||' '||COALESCE(f.datfirstname,'')||' '||COALESCE(f.datmiddlename,''),
+										h.basis,
+										h.attachment) tbl 
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
