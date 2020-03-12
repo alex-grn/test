@@ -78,13 +78,13 @@
 		</A>
 		<A id="ENACTMENTARTICLEID" name="Статья" caption="Статья" labelwidth="300" type="ref" table="ENACTMENTARTICLE" ret="CODE" form="Enactment" nulls="true"/>
 		<A id="STATUSEAF" name="Статус штрафа" caption="Статус" labelwidth="300" type="list" nulls="false" readonly="true" value="0">
-			<AI id="0" name="новый"/>
-			<AI id="1" name="не вступил в силу"/>
-			<AI id="2" name="вступил в силу"/>
-			<AI id="3" name="передан в суд"/>
-			<AI id="4" name="передан судебным приставам"/>
-			<AI id="5" name="отменен (списан)"/>
-			<AI id="6" name="оплачен"/>
+			<AI id="0" name="новый" actionlist="StatusTo1" />
+			<AI id="1" name="не вступил в силу" actionlist="StatusTo2;StatusTo3;PaySelect;CancelLastOperation" />
+			<AI id="2" name="вступил в силу" actionlist="StatusTo3;StatusTo4;PaySelect;CancelLastOperation" />
+			<AI id="3" name="передан в суд" actionlist="StatusTo1;StatusTo2;PaySelect;CancelLastOperation" />
+			<AI id="4" name="передан судебным приставам" actionlist="StatusTo3;PaySelect;CancelLastOperation" />
+			<AI id="5" name="отменен (списан)" actionlist="PaySelect;CancelLastOperation" />
+			<AI id="6" name="оплачен" actionlist="CancelLastOperation" />
 		</A>
 		<A id="TYPEOFFENDER" name="Тип правонарушителя" caption="Тип правонарушителя" labelwidth="300" type="list" nulls="false">
 			<AI id="0" name="Физическое лицо"/>
@@ -185,6 +185,8 @@
 		</TABLE>
 		<TABLE id="OWNER" name="Принадлежность" hid="CODE">
 			<GA id="DictionaryNote"/>
+			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="500" type="ref" table="AGENT" ret="CODE" form="Agent"/>
+			<A id="RCCODE" name="Код региона КНД" caption="Код региона КНД" type="string" len="2" nulls="true" local="true"/>
 			<TI unique="CODE"/>
 		</TABLE>
 		<TABLE id="ENACTMENT" name="Законы и иные нормативные правовые акты">
@@ -285,6 +287,8 @@
 		<TABLE id="INFOPAYDOC" name="Обработка и детализация платежей">
 		<TABS>
 		<TAB name="Платеж">
+		<A id="DOCLINKS_IN" />
+		<A id="DOCLINKS_OUT" />
 		<GA name="Информация для подбора начисления">
 			<GA name="Реквизиты платежа" caption="Реквизиты платежа">
 				<A id="OWNERID" name="Принадлежность" labelwidth="100" width="40" nulls="false"/>
@@ -376,6 +380,8 @@
 				</A>
 				<A id="DOCZLINK" name="Связанный документ" caption="Связанный документ" labelwidth="150" width="100" type="string" nulls="true" local="true"/>
 				<A id="DATE_EXP" name="Дата выгрузки в контрольно-надзорную систему" caption="Дата выгрузки в контрольно-надзорную систему" labelwidth="150" width="100" type="date" nulls="true" local="true"/>
+				<A id="DOCLINKS_IN" />
+				<A id="DOCLINKS_OUT" />
 			</TAB>
 			</TABS>
 			<TI id="iJOURNALPAYS_UK" unique="OWNERID,INFOPAYDOCID,INFOPAYDOCDETAILID"/>
@@ -480,6 +486,8 @@
 				<A id="KPP_ADB" name="КПП АДБ" caption="КПП АДБ" type="string" len="9" nulls="true" visible="form" local="true"/>
 			</GA>
 			<A id="NOTE" name="Примечание" caption="Примечание" type="text" len="254" nulls="true" visible="form" local="true"/>
+			<A id="DOCLINKS_IN" />
+			<A id="DOCLINKS_OUT" />
 			<TI id="iSTATEMENTADBDONE_UK" unique="GUID,KBK,ADD_KLASS,KOD_DOC,NOM_DOC,DATE_DOC"/>
 		</TABLE>
 		<TABLE id="STATEMENTPBSTTL" name="Выписка получателя бюджетных средств (временное распоряжение)">
