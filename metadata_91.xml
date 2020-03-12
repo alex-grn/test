@@ -17,6 +17,7 @@
 			<MENU name="Выписки">
 				<MI name="Выписки администратора доходов бюджета" formlist="Statementadb"/>
 				<MI name="Выписки получателя во временное распоряжение" formlist="Statementpbsttl"/>
+				<MI name="Выписки получателя бюджетных средств" formlist="Statementpbs"/>
 			</MENU>
 			<MENU name="Документы ФК">
 				<MI name="Запросы на уточнение" formlist="Refinereq"/>
@@ -125,16 +126,17 @@
 		<A id="INFOPAYDOCID" name="Платежи" caption="Платежи" labelwidth="300" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" form="Infopaydoc"/>
 		<A id="JOURNALPAYSID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYS" ret="INFOPAYDOCID" form="Journalpays"/>
 		<A id="INFOPAYDOCDETAILID" name="Детализация платежа" caption="Детализация платежа" labelwidth="300" type="ref" pid="INFOPAYDOCID" table="INFOPAYDOCDETAIL" ret="RRNUM" form="Infopaydoc"/>
-		<A id="STATEMENTADBID" name="Выписки и реестры платежей" caption="Выписки и реестры платежей" labelwidth="300" type="ref" table="STATEMENTADB" ret="GUID_FK" form="Statementadb"/>
-		<A id="STATEMENTPBSTTLID" name="Выписки ПБС (временное)" caption="Выписки ПБС (временное)" labelwidth="300" type="ref" table="STATEMENTPBSTTL" ret="GUID_FKTTL" form="Statementpbsttl"/>
+		<A id="STATEMENTADBID" name="Выписки и реестры платежей" caption="Выписки и реестры платежей" labelwidth="300" type="ref" table="STATEMENTADB" ret="GUID_FK_ADB" form="Statementadb"/>
+		<A id="STATEMENTPBSTTLID" name="Выписки ПБС (временное)" caption="Выписки ПБС (временное)" labelwidth="300" type="ref" table="STATEMENTPBSTTL" ret="GUID_FK_TTL" form="Statementpbsttl"/>
+		<A id="STATEMENTPBSID" name="Выписки ПБС" caption="Выписки ПБС" labelwidth="300" type="ref" table="STATEMENTPBS" ret="GUID_FK_PBS" form="Statementpbs"/>
 		<A id="STATEMENTPBSTTLDONEID" name="Информация по исполненным операциям" caption="Информация по исполненным операциям" labelwidth="300" type="ref" pid="STATEMENTPBSTTLID" table="STATEMENTPBSTTLDONE" ret="GUIDTTL"/>
 		<A id="STATEMENTADBDONEID" name="Информация по исполненным операциям" caption="Информация по исполненным операциям" labelwidth="300" type="ref" pid="STATEMENTADBID" table="STATEMENTADBDONE" ret="GUID"/>
-		<A id="REFINEREQID" name="Запросы на уточнение вида и принадлежности платежа" caption="Запросы на уточнение вида и принадлежности платежа" labelwidth="300" type="ref" table="REFINEREQ" ret="GUID_FK" form="Refinereq"/>
+		<A id="REFINEREQID" name="Запросы на уточнение вида и принадлежности платежа" caption="Запросы на уточнение вида и принадлежности платежа" labelwidth="300" type="ref" table="REFINEREQ" ret="GUID_FK_ZF" form="Refinereq"/>
 		<A id="REFINEREQPPID" name="Информация о платежном документе" caption="Информация о платежном документе" labelwidth="300" type="ref" pid="REFINEREQID" table="REFINEREQPP" ret="GUID"/>
 		<A id="REFINENOTIFID" name="Уведомление об уточнении вида и принадлежности платежа" caption="Уведомление об уточнении вида и принадлежности платежа" labelwidth="300" type="ref" table="REFINENOTIF" ret="NOM_UF" form="Refinenotif"/>
 		<A id="REFINENOTIFPPID" name="Реквизиты уточняемого платежного документа" caption="Реквизиты уточняемого платежного документа" labelwidth="300" type="ref" pid="REFINENOTIFID" table="REFINENOTIFPP" ret="LINE_NOM"/>
 		<A id="REFINENOTIFNEWID" name="Новые реквизиты платежного документа" caption="Новые реквизиты платежного документа" labelwidth="300" type="ref" pid="REFINENOTIFPPID" table="REFINENOTIFNEW" ret="LINE_NOM"/>
-		<A id="RETURNREQID" name="Заявки на возврат" caption="Заявки на возврат" labelwidth="300" type="ref" table="RETURNREQ" ret="GUID_FK" form="Returnreq"/>
+		<A id="RETURNREQID" name="Заявки на возврат" caption="Заявки на возврат" labelwidth="300" type="ref" table="RETURNREQ" ret="GUID_FK_ZV" form="Returnreq"/>
 		<A id="RETURNREQDOCID" name="Реквизиты заявки на возврат" caption="Реквизиты заявки на возврат" labelwidth="300" type="ref" pid="RETURNREQID" table="RETURNREQDOC" ret=""/>
 		<A id="RETURNREQOSNID" name="Реквизиты документа-основания" caption="Реквизиты документа-основания" labelwidth="300" type="ref" pid="RETURNREQID" table="RETURNREQOSN" ret=""/>
 		<A id="RETURNREQPOLID" name="Реквизиты получателя" caption="Реквизиты получателя" labelwidth="300" type="ref" pid="RETURNREQID" table="RETURNREQPOL" ret=""/>
@@ -307,7 +309,7 @@
 			</GA>
 			<GA name="Данные о проведении" caption="Данные о проведении">
 				<A id="DOC_DATE_STATE" name="Дата" caption="Дата" labelwidth="100" width="39" type="date" nulls="true" virtual="true" formula="(select DATE_OTCH from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
-				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="90" width="61" type="string" virtual="true" formula="(select GUID_FK from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="90" width="61" type="string" virtual="true" formula="(select GUID_FK_ADB from STATEMENTADB where id = (select STATEMENTADBID from STATEMENTADBDONE where id = @STATEMENTADBDONEID))" local="true" />
 			</GA>
 			<GA name="Данные о плательщике" caption="Данные о плательщике">
 			<A id="CNAMEPAY" name="Наименование" caption="Наименование" labelwidth="100" width="100" type="string" virtual="true" formula="select CNAME_PAY from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true" />
@@ -361,7 +363,7 @@
 				<A id="INFOPAYDOCID" name="GUID операции" caption="GUID операции" labelwidth="150" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" local="true"/>
 				<A id="INFOPAYDOCDETAILID" name="Номер строки реестра" labelwidth="150" form=""/>
 			<GA name="Данные о проведении" caption="Данные о проведении">
-				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" virtual="true" formula="(select GUID_FK from STATEMENTADB where id= (select STATEMENTADBID from STATEMENTADBDONE where id= (select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" virtual="true" formula="(select GUID_FK_ADB from STATEMENTADB where id= (select STATEMENTADBID from STATEMENTADBDONE where id= (select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
 				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" virtual="true" formula="(select DATE_OTCH from STATEMENTADB where id=(select STATEMENTADBID from STATEMENTADBDONE where  id=(select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
 			</GA>
 			<GA name="Данные о плательщике" caption="Данные о плательщике">
@@ -402,7 +404,7 @@
 			</A>
 			<A id="KOD_UBP" name="Код УБП" caption="Код УБП" labelwidth="55" width="30" type="string" len="8" nulls="true" local="true"/>
 			<A id="NAME_UBP" name="Наименование УБП" caption="Наименование" labelwidth="100" width="100" type="string" len="2000" nulls="true" visible="form" local="true"/>
-			<A id="GUID_FK" name="GUID" caption="GUID выписки" type="string" len="36" nulls="false" visible="form" local="true"/>
+			<A id="GUID_FK_ADB" name="GUID" caption="GUID выписки" type="string" len="36" nulls="false" visible="form" local="true"/>
 			<A id="LS_ADB" name="№ лицевого счета" caption="№ счета" width="34" type="string" len="20" nulls="false" value="0" local="true"/>
 			<A id="DATE_OTCH" name="Дата выписки" caption="Дата выписки" width="33" type="date" nulls="true" local="true"/>
 			<A id="DATE_OLD" name="Дата предыдущей выписки" caption="Дата предыдущей выписки" width="33" type="date" nulls="true" local="true"/>
@@ -416,7 +418,7 @@
 			<A id="SUM_IN_ITOG_V" name="Итоговая сумма поступлений" caption="Сумма поступлений" labelwidth="100" width="34" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="SUM_OUT_ITOG_V" name="Итоговая сумма возвратов" caption="Сумма возвратов" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="SUM_ZACH_ITOG_V" name="Итоговая сумма зачетов" caption="Сумма зачетов" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
-			<TI id="iSTATEMENTADB_UK" unique="GUID_FK,LS_ADB,DATE_OTCH,VID_OTCH"/>
+			<TI id="iSTATEMENTADB_UK" unique="GUID_FK_ADB,LS_ADB,DATE_OTCH,VID_OTCH"/>
 		</TABLE>
 		<TABLE id="STATEMENTADBDONE" name="Информация по исполненным операциям">
 			<A id="STATEMENTADBID" parentkey="cascade"/>
@@ -506,7 +508,7 @@
 			</A>
 			<A id="KOD_UBP" name="Код УБП" caption="Код УБП" labelwidth="55" width="30" type="string" len="8" nulls="true" local="true"/>		
 			<A id="NAME_UBP" name="Наименование УБП" caption="Наименование" labelwidth="100" width="100" type="string" len="2000" nulls="true" visible="form" local="true"/>
-			<A id="GUID_FKTTL" name="GUID" caption="GUID выписки" labelwidth="100" width="100" type="string" len="36" nulls="false" visible="form" local="true"/>
+			<A id="GUID_FK_TTL" name="GUID" caption="GUID выписки" labelwidth="100" width="100" type="string" len="36" nulls="false" visible="form" local="true"/>
 			<A id="LS_UBP" name="№ лицевого счета" caption="№ счета" width="50" type="string" len="20" nulls="false" value="0" local="true"/>			
 			<A id="DATE_OTCH" name="Дата выписки" caption="Дата выписки" width="25" type="date" nulls="true" local="true"/>
 			<A id="DATE_OLD" name="Дата предыдущей выписки" caption="Дата предыдущей выписки" width="25" type="date" nulls="true" local="true"/>
@@ -550,7 +552,7 @@
 		</TABLE>
 		<TABLE id="REFINEREQ" name="Запросы на уточнение вида и принадлежности платежа">
 		<GA name="Запрос" caption="Запрос">
-			<A id="GUID_FK" name="GUID запроса" caption="GUID запроса" type="string" nulls="true" local="true"/>
+			<A id="GUID_FK_ZF" name="GUID запроса" caption="GUID запроса" type="string" nulls="true" local="true"/>
 			<A id="NOM_ZF" name="Номер" caption="Номер" type="string" len="15" nulls="true" local="true"/>
 			<A id="DATE_ZF" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
 			</GA>
@@ -660,7 +662,7 @@
 		<TABS>
 		<TAB name="Общие данные">
 			<GA name="Уведомление" caption="Уведомление">
-			<A id="GUID_FK" name="GUID" caption="GUID" type="string" labelwidth="50" width="50" nulls="true" local="true"/>
+			<A id="GUID_FK_UV" name="GUID" caption="GUID" type="string" labelwidth="50" width="50" nulls="true" local="true"/>
 			<A id="NOM_UF" name="Номер" caption="Номер" labelwidth="50" width="30" type="string" len="15" nulls="true" local="true"/>
 			<A id="DATE_UF" name="Дата" caption="Дата" labelwidth="50" width="20" type="date" nulls="true" local="true"/>
 			</GA>
@@ -812,7 +814,7 @@
 		<TABS>
 		<TAB name="Заявка на возврат">
 			<GA name="Реквизиты" caption="Реквизиты">
-			<A id="GUID_FK" name="GUID заявки" caption="GUID заявки" type="string" nulls="true" local="true"/>
+			<A id="GUID_FK_ZV" name="GUID заявки" caption="GUID заявки" type="string" nulls="true" local="true"/>
 			<A id="NOM_ZV" name="Номер" caption="Номер" type="string" len="15" nulls="true" local="true"/>
 			<A id="DATE_ZV" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
 			</GA>
@@ -898,6 +900,141 @@
 			<A id="FORMDESCRIPT" name="Описание формата" caption="Описание формата" type="text" nulls="true" local="true"/>
 			<A id="STATUS" name="Загружено в раздел" caption="Загружено в раздел" type="boolean" nulls="true" local="true"/>
 		</TABLE>
+		<TABLE id="STATEMENTPBS" name="Выписка получателя бюджетных средств">
+		<TABS>
+			<TAB name="Основные реквизиты">
+			<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" type="string" nulls="true" visible="form" local="true" />
+			<A id="KOD_UBP" name="Код клиента" caption="Код клиента" type="string" len="8" nulls="true" local="true" />
+			<A id="NAME_UBP" name="Наименование клиента" caption="Наименование клиента" type="string" len="2000" nulls="true" local="true" />
+			<A id="GUID_FK_PBS" name="Глобальный уникальный идентификатор" caption="Глобальный уникальный идентификатор" type="string" len="36" nulls="true" local="true" />
+			<A id="LS" name="№ лицевого счета" caption="№ лицевого счета" type="string" nulls="true" local="true" />
+			<A id="DATE_OTCH" name="Дата выписки" caption="Дата выписки" type="date" nulls="true" local="true" />
+			<A id="DATE_OLD" name="Дата предыдущей выписки" caption="Дата предыдущей выписки" type="date" nulls="true" local="true" />
+			<A id="VID_OTCH" name="Тип отчета" caption="Тип отчета" width="35" type="list" local="true">
+				<AI id="0" name="Итоговый"/>
+				<AI id="1" name="Промежуточный"/>
+			</A>
+			<A id="KOD_TOFK" name="Код ОрФК по КОФК" caption="Код ОрФК по КОФК" type="string" nulls="true" visible="form" local="true" />
+			<A id="NAME_TOFK" name="Наименование ТОФК" caption="Наименование ТОФК" type="string" nulls="true" visible="form" local="true" />
+			<A id="NAME_BUD" name="Наименование бюджета" caption="Наименование бюджета" type="string" nulls="true" visible="form" local="true" />
+			<A id="OKTMO" name="Код по ОКТМО" caption="Код по ОКТМО" type="string" nulls="true" local="true" />
+			<A id="OKPO_FO" name="Код по ОКПО" caption="Код по ОКПО" type="string" nulls="true" visible="form" local="true" />
+			<A id="NAME_UBP_FO" name="Финансовый орган" caption="Финансовый орган" type="string" nulls="true" visible="form" local="true" />
+			<A id="GLAVA_GRBS" name="Глава по БК" caption="Глава по БК" type="string" nulls="true" local="true" />
+			<A id="NAME_GRBS" name="ГРБС" caption="ГРБС" type="string" nulls="true" visible="form" local="true" />
+			<GA name="Ответственный исполнитель в ФК" caption="Ответственный исполнитель в ФК" >
+			<A id="DOL_ISP_TOFK" name="Должность" caption="Должность" type="string" nulls="true" visible="form" local="true" />
+			<A id="NAME_ISP_TOFK" name="ФИО" caption="ФИО" type="string" nulls="true" visible="form" local="true" />
+			<A id="TEL_ISP_TOFK" name="Телефон" caption="Телефон" type="string" nulls="true" visible="form" local="true" />
+			</GA>			
+			<A id="DATE_POD" name="Дата формирования" caption="Дата формирования" type="date" nulls="true" local="true" />
+			</TAB>
+			<TAB name="Операции с бюджетными данными">
+			<GA name="Остатки" caption="Остатки">
+			<GA name="Бюджетные ассигнования" caption="Бюджетные ассигнования" >
+			<A id="SUM_AS_N" name="На текущий финансовый год на начало дня" caption="На текущий год на начало дня" type="number" width="34" nulls="true" visible="form" local="true" />
+			<A id="SUM_AS1_N" name="На первый год планового периода на начало дня" caption="На первый год на начало дня" type="number"  width="33" nulls="true" visible="form" local="true" />
+			<A id="SUM_AS2_N" name="На второй год планового периода на начало дня" caption="На второй год на начало дня" type="number"  width="33" nulls="true" visible="form" local="true" />
+			<A id="SUM_AS_K" name="На текущий финансовый год на конец дня" caption="На текущий год на конец дня"  type="number"  width="34" nulls="true" visible="form" local="true" />
+			<A id="SUM_AS1_K" name="На первый год планового периода на конец дня" caption="На первый год на конец дня"  type="number"  width="33" nulls="true" visible="form" local="true" />
+			<A id="SUM_AS2_K" name="На второй год планового периода на конец дня" caption="На второй год на конец дня" type="number"  width="33" nulls="true" visible="form" local="true" />			
+			</GA>
+			<GA name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств">
+			<A id="SUM_LBO_N" name="На текущий год на начало дня" caption="На текущий год на начало дня" type="number" nulls="true" width="34" visible="form" local="true" />
+			<A id="SUM_LBO1_N" name="На первый год на начало дня" caption="На первый год на начало дня" type="number" nulls="true" width="33" visible="form" local="true" />
+			<A id="SUM_LBO2_N" name="На второй год на начало дня" caption="На второй год на начало дня" type="number" nulls="true" width="33" visible="form" local="true" />
+			<A id="SUM_LBO_K" name="На текущий год на конец дня" caption="На текущий год на конец дня"  type="number" nulls="true" width="34" visible="form" local="true" />
+			<A id="SUM_LBO1_K" name="На первый год на конец дня" caption="На первый год на конец дня" type="number" nulls="true" width="33" visible="form" local="true" />
+			<A id="SUM_LBO2_K" name="На второй год на конец дня" caption="На второй год на конец дня" type="number" nulls="true" width="33" visible="form" local="true" />
+			</GA>
+			<GA name="Предельные объемы финансирования" caption="Предельные объемы финансирования">
+			<A id="SUM_OF_N" name="На начало дня" caption="На начало дня" type="number" nulls="true" width="50" visible="form" local="true" />
+			<A id="SUM_OF_CR_N" name="С отложенной датой ввода" caption="С отложенной датой ввода" type="number" nulls="true" width="50" visible="form" local="true" />
+			<A id="SUM_OF_K" name="На конец дня" caption="На конец дня" type="number" nulls="true" width="50" visible="form" local="true" />
+			<A id="SUM_OF_CR_K" name="С отложенной датой ввода" caption="С отложенной датой ввода" type="number" nulls="true" width="50" visible="form" local="true" />
+			</GA>
+			</GA>
+			<GA name="Итого" caption="Итого">
+			<GA name="Бюджетные ассигнования" caption="Бюджетные ассигнования" >
+			<A id="TOTAL_AS" name="На текущий год" caption="На текущий год" width="34" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_AS1" name="На первый год" caption="На первый год" width="33" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_AS2" name="На второй год"  caption="На второй год" width="33" type="number" nulls="true" visible="form" local="true" />
+			</GA>
+			<GA name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств">			
+			<A id="TOTAL_LBO" name="На текущий год" caption="На текущий год" width="34" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO1" name="На первый год" caption="На первый год" width="33" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO2" name="На второй год" caption="На второй год" width="33" type="number" nulls="true" visible="form" local="true" />
+			</GA>
+			<GA name="Предельные объемы финансирования" caption="Предельные объемы финансирования">			
+			<A id="TOTAL_OF" name="Доведено всего" caption="Доведено всего" type="number" nulls="true" width="50" visible="form" local="true" />
+			<A id="TOTAL_OF_CR" name="C отложенной датой ввода" caption="C отложенной датой ввода" type="number" nulls="true" width="50" visible="form" local="true" />
+			</GA>
+			<A id="TOTAL_LBO_CR" name="ЛБО за счет связанных кредитов" caption="Итого. ЛБО за счет связанных кредитов" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO_V" name="ЛБО на выплаты в иностранной валюте (в рублевом эквиваленте)" caption="Итого. ЛБО на выплаты в иностранной валюте (в рублевом эквиваленте)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_OF_V" name="ПОФ за исключением выплат в иностранной валюте " caption="Итого. ПОФ за исключением выплат в иностранной валюте (раздел «Операции с бюджетными данными»)" type="number" nulls="true" visible="form" local="true" />
+			</GA>
+			</TAB>
+			<TAB name="Детализированные лимиты бюджетных обязательств">
+			<A id="TOTAL_LBO_DET" name="Итого. ЛБО на текущий финансовый год (раздел «Детализированные лимиты бюджетный обязательств»)" caption="Итого. ЛБО на текущий финансовый год (раздел «Детализированные лимиты бюджетный обязательств»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO1_DET" name="Итого. ЛБО на первый год планового периода (раздел «Детализированные лимиты бюджетный обязательств»)" caption="Итого. ЛБО на первый год планового периода (раздел «Детализированные лимиты бюджетный обязательств»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO2_DET" name="Итого. ЛБО на второй год планового периода (раздел «Детализированные лимиты бюджетный обязательств»)" caption="Итого. ЛБО на второй год планового периода (раздел «Детализированные лимиты бюджетный обязательств»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO_CR_DET" name="Итого. ЛБО за счет связанных кредитов (раздел «Детализированные лимиты бюджетный обязательств»)" caption="Итого. ЛБО за счет связанных кредитов (раздел «Детализированные лимиты бюджетный обязательств»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO_V_DET" name="Итого. ЛБО на выплаты в иностранной валюте (в рублевом эквиваленте) (раздел «Детализированные лимиты бюджетный обязательств»)" caption="Итого. ЛБО на выплаты в иностранной валюте (в рублевом эквиваленте) (раздел «Детализированные лимиты бюджетный обязательств»)" type="number" nulls="true" visible="form" local="true" />
+			</TAB>
+			<TAB name="Операции с бюджетными средствами">
+			<A id="SUM_PBO_N" name="Остатки. Поставленные на учет БО на текущий финансовый год на начало дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поставленные на учет БО на текущий финансовый год на начало дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO_K" name="Остатки. Поставленные на учет БО на текущий финансовый год на конец дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поставленные на учет БО на текущий финансовый год на конец дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO1_N" name="Остатки. Поставленные на учет БО на первый год планового периода на начало дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поставленные на учет БО на первый год планового периода на начало дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO1_K" name="Остатки. Поставленные на учет БО на первый год планового периода на конец дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поставленные на учет БО на первый год планового периода на конец дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO2_N" name="Остатки. Поставленные на учет БО на второй год планового периода на начало дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поставленные на учет БО на второй год планового периода на начало дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO2_K" name="Остатки. Поставленные на учет БО на второй год планового периода на конец дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поставленные на учет БО на второй год планового периода на конец дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_DO_N" name="Остатки. Поставленные на учет ДО на текущий финансовый год на начало дня (графа 5)" caption="Остатки. Поставленные на учет ДО на текущий финансовый год на начало дня (графа 5)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_DO_K" name="Остатки. Поставленные на учет ДО на текущий финансовый год на конец дня (графа 5)" caption="Остатки. Поставленные на учет ДО на текущий финансовый год на конец дня (графа 5)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_IN_N" name="Остатки. Поступления на начало дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поступления на начало дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_IN_K" name="Остатки. Поступления на конец дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Поступления на конец дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_OUT_N" name="Остатки. Выплаты на начало дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Выплаты на начало дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_OUT_K" name="Остатки. Выплаты на конец дня (раздел «Операции с бюджетными средствами»)" caption="Остатки. Выплаты на конец дня (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_IN_BUD" name="Итого. Поступления в валюте РФ (раздел «Операции с бюджетными средствами»)" caption="Итого. Поступления в валюте РФ (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_IN_R_BUD" name="Всего. Сумма поступлений в рублевом эквиваленте (раздел «Операции с бюджетными средствами»)" caption="Всего. Сумма поступлений в рублевом эквиваленте (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_OUT_BUD" name="Итого. Выплаты в валюте РФ (раздел «Операции с бюджетными средствами»)" caption="Итого. Выплаты в валюте РФ (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_OUT_R_BUD" name="Всего. Сумма выплат в рублевом эквиваленте (раздел «Операции с бюджетными средствами»)" caption="Всего. Сумма выплат в рублевом эквиваленте (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_PBO_BUD" name="Итого. Поставленные на учет БО на текущий финансовый год (раздел «Операции с бюджетными средствами»)" caption="Итого. Поставленные на учет БО на текущий финансовый год (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_PBO1_BUD" name="Итого. Поставленные на учет БО на первый год планового периода (раздел «Операции с бюджетными средствами»)" caption="Итого. Поставленные на учет БО на первый год планового периода (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_PBO2_BUD" name="Итого. Поставленные на учет БО на второй год планового периода (раздел «Операции с бюджетными средствами»)" caption="Итого. Поставленные на учет БО на второй год планового периода (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_VIPL_VS_RUB" name="Всего. Поставленные на учет БО в иностранной валюте. Выплаты в рублевом эквиваленте на текущий финансовый год (раздел «Операции с бюджетными средствами»)" caption="Всего. Поставленные на учет БО в иностранной валюте. Выплаты в рублевом эквиваленте на текущий финансовый год (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_VIPL_VS_Y1" name="Всего. Поставленные на учет БО в иностранной валюте. Выплаты в рублевом эквиваленте на первый год планового периода (раздел «Операции с бюджетными средствами»)" caption="Всего. Поставленные на учет БО в иностранной валюте. Выплаты в рублевом эквиваленте на первый год планового периода (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_VIPL_VS_Y2" name="Всего. Поставленные на учет БО в иностранной валюте. Выплаты в рублевом эквиваленте на второй год планового периода (раздел «Операции с бюджетными средствами»)" caption="Всего. Поставленные на учет БО в иностранной валюте. Выплаты в рублевом эквиваленте на второй год планового периода (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_DO_RUB" name="Всего. Поставленные на учет денежные обязательства в валюте РФ на текущий финансовый год (раздел «Операции с бюджетными средствами»)" caption="Всего. Поставленные на учет денежные обязательства в валюте РФ на текущий финансовый год (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_DO_IVAL" name="Всего. Поставленные на учет денежные обязательства в иностранной валюте на текущий финансовый год (раздел «Операции с бюджетными средствами»)" caption="Всего. Поставленные на учет денежные обязательства в иностранной валюте на текущий финансовый год (раздел «Операции с бюджетными средствами»)" type="number" nulls="true" visible="form" local="true" />
+			</TAB>
+			<TAB name="Операции за счет дополнительного бюджетного финансирования">
+			<A id="SUM_N_AR" name="Остатки. Источник ДБФ на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. Источник ДБФ на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_K_AR" name="Остатки. Источник ДБФ на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. Источник ДБФ на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_LBO_N_AR" name="Остатки. ЛБО на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. ЛБО на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_LBO_K_AR" name="Остатки. ЛБО на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. ЛБО на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_OF_N_AR" name="Остатки. ПОФ на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. ПОФ на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_OF_K_AR" name="Остатки. ПОФ на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. ПОФ на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO_N_AR" name="Остатки. БО на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. БО на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_PBO_K_AR" name="Остатки. БО на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. БО на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_DO_N_AR" name="Остатки. ДО на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. ДО на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_DO_K_AR" name="Остатки. ДО на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. ДО на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_IN_N_AR" name="Остатки. Поступления на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. Поступления на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_IN_K_AR" name="Остатки. Поступления на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. Поступления на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_OUT_N_AR" name="Остатки. Выплаты на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. Выплаты на начало дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="SUM_OUT_K_AR" name="Остатки. Выплаты на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Остатки. Выплаты на конец дня (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_LBO_AR" name="Итого. ЛБО (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Итого. ЛБО (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_OF_AR" name="Итого. ПОФ (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Итого. ПОФ (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_PBO_AR" name="Итого. БО на текущий финансовый год (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Итого. БО на текущий финансовый год (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_PDO_AR" name="Итого. ДО на текущий финансовый год (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Итого. ДО на текущий финансовый год (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_IN_AR" name="Итого. Поступления (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Итого. Поступления (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_OUT_AR" name="Итого. Выплаты (раздел «Операции за счет дополнительного бюджетного финансирования»)" caption="Итого. Выплаты (раздел «Операции за счет дополнительного бюджетного финансирования»)" type="number" nulls="true" visible="form" local="true" />
+			</TAB>
+			<TAB name="Источники дополнительного бюджетного финансирования (справочно)">
+			<A id="TOTAL_IN_AR_DOP" name="Итого. Поступления в бюджет (раздел «Источники дополнительного бюджетного финансирования (справочно)»)" caption="Итого. Поступления в бюджет (раздел «Источники дополнительного бюджетного финансирования (справочно)»)" type="number" nulls="true" visible="form" local="true" />
+			<A id="TOTAL_OUT_AR_DOP" name="Итого. Выплаты из бюджета (раздел «Источники дополнительного бюджетного финансирования (справочно)»)" caption="Итого. Выплаты из бюджета (раздел «Источники дополнительного бюджетного финансирования (справочно)»)" type="number" nulls="true" visible="form" local="true" />
+			</TAB>
+		</TABS>
+	</TABLE>	
 	</TABLES>
 	<ACTIONS name="Действия">
 		<COMMENT name="Действия для модуля Администрирование штрафов"/>
@@ -1038,7 +1175,21 @@
 			<GRID id="Statementadbdone" name="Информация по исполненным операциям администратора доходов бюджета" table="STATEMENTADBDONE" actionlist="TakeToWork;Verification"/>
 		</TAB>
 		</TABS>
-		</FORM>
+		</FORM>		
+		<FORM id="Statementpbs" name="Выписки">
+		<TABS>
+		<TAB name="Выписки">
+			<GRID id="Statementpbs" name="Выписки получателя бюджетных средств" table="STATEMENTPBS"/>
+		</TAB>
+		<!-- <TAB name="Исполненные операции"> -->
+<!-- 		<A id="IDENTSTATEVIRT" name="Выписка" caption="Выписка" labelwidth="70" width="15" type="date" readonly="true" virtual="true" formula="select DATE_OTCH from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+		<A id="SUM_IN_ITOG_VIRT" name="Поступило" caption="Поступило" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_IN_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+		<A id="SUM_OUT_ITOG_VIRT" name="Возвращено" caption="Возвращено" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_OUT_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true" />
+		<A id="SUM_ZACH_ITOG_VIRT" name="Зачтено" caption="Зачтено" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_ZACH_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true" /> -->
+			<!-- <GRID id="Statementadbdone" name="Информация по исполненным операциям администратора доходов бюджета" table="STATEMENTADBDONE" actionlist="TakeToWork;Verification"/> -->
+		<!-- </TAB> -->
+		</TABS>
+		</FORM>		
 		<FORM id="Statementpbsttl" name="Выписки получателя во временное распоряжение">
 		<TABS>
 		<TAB name="Выписки">
