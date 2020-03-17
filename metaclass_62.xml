@@ -10,6 +10,7 @@
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
 		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
+		<A id="CASHCONTRIBUTIONID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="CASHCONTRIBUTION_HEADER" ret="ID" nulls="false"/>
 		<A id="TRANSACTIONLOGID" name="Журналы операций" caption="Журналы операций" type="ref" table="TRANSACTIONLOG" ret="ID" nulls="false"/>
 		<A id="TRANSACTIONLOG_DOCSID" name="Журнал операций" caption="Журнал операций" type="ref" table="TRANSACTIONLOG_DOCS" ret="ID" nulls="false"/>
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
@@ -223,6 +224,14 @@
 				<A id="PERSONID" labelwidth="80" name="Контрагент" caption="Контрагент" nulls="true"/>
 			</GA>
 			<GA id="TYPICALOPERATION"/>				
+		</TABLE>
+		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
+			<A id="CASHDOCSID" parentkey="cascade"/>
+
+		</TABLE>
+		<TABLE id="CASHCONTRIBUTION" name="Объявления на взнос наличными Расшифровка платежа">
+			<A id="CASHCONTRIBUTIONID" parentkey="cascade"/>
+
 		</TABLE>
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -629,6 +638,16 @@
 						<TAB name="Расшифровка платежа">
 							<A id="CASHRECEIPTHEADERVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Платежная ведомость №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from STATEMENT_HEADER where ID = @STATEMENT_HEADERID" local="true"/>
 							<GRID id="STATEMENTGR" name="Расшифровка платежа" table="STATEMENT"></GRID>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Объявления на взнос наличными">
+					<TABS>
+						<TAB name="Документ">
+							<GRID id="CASHCONTRIBUTIONHEADERGR" name="Расходные кассовые документы" table="CASHCONTRIBUTION_HEADER" reportlist="AccountCashWarrant"></GRID>
+						</TAB>
+						<TAB name="Расшифровка платежа">
+							<GRID id="CASHCONTRIBUTIONGR" name="РКО расшифровка платежа" table="CASHCONTRIBUTION"></GRID>
 						</TAB>
 					</TABS>
 				</TAB>
