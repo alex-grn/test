@@ -318,6 +318,8 @@
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
 				<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, CONTRACTSDOCS cd where cd.id=@CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 			</GA>
+			<A id="DOCLINKS_IN" />
+			<A id="DOCLINKS_OUT" />
 		</TABLE>
 		<TABLE id="ACTSGOODS" name="Спецификация акта юр.лиц">
 			<A id="ACTSDOCSID" parentkey="cascade"/>
@@ -330,13 +332,10 @@
 				<A id="STAGEQUANTITY" name="Количество" caption="Количество" type="number" labelwidth="80" width="10" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
 				<A id="QUANTITY" type="number" labelwidth="140" nulls="false" width="50"/>
 				<A id="SUMM" type="number" len="8.2" nulls="true" labelwidth="50" width="50"/>
-				<A id="TYPEEXPID" labelwidth="140"/>
 			</GA>
-		</TABLE>
-		<TABLE id="ACTSOPERATIONS" name="Типовая операция акта юр.лиц">
-			<A id="ACTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSOPERATIONS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
 			<GA id="TYPICALOPERATION"/>
+			<A id="DOCLINKS_IN" />
+			<A id="DOCLINKS_OUT" />
 		</TABLE>
 		<TABLE id="PERS_ACTSDOCS" name="Акты выполненных работ и услуг физ.лиц">
 			<GA name="Документ" caption="Документ">
@@ -351,6 +350,8 @@
 				<A id="TRPERSONID" name="Получатель" caption="Получатель" labelwidth="70" width="50" nulls="true"/>
 				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
 			</GA>
+			<A id="DOCLINKS_IN" />
+			<A id="DOCLINKS_OUT" />
 		</TABLE>
 		<TABLE id="PERS_ACTSGOODS" name="Спецификация акта физ.лица">
 			<A id="PERSACTSDOCSID" parentkey="cascade"/>
@@ -363,13 +364,10 @@
 				<A id="STAGEQUANTITY" name="Количество" caption="Количество" type="number" labelwidth="80" width="10" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
 				<A id="QUANTITY" type="number" labelwidth="140" nulls="false" width="50"/>
 				<A id="SUMM" type="number" len="8.2" nulls="true" labelwidth="50" width="50"/>
-				<A id="TYPEEXPID" labelwidth="140"/>
 			</GA>
-		</TABLE>
-		<TABLE id="PERS_ACTSOPERATIONS" name="Типовая операция акта физ.лица">
-			<A id="PERSACTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSOPERATIONS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
 			<GA id="TYPICALOPERATION"/>
+			<A id="DOCLINKS_IN" />
+			<A id="DOCLINKS_OUT" />
 		</TABLE>
 		<TABLE id="INVENTORY" name="Поступление МЗ избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -632,10 +630,6 @@
 							<A id="ATCSVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Акт выполнения работ/оказания услуг №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from ACTSDOCS where ID = @ACTSDOCSID" local="true"/>
 							<GRID id="ActsGoodsGR" name="Номенклатура" table="ACTSGOODS"/>
 						</TAB>
-						<TAB name="Типовая операция">
-							<A id="ATCSVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Акт выполнения работ/оказания услуг №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from ACTSDOCS where ID = @ACTSDOCSID" local="true"/>
-							<GRID id="ActsOperationsGR" name="Типовая операция" table="ACTSOPERATIONS"/>
-						</TAB>
 					</TABS>
 				</TAB>
 				<TAB name="Акты выполненных работ и услуг физических лиц">
@@ -646,10 +640,6 @@
 						<TAB name="Номенклатура">
 							<A id="ATCSVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Акт выполнения работ/оказания услуг №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from PERS_ACTSDOCS where ID = @PERS_ACTSDOCSID" local="true"/>
 							<GRID id="PersActsGoodsGR" name="Номенклатура" table="PERS_ACTSGOODS"/>
-						</TAB>
-						<TAB name="Типовая операция">
-							<A id="ATCSVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Акт выполнения работ/оказания услуг №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from PERS_ACTSDOCS where ID = @PERS_ACTSDOCSID" local="true"/>
-							<GRID id="PersActsOperationsGR" name="Типовая операция" table="PERS_ACTSOPERATIONS"/>
 						</TAB>
 					</TABS>
 				</TAB>					
