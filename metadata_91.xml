@@ -94,6 +94,7 @@
 			<AI id="1" name="Юридическое лицо"/>
 		</A>
 		<A id="FINEID" name="Администрирование штрафов" caption="Администрирование штрафов" labelwidth="300" type="ref" table="FINE" ret="DOCNUMB" form="Fine" nulls="true"/>
+		<A id="FINEBUFFID" name="Администрирование штрафов(верификация)" caption="Администрирование штрафов(верификация)" labelwidth="300" type="ref" table="FINEBUFF" ret="DOCNUMB" nulls="true"/>
 		<A id="TYPECHANGEFINE" name="Статус документа" caption="Статус документа" labelwidth="300" type="list" nulls="false" readonly="true" value="0">
 			<AI id="0" name="не определено"/>
 			<AI id="1" name="новое"/>
@@ -125,6 +126,7 @@
 <!-- 		<A id="INFOPAYDOCID" name="Платежи" caption="Платежи" labelwidth="300" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID" form="Infopaydoc"/> -->
 		<A id="INFOPAYDOCID" name="Платежи" caption="Платежи" labelwidth="300" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" form="Infopaydoc"/>
 		<A id="JOURNALPAYSID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYS" ret="INFOPAYDOCID" form="Journalpays"/>
+		<A id="JOURNALPAYSBUFFID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYSBUFF" ret="INFOPAYDOCID"/>
 		<A id="INFOPAYDOCDETAILID" name="Детализация платежа" caption="Детализация платежа" labelwidth="300" type="ref" pid="INFOPAYDOCID" table="INFOPAYDOCDETAIL" ret="RRNUM" form="Infopaydoc"/>
 		<A id="STATEMENTADBID" name="Выписки и реестры платежей" caption="Выписки и реестры платежей" labelwidth="300" type="ref" table="STATEMENTADB" ret="GUID_FK_ADB" form="Statementadb"/>
 		<A id="STATEMENTPBSTTLID" name="Выписки ПБС (временное)" caption="Выписки ПБС (временное)" labelwidth="300" type="ref" table="STATEMENTPBSTTL" ret="GUID_FK_TTL" form="Statementpbsttl"/>
@@ -225,6 +227,72 @@
 			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
 			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - @SUMMPAY " local="true"/>
 			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else null end)" local="true"/>
+		</TABLE>
+		<TABLE id="FINEBUFF" name="Администрирование штрафов">
+			<A id="STATUSEAF" name="Статус штрафа" caption="Статус" labelwidth="300" type="list" nulls="false" readonly="true" value="0" local="true">
+				<AI id="0" name="новый"/>
+				<AI id="1" name="не вступил в силу"/>
+				<AI id="2" name="вступил в силу"/>
+				<AI id="3" name="передан в суд"/>
+				<AI id="4" name="передан судебным приставам"/>
+				<AI id="5" name="отменен (списан)"/>
+				<AI id="6" name="оплачен"/>
+			</A>
+			<A id="OWNERID" name="Принадлежность" nulls="false"/>
+			<A id="OLD_ID" name="ID источника" type="int" visible="false"/>
+			<A id="IDENT" name="IDENT" type="int" nulls="false" visible="false"/>
+			<GA id="Document"/>
+			<A id="JOURNALPAYSBUFFID"/>
+			<A id="UPN" name="УПН" caption="УПН" labelwidth="100" width="50" type="string" nulls="false"/>
+			<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" len="20" nulls="false"/>
+			<A id="BUDGET_VIDID" name="Бюджет" labelwidth="100" width="50" nulls="false"/>
+			<A id="BKD_ID" name="Бюджетная классификация доходов" labelwidth="250" width="50" nulls="false"/>
+			<A id="ENACTMENTARTICLEID" name="Статья" nulls="false"/>
+			<A id="INITIATORIMPOSITION"/>
+			<A id="PERSONID" name="Инспектор" caption="Инспектор" nulls="false"/>
+			<GA id="Offender" name="Правонарушитель" caption="Правонарушитель">
+				<A id="TYPEOFFENDER" labelwidth="150" width="50"/>
+				<A id="CODEOFFENDER" name="Идентификатор правонарушителя" caption="Идентификатор правонарушителя" labelwidth="200" width="50" type="string" nulls="false"/>
+				<A id="OFFENDER" name="Наименование правонарушителя" caption="Наименование правонарушителя" type="text" nulls="true"/>
+			</GA>
+			<A id="SUMMDOC" name="Сумма документа" caption="Сумма документа" labelwidth="200" width="50" type="number" len="17.2" nulls="false" value="0"/>
+			<A id="SUMMCANCEL" name="Сумма отмены/списания" caption="Сумма отмены/списания" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
+			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
+			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - @SUMMPAY" local="true"/>
+			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else 0 end)" local="true"/>
+		</TABLE>
+		<TABLE id="FINEBUFF2" name="Администрирование штрафов" tablename="FINEBUFF">
+			<A id="STATUSEAF" name="Статус штрафа" caption="Статус" labelwidth="300" type="list" nulls="false" readonly="true" value="0" local="true">
+				<AI id="0" name="новый"/>
+				<AI id="1" name="не вступил в силу"/>
+				<AI id="2" name="вступил в силу"/>
+				<AI id="3" name="передан в суд"/>
+				<AI id="4" name="передан судебным приставам"/>
+				<AI id="5" name="отменен (списан)"/>
+				<AI id="6" name="оплачен"/>
+			</A>
+			<A id="JOURNALPAYSBUFFID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYSBUFF2" ret="INFOPAYDOCID" parentkey="cascade" local="true"/>
+			<A id="OWNERID" name="Принадлежность" nulls="false"/>
+			<A id="OLD_ID" name="ID источника" type="int" visible="false"/>
+			<A id="IDENT" name="IDENT" type="int" nulls="false" visible="false"/>
+			<GA id="Document"/>
+			<A id="UPN" name="УПН" caption="УПН" labelwidth="100" width="50" type="string" nulls="false"/>
+			<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" len="20" nulls="false"/>
+			<A id="BUDGET_VIDID" name="Бюджет" labelwidth="100" width="50" nulls="false"/>
+			<A id="BKD_ID" name="Бюджетная классификация доходов" labelwidth="250" width="50" nulls="false"/>
+			<A id="ENACTMENTARTICLEID" name="Статья" nulls="false"/>
+			<A id="INITIATORIMPOSITION"/>
+			<A id="PERSONID" name="Инспектор" caption="Инспектор" nulls="false"/>
+			<GA id="Offender" name="Правонарушитель" caption="Правонарушитель">
+				<A id="TYPEOFFENDER" labelwidth="150" width="50"/>
+				<A id="CODEOFFENDER" name="Идентификатор правонарушителя" caption="Идентификатор правонарушителя" labelwidth="200" width="50" type="string" nulls="false"/>
+				<A id="OFFENDER" name="Наименование правонарушителя" caption="Наименование правонарушителя" type="text" nulls="true"/>
+			</GA>
+			<A id="SUMMDOC" name="Сумма документа" caption="Сумма документа" labelwidth="200" width="50" type="number" len="17.2" nulls="false" value="0"/>
+			<A id="SUMMCANCEL" name="Сумма отмены/списания" caption="Сумма отмены/списания" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
+			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
+			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - @SUMMPAY" local="true"/>
+			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17.2" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else 0 end)" local="true"/>
 		</TABLE>
 		<TABLE id="FINEHISTORY" name="История изменения">
 			<A id="OWNERID" name="Принадлежность" nulls="false" visible="form"/>
@@ -381,6 +449,100 @@
 			</TAB>
 			</TABS>
 			<TI id="iJOURNALPAYS_UK" unique="OWNERID,INFOPAYDOCID,INFOPAYDOCDETAILID"/>
+		</TABLE>
+		<TABLE id="JOURNALPAYSBUFF" name="Журнал платежей">
+			<TABS>
+				<TAB name="Данные о платеже">
+					<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
+					<A id="IDENT" name="IDENT" type="int" nulls="false" visible="false"/>
+					<A id="OLD_ID" name="ID источника" type="int" visible="false"/>
+					<A id="FINEBUFFID" parentkey="cascade" visible="false"/>
+					<A id="STATUSMOVE" name="Признак переноса" caption="Признак переноса" type="list" nulls="false" value="0">
+					<AI id="0" name="Нет"/>
+					<AI id="1" name="Да"/>
+				</A>
+					<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="100" type="list" nulls="true" visible="true" local="true">
+					<AI id="0" name="Строка реестра к платежному поручению с реестром"/>
+					<AI id="1" name="Строка расшифровки платежного поручения"/>
+					<AI id="2" name="Платежное поручение"/>
+					<AI id="3" name="Уведомление (зачет)"/>
+					<AI id="4" name="Возврат"/>
+				</A>
+					<A id="INFOPAYDOCID" name="GUID операции" caption="GUID операции" labelwidth="150" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" local="true"/>
+					<A id="INFOPAYDOCDETAILID" name="Номер строки реестра" labelwidth="150"/>
+					<GA name="Данные о проведении" caption="Данные о проведении">
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" virtual="true" formula="(select GUID_FK_ADB from STATEMENTADB where id= (select STATEMENTADBID from STATEMENTADBDONE where id= (select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
+				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" virtual="true" formula="(select DATE_OTCH from STATEMENTADB where id=(select STATEMENTADBID from STATEMENTADBDONE where  id=(select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
+			</GA>
+					<GA name="Данные о плательщике" caption="Данные о плательщике">
+				<A id="CNAMEPAY" name="Наименование" caption="Наименование" labelwidth="100" width="100" type="string" local="true" />
+				<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="100" width="100" type="text" local="true" />
+				<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" local="true" />
+				<A id="KBK" name="КБК" caption="КБК" labelwidth="100" width="50" type="string" local="true" />
+				<A id="DOCSUM" name="Сумма" caption="Сумма" labelwidth="100" width="50" type="number" local="true" />
+				<A id="OKTMO" name="ОКТМО" caption="ОКТМО" labelwidth="100" width="50" type="string" len="8" nulls="true" local="true"/>
+			</GA>
+				</TAB>
+				<TAB name="Результат отработки">
+					<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
+					<AI id="0" name="Сквитировано"/>
+					<AI id="1" name="Уточнено"/>
+					<AI id="2" name="Возвращено"/>
+					<AI id="3" name="Поступило"/>
+				</A>
+					<A id="DOCZLINK" name="Связанный документ" caption="Связанный документ" labelwidth="150" width="100" type="string" nulls="true" local="true"/>
+					<A id="DATE_EXP" name="Дата выгрузки в контрольно-надзорную систему" caption="Дата выгрузки в контрольно-надзорную систему" labelwidth="150" width="100" type="date" nulls="true" local="true"/>
+					<A id="DOCLINKS_IN" />
+					<A id="DOCLINKS_OUT" />
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JOURNALPAYSBUFF2" name="Журнал платежей" tablename="JOURNALPAYSBUFF">
+			<TABS>
+				<TAB name="Данные о платеже">
+					<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
+					<A id="IDENT" name="IDENT" type="int" nulls="false" visible="false"/>
+					<A id="OLD_ID" name="ID источника" type="int" visible="false"/>
+					<A id="FINEBUFFID" visible="false"/>
+					<A id="STATUSMOVE" name="Признак переноса" caption="Признак переноса" type="list" nulls="false" value="0">
+					<AI id="0" name="Нет"/>
+					<AI id="1" name="Да"/>
+				</A>
+					<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="100" type="list" nulls="true" visible="true" local="true">
+					<AI id="0" name="Строка реестра к платежному поручению с реестром"/>
+					<AI id="1" name="Строка расшифровки платежного поручения"/>
+					<AI id="2" name="Платежное поручение"/>
+					<AI id="3" name="Уведомление (зачет)"/>
+					<AI id="4" name="Возврат"/>
+				</A>
+					<A id="INFOPAYDOCID" name="GUID операции" caption="GUID операции" labelwidth="150" type="ref" table="INFOPAYDOC" ret="STATEMENTADBDONEID_ret" local="true"/>
+					<A id="INFOPAYDOCDETAILID" name="Номер строки реестра" labelwidth="150"/>
+					<GA name="Данные о проведении" caption="Данные о проведении">
+				<A id="STATEMENTADBID" name="GUID выписки" caption="GUID выписки" labelwidth="150" width="100" type="string" virtual="true" formula="(select GUID_FK_ADB from STATEMENTADB where id= (select STATEMENTADBID from STATEMENTADBDONE where id= (select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
+				<A id="DOC_DATE_STATE" name="Дата" caption="Дата проведения" labelwidth="150" width="100" type="date" nulls="true" virtual="true" formula="(select DATE_OTCH from STATEMENTADB where id=(select STATEMENTADBID from STATEMENTADBDONE where  id=(select STATEMENTADBDONEID from INFOPAYDOC where id= @INFOPAYDOCID)))" local="true"/>
+			</GA>
+					<GA name="Данные о плательщике" caption="Данные о плательщике">
+				<A id="CNAMEPAY" name="Наименование" caption="Наименование" labelwidth="100" width="100" type="string" local="true" />
+				<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="100" width="100" type="text" local="true" />
+				<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" local="true" />
+				<A id="KBK" name="КБК" caption="КБК" labelwidth="100" width="50" type="string" local="true" />
+				<A id="DOCSUM" name="Сумма" caption="Сумма" labelwidth="100" width="50" type="number" local="true" />
+				<A id="OKTMO" name="ОКТМО" caption="ОКТМО" labelwidth="100" width="50" type="string" len="8" nulls="true" local="true"/>
+			</GA>
+				</TAB>
+				<TAB name="Результат отработки">
+					<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
+					<AI id="0" name="Сквитировано"/>
+					<AI id="1" name="Уточнено"/>
+					<AI id="2" name="Возвращено"/>
+					<AI id="3" name="Поступило"/>
+				</A>
+					<A id="DOCZLINK" name="Связанный документ" caption="Связанный документ" labelwidth="150" width="100" type="string" nulls="true" local="true"/>
+					<A id="DATE_EXP" name="Дата выгрузки в контрольно-надзорную систему" caption="Дата выгрузки в контрольно-надзорную систему" labelwidth="150" width="100" type="date" nulls="true" local="true"/>
+					<A id="DOCLINKS_IN" />
+					<A id="DOCLINKS_OUT" />
+				</TAB>
+			</TABS>
 		</TABLE>
 		<TABLE id="STATEMENTADB" name="Выписки администратора доходов бюджета">
 			<A id="VID_OTCH" name="Тип отчета" caption="Тип отчета" width="35" type="list" local="true">
@@ -1122,7 +1284,7 @@ MES_FIN -->
 			</FORM>
 		</ACTION>
 		<ACTION id="CancelLastOperation" name="Отменить последнее изменение" type="procedure" procedure="p_action_cancel_lastoperation"/>
-		<ACTION id="PaySelect" name="Подбор оплаты" type="procedure" procedure="p_action_select_pay">
+		<ACTION id="PaySelectFillingBuff" name="Наполнение буферной таблицы подбора оплаты" type="procedure" procedure="p_action_select_pay_fillbuff">
 			<FORM>
 				<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
 				<A id="AOFFENDER" name="Правонарушитель" caption="Правонарушитель" type="boolean" nulls="false" local="true"/>
@@ -1130,6 +1292,25 @@ MES_FIN -->
 				<A id="ANUMFINE" name="Номер постановления" caption="Номер постановления" type="boolean" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="PaySelectBuff" name="Подбор оплаты(форма)" type="procedure" procedure="p_action_select_pay">
+			<FORM name="Подбор оплаты">
+				<GRID name="Администрирование штрафов(верификация)" table="FINEBUFF" readonly="true">
+					<MENU>
+						<MI actionlist="Insert;View"/>
+					</MENU>
+				</GRID>
+				<GRID name="Документы" table="JOURNALPAYSBUFF" readonly="true">
+					<MENU>
+						<MI actionlist="Insert;View"/>
+						<MI actionlist="PaySelectMove;PaySelectNoMove"/>
+					</MENU>
+				</GRID>
+			</FORM>
+		</ACTION>
+		<ACTION id="PaySelect" name="Подбор оплаты" type="script" actionlist="PaySelectFillingBuff;PaySelectBuff"/>
+		<ACTION id="PaySelectBuffClear" name="Подбор оплаты очистка буфера" schedule_period="0" schedule_start="0" type="procedure" procedure="p_action_select_pay_clear"/>
+		<ACTION id="PaySelectMove" name="Переносить" type="procedure" procedure="p_action_select_pay_move"/>
+		<ACTION id="PaySelectNoMove" name="Не переносить" type="procedure" procedure="p_action_select_pay_nomove"/>
 		<COMMENT name="Действия для модуля Администрирование штрафов"/>
 		<COMMENT name="Действия для работы с поступлениями"/>
 		<ACTION id="TakeToWork" name="Взять в работу" type="procedure" procedure="p_action_take_to_work">
@@ -1143,7 +1324,33 @@ MES_FIN -->
 			</A>
 		</FORM>
 		</ACTION>
-		<ACTION id="FineSelect" name="Подбор начисления" type="procedure" procedure="p_action_select_fine"/>
+		<ACTION id="FineSelectFillingBuff" name="Наполнение буферной таблицы подбора начисления" type="procedure" procedure="p_action_select_fine_fillbuff">
+			<FORM>
+				<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
+				<A id="AOFFENDER" name="Правонарушитель" caption="Правонарушитель" type="boolean" nulls="false" local="true"/>
+				<A id="ASUMMDOC" name="Сумма" caption="Сумма" type="boolean" nulls="false" local="true"/>
+				<A id="ANUMFINE" name="Номер постановления" caption="Номер постановления" type="boolean" nulls="false" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="FineSelectBuff" name="Подбор начисления(форма)" type="procedure" procedure="p_action_select_fine">
+			<FORM name="Подбор оплаты">
+				<GRID name="Журнал платежей" table="JOURNALPAYSBUFF2" readonly="true">
+					<MENU>
+						<MI actionlist="Insert;View"/>
+					</MENU>
+				</GRID>
+				<GRID name="Документы" table="FINEBUFF2" readonly="true">
+					<MENU>
+						<MI actionlist="Insert;View"/>
+						<MI actionlist="PaySelectMove;PaySelectNoMove"/>
+					</MENU>
+				</GRID>
+			</FORM>
+		</ACTION>
+		<ACTION id="FineSelect" name="Подбор начисления" type="script" actionlist="FineSelectFillingBuff;FineSelectBuff"/>
+		<ACTION id="FineSelectBuffClear" name="Подбор начисления очистка буфера" schedule_period="0" schedule_start="0" type="procedure" procedure="p_action_select_fine_clear"/>
+		<ACTION id="FineSelectMove" name="Переносить" type="procedure" procedure="p_action_select_fine_move"/>
+		<ACTION id="FineSelectNoMove" name="Не переносить" type="procedure" procedure="p_action_select_fine_nomove"/>
 		<ACTION id="GenUved" name="Сформировать уведомление об уточнении" type="procedure" procedure="p_action_gen_uved"/>
 		<FORM>
 			<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
