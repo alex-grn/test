@@ -127,7 +127,7 @@
 		<A id="JOURNALPAYSID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYS" ret="INFOPAYDOCID" form="Journalpays"/>
 		<A id="JOURNALPAYSBUFFID" name="Журнал платежей" caption="Журнал платежей" labelwidth="300" type="ref" table="JOURNALPAYSBUFF" ret="INFOPAYDOCID"/>
 		<A id="INFOPAYDOCDETAILID" name="Детализация платежа" caption="Детализация платежа" labelwidth="300" type="ref" pid="INFOPAYDOCID" table="INFOPAYDOCDETAIL" ret="RRNUM" form="Infopaydoc"/>
-		<A id="STATEMENTADBID" name="Выписки и реестры платежей" caption="Выписки и реестры платежей" labelwidth="300" type="ref" table="STATEMENTADB" ret="GUID_FK_ADB" form="Statementadb"/>
+		<A id="STATEMENTADBID" name="Выписки АДБ" caption="Выписки АДБ" labelwidth="300" type="ref" table="STATEMENTADB" ret="GUID_FK_ADB" form="Statementadb"/>
 		<A id="STATEMENTPBSTTLID" name="Выписки ПБС (временное)" caption="Выписки ПБС (временное)" labelwidth="300" type="ref" table="STATEMENTPBSTTL" ret="GUID_FK_TTL" form="Statementpbsttl"/>
 		<A id="STATEMENTPBSID" name="Выписки ПБС" caption="Выписки ПБС" labelwidth="300" type="ref" table="STATEMENTPBS" ret="GUID_FK_PBS" form="Statementpbs"/>
 		<A id="STATEMENTPBSTTLDONEID" name="Информация по исполненным операциям" caption="Информация по исполненным операциям" labelwidth="300" type="ref" pid="STATEMENTPBSTTLID" table="STATEMENTPBSTTLDONE" ret="GUIDTTL"/>
@@ -346,7 +346,7 @@
 			<A id="TYPECHANGEFINE" labelwidth="100" width="50"/>
 			<GA id="Document"/>
 			<A id="UPN" name="УПН" caption="УПН" labelwidth="100" width="50" type="string" nulls="true"/>
-			<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="number" len="20" nulls="true" value="0"/>
+			<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" len="20" nulls="true" value="0"/>
 			<A id="BUDGET_VIDID"/>
 			<A id="BKD_ID" name="Бюджетная классификация доходов" labelwidth="300" width="60" nulls="true"/>
 			<A id="ENACTMENTARTICLEID" name="Статья" nulls="true"/>
@@ -463,10 +463,10 @@
 			</TAB>
 			<TAB name="Результат отработки">
 				<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
-					<AI id="0" name="Сквитировано"/>
-					<AI id="1" name="Уточнено"/>
-					<AI id="2" name="Возвращено"/>
-					<AI id="3" name="Поступило"/>
+					<AI id="0" name="Сквитировано" actionlist="DeleteParity" />
+					<AI id="1" name="Уточнено" actionlist="FineSelect;GenUved;GenReturn;ReturnToState;DeleteParity" />
+					<AI id="2" name="Возвращено" actionlist="FineSelect;ReturnToState;DeleteParity" />
+					<AI id="3" name="Поступило" actionlist="FineSelect;GenUved;GenReturn;ReturnToState"/>
 				</A>
 				<A id="DOCZLINK" name="Связанный документ" caption="Связанный документ" labelwidth="150" width="100" type="string" nulls="true" local="true"/>
 				<A id="DATE_EXP" name="Дата выгрузки в контрольно-надзорную систему" caption="Дата выгрузки в контрольно-надзорную систему" labelwidth="150" width="100" type="date" nulls="true" local="true"/>
@@ -1273,7 +1273,7 @@
 			</A>
 			<TI id="iTEMPORDERSGCNTR_UK" unique="OWNERID,DATE_CONCL,NUMB_CONTR,AGENT_ID"/>
 		</TABLE>
- 		<TABLE id="TEMPORDERSGCRECEIPTS" name="Поступления обеспечения государственного контракта">
+ 		<TABLE id="TEMPORDERGCRECEIPTS" name="Поступления обеспечения государственного контракта">
 			<A id="TEMPORDERSGCNTRID" parentkey="cascade"/>
 			<A id="DATE_OTCH" name="Дата выписки" caption="Дата выписки" width="25" type="date" nulls="true" local="true"/>
 			<A id="DOCTYPE" name="Тип документа-подтверждения" caption="Тип документа-подтверждения" type="string" nulls="true" local="true" />	
@@ -1421,7 +1421,7 @@
 		<ACTION id="UnlinkTo" name="Разорвать связь с документом" type="procedure" procedure="p_infopaydoc_unlink_to"/>
 		<ACTION id="ReturnToState" name="Вернуть платёж в Выписку" type="procedure" procedure="p_action_return_to_statement">
 		<FORM>
-		<A id="SURE" name="Вы уверены в том, что хотите удалить строку платежа и все связи?" caption="Вы уверены в том, что хотите удалить строку платежа и все связи? Действие необратимо." type="list">
+		<A id="SURE" name="Действие необратимо. Подтвердить выполнение?" caption="Действие необратимо. Подтвердить выполнение?"  labelwidth="300" type="list">
 		<AI id="NO" name="Нет"/>
 		<AI id="YES" name="Да"/>
 		</A>
@@ -1569,10 +1569,10 @@
 		<FORM id="Tempordersgcntr" name="Обеспечения ГК">
 			<GRID id="Tempordersgcntr" name="Обеспечения ГК" table="TEMPORDERSGCNTR"/>
 			<TABS>
-			<TAB>
+			<TAB name="Поступило обеспечений">
 			<GRID id="Tempordergcreceipts" name="Поступило обеспечений" table="TEMPORDERGCRECEIPTS"/>
 			</TAB>
-			<TAB>
+			<TAB name="Возвращено обеспечений">
 			<GRID id="Tempordergcreturns" name="Возвращено обеспечений" table="TEMPORDERGCRETURNS"/>
 			</TAB>
 			</TABS>
