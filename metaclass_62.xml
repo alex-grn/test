@@ -225,14 +225,24 @@
 			</GA>
 			<GA id="TYPICALOPERATION"/>				
 		</TABLE>
+		
 		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
 			<A id="CASHDOCSID" parentkey="cascade"/>
-
+			<A id="CASHPAYMENTHEADERID"/>
+			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" nulls="false" local="true"/>
+			<A id="DOCDATE" labelwidth="50" width="43"/>
+			<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="50" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" local="true"/>
+			<A id="ELCMTACCID" name="Расчетный счет избирательной комиссии" caption="Расчетный счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
+			<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="49" width="57" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
+			
 		</TABLE>
 		<TABLE id="CASHCONTRIBUTION" name="Объявления на взнос наличными Расшифровка платежа">
 			<A id="CASHCONTRIBUTIONID" parentkey="cascade"/>
 
+			<A id="SUMMPAY" labelwidth="60" width="50"/>
+
 		</TABLE>
+		
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
@@ -261,9 +271,9 @@
 			<A id="ELECTCAMPAIGNID" parentkey="cascade" virtual="true" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
 			<GA name="Получено" caption="Получено">
 				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-				<A id="CASHPAYMENTHEADERID" caption="Кассовый документ" labelwidth="120" pid="ELECTCAMPAIGNID" name="Кассовый документ" width="50"/>
+				<A id="CASHPAYMENTHEADERID" caption="Кассовый документ" labelwidth="120" nulls="true" pid="ELECTCAMPAIGNID" name="Кассовый документ" width="50"/>
 				<A id="SUMMCASH" caption="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="30" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID::BIGINT"/>
-				<A id="PAYDOCSID" caption="Платежное поручение" labelwidth="150" pid="ELECTCAMPAIGNID" name="Платежное поручение" width="70"/>
+				<A id="PAYDOCSID" caption="Платежное поручение" labelwidth="150" nulls="true" pid="ELECTCAMPAIGNID" name="Платежное поручение" width="70"/>
 				<A id="SUMMPAYDOC" caption="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="50" width="30" virtual="true" formula="select round(sum(x.SUMM),2) from PAYDOCSCONS x where x.PAYDOCSID = @PAYDOCSID::BIGINT"/>
 			</GA>
 		</TABLE>
