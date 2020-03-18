@@ -8,9 +8,9 @@
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
-		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMB" nulls="false"/>
-		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMB" nulls="false"/>
-		<A id="CASHCONTRIBUTIONID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="CASHCONTRIBUTION_HEADER" ret="ID" nulls="false"/>
+		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="CODE" nulls="false"/>
+		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="CODE" nulls="false"/>
+		<A id="CASHCONTRIBUTIONID" name="Заголовок объявления о взносе" caption="Заголовок объявления о взносе" type="ref" table="CASHCONTRIBUTION_HEADER" ret="CODE" nulls="false"/>
 		<A id="TRANSACTIONLOGID" name="Журналы операций" caption="Журналы операций" type="ref" table="TRANSACTIONLOG" ret="ID" nulls="false"/>
 		<A id="TRANSACTIONLOG_DOCSID" name="Журнал операций" caption="Журнал операций" type="ref" table="TRANSACTIONLOG_DOCS" ret="ID" nulls="false"/>
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
@@ -138,6 +138,7 @@
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" type="string" labelwidth="120"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
+			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Приходный кассовый ордер №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHRECEIPT_HEADER c where c.id = @ID" local="true"/>
 			<TI id="CASHRECEIPTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="(electdate + interval '30 day') >= DOCDATE and DOCDATE > (electdate - interval '100 day')"/>
 		</TABLE>
 		<TABLE id="CASHRECEIPT" name="ПКО Расшифровка платежа">
@@ -178,6 +179,7 @@
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
+			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Расходный кассовый ордер №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHPAYMENT_HEADER c where c.id = @ID" local="true"/>
 			<TI id="CASHPAYMENTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="((electdate + interval '30 day') >= DOCDATE) and (DOCDATE > (electdate - interval '100 day'))"/>
 			<TI id="STATMENT_CHECK" name="Одновременное заполнение данных физического лица и ведомости недопустимо" check="STATEMENTHEADERID is null or PERSONID is null"/>	
 		</TABLE>
@@ -214,6 +216,7 @@
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
+			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Ведомость на выдачу подотчетным лицам №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from STATEMENT_HEADER c where c.id = @ID" local="true"/>			
 		</TABLE>
 		<TABLE id="STATEMENT" name="Ведомости на выдачу подотчетным лицам (0504501) Расшифровка платежа">
 			<A id="STATEMENTHEADERID" parentkey="cascade"/>
@@ -225,7 +228,6 @@
 			</GA>
 			<GA id="TYPICALOPERATION"/>				
 		</TABLE>
-		
 		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
 			<TABS>
 				<TAB name="Заголовок">
@@ -237,6 +239,7 @@
 					<A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
 					<A id="SUMM" caption="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="100" width="30" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
 					<A id="NOTE" name="Комментарий" caption="Комментарий" labelwidth="100" width="70" type="string" nulls="true" local="true"/>
+					<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Объявление на взнос наличными №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHCONTRIBUTION_HEADER c where c.id = @ID" local="true"/>			
 				</TAB>
 				<TAB name="Отправитель">				
 					<A id="SENDERNAME" name="От кого" caption="От кого" readonly="true" type="string" nulls="true" labelwidth="100" width="100" virtual="true" formula="select name from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
@@ -259,8 +262,8 @@
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="80" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHCONTRIBUTION where CASHCONTRIBUTIONID = @CASHCONTRIBUTIONID and cid=0" local="true"/>
 			<A id="BUDGCLASSID" name="КПС" caption="КПС" labelwidth="80" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false" local="true"/>
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="80" width="50"/>
-			<A id="SUMMPAY" labelwidth="60" width="50"/>
-			<A id="SYMBOL" name="Банковский символ" caption="Расшифровка" labelwidth="80" width="35" type="string" nulls="true" local="true"/>
+			<A id="SUMMPAY" name="Сумма" caption="Сумма" labelwidth="60" width="50"/>
+			<A id="SYMBOL" name="Банковский символ" caption="Банковский символ" labelwidth="80" width="35" type="string" nulls="true" local="true"/>
 			<A id="NOTE" name="Расшифровка" caption="Расшифровка" labelwidth="80" width="65" type="string" nulls="true" local="true"/>
 		</TABLE>
 		
