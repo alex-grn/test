@@ -227,20 +227,41 @@
 		</TABLE>
 		
 		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
-			<A id="CASHDOCSID" parentkey="cascade"/>
-			<A id="CASHPAYMENTHEADERID"/>
-			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" nulls="false" local="true"/>
-			<A id="DOCDATE" labelwidth="50" width="43"/>
-			<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="50" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" local="true"/>
-			<A id="ELCMTACCID" name="Расчетный счет избирательной комиссии" caption="Расчетный счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
-			<A id="SUMM" readonly="true" type="number" len="8.2" nulls="true" labelwidth="49" width="57" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
-			
+			<TABS>
+				<TAB name="Заголовок">
+					<A id="CASHDOCSID" parentkey="cascade"/>
+					<A id="CASHPAYMENTHEADERID" labelwidth="100"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" local="true"/>
+					<A id="DOCDATE" labelwidth="50" width="43"/>
+					<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="100" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" local="true"/>
+					<A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
+					<A id="SUMM" caption="Сумма" readonly="true" type="number" len="8.2" nulls="true" labelwidth="100" width="30" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
+					<A id="NOTE" name="Комментарий" caption="Комментарий" labelwidth="100" width="70" type="string" nulls="true" local="true"/>
+				</TAB>
+				<TAB name="Отправитель">				
+					<A id="SENDERNAME" name="От кого" caption="От кого" readonly="true" type="string" nulls="true" labelwidth="100" width="100" virtual="true" formula="select name from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="SENDERBANK" name="Банк отправителя" caption="Банк отправителя" readonly="true" type="string" nulls="true" labelwidth="100" width="100" virtual="true" formula="select a.name from elcmtacc e, agentbanks ab, agent a where ab.id = e.agentbanksid and a.id = ab.agentid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="SENDERBIC" name="БИК" caption="БИК" readonly="true" type="string" nulls="true" labelwidth="100" width="50" virtual="true" formula="select ab.bic from elcmtacc e, agentbanks ab where ab.id = e.agentbanksid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="SENDERACC" name="Номер счета" caption="Номер счета" readonly="true" type="string" nulls="true" labelwidth="100" width="50" virtual="true" formula="select e.bankacc from elcmtacc e where e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+				</TAB>
+				<TAB name="Получатель">				
+					<A id="RECIPIENTNAME" name="Получатель" caption="Получатель" readonly="true" type="string" nulls="true" labelwidth="100" width="100" virtual="true" formula="select name from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTINN" name="ИНН" caption="ИНН" readonly="true" type="number" nulls="true" labelwidth="100" width="50" virtual="true" formula="select inn from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTKPP" name="КПП" caption="КПП" readonly="true" type="number" nulls="true" labelwidth="50" width="50" virtual="true" formula="select kpp from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTBANK" name="Банк получателя" caption="Банк получателя" readonly="true" type="string" nulls="true" labelwidth="100" width="100" virtual="true" formula="select a.name from elcmtacc e, agentbanks ab, agent a where ab.id = e.agentbanksid and a.id = ab.agentid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTBIC" name="БИК" caption="БИК" readonly="true" type="string" nulls="true" labelwidth="100" width="50" virtual="true" formula="select ab.bic from elcmtacc e, agentbanks ab where ab.id = e.agentbanksid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTACC" name="Номер счета" caption="Номер счета" readonly="true" type="string" nulls="true" labelwidth="100" width="50" virtual="true" formula="select e.bankacc from elcmtacc e where e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+				</TAB>
+			</TABS>
 		</TABLE>
 		<TABLE id="CASHCONTRIBUTION" name="Объявления на взнос наличными Расшифровка платежа">
 			<A id="CASHCONTRIBUTIONID" parentkey="cascade"/>
-
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="80" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHCONTRIBUTION where CASHCONTRIBUTIONID = @CASHCONTRIBUTIONID and cid=0" local="true"/>
+			<A id="BUDGCLASSID" name="КПС" caption="КПС" labelwidth="80" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false" local="true"/>
+			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="80" width="50"/>
 			<A id="SUMMPAY" labelwidth="60" width="50"/>
-
+			<A id="SYMBOL" name="Банковский символ" caption="Расшифровка" labelwidth="80" width="35" type="string" nulls="true" local="true"/>
+			<A id="NOTE" name="Расшифровка" caption="Расшифровка" labelwidth="80" width="65" type="string" nulls="true" local="true"/>
 		</TABLE>
 		
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
