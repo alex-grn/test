@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="сashiers_report.xls" documentPath="сashiers_report.xls" outputType="xls" outputNamePattern="сashiers_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								 select k.name as org,
+										d2s(r.docdate) as dates,
+										r.numbsheet as sheets
+								from REPORTCASHBOOKS r
+								inner join CASHDOCS c on c.id = r.cashdocsid
+								inner join jurpersons j on j.id = c.jurpersonsid
+								inner join electcommittee k on k.id = j.electcommitteeid
+								where r.id = ${id}::bigint 
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+								 select rs.numbpp as pp,
+										rs.docnumb as n_doc,
+										CASE
+											when p.id is null then 'Выдача денег из кассы подотчетным лицам'   
+											when COALESCE(rs.incomecash,0) > 0 then COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'')
+											when COALESCE(rs.expendcash,0) > 0 then COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') 
+										end as beginer,
+										'1.'||d.accnumb as cor_acc,
+										rs.incomecash as prih,
+										rs.expendcash as rash
+									from REPORTCASHBOOKS r
+									inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id and rs.numbpp between 1 and 17
+									inner join DICACCS d on d.id = rs.dicaccsid
+									left join PERSON p on p.id = rs.personid
+									where r.id = ${id}::bigint 
+									union 
+									select null as pp, null as n_doc, 'Остаток на начало дня' as beginer, NULL as corr_acc, r.openbalance as prih, null as rash
+									from REPORTCASHBOOKS r
+									where r.id = ${id}::bigint 
+									order by pp nulls first  
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select tbl.day_prih,
+                                   tbl.day_rash,
+                                   tbl.ost,
+                                   (select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${kpersonid}::bigint) as cashier,
+                                   (select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh,
+                                   case 
+                                     when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),' р')-1)
+                                   end as prih,
+                                   case 
+                                     when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),' р')-1)
+                                   end as rash
+                            FROM(
+                            select sum(COALESCE(rs.incomecash,0)) as day_prih,
+                                   sum(COALESCE(rs.expendcash,0)) as day_rash,
+                                   COALESCE(r.openbalance,0) + sum(COALESCE(rs.incomecash,0)) - sum(COALESCE(rs.expendcash,0)) as ost
+                            from REPORTCASHBOOKS r
+                            inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id
+                            where r.id = ${id}::bigint 
+                            group by r.openbalance) tbl
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
