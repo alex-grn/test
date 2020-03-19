@@ -166,6 +166,7 @@
 	<TABLES name="Таблицы">
 		<COMMENT name="Таблицы для модуля НСИ"/>
 		<TABLE id="INSPERSON" name="Персонал">
+			<A id="OWNERID" name="Принадлежность" nulls="false"/>
 			<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="200" type="string" local="true"/>
 			<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="200" type="string" local="true"/>
 			<A id="MIDDLENAME" name="Отчество" caption="Отчество" labelwidth="200" type="string" local="true"/>
@@ -243,6 +244,10 @@
 			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
 			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - @SUMMPAY " local="true"/>
 			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else null end)" local="true"/>
+			<TI id="iFINE_UK" unique="OWNERID,UIN,DOCNUMB,DOCDATE"/>
+			<TI id="iFINE_UIN" index="UIN"/>
+			<TI id="iFINE_ENACTMENTARTICLEID_UIN" index="ENACTMENTARTICLEID"/>
+			<TI id="iFINE_BKD_ID" index="BKD_ID"/>
 		</TABLE>
 		<TABLE id="FINEBUFF" name="Администрирование штрафов">
 			<A id="STATUSEAF" name="Статус штрафа" caption="Статус" labelwidth="300" type="list" nulls="false" readonly="true" value="0" local="true">
@@ -406,8 +411,8 @@
 						</GA>
 					</GA>
 					<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
-						<AI id="0" name="Получено"/>
-						<AI id="1" name="Отправлено в журнал"/>
+						<AI id="0" name="Получено" actionlist="SendtoJornal;LoadRR;DetailPP;ReturnToState"/>
+						<AI id="1" name="Отправлено в журнал" actionlist="ReturnToState" />
 						<AI id="2" name="Детализировано"/>
 						<AI id="3" name="Детализировано и отправлено в журнал"/>
 					</A>
@@ -567,6 +572,7 @@
 			</TABS>
 		</TABLE>
 		<TABLE id="STATEMENTADB" name="Выписки администратора доходов бюджета">
+			<A id="OWNERID" name="Принадлежность" labelwidth="100" width="50"/>
 			<A id="VID_OTCH" name="Тип отчета" caption="Тип отчета" width="35" type="list" local="true">
 				<AI id="0" name="Итоговый"/>
 				<AI id="1" name="Промежуточный"/>
@@ -594,7 +600,7 @@
 			<A id="SUM_IN_ITOG_V" name="Итоговая сумма поступлений" caption="Сумма поступлений" labelwidth="100" width="34" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="SUM_OUT_ITOG_V" name="Итоговая сумма возвратов" caption="Сумма возвратов" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="SUM_ZACH_ITOG_V" name="Итоговая сумма зачетов" caption="Сумма зачетов" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
-			<TI id="iSTATEMENTADB_UK" unique="GUID_FK_ADB,LS_ADB,DATE_OTCH,VID_OTCH"/>
+			<TI id="iSTATEMENTADB_UK" unique="OWNERID,GUID_FK_ADB,LS_ADB,DATE_OTCH,VID_OTCH"/>
 		</TABLE>
 		<TABLE id="STATEMENTADBDONE" name="Информация по исполненным операциям">
 			<A id="STATEMENTADBID" parentkey="cascade"/>
@@ -671,6 +677,7 @@
 			<TI id="iSTATEMENTADBDONE_UK" unique="GUID,KBK,ADD_KLASS,KOD_DOC,NOM_DOC,DATE_DOC"/>
 		</TABLE>
 		<TABLE id="STATEMENTPBSTTL" name="Выписка получателя бюджетных средств (временное распоряжение)">
+			<A id="OWNERID" name="Принадлежность" labelwidth="100" width="50"/>
 			<A id="VID_OTCH" name="Тип отчета" caption="Тип отчета" width="35" type="list" local="true">
 				<AI id="0" name="Итоговый"/>
 				<AI id="1" name="Промежуточный"/>
@@ -728,6 +735,7 @@
 		</TABLE>
 		<TABLE id="REFINEREQ" name="Запросы на уточнение вида и принадлежности платежа">
 			<GA name="Запрос" caption="Запрос">
+				<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 				<A id="GUID_FK_ZF" name="GUID запроса" caption="GUID запроса" type="string" nulls="true" local="true"/>
 				<A id="NOM_ZF" name="Номер" caption="Номер" type="string" len="15" nulls="true" local="true"/>
 				<A id="DATE_ZF" name="Дата" caption="Дата" type="date" nulls="true" local="true"/>
@@ -785,6 +793,7 @@
 		</TABLE>
 		<TABLE id="REFINEREQPP" name="Информация о платежном документе">
 			<A id="REFINEREQID" parentkey="cascade"/>
+			<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 			<GA name="Реквизиты" caption="Реквизиты">
 				<A id="NUM_PP" name="Номер" caption="Номер" type="string" len="6"/>
 				<A id="DATE_PP" name="Дата" caption="Дата" type="date"/>
@@ -960,6 +969,7 @@
 		<TABLE id="RETURNREQ" name="Заявки на возврат">
 			<TABS>
 				<TAB name="Заявка на возврат">
+					<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 					<GA name="Реквизиты" caption="Реквизиты">
 						<A id="GUID_FK_ZV" name="GUID заявки" caption="GUID заявки" type="string" nulls="true" local="true"/>
 						<A id="NOM_ZV" name="Номер" caption="Номер" type="string" len="15" nulls="true" local="true"/>
@@ -1050,6 +1060,7 @@
 		<TABLE id="STATEMENTPBS" name="Выписка получателя бюджетных средств">
 			<TABS>
 				<TAB name="Основные реквизиты">
+					<A id="OWNERID" name="Принадлежность" labelwidth="100" width="50"/>
 					<A id="VID_OTCH" name="Тип отчета" caption="Тип отчета" width="35" type="list" local="true">
 						<AI id="0" name="Итоговый"/>
 						<AI id="1" name="Промежуточный"/>
@@ -1456,13 +1467,23 @@
 			<GRID id="Fineloading" name="Загрузка штрафов" table="FINELOADING" actionlist="LoadFileLoadFINE;FineloadingImport"/>
 		</FORM>
 		<FORM id="Infopaydoc" name="Обработка и детализация платежей">
-			<GRID id="Infopaydoc" name="Платежи" table="INFOPAYDOC" actionlist="SendtoJornal;LoadRR;DetailPP;ReturnToState"/>
+			<GRID id="Infopaydoc" name="Платежи" table="INFOPAYDOC" readonly="true" >
+			<MENU>
+				<MI actionlist="SendtoJornal;LoadRR;DetailPP;ReturnToState" />
+				<MI actionlist="View;MoveFolder;ConfigTables" />
+			</MENU>
+			</GRID>
 			<GRID id="Infopaydocdetail" name="Детализация выбранного платежа" table="INFOPAYDOCDETAIL"/>
 		</FORM>
 		<FORM id="Journalpays" name="Журнал платежей">
-			<GRID id="Journalpays" name="Журнал платежей" table="JOURNALPAYS" actionlist="FineSelect;GenUved;GenReturn;ReturnToState;DeleteParity"/>
+			<GRID id="Journalpays" name="Журнал платежей" table="JOURNALPAYS" readonly="true" >
+			<MENU>
+				<MI actionlist="FineSelect;GenUved;GenReturn;ReturnToState;DeleteParity" />
+				<MI actionlist="View;MoveFolder;ConfigTables" />
+			</MENU>
+			</GRID>
 		</FORM>
-		<FORM id="Statementadb" name="Выписки">
+		<FORM id="Statementadb" name="Выписки администратора доходов бюджета">
 			<TABS>
 				<TAB name="Выписки">
 					<GRID id="Statementadb" name="Выписки администратора доходов бюджета" table="STATEMENTADB" actionlist="LoadFileADB"/>
@@ -1476,7 +1497,7 @@
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="Statementpbs" name="Выписки">
+		<FORM id="Statementpbs" name="Выписки получателя бюджетных средств">
 			<TABS>
 				<TAB name="Выписки">
 					<GRID id="Statementpbs" name="Выписки получателя бюджетных средств" table="STATEMENTPBS"/>
