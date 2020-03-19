@@ -1,0 +1,138 @@
+CREATE OR REPLACE FUNCTION public.p_action_stages_acts_work_serv (
+  idlist text,
+  tablename text,
+  uid bigint,
+  docnumb text,
+  docdate date,
+  typicalopersid bigint
+)
+RETURNS void AS
+$body$
+declare
+    rec record;
+    nUID bigint:=UID;
+    dDOCNUMB TEXT:=docnumb;
+    dDOCDATE date:=docdate;
+    nTYPICALOPERSID bigint:=typicalopersid;
+    FLAG boolean:=false;
+    nID bigint;
+    NEXT_NUM integer;
+    nDOCTYPESID bigint;
+begin
+  if tablename ilike 'STAGES' then
+    for rec in (
+        select s.id as STAGESID,
+               s.QUANTITY,
+               s.SUMM,
+               s.TYPEEXPID,
+               s.BUDGCLASSID,
+               s.ECONCLASSKTID,
+               c.CONTRTYPE,
+               k.ELECTCAMPAIGNID,
+               k.JURPERSONSID,
+               s.CONTRACTSDOCSID
+          from STAGES s,
+               CONTRACTSDOCS c,
+               CONTRACTS k
+         where s.ID = ANY(p_system_get_selectlist(idlist))
+           and c.ID = s.CONTRACTSDOCSID
+           and not s.ACTSEXP
+           and k.ID = c.CONTRACTSID
+    )
+    LOOP
+      if not flag then
+        flag:=true;
+        --Проверки
+        --Ругаемся если тип договора поставка товара
+        if rec.CONTRTYPE ilike 'product' then raise using MESSAGE = 'Формирование акта выполненных работ/оказанных услуг для договора поставки товара не допустимо'; end if;
+        --Ищем Акты выполненных работ и услуг избирательных кампаний
+        begin
+          select a.ID
+            into nID
+            from ACTS a
+           where a.ELECTCAMPAIGNID = rec.ELECTCAMPAIGNID
+             and a.JURPERSONSID = rec.JURPERSONSID;
+        exception when NO_DATA_FOUND then raise using MESSAGE = 'Не найдено актов выполненных работ и услуг избирательных кампаний по условию!';
+        end;
+        --След номер по порядку
+        select MAX(a.NUMBPP)+1 into NEXT_NUM from ACTSDOCS a where a.ACTSID = nID;
+        --Тип документ
+        select d.id into nDOCTYPESID from DOCTYPES d where d.code ilike '%Акт%выполнения%работ%оказания%услуг%';
+        --Вставляем в таблицу Акты выполненных работ и услуг
+        insert into ACTSDOCS(uid, actsid,  doctypeid,   docnumb,  numbpp,   docdate, contractsdocsid)
+                      values(nUID,nID, nDOCTYPESID, DDOCNUMB, COALESCE(NEXT_NUM,1), DOCDATE, rec.CONTRACTSDOCSID)
+                   returning ACTSDOCS.ID into nID;             
+      end if;   
+        --След номер по порядку
+        select MAX(a.NUMBPP)+1 into NEXT_NUM from ACTSGOODS a where a.ACTSDOCSID = nID;  
+        --Вставляем в таблицу Спецификация акта
+        insert into ACTSGOODS(uid, actsdocsid, numbpp, stagesid, quantity, summ, typeexpid, typicalopersid, budgclassid, econclassktid)
+                       values(nUID, nID, COALESCE(NEXT_NUM,1), rec.STAGESID, rec.QUANTITY, rec.SUMM, rec.TYPEEXPID, NTYPICALOPERSID, rec.BUDGCLASSID, rec.ECONCLASSKTID);
+        --Поставим в поле "учтено в акте" - "Да"
+        update STAGES s set ACTSEXP = true where s.ID = rec.STAGESID;
+    END LOOP;
+    if not flag then raise using message = 'Нет проводок для создания акта'; end if;
+  elsif tablename ilike 'PERSONS_STAGES' then
+    for rec in (
+        select s.id as STAGESID,
+               s.QUANTITY,
+               s.SUMM,
+               s.TYPEEXPID,
+               s.BUDGCLASSID,
+               s.ECONCLASSKTID,
+               c.CONTRTYPE,
+               k.ELECTCAMPAIGNID,
+               k.JURPERSONSID,
+               c.TRPERSONID,
+               c.PERSONACCID
+          from PERSONS_STAGES s,
+               PERSON_CONTRACTSDOCS c,
+               CONTRACTS k
+         where s.ID = ANY(p_system_get_selectlist(idlist))
+           and c.ID = s.PERSON_CONTRACTSDOCSID
+           and not s.ACTSEXP
+           and k.ID = c.CONTRACTSID
+    )
+    LOOP
+      if not flag then
+        flag:=true;
+        --Проверки
+        --Ругаемся если тип договора поставка товара
+        if rec.CONTRTYPE ilike 'product' then raise using MESSAGE = 'Формирование акта выполненных работ/оказанных услуг для договора поставки товара не допустимо'; end if;
+        --Ищем Акты выполненных работ и услуг избирательных кампаний
+        begin
+          select a.ID
+            into nID
+            from ACTS a
+           where a.ELECTCAMPAIGNID = rec.ELECTCAMPAIGNID
+             and a.JURPERSONSID = rec.JURPERSONSID;
+        exception when NO_DATA_FOUND then raise using MESSAGE = 'Не найдено актов выполненных работ и услуг избирательных кампаний по условию!';
+        end;
+        --След номер по порядку
+        select MAX(a.NUMBPP)+1 into NEXT_NUM from PERS_ACTSDOCS a where a.ACTSID = nID;
+        --Тип документ
+        select d.id into nDOCTYPESID from DOCTYPES d where d.code ilike '%Акт%выполнения%работ%оказания%услуг%';
+        --Вставляем в таблицу Акты выполненных работ и услуг
+        insert into PERS_ACTSDOCS(uid, actsid,  doctypeid,   docnumb,  numbpp,   docdate, trpersonid, personaccid)
+                           values(nUID,nID, nDOCTYPESID, DDOCNUMB, COALESCE(NEXT_NUM,1), DOCDATE, rec.TRPERSONID, rec.PERSONACCID)
+                   returning PERS_ACTSDOCS.ID into nID;             
+      end if;   
+        --След номер по порядку
+        select MAX(a.NUMBPP)+1 into NEXT_NUM from ACTSGOODS a where a.ACTSDOCSID = nID;  
+        --Вставляем в таблицу Спецификация акта
+        insert into PERS_ACTSGOODS(uid, persactsdocsid, numbpp, persstagesid, quantity, summ, typeexpid, typicalopersid, budgclassid, econclassktid)
+                       values(nUID, nID, COALESCE(NEXT_NUM,1), rec.STAGESID, rec.QUANTITY, rec.SUMM, rec.TYPEEXPID, NTYPICALOPERSID, rec.BUDGCLASSID, rec.ECONCLASSKTID);
+        --Поставим в поле "учтено в акте" - "Да"
+        update PERSONS_STAGES s set ACTSEXP = true where s.ID = rec.STAGESID; 
+     end loop;   
+  end if;  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_stages_acts_work_serv (idlist text, tablename text, uid bigint, docnumb text, docdate date, typicalopersid bigint)
+  OWNER TO magicbox;

@@ -985,6 +985,12 @@
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200" parentkey="cascade"/>
 			<TI unique="CODE"/>
 		</TABLE>
+		<TABLE id="TYPICALOPERSVIRT" name="Типовые операции" tablename="TYPICALOPERS" query="select t.* from TYPICALOPERS t where t.DOCTYPEID = (select d.id from doctypes d where d.code ilike '%Акт%выполнения%работ%оказания%услуг%')">
+			<A id="CODE" name="Код типовой операции" caption="Код типовой операции" labelwidth="200" type="string" len="100" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование типовой операции" caption="Наименование типовой операции" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200" parentkey="cascade"/>
+			<TI unique="CODE"/>
+		</TABLE>
 		<TABLE id="TYPICALOPERSPEC" name="Проводка типовой операции">
 			<A id="TYPICALOPERSID" parentkey="cascade"/>
 			<GA name="Дебет" caption="Дебет">
@@ -1410,6 +1416,13 @@
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesActsWorkServ" name="Сформировать акт" type="procedure" procedure="p_action_stages_acts_work_serv">
+			<FORM name="Параметры">
+				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="200" width="20" type="string" nulls="false" local="true"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200" type="ref" table="TYPICALOPERSVIRT" ret="CODE" form="TypicalOpersFRMVIRT" nulls="false" local="true"/>
+			</FORM>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="PaylistReport" name="Платежная ведомость (0504403)" procedure="" template="payment_statement.xls">
@@ -1828,6 +1841,9 @@
 			<GRID id="TypicalOpersGR" name="Типовые операции" table="TYPICALOPERS" actionlist="setLID"/>
 			<GRID id="TypicalOperSpecGR" name="Проводки" table="TYPICALOPERSPEC" actionlist="setLID"/>
 		</FORM>
+		<FORM id="TypicalOpersFRMVIRT" name="Типовые операции">
+			<GRID id="TypicalOpersGR" name="Типовые операции" table="TYPICALOPERSVIRT" actionlist="setLID"/>
+		</FORM>
 		<FORM id="DicaccsFRM" name="План счетов">
 			<GRID id="DicaccsGR" name="План счетов" table="DICACCS" actionlist="setLID"/>
 		</FORM>
@@ -1840,7 +1856,7 @@
 							<GRID id="ContractsDocsGR" name="Договор" table="CONTRACTSDOCS"/>
 						</TAB>
 						<TAB name="Проводки">
-							<GRID id="StagesGR" name="Проводки" table="STAGES" actionlist="setLID;StagesFormPP"/>
+							<GRID id="StagesGR" name="Проводки" table="STAGES" actionlist="setLID;StagesFormPP;StagesActsWorkServ"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -1850,7 +1866,7 @@
 							<GRID id="PersonsDocsGR" name="Договор" table="PERSON_CONTRACTSDOCS"/>
 						</TAB>
 						<TAB name="Проводки">
-							<GRID id="PersonsStagesGR" name="Проводки" table="PERSONS_STAGES" actionlist="StagesFormRKO"/>
+							<GRID id="PersonsStagesGR" name="Проводки" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesActsWorkServ"/>
 						</TAB>
 					</TABS>
 				</TAB>
