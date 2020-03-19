@@ -694,11 +694,39 @@
 		<TABLE id="FEDDIS" name="Федеральные округа" virtual="true" query="select cast(mp.code as bigint) as id, t.hid,t.lid,t.cid,t.uid,t.tim,mp.name, t.id as calctabagsid from (select * from calctabags limit 1) t, metaclass m, metaclass mp where m.code='DISTRICTFEDERAL' and m.id = mp.hid and mp.classnode='AI'">
 			<A id="NAME" name="Федеральный округ" caption="Федеральный округ" labelwidth="150" type="string"/>
 		</TABLE>
-		<TABLE id="REGAGS" name="Регионы федерального округа">
+		<TABLE id="REGAGS" name="Регионы федерального округа(численность граждан, проходящих альтернативную гражданскую службу)">
 		   <A id="CALCTABAGSID"  parentkey="true"/>
 		   <A id="FEDDISID" name="Федеральные округа" caption="Федеральные округа" type="ref" table="FEDDIS" ret="NAME" labelwidth="150" nulls="true" parentkey="true" local="true"/>
 		   <A id="REGIONDIRID" labelwidth="150" readonly="true"/>
-			<A id="QUANT" name="Количество" caption="Количество" labelwidth="150" type="number" readonly="true"/>
+			<GA id="CONCLUSION_AGREEMENT" name="Заключившие срочный трудовой договор в отчетном периоде" caption="Заключившие срочный трудовой договор в отчетном периоде">
+				<A id="PERMANENT_RESIDENTS_NOT_RUS" name="Постоянно проживающие за пределами РФ" caption="Постоянно проживающие за пределами РФ" labelwidth="150" type="number" readonly="true"/>
+				<A id="PERMANENT_RESIDENTS_RUS" name="Постоянно проживающие на территории РФ" caption="Постоянно проживающие на территории РФ" labelwidth="150" type="number" readonly="true"/>
+			</GA>
+			<GA id="TERMINATION_AGREEMENT" name="Расторжение срочного трудового договора в отчетном периоде" caption="Расторжение срочного трудового договора в отчетном периоде">
+				<A id="END_SERVICE" name="По истечению срока службы" caption="По истечению срока службы" labelwidth="150" type="number" readonly="true"/>
+				<A id="HEALTH" name="По состоянию здоровья" caption="По состоянию здоровья" labelwidth="150" type="number" readonly="true"/>
+				<A id="CIRCUMSTANCES_FAMILY" name="По семейным обстоятельствам" caption="По семейным обстоятельствам" labelwidth="150" type="number" readonly="true"/>
+				<A id="CIRCUMSTANCES_OTHERS" name="По иным обстоятельствам" caption="По иным обстоятельствам" labelwidth="150" type="number" readonly="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="REGAGSEDUC" name="Регионы федерального округа(Численность граждан, проходящих альтернативную гражданскую службу, по возрасту и уровню образования)">
+		   <A id="CALCTABAGSID"  parentkey="true"/>
+		   <A id="FEDDISID" name="Федеральные округа" caption="Федеральные округа" type="ref" table="FEDDIS" ret="NAME" labelwidth="150" nulls="true" parentkey="true" local="true"/>
+		   <A id="REGIONDIRID" labelwidth="150" readonly="true"/>
+		    <A id="EDUCAGE" name="Возраст" caption="Возраст" labelwidth="150" type="list" nulls="false" local="true" readonly="true">
+				<AI id="0" name="18-20"/>
+				<AI id="1" name="21-25"/>
+				<AI id="2" name="26 и старше"/>
+			</A>
+			<GA id="EDUC_LEVEL" name="Уровень образования" caption="Уровень образования">
+				<A id="EDUC_NO" name="Отсутствие образования" caption="Отсутствие образования" labelwidth="150" type="number" readonly="true"/>
+				<A id="EDUC_BGN_GEN" name="Начальное общее" caption="Начальное общее" labelwidth="150" type="number" readonly="true"/>
+				<A id="EDUC_MAIN_GEN" name="Основное общее" caption="Основное общее" labelwidth="150" type="number" readonly="true"/>
+				<A id="EDUC_MDL_FULL_GEN" name="Среднее(полное) общее" caption="Среднее(полное) общее" labelwidth="150" type="number" readonly="true"/>
+				<A id="EDUC_BGN_PROF" name="Начальное профессиональное" caption="Начальное профессиональное" labelwidth="150" type="number" readonly="true"/>
+				<A id="EDUC_MDL_PROF" name="Среднее профессиональное" caption="Среднее профессиональное" labelwidth="150" type="number" readonly="true"/>
+				<A id="EDUC_HGH_PROF" name="Высшее профессиональное" caption="Высшее профессиональное" labelwidth="150" type="number" readonly="true"/>
+			</GA>
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
@@ -1074,7 +1102,14 @@
 									<MI actionlist="ConfigTables"/>
 								</MENU>
 					</GRID>
-					<GRID id="REGAGS" name="Регионы федерального округа" table="REGAGS"/>
+					<TABS>
+						<TAB name="Численность проходящих альтернативную гражданскую службу">
+							<GRID id="REGAGS" name="Проходящие альтернативную гражданскую службу)" table="REGAGS"/>
+						</TAB>
+						<TAB name="Численность проходящих альтернативную гражданскую службу, по возрасту и уровню образования">
+							<GRID id="REGAGSEDUC" name="Возраст и уровень образования" table="REGAGSEDUC"/>
+						</TAB>
+					</TABS>
 				</TAB>
 			</TABS>
 		</FORM>
