@@ -241,8 +241,8 @@
 			</GA>
 			<A id="SUMMDOC" name="Сумма документа" caption="Сумма документа" labelwidth="200" width="50" type="number" len="17.2" nulls="false" value="0"/>
 			<A id="SUMMCANCEL" name="Сумма отмены/списания" caption="Сумма отмены/списания" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
-			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" value="0"/>
-			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - @SUMMPAY " local="true"/>
+			<A id="SUMMPAY" name="Сумма оплаты" caption="Сумма оплаты" labelwidth="200" width="50" type="number" len="17.2" nulls="false" readonly="true" virtual="true" formula="coalesce((select sum(DOCSUM) from FINEPAY where fineid=@ID), 0)" local="true" />
+			<A id="SUMMOST" name="Сумма остатка" caption="Сумма остатка" labelwidth="200" width="50" type="number" len="17.2" nulls="false" visible="grid" readonly="true" virtual="true" formula="select @SUMMDOC - @SUMMCANCEL - (coalesce((select sum(DOCSUM) from FINEPAY where fineid=@ID), 0)) " local="true"/>
 			<A id="PERIODFINE" name="Срок задолженности" caption="Срок задолженности" labelwidth="200" width="50" type="number" len="17" nulls="true" visible="grid" readonly="true" virtual="true" formula="(case when @SUMMDOC -@SUMMCANCEL-@SUMMPAY!=0 then (select current_date-@DOCDATE) else null end)" local="true"/>
 			<TI id="iFINE_UK" unique="OWNERID,UIN,DOCNUMB,DOCDATE"/>
 			<TI id="iFINE_UIN" index="UIN"/>
@@ -341,6 +341,7 @@
 			<A id="STATEMENTADBDONEID"/>
 			<GA id="InfoPayInformation"/>
 			<A id="DATEVP" name="Дата выписки" caption="Дата выписки" labelwidth="500" type="date" nulls="true"/>
+			<A id="DOCSUM" name="Сумма платежа" caption="Сумма платежа" labelwidth="100" width="50" type="number" len="17.2" local="true"/>
 			<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" local="true"/>
 			<A id="CNAME_PAY" name="Наименование плательщика" caption="Наименование плательщика" type="text" nulls="false"/>
 			<A id="DOCLINKS_IN"/>
@@ -407,7 +408,7 @@
 							<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="100" width="100" type="text" virtual="true" formula="select PURPOSE from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true"/>
 							<A id="UIN" name="УИН" caption="УИН" labelwidth="100" width="50" type="string" virtual="true" formula="select UIN from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true"/>
 							<A id="KBK" name="КБК" caption="КБК" labelwidth="100" width="50" type="string" virtual="true" formula="select KBK from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true"/>
-							<A id="DOCSUM" name="Сумма" caption="Сумма" labelwidth="100" width="50" type="number" virtual="true" formula="select COALESCE(SUM_IN, SUM_OUT, SUM_ZACH) from STATEMENTADBDONE where id = @STATEMENTADBDONEID" local="true"/>
+							<A id="DOCSUM" name="Сумма" caption="Сумма" labelwidth="100" width="50" type="number" virtual="true" formula="case when (select SUM_OUT from STATEMENTADBDONE where id = @STATEMENTADBDONEID) !=0 then (select (SUM_OUT*-1) from STATEMENTADBDONE where id = @STATEMENTADBDONEID) when (select SUM_IN from STATEMENTADBDONE where id = @STATEMENTADBDONEID) !=0 then (select SUM_IN from STATEMENTADBDONE where id = @STATEMENTADBDONEID) when (select SUM_ZACH from STATEMENTADBDONE where id = @STATEMENTADBDONEID) !=0 then (select SUM_ZACH from STATEMENTADBDONE where id = @STATEMENTADBDONEID) else '0' end" local="true"/>
 						</GA>
 					</GA>
 					<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" local="true">
@@ -1354,7 +1355,7 @@
 		<COMMENT name="Действия для работы с поступлениями"/>
 		<ACTION id="TakeToWork" name="Взять в работу" type="procedure" procedure="p_action_take_to_work">
 			<FORM>
-				<A id="DESTINATION" name="Раздел назначения" caption="Назначение" type="list" local="true">
+				<A id="DESTINATION" name="Раздел назначения" caption="Назначение" labelwidth="550" type="list" local="true">
 					<AI id="0" name="Штрафы"/>
 					<AI id="1" name="Возвраты МБТ"/>
 					<AI id="2" name="Возвраты соцвыплат"/>
@@ -1403,7 +1404,7 @@
 		<ACTION id="UnlinkTo" name="Разорвать связь с документом" type="procedure" procedure="p_infopaydoc_unlink_to"/>
 		<ACTION id="ReturnToState" name="Вернуть платёж в Выписку" type="procedure" procedure="p_action_return_to_statement">
 			<FORM>
-				<A id="SURE" name="Действие необратимо. Подтвердить выполнение?" caption="Действие необратимо. Подтвердить выполнение?" labelwidth="300" type="list">
+				<A id="SURE" name="Действие необратимо. Подтвердить выполнение" caption="Действие необратимо. Подтвердить выполнение" labelwidth="500" nulls="false" value="NO" type="list">
 					<AI id="NO" name="Нет"/>
 					<AI id="YES" name="Да"/>
 				</A>
