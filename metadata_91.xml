@@ -597,7 +597,7 @@
 			<A id="NAME_UBP_ADB" name="АДБ" caption="Наименование" labelwidth="120" width="80" type="string" len="2000" nulls="true" visible="form" local="true"/>
 			<A id="KOD_GADB" name="Код ГАДБ" caption="Код ГАДБ" width="20" type="string" len="3" nulls="true" local="true"/>
 			<A id="NAME_GADB" name="ГАДБ" caption="Наименование" labelwidth="120" width="80" type="string" len="2000" nulls="true" visible="form" local="true"/>
-			<A id="KOL" name="Количество расчетных документов, прикрепленных к выписке" caption="Количество расчетных документов, прикрепленных к выписке" labelwidth="570" width="100" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="KOL" name="Количество расчетных документов, прикрепленных к выписке" caption="Количество расчетных документов, прикрепленных к выписке" labelwidth="570" width="100" type="string" nulls="true" local="true"/>
 			<A id="SUM_IN_ITOG_V" name="Итоговая сумма поступлений" caption="Сумма поступлений" labelwidth="100" width="34" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="SUM_OUT_ITOG_V" name="Итоговая сумма возвратов" caption="Сумма возвратов" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="SUM_ZACH_ITOG_V" name="Итоговая сумма зачетов" caption="Сумма зачетов" labelwidth="100" width="33" type="number" len="17.2" nulls="true" local="true"/>
@@ -607,7 +607,7 @@
 			<A id="STATEMENTADBID" parentkey="cascade"/>
 			<A id="OWNERID" name="Принадлежность" labelwidth="100" width="50"/>
 			<A id="STATUSDOC" name="Статус" caption="Статус" labelwidth="75" width="50" type="list" nulls="false">
-				<AI id="0" name="загружено" actionlist="TakeToWork;Verification"/>
+				<AI id="0" name="загружено" actionlist="TakeToWork;Verification;Delete"/>
 				<AI id="1" name="в работе" actionlist="Verification"/>
 				<AI id="2" name="отработано" actionlist="Verification"/>
 			</A>
@@ -1419,8 +1419,8 @@
 			<P id="errorone" value="true"/>
 		</ACTION>
 		<ACTION id="LoadFileADBBD" name="Загрузить расчетные документы" type="script" actionlist="LoadAndConvertFile">
-			<P id="convname" value="Выписка из лицевого счета администратора доходов бюджета (основная информация об операциях)"/>
-			<P id="errorone" value="true"/>
+			<P id="convname" value="Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31, Том 2, п. 7.8) АДБ"/>
+			<P id="errorone" value="false"/>
 		</ACTION>
 		<ACTION id="LoadFileLoadFINE" name="Загрузить в формате КНД" type="script" actionlist="LoadAndConvertFile">
 			<P id="convname" value="Постановления из АСУ КНД"/>
@@ -1494,7 +1494,7 @@
 					<GRID id="Statementadb" name="Выписки администратора доходов бюджета" table="STATEMENTADB" readonly="true" >
 				<MENU>
 					<MI actionlist="LoadFileADB;LoadFileADBBD" />
-					<MI actionlist="View;MoveFolder;ConfigTables" />
+					<MI actionlist="View;MoveFolder;Delete;ConfigTables" />
 				</MENU>
 				</GRID>
 				</TAB>
@@ -1505,7 +1505,7 @@
 					<A id="SUM_ZACH_ITOG_VIRT" name="Зачтено" caption="Зачтено" labelwidth="70" width="15" type="number" readonly="true" virtual="true" formula="select SUM_ZACH_ITOG_V from STATEMENTADB where id = @STATEMENTADBID" local="true"/>
 					<GRID id="Statementadbdone" name="Информация по исполненным операциям администратора доходов бюджета" table="STATEMENTADBDONE" readonly="true" >
 					<MENU>
-						<MI actionlist="TakeToWork;Verification" />
+						<MI actionlist="TakeToWork;Verification;Delete" />
 						<MI actionlist="View;MoveFolder;ConfigTables" />
 					</MENU>
 					</GRID>
