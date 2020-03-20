@@ -11,24 +11,197 @@
 				<MI name="Загруженные файлы" formlist="Filelinks"/>
 				<MI name="Выйти" actionlist="Exit"/>
 			</MENU>
-			<MENU name="Документы">
+			<MENU name="Взаимодействие с федеральным казначейством">
 				<MI name="Казначейские уведомления" formlist="Ufk_Notif"/>
+				<MI name="Расходные расписания" formlist="Expshd"/>
+			</MENU>
+			<MENU name="Внутренние документы">
+				<MI name="Детализация бюджетных данных" formlist="Detail"/>
 			</MENU>
 			<MENU name="Учет">
 				<MI name="Исполнение бюджета" formlist="Exec_Bud"/>
 				<MI name="Журнал операций по исполнению расходной части бюджета" formlist="Jurnalexp"/>
+				<MENU name="Значения по умолчанию">
+					<MI name="Структурные подразделения" formlist="Default_Depart"/>
+					<MI name="КОСГУ" formlist="Default_Econ_Class"/>
+					<MI name="Коды целевых субсидий" formlist="Default_Subsidies"/>
+					<MI name="Объекты капитального строительства" formlist="Default_Capobjects"/>
+					<MI name="Мероприятия" formlist="Default_Event"/>
+					<MI name="Аналитические коды" formlist="Default_Acodes"/>
+					<MI name="Структурные подразделения органа, исполняющего бюджет" formlist="Default_Depart5"/>
+				</MENU>
 			</MENU>
 		</MENU>
 	</GROUPS_MENU>
-	<ATTRIBUTES name="Атрибуты"/>
-	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
+	<ATTRIBUTES name="Атрибуты">
+		<A id="EXEC_BUDID" name="Исполнение бюджета" caption="Исполнение бюджета" labelwidth="200" type="ref" table="EXEC_BUD" ret="YEAR_U" form="Exec_Bud"/>
+		<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="200" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret"/>
+		<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="200" type="ref" table="EXEC_BUD_DETAIL" ret="CODE"/>
+	</ATTRIBUTES>
+	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		<GA id="JURNALEXP1">
+			<A id="DOCLINKS_IN"/>
+			<GA caption="Операция">
+				<A id="RECORD_TYPE" name="Тип" caption="Тип" labelwidth="50" width="80" type="list" nulls="false" readonly="true" value="IN_LBO" local="true">
+					<AI id="IN_LBO" name="Поступление ЛБО"/>
+					<AI id="IN_BA" name="Поступление ассигнований"/>
+					<AI id="IN_POF" name="Поступление ПОФ"/>
+					<AI id="SEP_LBO" name="Детализация ЛБО"/>
+					<AI id="SEP_BA" name="Детализация ассигнований"/>
+					<AI id="SEP_POF" name="Детализация ПОФ"/>
+					<AI id="COR_LBO" name="Корректировка ЛБО"/>
+					<AI id="COR_BA" name="Корректировка ассигнований"/>
+					<AI id="COR_POF" name="Корректировка ПОФ"/>
+					<AI id="OUT03_LBO" name="Перечисление на счета ПБС ЛБО"/>
+					<AI id="OUT03_BA" name="Перечисление на счета ПБС ассигнований"/>
+					<AI id="OUT03_POF" name="Перечисление на счета ПБС ПОФ"/>
+					<AI id="OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО"/>
+					<AI id="OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований"/>
+					<AI id="OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ"/>
+					<AI id="OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО"/>
+					<AI id="OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований"/>
+					<AI id="OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ"/>
+					<AI id="NEED" name="Согласование потребности"/>
+					<AI id="PLAN_OUT" name="Планирование расходов"/>
+					<AI id="PBO" name="Принимаемые бюджетные обязательства"/>
+					<AI id="BO" name="Принятые бюджетные обязательства"/>
+					<AI id="PDO" name="Принятые денежные обязательства"/>
+					<AI id="KR" name="Кассовый расход"/>
+				</A>
+				<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
+			</GA>
+			<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+			<A id="KBR_ID" labelwidth="350"/>
+			<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350" visible="false"/>
+			<GA caption="Документы">
+				<GA caption="Документ, подтверждающий проведение операции">
+					<A id="DOCTYPE" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
+					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
+				</GA>
+				<GA caption="Документ получателя бюджетных средств или иное основание для проведения операции">
+					<A id="DOCTYPEP" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
+					<A id="DOCNUMBP" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
+					<A id="DOCDATEP" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
+				</GA>
+			</GA>
+			<A id="SUM" name="Сумма" caption="Сумма операции" labelwidth="550" type="number" len="18.2" local="true"/>
+		</GA>
+		<GA id="JURNALEXP1A">
+			<A id="DOCLINKS_IN"/>
+			<GA caption="Операция">
+				<A id="RECORD_TYPE" name="Тип" caption="Тип" labelwidth="50" width="80" type="list" nulls="false" readonly="true" value="IN_LBO" local="true">
+					<AI id="IN_LBO" name="Поступление ЛБО"/>
+					<AI id="IN_BA" name="Поступление ассигнований"/>
+					<AI id="IN_POF" name="Поступление ПОФ"/>
+					<AI id="SEP_LBO" name="Детализация ЛБО"/>
+					<AI id="SEP_BA" name="Детализация ассигнований"/>
+					<AI id="SEP_POF" name="Детализация ПОФ"/>
+					<AI id="COR_LBO" name="Корректировка ЛБО"/>
+					<AI id="COR_BA" name="Корректировка ассигнований"/>
+					<AI id="COR_POF" name="Корректировка ПОФ"/>
+					<AI id="OUT03_LBO" name="Перечисление на счета ПБС ЛБО"/>
+					<AI id="OUT03_BA" name="Перечисление на счета ПБС ассигнований"/>
+					<AI id="OUT03_POF" name="Перечисление на счета ПБС ПОФ"/>
+					<AI id="OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО"/>
+					<AI id="OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований"/>
+					<AI id="OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ"/>
+					<AI id="OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО"/>
+					<AI id="OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований"/>
+					<AI id="OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ"/>
+					<AI id="NEED" name="Согласование потребности"/>
+					<AI id="PLAN_OUT" name="Планирование расходов"/>
+					<AI id="PBO" name="Принимаемые бюджетные обязательства"/>
+					<AI id="BO" name="Принятые бюджетные обязательства"/>
+					<AI id="PDO" name="Принятые денежные обязательства"/>
+					<AI id="KR" name="Кассовый расход"/>
+				</A>
+				<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
+			</GA>
+			<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+			<A id="KBR_ID" labelwidth="350"/>
+			<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
+			<GA caption="Документы">
+				<GA caption="Документ, подтверждающий проведение операции">
+					<A id="DOCTYPE" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
+					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
+				</GA>
+				<GA caption="Документ получателя бюджетных средств или иное основание для проведения операции">
+					<A id="DOCTYPEP" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
+					<A id="DOCNUMBP" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
+					<A id="DOCDATEP" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
+				</GA>
+			</GA>
+			<A id="SUM" name="Сумма" caption="Сумма операции" labelwidth="550" type="number" len="18.2" local="true"/>
+		</GA>
+		<GA id="JURNALEXP2">
+			<GA caption="Подразделения, курирующие расходы">
+				<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+				<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+			</GA>
+			<A id="ECON_CLASS_ID"/>
+			<A id="SUBSIDIES_ID"/>
+			<A id="CAPOBJECTS_ID"/>
+			<A id="EVENT_ID"/>
+			<A id="ACODES_ID"/>
+			<A id="DEPART5_ID"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+		</GA>
+		<GA id="Use_operation_types" caption="Использовать для типов операций:">
+			<A id="IN_LBO" name="Поступление ЛБО" caption="Поступление ЛБО" labelwidth="10" width="33" type="boolean" visible="form" value="true" local="true"/>
+			<A id="IN_BA" name="Поступление ассигнований" caption="Поступление ассигнований" labelwidth="10" width="34" type="boolean" visible="form" value="true" local="true"/>
+			<A id="IN_POF" name="Поступление ПОФ" caption="Поступление ПОФ" labelwidth="10" width="33" type="boolean" visible="form" value="true" local="true"/>
+			<A id="SEP_LBO" name="Детализация ЛБО" caption="Детализация ЛБО" labelwidth="10" width="33" type="boolean" visible="form" value="true" local="true"/>
+			<A id="SEP_BA" name="Детализация ассигнований" caption="Детализация ассигнований" labelwidth="10" width="34" type="boolean" visible="form" value="true" local="true"/>
+			<A id="SEP_POF" name="Детализация ПОФ" caption="Детализация ПОФ" labelwidth="10" width="33" type="boolean" visible="form" value="true" local="true"/>
+			<A id="COR_LBO" name="Корректировка ЛБО" caption="Корректировка ЛБО" labelwidth="10" width="33" type="boolean" visible="form" value="true" local="true"/>
+			<A id="COR_BA" name="Корректировка ассигнований" caption="Корректировка ассигнований" labelwidth="10" width="34" type="boolean" visible="form" value="true" local="true"/>
+			<A id="COR_POF" name="Корректировка ПОФ" caption="Корректировка ПОФ" labelwidth="10" width="33" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUT03_LBO" name="Перечисление на счета ПБС ЛБО" caption="Перечисление на счета ПБС ЛБО" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUT03_BA" name="Перечисление на счета ПБС ассигнований" caption="Перечисление на счета ПБС ассигнований" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО" caption="Перечисление на свой счет ПБС ЛБО" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований" caption="Перечисление на свой счет ПБС ассигнований" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUT03_POF" name="Перечисление на счета ПБС ПОФ" caption="Перечисление на счета ПБС ПОФ" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ" caption="Перечисление на свой счет ПБС ПОФ" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО" caption="Перечисление на счета по переданным полномочиям ЛБО" labelwidth="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований" caption="Перечисление на счета по переданным полномочиям ассигнований" labelwidth="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ" caption="Перечисление на счета по переданным полномочиям ПОФ" labelwidth="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="NEED" name="Согласование потребности" caption="Согласование потребности" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="PLAN_OUT" name="Планирование расходов" caption="Планирование расходов" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="PBO" name="Принимаемые бюджетные обязательства" caption="Принимаемые бюджетные обязательства" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="BO" name="Принятые бюджетные обязательства" caption="Принятые бюджетные обязательства" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="PDO" name="Принятые денежные обязательства" caption="Принятые денежные обязательства" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+			<A id="KR" name="Кассовый расход" caption="Кассовый расход" labelwidth="10" width="50" type="boolean" visible="form" value="true" local="true"/>
+		</GA>
+		<GA id="G_EXEC_BUD_KBR" caption="Код расходов бюджета">
+			<A id="EXEC_BUD_KBRID" name="Код" caption="Код"/>
+			<COMMENT name=""/>			
+			<COMMENT name="CODE бюджета, по которому ведется исполнение"/>
+			<A id="BUDGETS_VIRT" name="Бюджет" caption="Бюджет" labelwidth="150" width="60" type="string" visible="form" readonly="true" virtual="true" formula=""/>
+			<COMMENT name="Учетный год, по которому ведется исполнение"/>
+			<A id="YEAR_U_VIRT" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" visible="form" readonly="true" virtual="true" formula=""/>
+		</GA>
+		<GA id="G_EXEC_BUD_DETAIL" caption="Детализированный код расходов бюджета">
+			<A id="EXEC_BUD_DETAILID" name="Код" caption="Код"/>
+			<GA caption="Подразделения, курирующие расходы">
+				<A id="DEPART_VIRT" name="КАР" caption="Куратор расходов" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID_KOM from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			</GA>
+			<A id="ECON_CLASS_VIRT" name="КОСГУ" caption="КОСГУ" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ECON_CLASS where id = (select ECON_CLASS_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			<A id="SUBSIDIES_VIRT" name="Код целевой субсидии" caption="Код целевой субсидии" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from SUBSIDIES where id = (select SUBSIDIES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			<A id="CAPOBJECTS_VIRT" name="Объект" caption="Объект капитального строительства" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from CAPOBJECTS where id = (select CAPOBJECTS_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			<A id="EVENT_VIRT" name="Мероприятие" caption="Мероприятие" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from EVENTS where id = (select EVENT_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			<A id="ACODES_VIRT" name="Аналитический код" caption="Аналитический код" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ACODES where id = (select ACODES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			<A id="DEPART5_VIRT" name="Код департамента Минфина" caption="Структурное подразделение органа, исполняющего бюджет" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART5 where id = (select DEPART5_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+		</GA>
+	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
 		<TABLE id="UFK_NOTIF" name="Казначейские уведомления">
 			<TABS>
 				<TAB name="Основная информация">
-					<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
-						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
-					</A>
 					<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="400" type="string" nulls="false" local="true"/>
 					<A id="DATE_KU" name="Дата" caption="Дата формирования казначейского уведомления" labelwidth="600" type="date" nulls="false" formula="now()" local="true"/>
 					<GA caption="Участник бюджетного процесса">
@@ -46,7 +219,7 @@
 					</GA>
 					<A id="DATE_VKU" name="Дата введения в действие" caption="Дата введения в действие казначейского уведомления" labelwidth="600" type="date" local="true"/>
 					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
-					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="SECRET_KU" name="Признак секретности" caption="Признак секретности казначейского уведомления" labelwidth="400" type="list" visible="form" value="Не секретно" local="true">
 						<AI id="Не секретно" name="Не секретно"/>
 						<AI id="ДСП" name="ДСП"/>
@@ -77,6 +250,10 @@
 					<A id="CODE_KU" name="Код специальных указаний" caption="Код специальных указаний" labelwidth="350" type="string" visible="form" local="true"/>
 					<A id="DATE_POD" name="Дата подписания казначейского уведомления руководителем (уполномоченным лицом) ФК" caption="Дата подписания казначейского уведомления руководителем (уполномоченным лицом) ФК" labelwidth="550" type="date" visible="form" local="true"/>
 					<A id="DATA_POD_NACH" name="Дата подписания казначейского уведомления начальником управления (отдела)" caption="Дата подписания казначейского уведомления начальником управления (отдела)" labelwidth="550" type="date" visible="form" local="true"/>
+					<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
+						<AI id="Detail" name="Детализация бюджетных данных" readonly="true"/>
+					</A>
 				</TAB>
 			</TABS>
 			<TI id="iUFK_NOTIF_UK" unique="NOM_KU, DATE_KU"/>
@@ -88,6 +265,9 @@
 			<A id="SUM_BA_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="SUM_BA_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_BA_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
 			<TI id="iUFK_NOTIF_BA_ID" index="UFK_NOTIFID"/>
 		</TABLE>
 		<TABLE id="UFK_NOTIF_LBO" name="Лимиты бюджетных обязательств">
@@ -99,6 +279,9 @@
 			<A id="SUM_LBO_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="SUM_LBO_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_LBO_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
 			<TI id="iUFK_NOTIF_LBO_ID" index="UFK_NOTIFID"/>
 		</TABLE>
 		<TABLE id="UFK_NOTIF_POF" name="Предельные объемы">
@@ -106,13 +289,136 @@
 			<A id="KBR_ID"/>
 			<A id="SUM_POF_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_POF_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
 			<TI id="iUFK_NOTIF_POF_ID" index="UFK_NOTIFID"/>
+		</TABLE>
+		<TABLE id="EXPSHD" name="Расходные расписания">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+					</A>
+					<A id="NOM_RR" name="Номер" caption="Номер расходного расписания" labelwidth="400" type="string" nulls="false" local="true"/>
+					<A id="DATE_FORM_RR" name="Дата" caption="Дата формирования расходного расписания" labelwidth="600" type="date" nulls="false" formula="now()" local="true"/>
+					<GA caption="Участник бюджетного процесса">
+						<A id="KOD_UBP" name="Код УБП" caption="Код" labelwidth="50" width="30" type="string" local="true"/>
+						<A id="NAME_UBP" name="Наименование УБП" caption="Наименование" labelwidth="100" width="70" type="string" visible="form" local="true"/>
+						<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
+					</GA>
+					<GA caption="Главный распорядитель бюджетных средств">
+						<A id="GLAVA_GRS" name="Глава" caption="Код" labelwidth="50" width="30" type="string" local="true"/>
+						<A id="DIR_RECIPID" name="ГРБС" caption="Ссылка на справочник" labelwidth="200" width="70" visible="form"/>
+					</GA>
+					<A id="DATE_UTV_RR" name="Дата введения в действие" caption="Дата введения в действие расходного расписания" labelwidth="600" type="date" local="true"/>
+					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="SECRET_KU" name="Признак секретности" caption="Признак секретности расходного расписания" labelwidth="400" type="list" visible="form" value="Не секретно" local="true">
+						<AI id="Не секретно" name="Не секретно"/>
+						<AI id="ДСП" name="ДСП"/>
+						<AI id="Секретно" name="Секретно"/>
+						<AI id="Совершенно секретно" name="Совершенно секретно"/>
+						<AI id="Особой важности" name="Особой важности"/>
+					</A>
+					<A id="TYPE_KBK" name="Тип КБК" caption="Тип бюджетной классификации" labelwidth="400" type="list" visible="form" value="0" local="true">
+						<AI id="0" name="Расходы"/>
+						<AI id="1" name="Источники внутреннего финансирования дефицита бюджета"/>
+						<AI id="2" name="Источники внешнего финансирования дефицита бюджета"/>
+					</A>
+					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" value="0" local="true">
+						<AI id="0" name="Черновик" actionlist="MakeEntryKU"/>
+						<AI id="1" name="Отработан" actionlist="DeleteEntryKU" readonly="true"/>
+					</A>
+				</TAB>
+				<TAB name="Ответственные исполнители">
+					<A id="DOL_ISP" name="Должность ответственного исполнителя" caption="Должность ответственного исполнителя" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="NAME_ISP" name="ФИО ответственного исполнителя" caption="ФИО ответственного исполнителя" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="TEL_ISP" name="Телефон ответственного исполнителя" caption="Телефон ответственного исполнителя" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="DATA_POD_RR_ISP" name="Дата подписания РР ответственным исполнителем" caption="Дата подписания РР ответственным исполнителем" labelwidth="600" type="date" local="true"/>
+					<A id="DOL_NOTD" name="Должность начальника управления (отдела)" caption="Должность начальника управления (отдела)" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="NAME_NOTD" name="ФИО начальника управления (отдела)" caption="ФИО начальника управления (отдела)" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="DATA_POD_NACH" name="Дата подписания расходного расписания начальником управления (отдела)" caption="Дата подписания расходного расписания начальником управления (отдела)" labelwidth="600" type="date" visible="form" local="true"/>
+					<A id="DOL_RUK" name="Должность руководителя (уполномоченного им лица)" caption="Должность руководителя (уполномоченного им лица)" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="NAME_RUK" name="ФИО руководителя" caption="ФИО руководителя" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="DATA_POD_RR" name="Дата подписания РР (реестра РР) руководителем (уполномоченным лицом)" caption="Дата подписания РР (реестра РР) руководителем (уполномоченным лицом)" labelwidth="600" type="date" visible="form" local="true"/>
+					<A id="NOTE_RR" name="Специальные указания" caption="Специальные указания" labelwidth="350" type="string" visible="form" local="true"/>
+					<A id="CODE_RR" name="Код специальных указаний" caption="Код специальных указаний" labelwidth="350" type="string" visible="form" local="true"/>
+				</TAB>
+				<TAB name="Дополнительная информация">
+					<A id="DATE_FORM" name="Дата формирования файла" caption="Дата формирования файла" labelwidth="600" type="date" visible="form" local="true"/>
+					<A id="LS_UBP_GRBS" name="Номер лицевого счета УБП, сформировавшего РР или реестр РР" caption="Номер лицевого счета УБП, сформировавшего РР или реестр РР" labelwidth="600" type="string" visible="form" local="true"/>
+					<GA caption="Орган федерального казначейства">
+						<A id="CODE_TOFK" name="Код органа ФК" caption="Код" labelwidth="50" width="30" type="string" local="true"/>
+						<A id="NAME_TOFK" name="Полное наименование" caption="Наименование" labelwidth="100" width="70" type="string" visible="form" local="true"/>
+					</GA>
+					<GA caption="Заявка на кассовый расход">
+						<A id="NOM_PP" name="Номер Заявки на кассовый расход" caption="Номер" labelwidth="400" type="string" visible="form" local="true"/>
+						<A id="DATE_PP" name="Дата Заявки на кассовый расход" caption="Дата" labelwidth="600" type="date" visible="form" local="true"/>
+					</GA>
+					<A id="DATE_UTV_BA" name="Дата введения в действие раздела БА РР" caption="Дата введения в действие раздела БА РР" labelwidth="600" type="date" visible="form" local="true"/>
+					<A id="DATE_UTV_LBO" name="Дата введения в действие раздела ЛБО РР" caption="Дата введения в действие раздела ЛБО РР" labelwidth="600" type="date" visible="form" local="true"/>
+					<A id="DATE_UTV_POF" name="Дата введения в действие раздела ПОФ РР" caption="Дата введения в действие раздела ПОФ РР" labelwidth="600" type="date" visible="form" local="true"/>
+					<A id="DATE_BU" name="Дата учета РР в бюджетном учете в ОрФК отправителе" caption="Дата учета РР в бюджетном учете в ОрФК отправителе" labelwidth="600" type="date" local="true"/>
+					<A id="DATE_UTV_R_R" name="Дата введения в действие реестра РР" caption="Дата введения в действие реестра РР" labelwidth="600" type="date" local="true"/>
+				</TAB>
+				<TAB name="Итоговые суммы">
+					<A id="SUM_BA_1Y" name="ИТОГО сумма БА или их изменений на текущий финансовый год по РР" caption="ИТОГО сумма БА или их изменений на текущий финансовый год по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="SUM_BA_2Y" name="ИТОГО сумма БА или их изменений на 1-й год планового периода по РР" caption="ИТОГО сумма БА или их изменений на 1-й год планового периода по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="SUM_BA_3Y" name="ИТОГО сумма БА или их изменений на 2-й год планового периода по РР" caption="ИТОГО сумма БА или их изменений на 2-й год планового периода по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="SUM_LBO_1Y" name="ИТОГО сумма ЛБО или их изменений на текущий финансовый год по РР" caption="ИТОГО сумма ЛБО или их изменений на текущий финансовый год по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="SUM_LBO_2Y" name="ИТОГО сумма ЛБО или их изменений на 1-й год планового периода по РР" caption="ИТОГО сумма ЛБО или их изменений на 1-й год планового периода по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="SUM_LBO_3Y" name="ИТОГО сумма ЛБО или их изменений на 2-й год планового периода по РР" caption="ИТОГО сумма ЛБО или их изменений на 2-й год планового периода по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="SUM_POF_1Y" name="ИТОГО сумма ПОФ или их изменений на текущий финансовый год по РР" caption="ИТОГО сумма ПОФ или их изменений на текущий финансовый год по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="1" local="true"/>
+					<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
+					</A>
+				</TAB>
+			</TABS>
+			<TI id="iEXPSHD_UK" unique="NOM_RR, DATE_FORM_RR"/>
+		</TABLE>
+		<TABLE id="EXPSHD_BA" name="Расходные расписания: Бюджетные ассигнования">
+			<A id="EXPSHDID" name="Расходные расписания" caption="Расходные расписания" labelwidth="300" parentkey="cascade" type="ref" table="EXPSHD" ret="NOM_RR" form="Expshd"/>
+			<A id="KBR_ID"/>
+			<A id="SUM_BA_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_BA_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_BA_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="NOTE_BA_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
+			<TI id="iEXPSHD_ВА_ID" index="EXPSHDID"/>
+		</TABLE>
+		<TABLE id="EXPSHD_LBO" name="Расходные расписания: Лимиты бюджетных обязательств">
+			<A id="EXPSHDID" name="Расходные расписания" caption="Расходные расписания" labelwidth="300" parentkey="cascade" type="ref" table="EXPSHD" ret="NOM_RR" form="Expshd"/>
+			<A id="KBR_ID"/>
+			<A id="CAPOBJECTS_ID"/>
+			<A id="FAIP_CODE" name="Код  ФАИП" caption="Код объекта ФАИП (КМИ)" labelwidth="350" type="string" local="true"/>
+			<A id="SUM_LBO_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_LBO_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="SUM_LBO_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="NOTE_LBO_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
+			<TI id="iEXPSHD_LBO_ID" index="EXPSHDID"/>
+		</TABLE>
+		<TABLE id="EXPSHD_POF" name="Расходные расписания: Предельные объемы">
+			<A id="EXPSHDID" name="Расходные расписания" caption="Расходные расписания" labelwidth="300" parentkey="cascade" type="ref" table="EXPSHD" ret="NOM_RR" form="Expshd"/>
+			<A id="KBR_ID"/>
+			<A id="SUM_POF_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
+			<A id="NOTE_POF_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
+			<TI id="iEXPSHD_POF_ID" index="EXPSHDID"/>
 		</TABLE>
 		<TABLE id="EXEC_BUD" name="Исполнение бюджета">
 			<TABS>
 				<TAB name="Бюджет">
 					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
-					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="NOTE" name="Примечание" caption="Примечание"/>
 				</TAB>
 				<TAB name="Поступления">
@@ -189,17 +495,108 @@
 						<A id="CAPOBJECTS_L" name="ФАИП" caption="Объектов капитального строительства" labelwidth="40" type="boolean" visible="form" local="true"/>
 						<A id="EVENT_L" name="Мероприятие" caption="Мероприятий" labelwidth="40" type="boolean" visible="form" local="true"/>
 						<A id="ACODES_L" name="Аналитический код" caption="Аналитических кодов, используемых в целях санкционирования расходов" labelwidth="40" type="boolean" visible="form" local="true"/>
+						<A id="DEPART5_L" name="Код департамента Минфина" caption="Структурных подразделений органа, исполняющего бюджет" labelwidth="40" type="boolean" visible="form" local="true"/>
+					</GA>
+					<GA caption="Правила формирования кода строки">
+						<A id="DEPART_C" name="КАР" caption="Куратор расходов" labelwidth="600" type="list" visible="form" value="1" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="DEPART_C_KOMC" name="КОМ" caption="Куратор основных мероприятий" labelwidth="600" type="list" visible="form" value="0" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="ECON_CLASS_C" name="КОСГУ" caption="Код операций сектора государственного управления (КОСГУ)" labelwidth="600" type="list" visible="form" value="0" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="SUBSIDIES_C" name="Код целевых субсидий" caption="Код целевых субсидий" labelwidth="600" type="list" visible="form" value="3" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="CAPOBJECTS_C" name="ФАИП" caption="Объект капитального строительства" labelwidth="600" type="list" visible="form" value="4" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="EVENT_C" name="Мероприятие" caption="Мероприятие" labelwidth="600" type="list" visible="form" value="0" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="ACODES_C" name="Аналитический код" caption="Аналитический код, используемый в целях санкционирования расходов" labelwidth="600" type="list" visible="form" value="0" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
+						<A id="DEPART5_C" name="Код департамента Минфина" caption="Код структурного подразделения органа, исполняющего бюджет" labelwidth="600" type="list" visible="form" value="2" local="true">
+							<AI id="0" name="не включать в код"/>
+							<AI id="1" name="1"/>
+							<AI id="2" name="2"/>
+							<AI id="3" name="3"/>
+							<AI id="4" name="4"/>
+							<AI id="5" name="5"/>
+							<AI id="6" name="6"/>
+							<AI id="7" name="7"/>
+							<AI id="8" name="8"/>
+						</A>
 					</GA>
 				</TAB>
 			</TABS>
-			<TI id="iEXEC_BUD_UK" unique="BUDGETS_ID, YEAR_KU"/>
+			<TI id="iEXEC_BUD_UK" unique="BUDGETS_ID, YEAR_U"/>
 		</TABLE>
 		<TABLE id="EXEC_BUD_KBR" name="Исполнение бюджета: КБК">
 			<TABS>
 				<TAB name="КБК">
-					<A id="EXEC_BUD_ID" name="Исполнение бюджета" caption="Исполнение бюджета" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD" ret="YEAR_KU" form="Exec_Bud" local="true"/>
+					<A id="EXEC_BUDID" name="Исполнение бюджета" caption="Исполнение бюджета" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD" ret="YEAR_U" form="Exec_Bud" local="true"/>
 					<A id="KBR_ID" labelwidth="350"/>
-					<A id="KBR_NAME_VIRT" name="Наименование" caption="Наименование" labelwidth="200" type="text" visible="form" readonly="true" virtual="true" formula="select inv.name from kbr inv where inv.id = @KBR_ID ::bigint" local="true"/>
+					<A id="KBR_NAME_VIRT" name="Наименование" caption="Наименование" labelwidth="200" type="text" visible="form" readonly="true" virtual="true" formula="select inv.name from kbr inv where inv.id = @KBR_ID" local="true"/>
 				</TAB>
 				<TAB name="Поступления">
 					<GA caption="Казначейские уведомления">
@@ -255,12 +652,13 @@
 					<A id="PER_KR_BA_VIRT" name="% кассового исполнения к БА" caption="% кассового исполнения факт" labelwidth="650" type="int" visible="true" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
 				</TAB>
 			</TABS>
-			<TI id="iEXEC_BUD_KBR_UK" unique="EXEC_BUD_ID, KBR_ID"/>
+			<TI id="iEXEC_BUD_KBR_UK" unique="EXEC_BUDID, KBR_ID"/>
 		</TABLE>
 		<TABLE id="EXEC_BUD_DETAIL" name="Исполнение бюджета: Детализация">
 			<TABS>
 				<TAB name="Детальная информация">
-					<A id="EXEC_BUD_KBR_ID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID" local="true"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID" local="true"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="select CODE from KBR where id = (select KBR_ID from EXEC_BUD_KBR where id = @EXEC_BUD_KBRID)"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
 					<GA caption="Подразделения, курирующие расходы">
 						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
@@ -271,6 +669,7 @@
 					<A id="CAPOBJECTS_ID"/>
 					<A id="EVENT_ID"/>
 					<A id="ACODES_ID"/>
+					<A id="DEPART5_ID"/>
 				</TAB>
 				<TAB name="Поступления">
 					<GA caption="Казначейские уведомления">
@@ -326,12 +725,14 @@
 					<A id="PER_KR_BA_VIRT" name="% кассового исполнения к БА" caption="% кассового исполнения факт" labelwidth="650" type="int" visible="true" readonly="true" virtual="true" formula="round((@SUM_KR*100)/NULLIF((@SUM_SEP_BA+@SUM_COR_BA),0))" local="true"/>
 				</TAB>
 			</TABS>
-			<TI id="iEXEC_BUD_DETAIL_UK" unique="EXEC_BUD_KBR_ID, AGENT_ACC_ID, DEPART_ID,DEPART_ID_KOM,ECON_CLASS_ID,SUBSIDIES_ID,CAPOBJECTS_ID,EVENT_ID,ACODES_ID"/>
+			<TI id="iEXEC_BUD_DETAIL_UK" unique="EXEC_BUD_KBRID, CODE"/>
 		</TABLE>
 		<TABLE id="JURNALEXP" name="Журнал операций по исполнению расходной части бюджета">
 			<TABS>
 				<TAB name="Основная информация">
-					<A id="DOCLINKS_IN"/>
+					<A id="DOCLINKS_IN">
+						<AI id="*" name="Любая связь" readonly="true"/>
+					</A>
 					<GA caption="Операция">
 						<A id="RECORD_TYPE" name="Тип" caption="Тип" labelwidth="50" width="80" type="list" nulls="false" local="true">
 							<AI id="IN_LBO" name="Поступление ЛБО"/>
@@ -356,13 +757,13 @@
 							<AI id="PLAN_OUT" name="Планирование расходов"/>
 							<AI id="PBO" name="Принимаемые бюджетные обязательства"/>
 							<AI id="BO" name="Принятые бюджетные обязательства"/>
-							<AI id="DO" name="Принятые денежные обязательства"/>
+							<AI id="PDO" name="Принятые денежные обязательства"/>
 							<AI id="KR" name="Кассовый расход"/>
 						</A>
 						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					</GA>
 					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
-					<A id="YEAR_KU" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="KBR_ID" labelwidth="350"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
 					<GA caption="Документы">
@@ -378,6 +779,8 @@
 						</GA>
 					</GA>
 					<A id="SUM" name="Сумма" caption="Сумма операции" labelwidth="550" type="number" len="18.2" local="true"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" local="true"/>
 				</TAB>
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
@@ -389,16 +792,752 @@
 					<A id="CAPOBJECTS_ID"/>
 					<A id="EVENT_ID"/>
 					<A id="ACODES_ID"/>
+					<A id="DEPART5_ID"/>
 					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 				</TAB>
 			</TABS>
 		</TABLE>
+		<TABLE id="JURNALEXP_IN_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('IN_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_IN_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('IN_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_IN_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('IN_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_SEP_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('SEP_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_SEP_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('SEP_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_SEP_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('SEP_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_COR_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('COR_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_COR_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('COR_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_COR_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('COR_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUT03_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT03_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUT03_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT03_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUT03_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT03_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUTIN_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUTIN_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUTIN_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUTIN_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUTIN_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUTIN_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUT14_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT14_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUT14_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT14_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_OUT14_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT14_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_NEED" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('NEED')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_PLAN_OUT" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('PLAN_OUT')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_PBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('PBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_BO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('BO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_DO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('PDO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXP_KR" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('KR')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_IN_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('IN_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_IN_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('IN_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_IN_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('IN_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_SEP_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('SEP_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_SEP_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('SEP_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_SEP_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('SEP_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_COR_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('COR_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_COR_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('COR_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_COR_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('COR_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUT03_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT03_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUT03_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT03_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUT03_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT03_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUTIN_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUTIN_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUTIN_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUTIN_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUTIN_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUTIN_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUT14_LBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT14_LBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUT14_BA" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT14_BA')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_OUT14_POF" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('OUT14_POF')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_NEED" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('NEED')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1A"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_PLAN_OUT" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('PLAN_OUT')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_PBO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('PBO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_BO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('BO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_DO" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('PDO')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="JURNALEXPD_KR" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true" query="select * from JURNALEXP where RECORD_TYPE in ('KR')">
+			<TABS>
+				<TAB name="Основная информация">
+					<GA id="JURNALEXP1"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" parentkey="nocascade" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="false" local="true"/>
+				</TAB>
+				<TAB name="Детальная информация">
+					<GA id="JURNALEXP2"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="DEFAULT_DEPART" name="Значения по умолчанию: Структурные подразделения">
+			<A id="DEPART_ID" labelwidth="200" width="70"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="30" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="KBR_KAR" name="Администрирование расходов">
+			<A id="DEFAULT_DEPART_ID" name="Структурные подразделения" caption="Структурные подразделения" parentkey="cascade" type="ref" table="DEFAULT_DEPART" ret="DEPART_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="KBR_KOM" name="Основные мероприятия">
+			<A id="DEFAULT_DEPART_ID" name="Структурные подразделения" caption="Структурные подразделения" parentkey="cascade" type="ref" table="DEFAULT_DEPART" ret="DEPART_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DEFAULT_ECON_CLASS" name="Значения по умолчанию: КОСГУ">
+			<A id="ECON_CLASS_ID" labelwidth="200" width="70"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="30" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="DEFAULT_ECON_CLASS_KBR" name="Бюджетная классификация">
+			<A id="DEFAULT_ECON_CLASS_ID" name="КОСГУ" caption="КОСГУ" parentkey="cascade" type="ref" table="DEFAULT_ECON_CLASS" ret="ECON_CLASS_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DEFAULT_SUBSIDIES" name="Значения по умолчанию: Коды целевых субсидий">
+			<A id="SUBSIDIES_ID" labelwidth="200" width="70"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="30" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="DEFAULT_SUBSIDIES_KBR" name="Бюджетная классификация">
+			<A id="DEFAULT_SUBSIDIES_ID" name="Коды целевых субсидий" caption="Коды целевых субсидий" parentkey="cascade" type="ref" table="DEFAULT_SUBSIDIES" ret="SUBSIDIES_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DEFAULT_EVENT" name="Значения по умолчанию: Мероприятия">
+			<A id="EVENT_ID" labelwidth="200" width="70"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="30" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="DEFAULT_EVENT_KBR" name="Бюджетная классификация">
+			<A id="DEFAULT_EVENT_ID" name="Мероприятия" caption="Мероприятия" parentkey="cascade" type="ref" table="DEFAULT_EVENT" ret="EVENT_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DEFAULT_CAPOBJECTS" name="Значения по умолчанию: Объекты капитального строительства">
+			<A id="CAPOBJECTS_ID" labelwidth="250" width="70"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="30" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="DEFAULT_CAPOBJECTS_KBR" name="Бюджетная классификация">
+			<A id="DEFAULT_CAPOBJECTS_ID" name="Объект капитального строительства" caption="Объект капитального строительства" parentkey="cascade" type="ref" table="DEFAULT_CAPOBJECTS" ret="CAPOBJECTS_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DEFAULT_ACODES" name="Значения по умолчанию: Аналитические коды">
+			<A id="ACODES_ID" labelwidth="200" width="70"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="30" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="DEFAULT_ACODES_KBR" name="Бюджетная классификация">
+			<A id="DEFAULT_ACODES_ID" name="Аналитический код" caption="Аналитический код" parentkey="cascade" type="ref" table="DEFAULT_ACODES" ret="ACODES_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DEFAULT_DEPART5" name="Значения по умолчанию: Структурные подразделения органа, исполняющего бюджет">
+			<A id="DEPART5_ID" labelwidth="400" width="80"/>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="80" width="20" type="int" value="1" local="true"/>
+			<GA id="Use_operation_types" caption="Использовать для типов операций:"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="DEFAULT_DEPART5_KBR" name="Бюджетная классификация">
+			<A id="DEFAULT_DEPART5_ID" name="Подразделение" caption="Подразделение" parentkey="cascade" type="ref" table="DEFAULT_DEPART5" ret="DEPART5_ID"/>
+			<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500"/>
+			<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500"/>
+			<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500"/>
+			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
+		</TABLE>
+		<TABLE id="DETAIL" name="Детализация бюджетных данных">
+			<A id="DOCNUMB" name="Номер детализации" caption="Номер детализации" labelwidth="200" width="60" type="string" nulls="false" local="true"/>
+			<A id="DOCDATE" name="Дата детализации" caption="Дата детализации" labelwidth="250" width="40" type="date" nulls="false" formula="now()" local="true"/>
+			<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="200" width="60" type="string" local="true"/>
+			<A id="DATE_KU" name="Дата" caption="Дата  казначейского уведомления" labelwidth="250" width="40" type="date" local="true"/>
+			<A id="NOTE"/>
+			<A id="DOCLINKS_IN" name="Записи входящие" query="">
+				<AI id="Ufk_Notif" name="Казначейские уведомления" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" query="">
+				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="DETAIL_KBR" name="Код расходов бюджета">
+			<A id="DETAILID" name="Детализация бюджетных данных" caption="Детализация бюджетных данных" parentkey="cascade" type="ref" table="DETAIL" ret="DOCNUMB" form="Detail"/>
+			<GA id="G_EXEC_BUD_KBR" caption="Код расходов бюджета"/>
+			<A id="SUM_IN" name="Сумма" caption="Сумма поступления" labelwidth="140" width="60" type="number" len="18.2" local="true"/>
+			<A id="RECORD_TYPE" name="Тип" caption="Тип бюджетных данных" labelwidth="140" width="40" type="list" nulls="false" local="true">
+				<AI id="SEP_LBO" name="ЛБО"/>
+				<AI id="SEP_BA" name="Бюджетные ассигнования"/>
+			</A>
+		</TABLE>
+		<TABLE id="DETAIL_KBR_D" name="Детализация кодов расходов бюджета">
+			<A id="DETAIL_KBRID" name="Код расходов бюджета" caption="Код расходов бюджета" parentkey="cascade" type="ref" table="DETAIL_KBR"/>
+			<GA id="G_EXEC_BUD_DETAIL" caption="Детализированный код расходов бюджета"/>
+			<A id="SUM_SER" name="Сумма" caption="Сумма детализации" labelwidth="140" width="60" type="number" len="18.2" local="true"/>
+			<A id="RECORD_TYPE" name="Тип" caption="Тип бюджетных данных" labelwidth="140" width="40" type="list" nulls="false" local="true">
+				<AI id="SEP_LBO" name="ЛБО"/>
+				<AI id="SEP_BA" name="Бюджетные ассигнования"/>
+			</A>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
-		<ACTION id="MakeEntryKU" name="Отработать" type="procedure" procedure="p_fin_makeentryku"/>
-		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_fin_deleteentryku"/>
+		<ACTION id="MakeEntryKU" name="Отработать" type="procedure" procedure="p_action_fin_makeentryku"/>
+		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryku"/>
 		<ACTION id="CalculateEXEC_BUD" name="Рассчитать показатели" type="procedure" procedure=""/>
-		<ACTION id="ClearEXEC_BUD" name="Очистить" type="procedure" procedure=""/>
+		<ACTION id="ClearEXEC_BUD" name="Очистить показатели" type="procedure" procedure=""/>
+		<ACTION id="View_operations" name="Просмотр операций" type="procedure" procedure="">
+			<FORM>
+				<A id="RECORD_TYPE" name="Тип" caption="Тип операции" type="list" nulls="false" local="true">
+					<AI id="IN_LBO" name="Поступление ЛБО"/>
+					<AI id="IN_BA" name="Поступление ассигнований"/>
+					<AI id="IN_POF" name="Поступление ПОФ"/>
+					<AI id="SEP_LBO" name="Детализация ЛБО"/>
+					<AI id="SEP_BA" name="Детализация ассигнований"/>
+					<AI id="SEP_POF" name="Детализация ПОФ"/>
+					<AI id="COR_LBO" name="Корректировка ЛБО"/>
+					<AI id="COR_BA" name="Корректировка ассигнований"/>
+					<AI id="COR_POF" name="Корректировка ПОФ"/>
+					<AI id="OUT03_LBO" name="Перечисление на счета ПБС ЛБО"/>
+					<AI id="OUT03_BA" name="Перечисление на счета ПБС ассигнований"/>
+					<AI id="OUT03_POF" name="Перечисление на счета ПБС ПОФ"/>
+					<AI id="OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО"/>
+					<AI id="OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований"/>
+					<AI id="OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ"/>
+					<AI id="OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО"/>
+					<AI id="OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований"/>
+					<AI id="OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ"/>
+					<AI id="NEED" name="Согласование потребности"/>
+					<AI id="PLAN_OUT" name="Планирование расходов"/>
+					<AI id="PBO" name="Принимаемые бюджетные обязательства"/>
+					<AI id="BO" name="Принятые бюджетные обязательства"/>
+					<AI id="PDO" name="Принятые денежные обязательства"/>
+					<AI id="KR" name="Кассовый расход"/>
+				</A>
+			</FORM>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -406,31 +1545,272 @@
 			<GRID id="Ufk_Notif" name="Казначейские уведомления" table="UFK_NOTIF" actionlist="MakeEntryKU;DeleteEntryKU"/>
 			<TABS>
 				<TAB name="Бюджетные ассигнования">
-					<GRID id="Ufk_Notif_Ba" name="Бюджетные ассигнования" table="UFK_NOTIF_BA"/>
+					<GRID id="Ufk_Notif_Ba" name="Казначейские уведомления: Бюджетные ассигнования" table="UFK_NOTIF_BA"/>
 				</TAB>
 				<TAB name="Лимиты бюджетных обязательств">
-					<GRID id="Ufk_Notif_Lbo" name="Лимиты бюджетных обязательств" table="UFK_NOTIF_LBO"/>
+					<GRID id="Ufk_Notif_Lbo" name="Казначейские уведомления: Лимиты бюджетных обязательств" table="UFK_NOTIF_LBO"/>
 				</TAB>
 				<TAB name="Предельные объемы">
-					<GRID id="Ufk_Notif_Pof" name="Предельные объемы" table="UFK_NOTIF_POF"/>
+					<GRID id="Ufk_Notif_Pof" name="Казначейские уведомления: Предельные объемы" table="UFK_NOTIF_POF"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Expshd" name="Расходные расписания">
+			<GRID id="Expshd" name="Расходные расписания" table="EXPSHD"/>
+			<TABS>
+				<TAB name="Бюджетные ассигнования">
+					<GRID id="Expshd_Ba" name="Расходные расписания: Бюджетные ассигнования" table="EXPSHD_BA"/>
+				</TAB>
+				<TAB name="Лимиты бюджетных обязательств">
+					<GRID id="Expshd_Lbo" name="Расходные расписания: Лимиты бюджетных обязательств" table="EXPSHD_LBO"/>
+				</TAB>
+				<TAB name="Предельные объемы">
+					<GRID id="Expshd_Pof" name="Расходные расписания: Предельные объемы" table="EXPSHD_POF"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Exec_Bud" name="Исполнение бюджета">
+			<TABS>
+				<TAB name="Годовой бюджет">
+					<GRID id="Exec_Bud" name="Исполнение бюджета" table="EXEC_BUD" actionlist="CalculateEXEC_BUD;ClearEXEC_BUD"/>
+				</TAB>
+				<TAB name="Коды классификации расходов бюджета">
+					<A id="BUDGETS_VIRT" caption="Бюджет" labelwidth="70" width="50" type="string" readonly="true" virtual="true" formula="select CODE from BUDGETS where id = (select BUDGETS_ID from EXEC_BUD where id = @EXEC_BUDID)" local="true"/>
+					<A id="YEAR_U_VIRT" caption="Учетный год" labelwidth="100" width="50" type="int" readonly="true" virtual="true" formula="select YEAR_U from EXEC_BUD where id = @EXEC_BUDID" local="true"/>
+					<GRID id="Exec_Bud_Kbr" name="Исполнение бюджета: КБК" table="EXEC_BUD_KBR" actionlist="View_operations"/>
+					<TABS>
+						<TAB name="Поступления">
+							<TABS>
+								<TAB name="КУ ЛБО">
+									<GRID id="Jurnalexp_IN_LBO" name="Поступление ЛБО Казначейские уведомления" table="JURNALEXP_IN_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="КУ ассигнования">
+									<GRID id="Jurnalexp_IN_BA" name="Поступление ассигнований Казначейские уведомления" table="JURNALEXP_IN_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="КУ ПОФ">
+									<GRID id="Jurnalexp_IN_POF" name="Поступление ПОФ Казначейские уведомления" table="JURNALEXP_IN_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Детализация ЛБО">
+									<GRID id="Jurnalexp_SEP_LBO" name="Детализация ЛБО" table="JURNALEXP_SEP_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Детализация ассигнований">
+									<GRID id="Jurnalexp_SEP_BA" name="Детализация ассигнований" table="JURNALEXP_SEP_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Корректировка ЛБО">
+									<GRID id="Jurnalexp_COR_LBO" name="Корректировка ЛБО" table="JURNALEXP_COR_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Корректировка ассигнований">
+									<GRID id="Jurnalexp_COR_BA" name="Корректировка ассигнований" table="JURNALEXP_COR_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+						<TAB name="Перечисления">
+							<TABS>
+								<TAB name="Счета ПБС ЛБО">
+									<GRID id="Jurnalexp_OUT03_LBO" name="Перечисление на счета ПБС ЛБО" table="JURNALEXP_OUT03_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Счета ПБС ассигнования">
+									<GRID id="Jurnalexp_OUT03_BA" name="Перечисление на счета ПБС ассигнований" table="JURNALEXP_OUT03_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Свой счет ПБС ЛБО">
+									<GRID id="Jurnalexp_OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО" table="JURNALEXP_OUTIN_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Свой счет ПБС ассигнования">
+									<GRID id="Jurnalexp_OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований" table="JURNALEXP_OUTIN_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="14-ые счета ЛБО">
+									<GRID id="Jurnalexp_OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО" table="JURNALEXP_OUT14_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="14-ые счета ассигнования">
+									<GRID id="Jurnalexp_OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований" table="JURNALEXP_OUT14_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+						<TAB name="Распределение ПОФ">
+							<TABS>
+								<TAB name="Счета ПБС ПОФ">
+									<GRID id="Jurnalexp_OUT03_POF" name="Перечисление на счета ПБС ПОФ" table="JURNALEXP_OUT03_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Свой счет ПБС ПОФ">
+									<GRID id="Jurnalexp_OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ" table="JURNALEXP_OUTIN_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="14-ые счета ПОФ">
+									<GRID id="Jurnalexp_OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ" table="JURNALEXP_OUT14_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+						<TAB name="Расходы">
+							<TABS>
+								<TAB name="Согласование потребности">
+									<GRID id="Jurnalexp_NEED" name="Согласование потребности" table="JURNALEXP_NEED" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Планирование расходов">
+									<GRID id="Jurnalexp_PLAN_OUT" name="Планирование расходов" table="JURNALEXP_PLAN_OUT" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Принимаемые БО">
+									<GRID id="Jurnalexp_PBO" name="Принимаемые бюджетные обязательства" table="JURNALEXP_PBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Принятые БО">
+									<GRID id="Jurnalexp_BO" name="Принятые бюджетные обязательства" table="JURNALEXP_BO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Принятые ДО">
+									<GRID id="Jurnalexp_DO" name="Принятые денежные обязательства" table="JURNALEXP_DO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Кассовый расход">
+									<GRID id="Jurnalexp_KR" name="Кассовый расход" table="JURNALEXP_KR" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Детализация">
+					<A id="EXEC_BUD_KBR_VIRT" name="КБР" caption="Код бюджетной классификации расходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from KBR where id = (select KBR_ID from EXEC_BUD_KBR where id = @EXEC_BUD_KBRID)" local="true"/>
+					<GRID id="Exec_Bud_Detail" name="Исполнение бюджета: Детализация" table="EXEC_BUD_DETAIL" actionlist="View_operations"/>
+					<TABS>
+						<TAB name="Поступления">
+							<TABS>
+								<TAB name="КУ ЛБО">
+									<GRID id="JurnalexpD_IN_LBO" name="Поступление ЛБО Казначейские уведомления" table="JURNALEXPD_IN_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="КУ ассигнования">
+									<GRID id="JurnalexpD_IN_BA" name="Поступление ассигнований Казначейские уведомления" table="JURNALEXPD_IN_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="КУ ПОФ">
+									<GRID id="JurnalexpD_IN_POF" name="Поступление ПОФ Казначейские уведомления" table="JURNALEXPD_IN_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Детализация ЛБО">
+									<GRID id="JurnalexpD_SEP_LBO" name="Детализация ЛБО" table="JURNALEXPD_SEP_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Детализация ассигнований">
+									<GRID id="JurnalexpD_SEP_BA" name="Детализация ассигнований" table="JURNALEXPD_SEP_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Корректировка ЛБО">
+									<GRID id="JurnalexpD_COR_LBO" name="Корректировка ЛБО" table="JURNALEXPD_COR_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Корректировка ассигнований">
+									<GRID id="JurnalexpD_COR_BA" name="Корректировка ассигнований" table="JURNALEXPD_COR_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+						<TAB name="Перечисления">
+							<TABS>
+								<TAB name="Счета ПБС ЛБО">
+									<GRID id="JurnalexpD_OUT03_LBO" name="Перечисление на счета ПБС ЛБО" table="JURNALEXPD_OUT03_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Счета ПБС ассигнования">
+									<GRID id="JurnalexpD_OUT03_BA" name="Перечисление на счета ПБС ассигнований" table="JURNALEXPD_OUT03_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Свой счет ПБС ЛБО">
+									<GRID id="JurnalexpD_OUTIN_LBO" name="Перечисление на свой счет ПБС ЛБО" table="JURNALEXPD_OUTIN_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Свой счет ПБС ассигнования">
+									<GRID id="JurnalexpD_OUTIN_BA" name="Перечисление на свой счет ПБС ассигнований" table="JURNALEXPD_OUTIN_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="14-ые счета ЛБО">
+									<GRID id="JurnalexpD_OUT14_LBO" name="Перечисление на счета по переданным полномочиям ЛБО" table="JURNALEXPD_OUT14_LBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="14-ые счета ассигнования">
+									<GRID id="JurnalexpD_OUT14_BA" name="Перечисление на счета по переданным полномочиям ассигнований" table="JURNALEXPD_OUT14_BA" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+						<TAB name="Распределение ПОФ">
+							<TABS>
+								<TAB name="Счета ПБС ПОФ">
+									<GRID id="JurnalexpD_OUT03_POF" name="Перечисление на счета ПБС ПОФ" table="JURNALEXPD_OUT03_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Свой счет ПБС ПОФ">
+									<GRID id="JurnalexpD_OUTIN_POF" name="Перечисление на свой счет ПБС ПОФ" table="JURNALEXPD_OUTIN_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="14-ые счета ПОФ">
+									<GRID id="JurnalexpD_OUT14_POF" name="Перечисление на счета по переданным полномочиям ПОФ" table="JURNALEXPD_OUT14_POF" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+						<TAB name="Расходы">
+							<TABS>
+								<TAB name="Согласование потребности">
+									<GRID id="JurnalexpD_NEED" name="Согласование потребности" table="JURNALEXPD_NEED" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Планирование расходов">
+									<GRID id="JurnalexpD_PLAN_OUT" name="Планирование расходов" table="JURNALEXPD_PLAN_OUT" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Принимаемые БО">
+									<GRID id="JurnalexpD_PBO" name="Принимаемые бюджетные обязательства" table="JURNALEXPD_PBO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Принятые БО">
+									<GRID id="JurnalexpD_BO" name="Принятые бюджетные обязательства" table="JURNALEXPD_BO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Принятые ДО">
+									<GRID id="JurnalexpD_DO" name="Принятые денежные обязательства" table="JURNALEXPD_DO" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+								<TAB name="Кассовый расход">
+									<GRID id="JurnalexpD_KR" name="Кассовый расход" table="JURNALEXPD_KR" actionlist="View;ConfigTables" readonly="true"/>
+								</TAB>
+							</TABS>
+						</TAB>
+					</TABS>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета">
+			<GRID id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" table="JURNALEXP"/>
+		</FORM>
+		<FORM id="Default_Depart" name="Значения по умолчанию: Структурные подразделения">
+			<GRID id="Default_Depart" name="Значения по умолчанию: Структурные подразделения" table="DEFAULT_DEPART"/>
+			<TABS>
+				<TAB name="Администрирование расходов">
+					<GRID id="Kbr_Kar" name="Бюджетная классификация: Администрирование расходов" table="KBR_KAR"/>
+				</TAB>
+				<TAB name="Основные мероприятия">
+					<GRID id="Kbr_Kom" name="Бюджетная классификация: Основные мероприятия" table="KBR_KOM"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Default_Econ_Class" name="Значения по умолчанию: КОСГУ">
+			<GRID id="Default_Econ_Class" name="Значения по умолчанию: КОСГУ" table="DEFAULT_ECON_CLASS"/>
+			<GRID id="Default_Econ_Class_Kbr" name="Бюджетная классификация" table="DEFAULT_ECON_CLASS_KBR"/>
+		</FORM>
+		<FORM id="Default_Subsidies" name="Значения по умолчанию: Коды целевых субсидий">
+			<GRID id="Default_Subsidies" name="Значения по умолчанию: Коды целевых субсидий" table="DEFAULT_SUBSIDIES"/>
+			<GRID id="Default_Subsidies_Kbr" name="Бюджетная классификация" table="DEFAULT_SUBSIDIES_KBR"/>
+		</FORM>
+		<FORM id="Default_Event" name="Значения по умолчанию: Мероприятия">
+			<GRID id="Default_Event" name="Значения по умолчанию: Мероприятия" table="DEFAULT_EVENT"/>
+			<GRID id="Default_Event_Kbr" name="Бюджетная классификация" table="DEFAULT_EVENT_KBR"/>
+		</FORM>
+		<FORM id="Default_Capobjects" name="Значения по умолчанию: Объекты капитального строительства">
+			<GRID id="Default_Capobjects" name="Значения по умолчанию: Объекты капитального строительства" table="DEFAULT_CAPOBJECTS"/>
+			<GRID id="Default_Capobjects_Kbr" name="Бюджетная классификация" table="DEFAULT_CAPOBJECTS_KBR"/>
+		</FORM>
+		<FORM id="Default_Acodes" name="Значения по умолчанию: Аналитические коды">
+			<GRID id="Default_Acodes" name="Значения по умолчанию: Аналитические коды" table="DEFAULT_ACODES"/>
+			<GRID id="Default_Acodes_Kbr" name="Бюджетная классификация" table="DEFAULT_ACODES_KBR"/>
+		</FORM>
+		<FORM id="Default_Depart5" name="Значения по умолчанию: Структурные подразделения органа, исполняющего бюджет">
+			<GRID id="Default_Depart5" name="Значения по умолчанию: Структурные подразделения органа, исполняющего бюджет" table="DEFAULT_DEPART5"/>
+			<GRID id="Default_Depart5_Kbr" name="Бюджетная классификация" table="DEFAULT_DEPART5_KBR"/>
+		</FORM>
+		<FORM id="Detail" name="Детализация бюджетных данных">
+			<GRID id="Detail" name="Детализация бюджетных данных" table="DETAIL"/>
+			<TABS>
+				<TAB name="Код расходов">
+					<GRID id="Detail_Kbr" name="Код расходов бюджета" table="DETAIL_KBR"/>
+				</TAB>
+				<TAB name="Детализация">
+					<COMMENT name="Учетный год, по которому ведется исполнение"/>
+					<A id="YEAR_U_VIRT" caption="Учетный год" labelwidth="80" width="20" type="int" readonly="true" virtual="true" formula="" local="true"/>
+					<COMMENT name="CODE бюджетной классификации расходов"/>
+					<A id="KBR_VIRT" caption="КБР" labelwidth="50" width="20" type="string" readonly="true" virtual="true" formula="" local="true"/>
+					<COMMENT name="Тип бюджетных данных (ЛБО или Ассигнования)"/>
+					<A id="RECORD_TYPE_VIRT" name="Тип" caption="Тип" labelwidth="50" width="20" type="string" readonly="true" virtual="true" formula="" local="true"/>
+					<COMMENT name="Сумма по тому КБК на котором мы стоим, то есть сумма, которою мы детализируем"/>
+					<A id="SUM_ALL_VIRT" caption="Всего" labelwidth="50" width="20" type="number" len="18.2" readonly="true" virtual="true" formula="" local="true"/>
+					<COMMENT name="Разница между SUM_IN и суммой всех сток по спецификации SUM_SER, то есть остаток, который мы еще не распределии"/>
+					<A id="SUM_RES_VIRT" caption="Остаток" labelwidth="50" width="20" type="number" len="18.2" readonly="true" virtual="true" formula="" local="true"/>
+					<GRID id="Detail_Kbr_D" name="Детализация кодов расходов бюджета" table="DETAIL_KBR_D"/>
 				</TAB>
 			</TABS>
 		</FORM>
 	</FORMS>
-	<FORM id="Exec_Bud" name="Исполнение бюджета">
-		<TABS>
-			<TAB name="Годовой бюджет">
-				<GRID id="Exec_Bud" name="Исполнение бюджета" table="EXEC_BUD" actionlist="CalculateEXEC_BUD;ClearEXEC_BUD"/>
-			</TAB>
-			<TAB name="Коды классификации расходов бюджета">
-				<GRID id="Exec_Bud_Kbr" name="Исполнение бюджета: КБК" table="EXEC_BUD_KBR"/>
-			</TAB>
-			<TAB name="Детализация">
-				<GRID id="Exec_Bud_Detail" name="Исполнение бюджета: Детализация" table="EXEC_BUD_DETAIL"/>
-			</TAB>
-		</TABS>
-	</FORM>
-	<FORM id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета">
-		<GRID id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" table="JURNALEXP"/>
-	</FORM>
 </SYSTEM>
