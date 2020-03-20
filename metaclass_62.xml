@@ -20,6 +20,9 @@
 		<A id="INVENTORY_DOCSID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY_DOCS" ret="ID" nulls="false"/>
 		<A id="OTHER_INVENTORY_DOCSID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="OTHER_INVENTORY_DOCS" ret="ID" nulls="false"/>
 		<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="140" ret="CODE" type="ref" table="STAGES" pid="CONTRACTSDOCSID" nulls="false"/>
+		<A id="INVENTORY_TRIAL_BALANCEID" name="Оборотные ведомости по НФА" caption="Оборотные ведомости по НФА" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCE" ret="ID" nulls="false"/>
+		<A id="INVENTORY_TRIAL_BALANCEDOCSID" name="Оборотная ведомость по НФА" caption="Оборотная ведомость по НФА" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCEDOCS" ret="ID" nulls="false"/>
+		<A id="ACCOUNTID" name="Номер счета" caption="Номер счета" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -266,7 +269,6 @@
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="50" width="38"/>
 			<A id="NOTE" name="Расшифровка" caption="Расшифровка" labelwidth="80" width="100" type="string" nulls="true" local="true"/>
 		</TABLE>
-		
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
@@ -467,7 +469,6 @@
 			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
 			<GA id="TYPICALOPERATION"/>			
 		</TABLE>
-		
 		<TABLE id="OTHER_INVENTORY_DOCS" name="Прочие поступления МЗ">
 			<A id="INVENTORYID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
@@ -508,6 +509,35 @@
 			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
 			<GA id="TYPICALOPERATION"/>			
 		</TABLE>
+
+		<TABLE id="INVENTORY_TRIAL_BALANCE" name="Оборотные ведомости по НФА ИК">
+			<GA name="Избирательная кампания" caption="Избирательная кампания">
+				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
+				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+				<A id="JURPERSONSID"/>
+			</GA>
+			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>		
+		</TABLE>
+		<TABLE id="INVENTORY_TRIAL_BALANCEDOCS" name="Оборотные ведомости по нефинансовым активам">
+			<A id="INVENTORY_TRIAL_BALANCEID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE where id=@INVENTORY_TRIAL_BALANCEID"/>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" labelwidth="120" nulls="false"  local="true"/>
+			<A id="ACCOUNTID" name="Счет" caption="Счет" labelwidth="120"/>
+			<A id="BASIS" name="Основание" caption="Основание" type="string" labelwidth="120" local="true"/>
+		</TABLE>
+		<TABLE id="INVENTORY_TRIAL_BALANCESTAGES" name="Номенклатура оборотных ведомостей">
+			<A id="INVENTORY_TRIAL_BALANCEDOCSID" parentkey="cascade"/>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" visible="false" readonly="true" labelwidth="150" nulls="false" local="true" formula="select RESPPERSON from INVENTORY_TRIAL_BALANCEDOCS where id=@INVENTORY_TRIAL_BALANCEDOCSID"/>
+			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150" type="ref" table="DICNOMNS" ret="CODE" nulls="false" local="true"/>
+			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="DICMUNTSID" labelwidth="90" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<GA name="Обороты" caption="Обороты">
+				<A id="BALANCEDATE" name="Дата" caption="Дата" type="date" nulls="false" labelwidth="60" width="30" local="true"/>
+				<A id="DTQUANTITY" name="Приход" caption="Приход" type="number" labelwidth="50" width="35" nulls="true" local="true"/>	
+				<A id="KTQUANTITY" name="Расход" caption="Расход" type="number" labelwidth="50" width="35" nulls="true" local="true"/>	
+			</GA>
+		</TABLE>		
 		
 		<TABLE id="TRANSACTIONLOG" name="Журналы операций избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -792,6 +822,17 @@
 				</TAB>				
 			</TABS>	
 		</FORM>
+		<FORM id="INVENTORY_TRIAL_BALANCEFRM" name="Оборотные ведомости по НФА">
+			<GRID id="INVENTORY_TRIAL_BALANCEGR" name=" Оборотные ведомости по НФА избирательных кампаний" table="INVENTORY_TRIAL_BALANCE"/>
+			<TABS>
+				<TAB name="Оборотные ведомости по НФА">
+					<GRID id="INVENTORY_TRIAL_BALANCEDOCSGR" name="Оборотные ведомости по НФА" table="INVENTORY_TRIAL_BALANCEDOCS"/>				
+				</TAB>
+				<TAB name="Номенклатура оборотных ведомостей">
+					<GRID id="INVENTORY_TRIAL_BALANCESTAGESGR" name="Номенклатура оборотных ведомостей" table="INVENTORY_TRIAL_BALANCESTAGES"/>
+				</TAB>
+			</TABS>		
+		</FORM>
 		<FORM id="TRANSACTIONLOGFRM" name="Журнал операций">
 			<GRID id="TRANSACTIONLOGGR" name="Журналы операций избирательных кампаний" table="TRANSACTIONLOG"/>
 			<TABS>
@@ -799,7 +840,7 @@
 					<GRID id="TRANSACTIONLOGDocsGR" name="Журнал операций" table="TRANSACTIONLOG_DOCS"/>				
 				</TAB>
 				<TAB name="Проводка хозяственной операции">
-					<GRID id="RANSACTIONLOGStagesGR" name="Проводка хозяственной операции" table="TRANSACTIONLOG_STAGES"/>
+					<GRID id="TRANSACTIONLOGStagesGR" name="Проводка хозяственной операции" table="TRANSACTIONLOG_STAGES"/>
 				</TAB>
 			</TABS>		
 		</FORM>
