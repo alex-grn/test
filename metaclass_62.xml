@@ -8,6 +8,7 @@
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
+		<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
 		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="CODE" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="CODE" nulls="false"/>
 		<A id="CASHCONTRIBUTIONID" name="Заголовок объявления о взносе" caption="Заголовок объявления о взносе" type="ref" table="CASHCONTRIBUTION_HEADER" ret="CODE" nulls="false"/>
@@ -23,7 +24,9 @@
 		<A id="INVENTORY_TRIAL_BALANCEID" name="Оборотные ведомости по НФА" caption="Оборотные ведомости по НФА" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCE" ret="ID" nulls="false"/>
 		<A id="INVENTORY_TRIAL_BALANCEDOCSID" name="Оборотная ведомость по НФА" caption="Оборотная ведомость по НФА" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCEDOCS" ret="ID" nulls="false"/>
 		<A id="WRITEOFFID" name="Списание МЗ" caption="Списание МЗ" labelwidth="200" type="ref" table="WRITEOFF" ret="ID" nulls="false"/>
-		<A id="WRITEOFF_DOCSID" name="Номенклатура списания МЗ" caption="Номенклатура списания МЗ" labelwidth="200" type="ref" table="WRITEOFF_DOCS" ret="ID" nulls="false"/>
+		<A id="WRITEOFF_STATEMENT_HEADERID" name="Ведомость списания МЗ" caption="Ведомость списания МЗ" labelwidth="200" type="ref" table="WRITEOFF_STATEMENT_HEADER" ret="ID" nulls="false"/>
+		<A id="WRITEOFF_INVOICE_HEADERID" name="Трекбования-накладная" caption="Трекбования-накладная" labelwidth="200" type="ref" table="WRITEOFF_INVOICE_HEADER" ret="ID" nulls="false"/>
+		<A id="WRITEOFF_ACTS_HEADERID" name="Акт списания МЗ" caption="Акт списания МЗ" labelwidth="200" type="ref" table="WRITEOFF_ACTS_HEADER" ret="ID" nulls="false"/>
 		<A id="ACCOUNTID" name="Номер счета" caption="Номер счета" labelwidth="200" type="ref" table="DICACCS" ret="ACCNUMB" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
@@ -525,7 +528,6 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE where id=@INVENTORY_TRIAL_BALANCEID"/>
 			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" labelwidth="120" nulls="false"  local="true"/>
 			<A id="ACCOUNTID" name="Счет" caption="Счет" labelwidth="120"/>
-			<A id="BASIS" name="Основание" caption="Основание" type="string" labelwidth="120" local="true"/>
 		</TABLE>
 		<TABLE id="INVENTORY_TRIAL_BALANCESTAGES" name="Номенклатура оборотных ведомостей">
 			<A id="INVENTORY_TRIAL_BALANCEDOCSID" parentkey="cascade"/>
@@ -535,6 +537,7 @@
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150" type="ref" table="DICNOMNS" ret="CODE" nulls="false" local="true"/>
 			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
 			<A id="DICMUNTSID" labelwidth="90" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="BASIS" name="Основание" caption="Основание" type="string" labelwidth="120" local="true"/>
 			<GA name="Обороты" caption="Обороты">
 				<A id="BALANCEDATE" name="Дата" caption="Дата" type="date" nulls="false" labelwidth="60" width="30" local="true"/>
 				<A id="DTQUANTITY" name="Приход" caption="Приход" type="number" labelwidth="50" width="35" nulls="true" value="0" local="true"/>	
@@ -562,22 +565,27 @@
 			</GA>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
-		<TABLE id="WRITEOFF_DOCS" name="Списание МЗ">
+		<TABLE id="WRITEOFF_STATEMENT_HEADER" name="Ведомость выдачи МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<GA name="Документ" caption="Документ">
+				<A id="DOCTYPEID" visible="true" readonly="true" value="26" labelwidth="120" width="100"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="120" width="55" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_DOCS where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
 			</GA>
-			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			<GA name="Отправитель" caption="Отправитель">
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			</GA>
 		</TABLE>
-		<TABLE id="WRITEOFF_GOODS" name="Номенклатура списания МЗ">
-			<A id="WRITEOFF_DOCSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" formula="select w.ELECTCAMPAIGNID from WRITEOFF w, WRITEOFF_DOCS d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_DOCSID"/>
-			<A id="JURPERSONSID" parentkey="nocascade" visible="false" readonly="true" formula="select w.JURPERSONSID from WRITEOFF w, WRITEOFF_DOCS d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_DOCSID"/>
-			<A id="RESPPERSON" parentkey="nocascade" visible="false" readonly="true" formula="select RESPPERSON from WRITEOFF_DOCS where id=@WRITEOFF_DOCSID"/>
-			<A id="DOCDATE" parentkey="nocascade" visible="false" readonly="true" formula="select DOCDATE from WRITEOFF_DOCS where id=@WRITEOFF_DOCSID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" readonly="true" visible="false" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_GOODS where WRITEOFF_DOCSID = @WRITEOFF_DOCSID and cid=0"/>
+		<TABLE id="WRITEOFF_STATEMENT_GOODS" name="Номенклатура Ведомости выдачи МЗ">
+			<A id="WRITEOFF_STATEMENT_HEADERID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" formula="select w.ELECTCAMPAIGNID from WRITEOFF w, WRITEOFF_STATEMENT_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_STATEMENT_HEADERID"/>
+			<A id="JURPERSONSID" parentkey="nocascade" visible="false" readonly="true" formula="select w.JURPERSONSID from WRITEOFF w, WRITEOFF_STATEMENT_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_STATEMENT_HEADERID"/>
+			<GA name="Получатель" caption="Получатель">
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			</GA>				
+			<A id="DOCDATE" parentkey="nocascade" visible="false" readonly="true" formula="select DOCDATE from WRITEOFF_STATEMENT_HEADER where id=@WRITEOFF_STATEMENT_HEADERID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" readonly="true" visible="false" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_GOODS where WRITEOFF_STATEMENT_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
 			<A id="CODE" type="string" visible="false" name="Код" caption="Код" parentkey="nocascade" virtual="true" formula="@ELECTCAMPAIGNID||';'||@JURPERSONSID||';'||@RESPPERSON"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150" type="ref" table="VIRT_LEFTOVERS" ret="DICMUNTSCODE" pid="CODE" nulls="false" form="LEFTOVERSFRM" local="true"/>
 			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -587,6 +595,65 @@
 			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
 			<GA id="TYPICALOPERATION"/>			
 		</TABLE>
+		
+		<TABLE id="WRITEOFF_INVOICE_HEADER" name="Требования-накладные">
+			<A id="WRITEOFFID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<GA name="Документ" caption="Документ">
+				<A id="DOCTYPEID" visible="true" readonly="true" value="28" labelwidth="120" width="100"/>
+				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="120" width="55" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_DOCS where WRITEOFFID = @WRITEOFFID and cid=0"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
+			</GA>
+			<GA name="Отправитель" caption="Отправитель">
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			</GA>
+			<GA name="Получатель" caption="Получатель">
+				<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			</GA>	
+		</TABLE>
+		<TABLE id="WRITEOFF_INVOICE_GOODS" name="Номенклатура требований-накладных">
+			<A id="WRITEOFF_INVOICE_HEADERID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" formula="select w.ELECTCAMPAIGNID from WRITEOFF w, WRITEOFF_INVOICE_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_INVOICE_HEADERID"/>
+			<A id="JURPERSONSID" parentkey="nocascade" visible="false" readonly="true" formula="select w.JURPERSONSID from WRITEOFF w, WRITEOFF_INVOICE_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_INVOICE_HEADERID"/>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false" visible="false" readonly="true" formula="select d.RESPPERSON from WRITEOFF_INVOICE_HEADER d where d.id=@WRITEOFF_INVOICE_HEADERID"/>
+			<A id="DOCDATE" parentkey="nocascade" visible="false" readonly="true" formula="select DOCDATE from WRITEOFF_INVOICE_HEADER where id=@WRITEOFF_INVOICE_HEADERID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" readonly="true" visible="false" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_GOODS where WRITEOFF_INVOICE_HEADERID = @WRITEOFF_INVOICE_HEADERID and cid=0"/>
+			<A id="CODE" type="string" visible="false" name="Код" caption="Код" parentkey="nocascade" virtual="true" formula="@ELECTCAMPAIGNID||';'||@JURPERSONSID||';'||@RESPPERSON"/>
+			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150" type="ref" table="VIRT_LEFTOVERS" ret="DICMUNTSCODE" pid="CODE" nulls="false" form="LEFTOVERSFRM" local="true"/>
+			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="DICMUNTSID" labelwidth="120" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="LEFTOVER" labelwidth="150" type="number" name="Остаток" caption="Остаток" virtual="true" formula="select coalesce((sum(coalesce(DTQUANTITY,0))-sum(coalesce(KTQUANTITY,0))),0) from INVENTORY_TRIAL_BALANCESTAGES s where @DOCDATE >= balancedate and DICNOMNSID = @DICNOMNSID and RESPPERSON = @RESPPERSON and ELECTCAMPAIGNID = @ELECTCAMPAIGNID and JURPERSONSID=@JURPERSONSID  group by ELECTCAMPAIGNID, JURPERSONSID, RESPPERSON, DICNOMNSID"/>
+			<A id="QUANTITY" name="Количество" type="number" labelwidth="150" width="50" nulls="false"/>	
+			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
+			<GA id="TYPICALOPERATION"/>			
+		</TABLE>
+		<TABLE id="WRITEOFF_ACTS_HEADER" name="Акт списания МЗ">
+			<A id="WRITEOFFID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<GA name="Документ" caption="Документ">
+				<A id="DOCTYPEID" visible="true" readonly="true" value="27" labelwidth="120" width="100"/>
+				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="120" width="55" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_DOCS where WRITEOFFID = @WRITEOFFID and cid=0"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
+			</GA>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+		</TABLE>
+		<TABLE id="WRITEOFF_ACTS_GOODS" name="Номенклатура Акта списания МЗ">
+			<A id="WRITEOFF_ACTS_HEADERID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" formula="select w.ELECTCAMPAIGNID from WRITEOFF w, WRITEOFF_ACTS_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_ACTS_HEADERID"/>
+			<A id="JURPERSONSID" parentkey="nocascade" visible="false" readonly="true" formula="select w.JURPERSONSID from WRITEOFF w, WRITEOFF_ACTS_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_ACTS_HEADERID"/>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false" visible="false" readonly="true" formula="select d.RESPPERSON from WRITEOFF_ACTS_HEADER d where d.id=@WRITEOFF_ACTS_HEADERID"/>
+			<A id="DOCDATE" parentkey="nocascade" visible="false" readonly="true" formula="select DOCDATE from WRITEOFF_ACTS_HEADER where id=@WRITEOFF_ACTS_HEADERID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" readonly="true" visible="false" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_GOODS where WRITEOFF_ACTS_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
+			<A id="CODE" type="string" visible="false" name="Код" caption="Код" parentkey="nocascade" virtual="true" formula="@ELECTCAMPAIGNID||';'||@JURPERSONSID||';'||@RESPPERSON"/>
+			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150" type="ref" table="VIRT_LEFTOVERS" ret="DICMUNTSCODE" pid="CODE" nulls="false" form="LEFTOVERSFRM" local="true"/>
+			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="DICMUNTSID" labelwidth="120" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="LEFTOVER" labelwidth="150" type="number" name="Остаток" caption="Остаток" virtual="true" formula="select coalesce((sum(coalesce(DTQUANTITY,0))-sum(coalesce(KTQUANTITY,0))),0) from INVENTORY_TRIAL_BALANCESTAGES s where @DOCDATE >= balancedate and DICNOMNSID = @DICNOMNSID and RESPPERSON = @RESPPERSON and ELECTCAMPAIGNID = @ELECTCAMPAIGNID and JURPERSONSID=@JURPERSONSID  group by ELECTCAMPAIGNID, JURPERSONSID, RESPPERSON, DICNOMNSID"/>
+			<A id="QUANTITY" name="Количество" type="number" labelwidth="150" width="50" nulls="false"/>	
+			<A id="SUMM" name="Сумма" type="number" labelwidth="90" width="50" nulls="false"/>
+			<GA id="TYPICALOPERATION"/>			
+		</TABLE>
+		
 		
 		<TABLE id="TRANSACTIONLOG" name="Журналы операций избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -888,11 +955,35 @@
 		<FORM id="WRITEOFFFRM" name="Списание МЗ избирательной кампании">
 			<GRID id="WRITEOFFGR" name="Списание МЗ избирательной кампании" table="WRITEOFF"/>
 			<TABS>
-				<TAB name="Списание МЗ">
-					<GRID id="WRITEOFF_DOCSGR" name="Списание МЗ" table="WRITEOFF_DOCS"/>				
+				<TAB name="Ведомости списания МЗ">				
+					<TABS>
+						<TAB name="Ведомость списания МЗ">
+							<GRID id="WRITEOFF_STATEMENT_HEADERGR" name="Документ" table="WRITEOFF_STATEMENT_HEADER"/>				
+						</TAB>
+						<TAB name="Номенклатура списания МЗ">
+							<GRID id="WRITEOFF_STATEMENT_GOODSGR" name="Номенклатура" table="WRITEOFF_STATEMENT_GOODS"/>
+						</TAB>
+					</TABS>		
 				</TAB>
-				<TAB name="Номенклатура списания МЗ">
-					<GRID id="WRITEOFF_GOODSGR" name="Номенклатура списания МЗ" table="WRITEOFF_GOODS"/>
+				<TAB name="Требования-накладные">				
+					<TABS>
+						<TAB name="Требование-накладная">
+							<GRID id="WRITEOFF_INVOICE_HEADERGR" name="Документ" table="WRITEOFF_INVOICE_HEADER"/>				
+						</TAB>
+						<TAB name="Номенклатура списания МЗ">
+							<GRID id="WRITEOFF_INVOICE_GOODSGR" name="Номенклатура" table="WRITEOFF_INVOICE_GOODS"/>
+						</TAB>
+					</TABS>		
+				</TAB>
+				<TAB name="Акты списания МЗ">				
+					<TABS>
+						<TAB name="Акт списания МЗ">
+							<GRID id="WRITEOFF_ACTS_HEADERGR" name="Документ" table="WRITEOFF_ACTS_HEADER"/>				
+						</TAB>
+						<TAB name="Номенклатура списания МЗ">
+							<GRID id="WRITEOFF_ACTS_GOODSGR" name="Номенклатура" table="WRITEOFF_ACTS_GOODS"/>
+						</TAB>
+					</TABS>		
 				</TAB>
 				<TAB name="Остатки">
 					<GRID id="VIRT_LEFTOVERSGR" name="Остатки" readonly="true" table="VIRT_LEFTOVERS"/>
