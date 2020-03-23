@@ -31,7 +31,7 @@
 				<MI name="Журнал платежей" formlist="Journalpays"/>
 			</MENU>
 			<MENU name="Временное распоряжение">
-				<MI name="Обеспечение конкурсов и аукционов" formlist="Tempordersgcntr"/>
+				<MI name="Обеспечение конкурсов и аукционов" formlist="Temporderscomp"/>
 				<MI name="Обеспечение государственных контрактов" formlist="Tempordersgcntr"/>
 			</MENU>
 			<MENU name="Межбюджетные транферты">
@@ -146,6 +146,9 @@
 		<A id="TEMPORDERSGCNTRID" name="Обеспечения ГК" caption="Обеспечения ГК" labelwidth="300" type="ref" table="TEMPORDERSGCNTR" ret="NUMB_CONTR" form="Tempordersgcntr"/>
 		<A id="TEMPORDERGCRECEIPTSID" name="Поступления обеспечения государственного контракта" caption="Поступления обеспечения государственного контракта" labelwidth="300" type="ref" pid="TEMPORDERSGCNTR" table="TEMPORDERGCRECEIPTS" ret="DOCNUMB"/>
 		<A id="TEMPORDERGCRETURNSID" name="Возврат обеспечения государственного контракта" caption="Возврат обеспечения государственного контракта" labelwidth="300" type="ref" pid="TEMPORDERSGCNTR" table="TEMPORDERGCRETURNS" ret="DOCNUMB_ZV"/>
+		<A id="TEMPORDERSCOMPID" name="Обеспечения участия в закупках" caption="Обеспечения участия в закупках" labelwidth="300" type="ref" table="TEMPORDERSCOMP" ret="IKZ" form="Temporderscomp"/>
+		<A id="TEMPORDERCOMPRECEIPTSID" name="Поступления обеспечения участия в закупке" caption="Поступления обеспечения участия в закупке" labelwidth="300" type="ref" pid="TEMPORDERSCOMPID" table="TEMPORDERCOMPRECEIPTS" ret="DOCNUMB"/>
+		<A id="TEMPORDERCOMPRETURNSID" name="Возврат обеспечения участия в закупке" caption="Возврат обеспечения участия в закупке" labelwidth="300" type="ref" pid="TEMPORDERSCOMPID" table="TEMPORDERCOMPRETURNS" ret="DOCNUMB_ZV"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Группы для модуля НСИ"/>
@@ -1291,7 +1294,53 @@
 			<A id="OWNERID" name="Принадлежность"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+		</TABLE>		
+		<TABLE id="TEMPORDERSCOMP" name="Обеспечения участия в закупках">
+			<GA name="Основные данные" caption="Основные данные">
+			<A id="OWNERID" name="Принадлежность" width="100" />		
+			<A id="TYPECOMP" name="Способ определения поставщика (подрядчика, исполнителя)" caption="Способ определения поставщика (подрядчика, исполнителя)" type="list" labelwidth="110" width="25" >
+				<AI id="0" name="Открытый конкурс"/>
+				<AI id="1" name="Закрытый конкурс"/>
+			</A>
+			<A id="NUMB_COMP" name="Номер закупки" caption="Номер закупки" width="50" type="string" nulls="false" local="true"/>
+			<A id="SUMM_COMPET" name="Сумма" caption="Сумма" width="26" labelwidth="89" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUBJ_COMPET" name="Наименование объекта закупки" caption="Наименование объекта закупки" type="text" len="2000" nulls="true" local="true"/>
+			<A id="IKZ" name="ИКЗ" caption="ИКЗ" labelwidth="65" width="50"  type="string" nulls="true" local="true"/>
+			</GA>
+			<GA name="Обеспечение участия" caption="Обеспечение участия" >
+			<A id="SUMM_ORDER" name="Сумма" caption="Сумма" width="34"  type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMM_RETURN" name="Сумма возврата" caption="Сумма возврата" width="33"  type="number" len="17.2" nulls="true" local="true"/>
+			<A id="REST_ORDER" name="Остаток" caption="Остаток" width="33"  type="number" len="17.2" nulls="true" local="true"/>
+			<A id="TERM_ORDER" name="Срок возврата в днях" caption="Срок возврата" width="27" type="number" len="17.0" nulls="true" local="true"/>
+			<A id="DATE_ORDER" name="Предполагаемая дата возврата" caption="Предполагаемая дата возврата" width="27" type="date" nulls="true" local="true"/>
+			<A id="STATUS_ORDER" name="Статус" caption="Статус" width="73" type="list" local="true">
+				<AI id="0" name="Возвращено"/>
+				<AI id="1" name="Просрочено"/>
+			</A>
+			</GA>
 		</TABLE>
+		<TABLE id="TEMPORDERCOMPRECEIPTS" name="Поступления обеспечения государственного контракта">
+			<A id="TEMPORDERSCOMPID" parentkey="cascade"/>
+			<A id="DATE_OTCH" name="Дата выписки" caption="Дата выписки" width="25" type="date" nulls="true" local="true"/>
+			<A id="DOCTYPE" name="Тип документа-подтверждения" caption="Тип документа-подтверждения" type="string" nulls="true" local="true"/>
+			<A id="DOCNUMB" name="Номер документа-подтверждения" caption="Номер документа-подтверждения" type="string" nulls="true" local="true"/>
+			<A id="DOCDATE" name="Дата документа-подтверждения" caption="Дата документа-подтверждения" type="date" nulls="true" local="true"/>
+			<A id="SUMMDOC" name="Сумма" caption="Сумма" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
+		</TABLE>
+		<TABLE id="TEMPORDERCOMPRETURNS" name="Возврат обеспечения государственного контракта">
+			<A id="TEMPORDERSCOMPID" parentkey="cascade"/>
+			<A id="DATE_OTCH" name="Дата выписки" caption="Дата выписки" width="25" type="date" nulls="true" local="true"/>
+			<A id="DOCTYPE_ZV" name="Тип документа на возврат" caption="Тип документа на возврат" type="string" nulls="true"/>
+			<A id="DOCNUMB_ZV" name="Номер документа на возврат" caption="Номер документа на возврат" type="string" nulls="true"/>
+			<A id="DOCDATE_ZV" name="Дата документа на возврат" caption="Дата документа на возврат" type="date" nulls="true"/>
+			<A id="SUMMDOC_ZV" name="Сумма" caption="Сумма" type="number" len="17.2" nulls="true"/>
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
+		</TABLE>		
 		<TABLE id="JOURNALSOC" name="Журнал возвратов социальных выплат">
 			<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 			<A id="STATEMENTADBDONEID" name="Идентификатор операции на счете АДБ" />
@@ -1608,5 +1657,16 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		<FORM id="Temporderscomp" name="Обеспечения участия в закупках">
+			<GRID id="Temporderscomp" name="Обеспечения участия в закупках" table="TEMPORDERSCOMP"/>
+			<TABS>
+				<TAB name="Поступило обеспечений">
+					<GRID id="Tempordercompreceipts" name="Поступило обеспечений" table="TEMPORDERCOMPRECEIPTS" actionlist="GenReturn" />
+				</TAB>
+				<TAB name="Возвращено обеспечений">
+					<GRID id="Tempordercompreturns" name="Возвращено обеспечений" table="TEMPORDERCOMPRETURNS"/>
+				</TAB>
+			</TABS>
+		</FORM>	
 	</FORMS>
 </SYSTEM>
