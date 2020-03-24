@@ -957,6 +957,7 @@
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID,LEVELESTIMATE"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
+			<A id="ELECTCOMMITTEEID" parentkey="nocascade" virtual="true" readonly="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
 			<A id="PERSONID" labelwidth="300"/>
 			<A id="FULLNAME" name="Полное имя" caption="Полное имя" labelwidth="200" type="string" readonly="true" virtual="true" formula="select t.name from person t where t.id = @PERSONID" local="true"/>
 			<TI unique="PERSONID"/>
@@ -1241,12 +1242,13 @@
 		</TABLE>
 		<TABLE id="PAYDOCSCONS" name="Расшифровка платежа (Платежные поручения)">
 			<A id="PAYDOCSID" parentkey="cascade"/>
+			<A id="DOCTYPEID" parentkey="nocascade" virtual="true" readonly="true" visible="false" formula="select DOCTYPEID from PAYDOCS where id = @PAYDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID" local="true"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="600" type="number" len="10.2" nulls="false" local="true"/>
 			<A id="BUDGCLASSID" labelwidth="70" width="50"/>
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="70" width="50"/>
 			<A id="TYPEEXPID" labelwidth="200" nulls="true"/>
-			<A id="TYPICALOPERSID" labelwidth="200" nulls="false"/>
+			<A id="TYPICALOPERSID" labelwidth="200" nulls="false" pid="DOCTYPEID"/>
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
