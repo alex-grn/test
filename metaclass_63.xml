@@ -1,728 +1,564 @@
-	<SYSTEM id="63" name="Учет расходов на выборы 3">
-		<MODULES id="Modules" name="Модули"/>
-		<GROUPS_MENU name="Группы меню"/>
-			<MENU name="Справочники по отчётности">
-				<MI name="Показатели отчётности" formlist="ReportingIndicators"/>
-				<MI name="Формы отчётности" formlist="ReportingForm"/>
-				<MI name="Перечень проверок и пересчетов" formlist="ListOfChecks"/>
-			</MENU>
-			<MENU name="Отчётность ИК">
-				<MI name="Отчётность УИК" formlist="AccountabilityUik"/>
-				<MI name="Отчётность ТИК" formlist="AccountabilityTik"/>
-				<MI name="Отчётность ИКСРФ" formlist="AccountabilityIksrf"/>
-			</MENU>
-			
-			
-		<ATTRIBUTES name="Атрибуты">
-			<A id="ACCOUNTABILITYUIKID" name="Отчеты УИК" caption="Отчеты УИК" type="ref" table="ACCOUNTABILITYUIK" ret="CODE" form="AccountabilityUik" nulls="true"/>
-			<A id="ACCOUNTABILITYTIKID" name="Отчеты ТИК" caption="Отчеты ТИК" type="ref" table="ACCOUNTABILITYTIK" ret="CODE" form="AccountabilityTik" nulls="true"/>
-			<A id="REPORTINGFORMID" name="Код формы" caption="Код формы" type="ref" table="REPORTINGFORM" ret="CODEFORM" form="ReportingForm" nulls="false"/>
-			<A id="WORDINGOFTHEFORMSID" name="Редакции форм" caption="Редакции форм" type="ref" table="WORDINGOFTHEFORMS" ret="REPORTINGFORMID_ret" form="ReportingIndicators" nulls="true"/>
+<SYSTEM id="63" name="Учет расходов на выборы 3">
+	<MODULES id="Modules" name="Модули"/>
+	<GROUPS_MENU name="Группы меню"/>
+	<ATTRIBUTES name="Атрибуты">
+		<A id="ACCOUNTABILITYUIKID" name="Отчеты УИК" caption="Отчеты УИК" type="ref" table="ACCOUNTABILITYUIK" ret="CODE" form="AccountabilityUik" nulls="true"/>
+		<A id="ACCOUNTABILITYTIKID" name="Отчеты ТИК" caption="Отчеты ТИК" type="ref" table="ACCOUNTABILITYTIK" ret="CODE" form="AccountabilityTik" nulls="true"/>
+		<A id="REPORTINGFORMID" name="Код формы" caption="Код формы" type="ref" table="REPORTINGFORM" ret="CODEFORM" form="ReportingForm" nulls="false"/>
+		<A id="WORDINGOFTHEFORMSID" name="Редакции форм" caption="Редакции форм" type="ref" table="WORDINGOFTHEFORMS" ret="REPORTINGFORMID_ret" form="ReportingIndicators" nulls="true"/>
+		<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
+		<A id="AUDITREPORTSUIKID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSUIK" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
+		<A id="AUDITREPORTSTIKID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSTIK" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
+		<A id="LISTOFCHECKSID" name="Перечень проверок и пересчетов" caption="Перечень проверок и пересчетов" type="ref" table="LISTOFCHECKS" ret="NAME" form="ListOfChecks" nulls="true"/>
+		<A id="RECALCULATIONSID" name="Пересчеты" caption="Пересчеты" type="ref" table="RECALCULATIONS" ret="NAME" form="Recalculations" nulls="true"/>
+		<A id="AUDITREPORTID" name="Проверки" caption="Проверки" type="ref" table="AUDITREPORT" ret="NAME" form="AuditReport" nulls="true"/>
+	</ATTRIBUTES>
+	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
+	<TABLES name="Таблицы">
+		<COMMENT name="Справочники"/>
+		<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
+			<A id="REPORTINGFORMID" name="Код формы" limit="50" caption="Код формы" labelwidth="400"/>
+			<A id="REPORTINGFORMVIRT" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMEFORM from REPORTINGFORM where ID = @REPORTINGFORMID" local="true"/>
+			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" nulls="false" local="true"/>
+			<TI unique="CODEFORMID,REVISIONDATE"/>
+		</TABLE>
+		<TABLE id="MEASURESOFSHAPE" name="Показатели формы">
+			<A id="WORDINGOFTHEFORMSID" parentkey="cascade"/>
+			<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="CODE" name="Код строки формы" caption="Код строки формы" labelwidth="600" type="string" nulls="false" local="true"/>
+			<GA id="CONTROLOFFILLING" name="Контроль заполнения показателя" caption="Контроль заполнения показателя">
+				<A id="COMPLETIONUIK" name="УИК" caption="УИК" width="15" type="boolean" local="true"/>
+				<A id="COMPLETIONTIK" name="ТИК" caption="ТИК" width="15" type="boolean" local="true"/>
+				<A id="COMPLETIONOIK" name="ОИК" caption="ОИК" width="15" type="boolean" local="true"/>
+				<A id="COMPLETIONTIKWITHOIK" name="ТИК с полномочиями ОИК" caption="ТИК с полномочиями ОИК" width="30" type="boolean" local="true"/>
+				<A id="COMPLETIONIKSRF" name="ИКСРФ" caption="ИКСРФ" width="15" type="boolean" local="true"/>
+			</GA>
+			<TI unique="CODE,WORDINGOFTHEFORMSID"/>
+		</TABLE>
+		<TABLE id="REPORTINGFORM" name="Формы отчётности">
+			<A id="CODEFORM" name="Код формы" caption="Код формы" labelwidth="400" type="string" nulls="false" local="true"/>
+			<A id="NAMEFORM" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="false" local="true"/>
+		</TABLE>
+		<TABLE id="PKTO" name="Привязка к таблицам отчётности">
+			<A id="REPORTINGFORMID" parentkey="cascade"/>
+			<A id="NAMETABLEUIK" name="УИК" caption="УИК" labelwidth="150" type="list" nulls="true" local="true">
+				<AI id="UIKS1SD" name="ACCOUNTABILITYUIKS1SD"/>
+				<AI id="UIKS2AE" name="ACCOUNTABILITYUIKS2AE"/>
+				<AI id="UIKP2" name="UIKPRIL2"/>
+				<AI id="UIKP6" name="UIKPRIL6"/>
+				<AI id="UIKP8" name="UIKPRIL8"/>
+				<AI id="UIKP9" name="UIKPRIL9"/>
+				<AI id="UIKP11" name="UIKPRIL11"/>
+				<AI id="UIKP15" name="UIKPRIL15"/>
+			</A>
+			<A id="NAMETABLETIK" name="ТИК" caption="ТИК" labelwidth="150" type="list" nulls="true" local="true">
+				<AI id="TIKS1SD" name="ACCOUNTABILITYTIKS1SD"/>
+				<AI id="TIKS2AE" name="ACCOUNTABILITYTIKS2AE"/>
+				<AI id="TIKP2" name="Прил. 2"/>
+				<AI id="TIKP4" name="Прил. 4"/>
+				<AI id="TIKP5" name="Прил. 5"/>
+				<AI id="TIKP6" name="Прил. 6"/>
+				<AI id="TIKP7" name="Прил. 7"/>
+				<AI id="TIKP8" name="Прил. 8"/>
+				<AI id="TIKP9" name="Прил. 9"/>
+				<AI id="TIKP10" name="Прил. 10"/>
+				<AI id="TIKP11" name="Прил. 11"/>
+				<AI id="TIKP12" name="Прил. 12"/>
+				<AI id="TIKP13" name="Прил. 13"/>
+				<AI id="TIKP14" name="Прил. 14"/>
+				<AI id="TIKP15" name="Прил. 15"/>
+				<AI id="TIKP16" name="Прил. 16"/>
+				<AI id="TIKP17" name="Прил. 17"/>
+			</A>
+			<A id="NAMETABLEIKSRF" name="ИКСРФ" caption="ИКСРФ" labelwidth="150" type="list" nulls="true" local="true">
+				<AI id="IKSRFS1SD" name="ACCOUNTABILITYIKSRFS1SD"/>
+				<AI id="IKSRFS2AE" name="ACCOUNTABILITYIKSRFS2AE"/>
+				<AI id="IKSRFP1" name="Прил. 1"/>
+				<AI id="IKSRFP2" name="Прил. 2"/>
+				<AI id="IKSRFP3" name="Прил. 3"/>
+				<AI id="IKSRFP4" name="Прил. 4"/>
+				<AI id="IKSRFP5" name="Прил. 5"/>
+				<AI id="IKSRFP6" name="Прил. 6"/>
+				<AI id="IKSRFP7" name="Прил. 7"/>
+				<AI id="IKSRFP8" name="Прил. 8"/>
+				<AI id="IKSRFP9" name="Прил. 9"/>
+				<AI id="IKSRFP10" name="Прил. 10"/>
+				<AI id="IKSRFP11" name="Прил. 11"/>
+				<AI id="IKSRFP12" name="Прил. 12"/>
+				<AI id="IKSRFP13" name="Прил. 13"/>
+				<AI id="IKSRFP14" name="Прил. 14"/>
+				<AI id="IKSRFP15" name="Прил. 15"/>
+				<AI id="IKSRFP15a" name="Прил. 15а"/>
+				<AI id="IKSRFP16" name="Прил. 16"/>
+				<AI id="IKSRFP17" name="Прил. 17"/>
+			</A>
+		</TABLE>
+		<TABLE id="LISTOFCHECKS" name="Перечень проверок и пересчетов">
+			<A id="WORDINGOFTHEFORMSID" labelwidth="150"/>
+			<A id="DEFINITION" name="Описание" caption="Описание" labelwidth="150" type="text" local="true"/>
+			<A id="DATELISTOFCHEKS" name="Дата" caption="Дата" labelwidth="600" type="date" local="true"/>
+		</TABLE>
+		<TABLE id="RECALCULATIONS" name="Пересчеты">
+			<A id="LISTOFCHECKSID" parentkey="cascade"/>
+			<A id="WORDINGOFTHEFORMSID" virtual="true" visible="false" readonly="true" formula="select WORDINGOFTHEFORMSID from LISTOFCHECKS where id=@LISTOFCHECKSID"/>
+			<A id="CONVERSIONTYPE" name="Тип" caption="Тип" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="Формула"/>
+				<AI id="2" name="Процедура"/>
+			</A>
+			<A id="ROUNDING" name="Округление" caption="Округление" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="Стандартное"/>
+			</A>
+			<A id="NUMOFCHARAFT" name="Кол-во знаков после , 4" caption="Кол-во знаков после , 4" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="0"/>
+				<AI id="2" name="1"/>
+				<AI id="3" name="2"/>
+				<AI id="4" name="3"/>
+				<AI id="5" name="4"/>
+			</A>
+			<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="false" local="true"/>
 			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
-			<A id="AUDITREPORTSUIKID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSUIK" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
-			<A id="AUDITREPORTSTIKID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSTIK" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
-			<A id="LISTOFCHECKSID" name="Перечень проверок и пересчетов" caption="Перечень проверок и пересчетов" type="ref" table="LISTOFCHECKS" ret="NAME" form="ListOfChecks" nulls="true"/>
-			<A id="RECALCULATIONSID" name="Пересчеты" caption="Пересчеты" type="ref" table="RECALCULATIONS" ret="NAME" form="Recalculations" nulls="true"/>
-			<A id="AUDITREPORTID" name="Проверки" caption="Проверки" type="ref" table="AUDITREPORT" ret="NAME" form="AuditReport" nulls="true"/>
-			
-			
-			
-		</ATTRIBUTES>
-		
-		
-		<GROUPS_ATTRIBUTES name="Группы атрибутов">
-		</GROUPS_ATTRIBUTES>
-		
-		
-		<TABLES name="Таблицы">
-			
-			
-			<COMMENT name="Справочники"/>
-			<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
-				<A id="REPORTINGFORMID" name="Код формы" limit="50" caption="Код формы" labelwidth="400"/>
-				<A id="REPORTINGFORMVIRT" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select NAMEFORM from REPORTINGFORM where ID = @REPORTINGFORMID" local="true"/>
-				<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" nulls="false" local="true"/>
-				<TI unique="CODEFORMID,REVISIONDATE"/>
-			</TABLE>
-			<TABLE id="MEASURESOFSHAPE" name="Показатели формы">
-				<A id="WORDINGOFTHEFORMSID" parentkey="cascade"/>
-				<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="text" nulls="false" local="true"/>
-				<A id="CODE" name="Код строки формы" caption="Код строки формы" labelwidth="600" type="string" nulls="false" local="true"/>
-				<GA id="CONTROLOFFILLING" name="Контроль заполнения показателя" caption="Контроль заполнения показателя">
-					<A id="COMPLETIONUIK" name="УИК" caption="УИК" width="15" type="boolean" local="true"/>
-					<A id="COMPLETIONTIK" name="ТИК" caption="ТИК" width="15" type="boolean" local="true"/>
-					<A id="COMPLETIONOIK" name="ОИК" caption="ОИК" width="15" type="boolean" local="true"/>
-					<A id="COMPLETIONTIKWITHOIK" name="ТИК с полномочиями ОИК" caption="ТИК с полномочиями ОИК" width="30" type="boolean" local="true"/>
-					<A id="COMPLETIONIKSRF" name="ИКСРФ" caption="ИКСРФ" width="15" type="boolean" local="true"/>
+		</TABLE>
+		<TABLE id="AUDITREPORT" name="Проверки">
+			<A id="LISTOFCHECKSID" parentkey="cascade"/>
+			<A id="CONVERSIONTYPE" name="Тип" caption="Тип" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="Формула"/>
+				<AI id="2" name="Процедура"/>
+			</A>
+			<A id="ROUNDING" name="Округление" caption="Округление" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="Стандартное"/>
+			</A>
+			<A id="NUMOFCHARAFT" name="Кол-во знаков после , 4" caption="Кол-во знаков после , 4" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="0"/>
+				<AI id="2" name="1"/>
+				<AI id="3" name="2"/>
+				<AI id="4" name="3"/>
+				<AI id="5" name="4"/>
+			</A>
+			<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="false" local="true"/>
+		</TABLE>
+		<TABLE id="TERMSRECALC" name="Слагаемые пересчетов">
+			<A id="RECALCULATIONSID" parentkey="cascade"/>
+			<A id="ACTIONTERMS" name="Действие" caption="Действие" labelwidth="150" type="list" nulls="false" local="true">
+				<AI id="1" name="Умножение"/>
+				<AI id="2" name="Деление"/>
+				<AI id="3" name="Процент"/>
+			</A>
+			<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="int" nulls="false" local="true"/>
+		</TABLE>
+		<TABLE id="TERMSAUDIT" name="Слагаемые проверок">
+			<A id="AUDITREPORTID" parentkey="cascade"/>
+			<A id="ACTIONTERMS" name="Действие" caption="Действие" labelwidth="150" type="list" nulls="false" local="true">
+				<AI id="1" name="Умножение"/>
+				<AI id="2" name="Деление"/>
+				<AI id="3" name="Процент"/>
+			</A>
+			<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="int" nulls="false" local="true"/>
+		</TABLE>
+		<COMMENT name="Отчётность ИК"/>
+		<TABLE id="ACCOUNTABILITYUIK" name="Отчётность УИК">
+			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="ELECTCAMPAIGNID"/>
+			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
+			<A id="ELECTCOMMITTEEID"/>
+			<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="600" type="list" nulls="false" value="1" local="true">
+				<AI id="1" name="Новый"/>
+				<AI id="2" name="Отчёт в работе"/>
+				<AI id="3" name="Проверяется"/>
+				<AI id="4" name="Отчёт принят" readonly="true"/>
+				<AI id="5" name="Отклонён"/>
+			</A>
+		</TABLE>
+		<TABLE id="ACCOUNTABILITYUIKS1SD" name="Раздел 1. Исходные данные">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS1">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" width="60" visible="false"/>
+			</GA>
+			<GA id="REPIND1" name="Показатель отчётности (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
+			</GA>
+			<GA id="CODELINE1" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="200" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL1" name="Всего (гр. 3)">
+				<A id="TOTAL" name="3" caption="Всего (гр.3)" labelwidth="200" type="string" nulls="false" visible="true" virtual="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS1" name="Участковые избирательные комиссии (комиссий референдума) (гр.7)">
+				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="ACCOUNTABILITYUIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS2">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" width="60" visible="false"/>
+			</GA>
+			<GA id="REPIND2" name="Показатель отчётности (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
+			</GA>
+			<GA id="CODELINE2" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="200" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL2" name="Сумма расходов, всего (гр.3)">
+				<A id="TOTAL" name="3" caption="Сумма расходов, всего (гр.3)" labelwidth="200" type="string" visible="true" virtual="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS2" name="Участковых избирательных комиссий (комиссий референдума) (гр. 13)">
+				<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковых избирательных комиссий (комиссий референдума) (гр. 13)" labelwidth="415" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="UIKPRIL2" name="Прил. 2">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS3">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			</GA>
+			<GA id="REPIND3" name="Виды расходов (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
+			</GA>
+			<GA id="CODELINE3" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL3" name="Сумма расходов, всего, рублей (гр.3)">
+				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS3" name="Участковых избирательных комиссий (гр. 11)">
+				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="UIKPRIL6" name="Прил. 6">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS4">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			</GA>
+			<GA id="REPIND4" name="Виды расходов (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
+			</GA>
+			<GA id="CODELINE4" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL4" name="Сумма расходов, всего, рублей (гр.3)">
+				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS4" name="Участковых избирательных комиссий (гр. 11)">
+				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="UIKPRIL8" name="Прил. 8">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS5">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			</GA>
+			<GA id="REPIND5" name="Виды расходов (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
+			</GA>
+			<GA id="CODELINE5" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL5" name="Сумма расходов, всего, рублей (гр.5)">
+				<A id="TOTAL" name="5" caption="Сумма расходов, всего, рублей (гр.5)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS5" name="Участковых избирательных комиссий (гр. 13)">
+				<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковых избирательных комиссий (гр. 13)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="UIKPRIL9" name="Прил. 9">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS6">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			</GA>
+			<GA id="REPIND6" name="Виды расходов (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
+			</GA>
+			<GA id="CODELINE6" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL6" name="Сумма расходов, всего, рублей (гр.6)">
+				<A id="TOTAL" name="6" caption="Сумма расходов, всего, рублей (гр.6)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS6" name="Участковых избирательных комиссий (гр. 14)">
+				<A id="UIKREFERENDUMCOMMISSION" name="14" caption="Участковых избирательных комиссий (гр. 14)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="UIKPRIL11" name="Прил. 11">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS7">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			</GA>
+			<GA id="REPIND7" name="Виды расходов (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
+			</GA>
+			<GA id="CODELINE7" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL7" name="Всего (гр.4)">
+				<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр.4)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS7" name="Участковых избирательных комиссий (гр. 7)">
+				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="UIKPRIL15" name="Прил. 15">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS8">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			</GA>
+			<GA id="REPIND8" name="Виды расходов (гр. 1)">
+				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
+			</GA>
+			<GA id="CODELINE8" name="Код строки (гр.2)">
+				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL8" name="Сумма расходов, всего, рублей (гр.3)">
+				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="UIKREFCOMS8" name="Участковых избирательных комиссий (гр. 11)">
+				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
+		</TABLE>
+		<TABLE id="AUDITREPORTSUIK" name="Протоколы проверок">
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
+			<A id="WORDINGOFTHEFORMSID" name="Форма отчёта" caption="Форма отчёта" labelwidth="150" nulls="false"/>
+			<A id="DATEVERIFICATION" name="Дата проверки" caption="Дата проверки" labelwidth="400" type="datetime" nulls="false" formula="now()" local="true"/>
+			<A id="STATUSRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="400" type="list" nulls="true" local="true">
+				<AI id="1" name="Ошибки"/>
+				<AI id="2" name="Предупреждения"/>
+				<AI id="3" name="Нет ошибок и предупреждений"/>
+			</A>
+		</TABLE>
+		<TABLE id="TESTRESULTSUIK" name="Результаты проверок">
+			<A id="AUDITREPORTSUIKID" parentkey="cascade"/>
+			<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
+			<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
+		</TABLE>
+		<TABLE id="ACCOUNTABILITYTIK" name="Отчетность ТИК">
+			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="ELECTCAMPAIGNID"/>
+			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
+			<A id="ELECTCOMMITTEEID"/>
+			<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="600" type="list" nulls="false" value="1" local="true">
+				<AI id="1" name="Новый"/>
+				<AI id="2" name="Отчёт в работе"/>
+				<AI id="3" name="Проверяется"/>
+				<AI id="4" name="Отчёт принят" readonly="true"/>
+				<AI id="5" name="Отклонён"/>
+			</A>
+		</TABLE>
+		<TABLE id="ACCOUNTABILITYTIKS1SD" name="Раздел 1. Исходные данные">
+			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS1" name="Редакция форм" caption="Редакция форм">
+				<A id="WORDINGOFTHEFORMSID" width="60"/>
+				<A id="REVISIONDATE" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			</GA>
+			<GA id="REPINDS1" name="Показатель отчётности" caption="Показатель отчётности">
+				<A id="MEASURESOFSHAPEID" name="Наименование показателя (гр. 1)" caption="Наименование показателя (гр. 1)" width="60"/>
+				<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" width="40" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL1" name="Всего" caption="Всего">
+				<A id="TOTAL" name="Всего (гр.3)" caption="Всего (гр.3)" labelwidth="200" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="TIKREFCOMS1" name="Территориальные избирательные комиссии (комиссии референдума)" caption="Территориальные избирательные комиссии (комиссии референдума)">
+				<A id="TIKREFERENDUMCOMMISSION" name="Территориальные избирательные комиссии (комиссии референдума) (гр. 6)" caption="Территориальные избирательные комиссии (комиссии референдума) (гр. 6)" labelwidth="410" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="ACCOUNTABILITYTIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
+			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
+			<GA id="EDITIONFORMS2" name="Редакция форм" caption="Редакция форм">
+				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" width="60"/>
+				<A id="REVISIONDATE" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			</GA>
+			<GA id="REPINDS2" name="Показатель отчётности" caption="Показатель отчётности">
+				<A id="MEASURESOFSHAPEID" name="Наименование показателя (гр. 1)" caption="Наименование показателя (гр. 1)" width="60"/>
+				<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" width="40" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+			</GA>
+			<GA id="TOTAL2" name="Сумма расходов, всего" caption="Сумма расходов, всего">
+				<A id="TOTAL" name="Сумма расходов, всего (гр.3)" caption="Сумма расходов, всего (гр.3)" labelwidth="200" type="string" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA id="TIK" name="Территориальных избирательных комиссий" caption="Территориальных избирательных комиссий">
+				<A id="SUM" name="Всего (гр.10)" caption="Всего (гр.10)" labelwidth="410" type="string" nulls="false" visible="true" local="true"/>
+				<GA id="TIKUNDER" name="Из них">
+					<A id="EXPENSESTIK" name="Расходы территориальной избирательной комиссии (гр.11)" caption="Расходы территориальной избирательной комиссии (гр.11)" labelwidth="450" type="string" nulls="false" visible="true" local="true"/>
+					<A id="EXPENSESUIK" name="Расходы за участковые избирательные комиссии (гр.12)" caption="Расходы за участковые избирательные комиссии (гр.12)" labelwidth="450" type="string" nulls="false" visible="true" local="true"/>
 				</GA>
-				<TI unique="CODE,WORDINGOFTHEFORMSID"/>
-			</TABLE>
-			
-			
-			<TABLE id="REPORTINGFORM" name="Формы отчётности">
-				<A id="CODEFORM" name="Код формы" caption="Код формы" labelwidth="400" type="string" nulls="false" local="true"/>
-				<A id="NAMEFORM" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="false" local="true"/>
-			</TABLE>
-			<TABLE id="PKTO" name="Привязка к таблицам отчётности">
-				<A id="REPORTINGFORMID" parentkey="cascade"/>
-				<A id="NAMETABLEUIK" name="УИК" caption="УИК" labelwidth="150" type="list" nulls="true" local="true">
-					<AI id="UIKS1SD" name="ACCOUNTABILITYUIKS1SD"/>
-					<AI id="UIKS2AE" name="ACCOUNTABILITYUIKS2AE"/>
-					<AI id="UIKP2" name="UIKPRIL2"/>
-					<AI id="UIKP6" name="UIKPRIL6"/>
-					<AI id="UIKP8" name="UIKPRIL8"/>
-					<AI id="UIKP9" name="UIKPRIL9"/>
-					<AI id="UIKP11" name="UIKPRIL11"/>
-					<AI id="UIKP15" name="UIKPRIL15"/>
-				</A>
-				<A id="NAMETABLETIK" name="ТИК" caption="ТИК" labelwidth="150" type="list" nulls="true" local="true">
-					<AI id="TIKS1SD" name="ACCOUNTABILITYTIKS1SD"/>
-					<AI id="TIKS2AE" name="ACCOUNTABILITYTIKS2AE"/>
-					<AI id="TIKP2" name="TIKPRIL2"/>
-					<AI id="TIKP4" name="TIKPRIL4"/>
-					<AI id="TIKP5" name="TIKPRIL5"/>
-					<AI id="TIKP6" name="TIKPRIL6"/>
-					<AI id="TIKP7" name="TIKPRIL7"/>
-					<AI id="TIKP8" name="TIKPRIL8"/>
-					<AI id="TIKP9" name="TIKPRIL9"/>
-					<AI id="TIKP10" name="TIKPRIL10"/>
-					<AI id="TIKP11" name="TIKPRIL11"/>
-					<AI id="TIKP12" name="TIKPRIL12"/>
-					<AI id="TIKP13" name="TIKPRIL13"/>
-					<AI id="TIKP14" name="TIKPRIL14"/>
-					<AI id="TIKP15" name="TIKPRIL15"/>
-					<AI id="TIKP16" name="TIKPRIL16"/>
-					<AI id="TIKP17" name="TIKPRIL17"/>
-				</A>
-				<A id="NAMETABLEIKSRF" name="ИКСРФ" caption="ИКСРФ" labelwidth="150" type="list" nulls="true" local="true">
-					<AI id="IKSRFS1SD" name="ACCOUNTABILITYIKSRFS1SD"/>
-					<AI id="IKSRFS2AE" name="ACCOUNTABILITYIKSRFS2AE"/>
-					<AI id="IKSRFP1" name="Прил. 1"/>
-					<AI id="IKSRFP2" name="Прил. 2"/>
-					<AI id="IKSRFP3" name="Прил. 3"/>
-					<AI id="IKSRFP4" name="Прил. 4"/>
-					<AI id="IKSRFP5" name="Прил. 5"/>
-					<AI id="IKSRFP6" name="Прил. 6"/>
-					<AI id="IKSRFP7" name="Прил. 7"/>
-					<AI id="IKSRFP8" name="Прил. 8"/>
-					<AI id="IKSRFP9" name="Прил. 9"/>
-					<AI id="IKSRFP10" name="Прил. 10"/>
-					<AI id="IKSRFP11" name="Прил. 11"/>
-					<AI id="IKSRFP12" name="Прил. 12"/>
-					<AI id="IKSRFP13" name="Прил. 13"/>
-					<AI id="IKSRFP14" name="Прил. 14"/>
-					<AI id="IKSRFP15" name="Прил. 15"/>
-					<AI id="IKSRFP15a" name="Прил. 15а"/>
-					<AI id="IKSRFP16" name="Прил. 16"/>
-					<AI id="IKSRFP17" name="Прил. 17"/>
-				</A>
-			</TABLE>
-			
-			
-			<TABLE id="LISTOFCHECKS" name="Перечень проверок и пересчетов">
-				<A id="WORDINGOFTHEFORMSID" labelwidth="150"/>
-				<A id="DEFINITION" name="Описание" caption="Описание" labelwidth="150" type="text" local="true"/>
-				<A id="DATELISTOFCHEKS" name="Дата" caption="Дата" labelwidth="600" type="date" local="true"/>
-			</TABLE>
-			<TABLE id="RECALCULATIONS" name="Пересчеты">
-				<A id="LISTOFCHECKSID" parentkey="cascade"/>
-				<A id="MEASURESOFSHAPEVIRT" name="Показатель" caption="Показатель" labelwidth="160" type="string" virtual="true" formula="select MEASURESOFSHAPE from WORDINGOFTHEFORMS where id = @MEASURESOFSHAPEID" nulls="false"/> 
-				<A id="CONVERSIONTYPE" name="Тип" caption="Тип" labelwidth="160" type="list" nulls="false" local="true">
-					<AI id="1" name="Формула"/>
-					<AI id="2" name="Процедура"/>
-				</A>
-				<A id="ROUNDING" name="Округление" caption="Округление" labelwidth="160" type="list" nulls="false" local="true">
-					<AI id="1" name="Стандартное"/>
-				</A>
-				<A id="NUMOFCHARAFT" name="Кол-во знаков после , 4" caption="Кол-во знаков после , 4" labelwidth="160" type="list" nulls="false" local="true">
-					<AI id="1" name="0"/>
-					<AI id="2" name="1"/>
-					<AI id="3" name="2"/>
-					<AI id="4" name="3"/>
-					<AI id="5" name="4"/>
-				</A>
-				<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="false" local="true"/>
-			</TABLE>
-			<TABLE id="AUDITREPORT" name="Проверки">
-				<A id="LISTOFCHECKSID" parentkey="cascade"/>
-				<A id="MEASURESOFSHAPEVIRT" name="Показатель" caption="Показатель" labelwidth="160" type="string" virtual="true" formula="select WORDINGOFTHEFORMSID from LISTOFCHECKS where id = @" nulls="false"/> 
-				<A id="CONVERSIONTYPE" name="Тип" caption="Тип" labelwidth="160" type="list" nulls="false" local="true">
-					<AI id="1" name="Формула"/>
-					<AI id="2" name="Процедура"/>
-				</A>
-				<A id="ROUNDING" name="Округление" caption="Округление" labelwidth="160" type="list" nulls="false" local="true">
-					<AI id="1" name="Стандартное"/>
-				</A>
-				<A id="NUMOFCHARAFT" name="Кол-во знаков после , 4" caption="Кол-во знаков после , 4" labelwidth="160" type="list" nulls="false" local="true">
-					<AI id="1" name="0"/>
-					<AI id="2" name="1"/>
-					<AI id="3" name="2"/>
-					<AI id="4" name="3"/>
-					<AI id="5" name="4"/>
-				</A>
-				<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="false" local="true"/>
-			</TABLE>
-			<TABLE id="TERMSRECALC" name="Слагаемые пересчетов">
-				<A id="RECALCULATIONSID" parentkey="cascade"/>
-				<!-- <A id="MEASURESOFSHAPEID" labelwidth="150" nulls="false"/> (сделать выбор показателя форм из выбранной сверху редакции форм) -->
-				<A id="ACTIONTERMS" name="Действие" caption="Действие" labelwidth="150" type="list" nulls="false" local="true">
-					<AI id="1" name="Умножение"/>
-					<AI id="2" name="Деление"/>
-					<AI id="3" name="Процент"/>
-				</A>
-				<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="int" nulls="false" local="true"/>
-			</TABLE>
-			<TABLE id="TERMSAUDIT" name="Слагаемые проверок">
-				<A id="AUDITREPORTID" parentkey="cascade"/>
-				<!-- <A id="MEASURESOFSHAPEID" labelwidth="150" nulls="false"/> (сделать выбор показателя форм из выбранной сверху редакции форм) -->
-				<A id="ACTIONTERMS" name="Действие" caption="Действие" labelwidth="150" type="list" nulls="false" local="true">
-					<AI id="1" name="Умножение"/>
-					<AI id="2" name="Деление"/>
-					<AI id="3" name="Процент"/>
-				</A>
-				<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="int" nulls="false" local="true"/>
-			</TABLE>
-			
-			
-			<COMMENT name="Отчётность ИК"/>
-			<TABLE id="ACCOUNTABILITYUIK" name="Отчётность УИК">
-				<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string"  nulls="false" local="true"/>
-				<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
-				<A id="ELECTCAMPAIGNID"/>
-				<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
-				<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
-				<A id="ELECTCOMMITTEEID"/>
-				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="600" type="list" value="1" nulls="false" local="true">
-					<AI id="1" name="Новый"/>
-					<AI id="2" name="Отчёт в работе"/>
-					<AI id="3" name="Проверяется"/>
-					<AI id="4" name="Отчёт принят" readonly="true"/>
-					<AI id="5" name="Отклонён"/>
-				</A>
-			</TABLE>
-			<TABLE id="ACCOUNTABILITYUIKS1SD" name="Раздел 1. Исходные данные">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS1">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" width="60"/>
-				</GA>
-				<GA id="REPIND1" name="Показатель отчётности (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
-				</GA>
-				<GA id="CODELINE1" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="200" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL1" name="Всего (гр. 3)">
-					<A id="TOTAL" name="3" caption="Всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" virtual="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS1" name="Участковые избирательные комиссии (комиссий референдума) (гр.7)">
-					<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="ACCOUNTABILITYUIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS2">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" width="60"/>
-				</GA>
-				<GA id="REPIND2" name="Показатель отчётности (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
-				</GA>
-				<GA id="CODELINE2" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="200" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL2" name="Сумма расходов, всего (гр.3)">
-					<A id="TOTAL" name="3" caption="Сумма расходов, всего (гр.3)" type="string" labelwidth="200" visible="true" virtual="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS2" name="Участковых избирательных комиссий (комиссий референдума) (гр. 13)">
-					<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковых избирательных комиссий (комиссий референдума) (гр. 13)" labelwidth="415" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="UIKPRIL2" name="Прил. 2">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS3">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" labelwidth="200"/>
-				</GA>
-				<GA id="REPIND3" name="Виды расходов (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
-				</GA>
-				<GA id="CODELINE3" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL3" name="Сумма расходов, всего, рублей (гр.3)">
-					<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" type="string" labelwidth="220" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS3" name="Участковых избирательных комиссий (гр. 11)">
-					<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="UIKPRIL6" name="Прил. 6">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS4">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" labelwidth="200"/>
-				</GA>
-				<GA id="REPIND4" name="Виды расходов (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
-				</GA>
-				<GA id="CODELINE4" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL4" name="Сумма расходов, всего, рублей (гр.3)">
-					<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" type="string" labelwidth="220" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS4" name="Участковых избирательных комиссий (гр. 11)">
-					<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="UIKPRIL8" name="Прил. 8">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS5">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" labelwidth="200"/>
-				</GA>
-				<GA id="REPIND5" name="Виды расходов (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
-				</GA>
-				<GA id="CODELINE5" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL5" name="Сумма расходов, всего, рублей (гр.5)">
-					<A id="TOTAL" name="5" caption="Сумма расходов, всего, рублей (гр.5)" type="string" labelwidth="220" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS5" name="Участковых избирательных комиссий (гр. 13)">
-					<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковых избирательных комиссий (гр. 13)" labelwidth="265" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="UIKPRIL9" name="Прил. 9">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS6">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" labelwidth="200"/>
-				</GA>
-				<GA id="REPIND6" name="Виды расходов (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
-				</GA>
-				<GA id="CODELINE6" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL6" name="Сумма расходов, всего, рублей (гр.6)">
-					<A id="TOTAL" name="6" caption="Сумма расходов, всего, рублей (гр.6)" type="string" labelwidth="220" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS6" name="Участковых избирательных комиссий (гр. 14)">
-					<A id="UIKREFERENDUMCOMMISSION" name="14" caption="Участковых избирательных комиссий (гр. 14)" labelwidth="265" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="UIKPRIL11" name="Прил. 11">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS7">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" labelwidth="200"/>
-				</GA>
-				<GA id="REPIND7" name="Виды расходов (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
-				</GA>
-				<GA id="CODELINE7" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL7" name="Всего (гр.4)">
-					<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр.4)" type="string" labelwidth="220" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS7" name="Участковых избирательных комиссий (гр. 7)">
-					<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="UIKPRIL15" name="Прил. 15">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS8">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" visible="false" labelwidth="200"/>
-				</GA>
-				<GA id="REPIND8" name="Виды расходов (гр. 1)">
-					<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
-				</GA>
-				<GA id="CODELINE8" name="Код строки (гр.2)">
-					<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL8" name="Сумма расходов, всего, рублей (гр.3)">
-					<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" type="string" labelwidth="220" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="UIKREFCOMS8" name="Участковых избирательных комиссий (гр. 11)">
-					<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-				<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
-				<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
-					<AI id="true"/>
-					<AI id="false" readonly="true"/>
-				</A>
-			</TABLE>
-			<TABLE id="AUDITREPORTSUIK" name="Протоколы проверок">
-				<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
-				<A id="WORDINGOFTHEFORMSID" caption="Форма отчёта" name="Форма отчёта" labelwidth="150" nulls="false"/>
-				<A id="DATEVERIFICATION" name="Дата проверки" caption="Дата проверки" labelwidth="400" type="datetime" nulls="false" formula="now()" local="true"/>
-				<A id="STATUSRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="400" type="list" nulls="true" local="true">
-					<AI id="1" name="Ошибки"/>
-					<AI id="2" name="Предупреждения"/>
-					<AI id="3" name="Нет ошибок и предупреждений"/>
-				</A>
-			</TABLE>
-			<TABLE id="TESTRESULTSUIK" name="Результаты проверок">
-				<A id="AUDITREPORTSUIKID" parentkey="cascade"/>
-				<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
-				<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
-				<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
-			</TABLE>
-			
-			
-			
-			<TABLE id="ACCOUNTABILITYTIK" name="Отчетность ТИК">
-				<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string"  nulls="false" local="true"/>
-				<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
-				<A id="ELECTCAMPAIGNID"/>
-				<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
-				<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
-				<A id="ELECTCOMMITTEEID"/>
-				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="600" type="list" value="1" nulls="false" local="true">
-					<AI id="1" name="Новый"/>
-					<AI id="2" name="Отчёт в работе"/>
-					<AI id="3" name="Проверяется"/>
-					<AI id="4" name="Отчёт принят" readonly="true"/>
-					<AI id="5" name="Отклонён"/>
-				</A>
-			</TABLE>
-			<TABLE id="ACCOUNTABILITYTIKS1SD" name="Раздел 1. Исходные данные">
-				<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS1" name="Редакция форм" caption="Редакция форм">
-					<A id="WORDINGOFTHEFORMSID" width="60"/>
-					<A id="REVISIONDATE" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID" />
-				</GA>
-				<GA id="REPINDS1" name="Показатель отчётности" caption="Показатель отчётности">
-					<A id="MEASURESOFSHAPEID" name="Наименование показателя (гр. 1)" caption="Наименование показателя (гр. 1)" width="60"/>
-					<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" width="40" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL1" name="Всего" caption="Всего">
-					<A id="TOTAL" name="Всего (гр.3)" caption="Всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="TIKREFCOMS1" name="Территориальные избирательные комиссии (комиссии референдума)" caption="Территориальные избирательные комиссии (комиссии референдума)">
-					<A id="TIKREFERENDUMCOMMISSION" name="Территориальные избирательные комиссии (комиссии референдума) (гр. 6)" caption="Территориальные избирательные комиссии (комиссии референдума) (гр. 6)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
-				</GA>
-			</TABLE>
-			<TABLE id="ACCOUNTABILITYTIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
-				<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
-				<GA id="EDITIONFORMS2" name="Редакция форм" caption="Редакция форм">
-					<A id="WORDINGOFTHEFORMSID" caption="Код формы" name="Код формы" width="60"/>
-					<A id="REVISIONDATE" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID" />
-				</GA>
-				<GA id="REPINDS2" name="Показатель отчётности" caption="Показатель отчётности">
-					<A id="MEASURESOFSHAPEID" name="Наименование показателя (гр. 1)" caption="Наименование показателя (гр. 1)" width="60"/>
-					<A id="CODE" name="Код строки (гр.2)" caption="Код строки (гр.2)" labelwidth="200" width="40" type="string" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" nulls="false" local="true"/>
-				</GA>
-				<GA id="TOTAL2" name="Сумма расходов, всего" caption="Сумма расходов, всего">
-					<A id="TOTAL" name="Сумма расходов, всего (гр.3)" caption="Сумма расходов, всего (гр.3)" type="string" labelwidth="200" visible="true" nulls="false" local="true"/>
-				</GA>
-				<GA id="TIK" name="Территориальных избирательных комиссий" caption="Территориальных избирательных комиссий">
-					<A id="SUM" name="Всего (гр.10)" caption="Всего (гр.10)" labelwidth="410" type="string" visible="true" nulls="false" local="true"/>
-					<GA id="TIKUNDER" name="Из них">
-						<A id="EXPENSESTIK" name="Расходы территориальной избирательной комиссии (гр.11)" caption="Расходы территориальной избирательной комиссии (гр.11)" labelwidth="450" type="string" visible="true" nulls="false" local="true"/>
-						<A id="EXPENSESUIK" name="Расходы за участковые избирательные комиссии (гр.12)" caption="Расходы за участковые избирательные комиссии (гр.12)" labelwidth="450" type="string" visible="true" nulls="false" local="true"/>
-					</GA>
-				</GA>
-			</TABLE>
-			
-			<TABLE id="TIKPRIL2" name="Прил. 2">
-				
-			</TABLE>
-			<TABLE id="TIKPRIL4" name="Прил. 4">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL5" name="Прил. 5">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL6" name="Прил. 6">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL7" name="Прил. 7">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL8" name="Прил. 8">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL9" name="Прил. 9">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL10" name="Прил. 10">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL11" name="Прил. 11">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL12" name="Прил. 12">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL13" name="Прил. 13">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL14" name="Прил. 14">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL15" name="Прил. 15">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL16" name="Прил. 16">
-			
-			</TABLE>
-			<TABLE id="TIKPRIL17" name="Прил. 17">
-			
-			</TABLE>
-			
-			
-			<TABLE id="AUDITREPORTSTIK" name="Протоколы проверок">
-				<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
-				<A id="WORDINGOFTHEFORMSID" caption="Форма отчёта" name="Форма отчёта" labelwidth="150" nulls="false"/>
-				<A id="DATEVERIFICATION" name="Дата проверки" caption="Дата проверки" labelwidth="400" type="datetime" nulls="false" formula="now()" local="true"/>
-				<A id="STATUSRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="400" type="list" nulls="true" local="true">
-					<AI id="1" name="Ошибки"/>
-					<AI id="2" name="Предупреждения"/>
-					<AI id="3" name="Нет ошибок и предупреждений"/>
-				</A>
-			</TABLE>
-			<TABLE id="TESTRESULTSTIK" name="Результаты проверок">
-				<A id="AUDITREPORTSTIKID" parentkey="cascade"/>
-				<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
-				<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
-				<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
-			</TABLE>
-			
-			
-			
-			<!-- <TABLE id="ACCOUNTABILITYIKSRF" name="Отчеты ИКСРФ"> -->
-				<!-- <A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string"  nulls="false" local="true"/> -->
-				<!-- <A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/> -->
-				<!-- <A id="ELECTCAMPAIGNID"/> -->
-				<!-- <A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/> -->
-				<!-- <A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/> -->
-				<!-- <A id="ELECTCOMMITTEEID"/> -->
-				<!-- <A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="600" type="list" value="1" nulls="false" local="true"> -->
-					<!-- <AI id="1" name="Новый"/> -->
-					<!-- <AI id="2" name="Отчёт в работе"/> -->
-					<!-- <AI id="3" name="Проверяется"/> -->
-					<!-- <AI id="4" name="Отчёт принят" readonly="true"/> -->
-					<!-- <AI id="5" name="Отклонён"/> -->
-				<!-- </A> -->
-			<!-- </TABLE> -->
-			
-			
-			
-		</TABLES>
-		
-		
-		<ACTIONS name="Действия">
-			<ACTION id="FillListOfIndincators" name="Сформировать перечень показателей отчетности" type="procedure" procedure="p_action_list_of_indicators"/>
-		</ACTIONS>
-		
-		
-		<REPORTS name="Отчеты"/>
-		
-		
-		<FORMS id="Forms" name="Формы">
-			
-			
-			<FORM id="ReportingIndicators" name="Показатели отчётности">
-				<GRID id="WordingOfTheForms" name="Редакции форм" table="WORDINGOFTHEFORMS"/>
-				<TABS>
-					<TAB name="Показатели формы">
-						<GRID id="MeasuresOfShape" name="Показатели формы" table="MEASURESOFSHAPE"/>
-					</TAB>
-				</TABS>
-			</FORM>
-			
-			
-			<FORM id="ReportingForm" name="Формы отчётности">
-				<GRID id="ReportingForm" name="Формы отчётности" table="REPORTINGFORM"/>
+			</GA>
+		</TABLE>
+		<TABLE id="AUDITREPORTSTIK" name="Протоколы проверок">
+			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
+			<A id="WORDINGOFTHEFORMSID" name="Форма отчёта" caption="Форма отчёта" labelwidth="150" nulls="false"/>
+			<A id="DATEVERIFICATION" name="Дата проверки" caption="Дата проверки" labelwidth="400" type="datetime" nulls="false" formula="now()" local="true"/>
+			<A id="STATUSRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="400" type="list" nulls="true" local="true">
+				<AI id="1" name="Ошибки"/>
+				<AI id="2" name="Предупреждения"/>
+				<AI id="3" name="Нет ошибок и предупреждений"/>
+			</A>
+		</TABLE>
+		<TABLE id="TESTRESULTSTIK" name="Результаты проверок">
+			<A id="AUDITREPORTSTIKID" parentkey="cascade"/>
+			<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
+			<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
+		</TABLE>
+	</TABLES>
+	<ACTIONS name="Действия">
+		<ACTION id="FillListOfIndincators" name="Сформировать перечень показателей отчетности" type="procedure" procedure="p_action_list_of_indicators"/>
+	</ACTIONS>
+	<REPORTS name="Отчеты"/>
+	<FORMS id="Forms" name="Формы">
+		<FORM id="ReportingIndicators" name="Показатели отчётности">
+			<GRID id="WordingOfTheForms" name="Редакции форм" table="WORDINGOFTHEFORMS"/>
+			<TABS>
+				<TAB name="Показатели формы">
+					<GRID id="MeasuresOfShape" name="Показатели формы" table="MEASURESOFSHAPE"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="ReportingForm" name="Формы отчётности">
+			<GRID id="ReportingForm" name="Формы отчётности" table="REPORTINGFORM"/>
+			<TABS>
+				<TAB name="Привязка к таблицам отчётности">
+					<GRID id="PKTO" name="Привязка к таблицам отчётности" table="PKTO"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="AccountabilityUik" name="Отчётность УИК">
+			<GRID id="AccountabilityUik" name="Отчётность УИК" table="ACCOUNTABILITYUIK" actionlist="FillListOfIndincators"/>
+			<TABS>
+				<TAB name="Спецификации">
 					<TABS>
-						<TAB name="Привязка к таблицам отчётности">
-							<GRID id="PKTO" name="Привязка к таблицам отчётности" table="PKTO"/>
+						<TAB name="Раздел 1. Исходные данные">
+							<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD" readonly="true">
+								<MENU>
+									<MI actionlist="Update;View;ConfigTables"/>
+								</MENU>
+							</GRID>
+						</TAB>
+						<TAB name="Раздел 2. Фактические расходы">
+							<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE" readonly="true">
+								<MENU>
+									<MI actionlist="Update;View;ConfigTables"/>
+								</MENU>
+							</GRID>
+						</TAB>
+						<TAB name="Прил. 2">
+							<GRID id="UIKPril2" name="Расходы на дополнительную оплату труда (вознаграждение) членов комиссии с правом решаюшего голоса" table="UIKPRIL2"/>
+						</TAB>
+						<TAB name="Прил. 6">
+							<GRID id="UIKPril6" name="Расходы на услуги других видов транспорта" table="UIKPRIL6"/>
+						</TAB>
+						<TAB name="Прил. 8">
+							<GRID id="UIKPril8" name="Расходы на приобретение (изготовление) стендов,вывесок, указателей,печатей, штампов" table="UIKPRIL8"/>
+						</TAB>
+						<TAB name="Прил. 9">
+							<GRID id="UIKPril9" name="Расходы на приобретение других материальных ценностей (материальных запасов)" table="UIKPRIL9"/>
+						</TAB>
+						<TAB name="Прил. 11">
+							<GRID id="UIKPril11" name="Расходы на оплату труда граждан, привлекавшихся к работе в комиссиях по гражданско-правовым договорам" table="UIKPRIL11"/>
+						</TAB>
+						<TAB name="Прил. 15">
+							<GRID id="UIKPril15" name="Расходы на другие расходы, не указанные в предыдущих строках" table="UIKPRIL15"/>
 						</TAB>
 					</TABS>
-			</FORM>
-			
-			
-			<FORM id="AccountabilityUik" name="Отчётность УИК">
-				<GRID id="AccountabilityUik" name="Отчётность УИК" table="ACCOUNTABILITYUIK" actionlist="FillListOfIndincators"/>
-				<TABS>
-					<TAB name="Спецификации">
-						<TABS>
-							<TAB name="Раздел 1. Исходные данные">
-								<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD" readonly="true">
-									<MENU>
-										<MI actionlist="Update;View;ConfigTables"/>
-									</MENU>
-								</GRID>
-							</TAB>
-							<TAB name="Раздел 2. Фактические расходы">
-								<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE" readonly="true">
-									<MENU>
-										<MI actionlist="Update;View;ConfigTables"/>
-									</MENU>
-								</GRID>
-							</TAB>
-							<TAB name="Прил. 2">
-								<GRID id="UIKPril2" name="Расходы на дополнительную оплату труда (вознаграждение) членов комиссии с правом решаюшего голоса" table="UIKPRIL2"/>
-							</TAB>
-							<TAB name="Прил. 6">
-								<GRID id="UIKPril6" name="Расходы на услуги других видов транспорта" table="UIKPRIL6"/>
-							</TAB>
-							<TAB name="Прил. 8">
-								<GRID id="UIKPril8" name="Расходы на приобретение (изготовление) стендов,вывесок, указателей,печатей, штампов" table="UIKPRIL8"/>
-							</TAB>
-							<TAB name="Прил. 9">
-								<GRID id="UIKPril9" name="Расходы на приобретение других материальных ценностей (материальных запасов)" table="UIKPRIL9"/>
-							</TAB>
-							<TAB name="Прил. 11">
-								<GRID id="UIKPril11" name="Расходы на оплату труда граждан, привлекавшихся к работе в комиссиях по гражданско-правовым договорам" table="UIKPRIL11"/>
-							</TAB>
-							<TAB name="Прил. 15">
-								<GRID id="UIKPril15" name="Расходы на другие расходы, не указанные в предыдущих строках" table="UIKPRIL15"/>
-							</TAB>
-						</TABS>
-					</TAB>
-					<TAB name="Протокол проверок">
-						<TABS>
-							<TAB name="Протоколы проверок">
-								<GRID id="AuditReportsUik" name="Протоколы проверок" table="AUDITREPORTSUIK"/>
-							</TAB>
-							<TAB name="Результаты проверок">
-								<GRID id="TestResultsUik" name="Результаты проверок" table="TESTRESULTSUIK"/>
-							</TAB>
-						</TABS>
-					</TAB>
-				</TABS>
-			</FORM>
-			
-			
-			<FORM id="AccountabilityTik" name="Отчетность ТИК">
-				<GRID id="AccountabilityTik" name="Отчетность ТИК" table="ACCOUNTABILITYTIK"/>
-				<TABS>
-					<TAB name="Спецификации">
-						<TABS>
-							<TAB name="Раздел 1. Исходные данные">
-								<GRID id="TIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYTIKS1SD"/>
-							</TAB>
-							<TAB name="Раздел 2. Фактические расходы">
-								<GRID id="TIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYTIKS2AE"/>
-							</TAB>
-							<TAB name="Прил. 2">
-								<GRID id="TIKPril2" name="Расходы на дополнительную оплату труда (вознаграждение) членов комиссии с правом решаюшего голоса" table="TIKPRIL2"/>
-							</TAB>
-							<TAB name="Прил. 4">
-								<GRID id="TIKPril4" name="Расходы на изготовление печатной продукции" table="TIKPRIL4"/>
-							</TAB>
-							<TAB name="Прил. 5">
-								<GRID id="TIKPril5" name="Расходы на услуги авиационного транспорта" table="TIKPRIL5"/>
-							</TAB>
-							<TAB name="Прил. 6">
-								<GRID id="TIKPril6" name="Расходы на услуги других видов транспорта" table="TIKPRIL6"/>
-							</TAB>
-							<TAB name="Прил. 7">
-								<GRID id="TIKPril7" name="Расходы на приобретение (изготовление) технологического оборудования (кабин, ящиков и др.)" table="TIKPRIL7"/>
-							</TAB>
-							<TAB name="Прил. 8">
-								<GRID id="TIKPril8" name="Расходы на приобретение (изготовление) стендов,вывесок, указателей,печатей, штампов" table="TIKPRIL8"/>
-							</TAB>
-							<TAB name="Прил. 9">
-								<GRID id="TIKPril9" name="Расходы на приобретение других материальных ценностей (материальных запасов)" table="TIKPRIL9"/>
-							</TAB>
-							<TAB name="Прил. 10">
-								<GRID id="TIKPril10" name="Расходы на приобретение других основных средств" table="TIKPRIL10"/>
-							</TAB>
-							<TAB name="Прил. 11">
-								<GRID id="TIKPril11" name="Расходы на оплату труда граждан, привлекавшихся к работе в комиссиях по гражданско-правовым договорам" table="TIKPRIL11"/>
-							</TAB>
-							<TAB name="Прил. 12">
-								<GRID id="TIKPril12" name="Расходы на изготовление печатной информационной продукции и информационно-раздаточной продукции для избирателей" table="TIKPRIL12"/>
-							</TAB>
-							<TAB name="Прил. 13">
-								<GRID id="TIKPril13" name="Расходы на изготовление и размещение наглядной информации для избирателей (наружной)" table="TIKPRIL13"/>
-							</TAB>
-							<TAB name="Прил. 14">
-								<GRID id="TIKPril14" name="Расходы на изготовление и размещение теле-радио и видео-аудио и иной информации для избирателей" table="TIKPRIL14"/>
-							</TAB>
-							<TAB name="Прил. 15">
-								<GRID id="TIKPril15" name="Расходы на другие расходы, не указанные в предыдущих строках" table="TIKPRIL15"/>
-							</TAB>
-							<TAB name="Прил. 16">
-								<GRID id="TIKPril16" name="Сведения о расходах на подготовку и проведение выборов в законодательные (представительные) органы государственной власти субъекта Российской Федерации, проводившихся одновременно с дополнительными выборами депутатов Государственной Думы Федерального Собрания Российской Федерации седьмого созыва" table="TIKPRIL16"/>
-							</TAB>
-							<TAB name="Прил. 17">
-								<GRID id="TIKPril17" name="Данные о приобретении технологического оборудования за счёт средств регионального бюджета за период с - по" table="TIKPRIL17"/>
-							</TAB>
-						</TABS>
-					</TAB>
-					<TAB name="Протокол проверок">
-						<TABS>
-							<TAB name="Протоколы проверок">
-								<GRID id="AuditReportsTik" name="Протоколы проверок" table="AUDITREPORTSTIK"/>
-							</TAB>
-							<TAB name="Результаты проверок">
-								<GRID id="TestResultsTik" name="Результаты проверок" table="TESTRESULTSTIK"/>
-							</TAB>
-						</TABS>
-					</TAB>
-				</TABS>
-			</FORM>
-			<FORM id="ListOfChecks" name="Перечень проверок и пересчетов">
-				<GRID id="ListOfChecks" name="Перечень проверок и пересчетов" table="LISTOFCHECKS"/>
-				<TABS>
-					<TAB name="Пересчеты">
-						<GRID id="Recalculations" name="Пересчеты" table="RECALCULATIONS"/>
-						<GRID id="TermsRecalc" name="Слагаемые" table="TERMSRECALC"/>
-						
-					</TAB>
-					<TAB name="Проверки">
-						<GRID id="AuditReport" name="Проверки" table="AUDITREPORT"/>
-						<GRID id="TermsAudit" name="Слагаемые" table="TERMSAUDIT"/>
-					</TAB>
-				</TABS>
-			</FORM>
-			
-			
-			<!-- <FORM id="AccountabilityIksrf" name="Отчетность ИКСРФ"> -->
-				<!-- <GRID id="AccountabilityIksrf" name="Отчетность ИКСРФ" table="ACCOUNTABILITYIKSRF"/> -->
-				<!-- <TABS> -->
-					<!-- <TAB name="Спецификации"> -->
-						<!-- <GRID id="AccountabilityIksrf2" name="Спецификации" table="ACCOUNTABILITYIKSRF2"/> -->
-					<!-- </TAB> -->
-				<!-- </TABS> -->
-			<!-- </FORM> -->
-			
-			
-		</FORMS>
-	</SYSTEM>
+				</TAB>
+				<TAB name="Протокол проверок">
+					<TABS>
+						<TAB name="Протоколы проверок">
+							<GRID id="AuditReportsUik" name="Протоколы проверок" table="AUDITREPORTSUIK"/>
+						</TAB>
+						<TAB name="Результаты проверок">
+							<GRID id="TestResultsUik" name="Результаты проверок" table="TESTRESULTSUIK"/>
+						</TAB>
+					</TABS>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="AccountabilityTik" name="Отчетность ТИК">
+			<GRID id="AccountabilityTik" name="Отчетность ТИК" table="ACCOUNTABILITYTIK"/>
+			<TABS>
+				<TAB name="Спецификации">
+					<TABS>
+						<TAB name="Раздел 1. Исходные данные">
+							<GRID id="TIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYTIKS1SD"/>
+						</TAB>
+						<TAB name="Раздел 2. Фактические расходы">
+							<GRID id="TIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYTIKS2AE"/>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Протокол проверок">
+					<TABS>
+						<TAB name="Протоколы проверок">
+							<GRID id="AuditReportsTik" name="Протоколы проверок" table="AUDITREPORTSTIK"/>
+						</TAB>
+						<TAB name="Результаты проверок">
+							<GRID id="TestResultsTik" name="Результаты проверок" table="TESTRESULTSTIK"/>
+						</TAB>
+					</TABS>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="ListOfChecks" name="Перечень проверок и пересчетов">
+			<GRID id="ListOfChecks" name="Перечень проверок и пересчетов" table="LISTOFCHECKS"/>
+			<TABS>
+				<TAB name="Пересчеты">
+					<GRID id="Recalculations" name="Пересчеты" table="RECALCULATIONS"/>
+					<GRID id="TermsRecalc" name="Слагаемые" table="TERMSRECALC"/>
+				</TAB>
+				<TAB name="Проверки">
+					<GRID id="AuditReport" name="Проверки" table="AUDITREPORT"/>
+					<GRID id="TermsAudit" name="Слагаемые" table="TERMSAUDIT"/>
+				</TAB>
+			</TABS>
+		</FORM>
+	</FORMS>
+	<MENU name="Справочники по отчётности">
+		<MI name="Показатели отчётности" formlist="ReportingIndicators"/>
+		<MI name="Формы отчётности" formlist="ReportingForm"/>
+		<MI name="Перечень проверок и пересчетов" formlist="ListOfChecks"/>
+	</MENU>
+	<MENU name="Отчётность ИК">
+		<MI name="Отчётность УИК" formlist="AccountabilityUik"/>
+		<MI name="Отчётность ТИК" formlist="AccountabilityTik"/>
+		<MI name="Отчётность ИКСРФ" formlist="AccountabilityIksrf"/>
+	</MENU>
+</SYSTEM>
