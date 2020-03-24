@@ -70,13 +70,14 @@
 		<TABLE id="WRITEOFF_STATEMENT_HEADER" name="Ведомость выдачи МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<A id="ELECTCOMMITTEEID" parentkey="nocascade" virtual="true" readonly="true" visible="false" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" visible="true" readonly="true" value="26" labelwidth="120" width="100"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="120" width="55" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
 			</GA>
 			<GA name="Отправитель" caption="Отправитель">
-				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false" pid="ELECTCOMMITTEEID"/>
 			</GA>
 		</TABLE>
 		<TABLE id="WRITEOFF_STATEMENT_GOODS" name="Номенклатура Ведомости выдачи МЗ">
@@ -84,8 +85,9 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" formula="select w.ELECTCAMPAIGNID from WRITEOFF w, WRITEOFF_STATEMENT_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_STATEMENT_HEADERID"/>
 			<A id="JURPERSONSID" parentkey="nocascade" visible="false" readonly="true" formula="select w.JURPERSONSID from WRITEOFF w, WRITEOFF_STATEMENT_HEADER d where w.id=d.WRITEOFFID and d.id=@WRITEOFF_STATEMENT_HEADERID"/>
 			<A id="SENDERRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" labelwidth="120" nulls="false" visible="false" readonly="true" formula="select d.RESPPERSON from WRITEOFF_STATEMENT_HEADER d where d.id=@WRITEOFF_STATEMENT_HEADERID"/>
+			<A id="ELECTCOMMITTEEID" parentkey="nocascade" virtual="true" readonly="true" visible="false" formula="select j.electcommitteeid from jurpersons j where j.id = @JURPERSONSID"/>
 			<GA name="Получатель" caption="Получатель">
-				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false" pid="ELECTCOMMITTEEID"/>
 			</GA>				
 			<A id="DOCDATE" parentkey="nocascade" visible="false" readonly="true" formula="select DOCDATE from WRITEOFF_STATEMENT_HEADER where id=@WRITEOFF_STATEMENT_HEADERID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" readonly="true" visible="false" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_GOODS where WRITEOFF_STATEMENT_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
@@ -102,13 +104,14 @@
 		<TABLE id="WRITEOFF_INVOICE_HEADER" name="Требования-накладные">
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<A id="ELECTCOMMITTEEID" parentkey="nocascade" virtual="true" readonly="true" visible="false" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" visible="true" readonly="true" value="28" labelwidth="120" width="100"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="120" width="55" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
 			</GA>
 			<GA name="Отправитель" caption="Отправитель">
-				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false" pid="ELECTCOMMITTEEID"/>
 			</GA>
 			<GA name="Получатель" caption="Получатель">
 				<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
@@ -133,12 +136,13 @@
 		<TABLE id="WRITEOFF_ACTS_HEADER" name="Акт списания МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" virtual="true" readonly="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<A id="ELECTCOMMITTEEID" parentkey="nocascade" virtual="true" readonly="true" visible="false" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" visible="true" readonly="true" value="27" labelwidth="120" width="100"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" type="number" labelwidth="120" width="55" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" type="date" nulls="true" labelwidth="50" width="45"/>
 			</GA>
-			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false" pid="ELECTCOMMITTEEID"/>
 		</TABLE>
 		<TABLE id="WRITEOFF_ACTS_GOODS" name="Номенклатура Акта списания МЗ">
 			<A id="WRITEOFF_ACTS_HEADERID" parentkey="cascade"/>
