@@ -968,9 +968,15 @@
 			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" local="true"/>
 			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="BLOCKCELL" name="Блокировка полей" caption="Блокировка полей" type="string" virtual="true" formula="select replace(k.levelelcommittee,'circuit','territory')||'/'||v.MESTIMATE from FINANCEELCOM f, ELECTCOMMINCAMP t, ELECTCOMMITTEE k, TYPEEXP v where f.id = @ID and t.id = f.ELECTCOMMINCAMPID and k.id = t.ELECTCOMMITTEEID and v.id = f.TYPEEXPID">
-				<AI id="territory/false" readonly="SUMFINUIK"/>
-				<AI id="territory/true" readonly="SUMFINTIKCEN"/>
+			<A id="BLOCKCELL" name="Блокировка полей" caption="Блокировка полей" type="string" virtual="true" visible="false" formula="select replace(k.levelelcommittee,'circuit','territory')||'/'||COALESCE((case replace(k.levelelcommittee,'circuit','territory') when 'territory' then v.MESTIMATE else null end)::text,'')||'/'||case replace(k.levelelcommittee,'circuit','territory') when 'district' then m.mfin else '' end||'/'||case replace(k.levelelcommittee,'circuit','territory') when 'district' then (case v.TYPEEXPENSES when 'product' then '' when 'service' then '' when 'worksexec' then '' else coalesce(v.TYPEEXPENSES,'') end) else '' end from FINANCEELCOM f, ELECTCOMMINCAMP t, ELECTCOMMITTEE k, TYPEEXP v, mfin m where f.id = @ID and t.id = f.ELECTCOMMINCAMPID and k.id = t.ELECTCOMMITTEEID and v.id = f.TYPEEXPID and m.ELECTCOMMITTEEID = k.ID and CURRENT_DATE >= m.begindate and (m.enddate >= CURRENT_DATE or m.enddate is NULL)">
+				<AI id="territory/false//" readonly="SUMFINUIK"/>
+				<AI id="territory/true//" readonly="SUMFINTIKCEN;SUMFINTIK;SUMFINUIK"/>
+				<AI id="district//1/salary" readonly="SUMFINTIK;SUMFINUIK"/>
+				<AI id="district//1/" readonly="SUMFINTIK;SUMFINUIK"/>
+				<AI id="district//2/salary" readonly="SUMFINTIK;SUMFINTIKCEN"/>
+				<AI id="district//2/" readonly="SUMFINTIK;SUMFINTIKCEN"/>
+				<AI id="district//3/" readonly="SUMFINTIK;SUMFINTIKCEN"/>
+				<AI id="district//3/salary" readonly="SUMFINTIK;SUMFINUIK"/>
 			</A>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID, DOCDATE"/>
 		</TABLE>
