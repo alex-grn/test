@@ -328,8 +328,9 @@
 		<A id="INVENTORYID" name="Поступление МЗ Избирательной кампании" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY" ret="ID" nulls="false"/>
 		<A id="INVENTORY_DOCSID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="INVENTORY_DOCS" ret="ID" nulls="false"/>
 		<A id="OTHER_INVENTORY_DOCSID" name="Поступление МЗ" caption="Поступление МЗ" labelwidth="200" type="ref" table="OTHER_INVENTORY_DOCS" ret="ID" nulls="false"/>
-		<A id="INVENTORY_TRIAL_BALANCEID" name="Оборотные ведомости по НФА" caption="Оборотные ведомости по НФА" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCE" ret="ID" nulls="false"/>
-		<A id="INVENTORY_TRIAL_BALANCEDOCSID" name="Оборотная ведомость по НФА" caption="Оборотная ведомость по НФА" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCEDOCS" ret="ID" nulls="false"/>
+		<A id="INVENTORY_TRIAL_BALANCEID" name="Оборотные ведомости по НФА (избирательных комиссий)" caption="Оборотные ведомости по НФА (избирательных комиссий)" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCE" ret="ID" nulls="false"/>
+		<A id="INVENTORY_TRIAL_BALANCEDOCSID" name="Оборотная ведомость по НФА (МОЛ, счет)" caption="Оборотная ведомость по НФА (МОЛ, счет)" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCEDOCS" ret="ID" nulls="false"/>
+		<A id="INVENTORY_TRIAL_BALANCE_DICNOMNSID" name="Оборотная ведомость по НФА (номенклатура)" caption="Оборотная ведомость по НФА (номенклатура)" labelwidth="200" type="ref" table="INVENTORY_TRIAL_BALANCE_DICNOMNS" ret="ID" nulls="false"/>
 		<A id="WRITEOFFID" name="Выбытие и переещение МЗ в избирательной кампании" caption="Выбытие и переещение МЗ в избирательной кампании" labelwidth="200" type="ref" table="WRITEOFF" ret="ID" nulls="false"/>
 		<A id="WRITEOFF_STATEMENT_HEADERID" name="Ведомость выдачи МЗ" caption="Ведомость выдачи МЗ" labelwidth="200" type="ref" table="WRITEOFF_STATEMENT_HEADER" ret="ID" nulls="false"/>
 		<A id="WRITEOFF_INVOICE_HEADERID" name="Ведомость на внутреннее перемещение МЗ" caption="Ведомость на внутреннее перемещение МЗ" labelwidth="200" type="ref" table="WRITEOFF_INVOICE_HEADER" ret="ID" nulls="false"/>
@@ -1245,7 +1246,7 @@
 						<A id="DOCTYPEID" readonly="true" value="16"/>
 						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
 						<A id="DOCDATE" width="50"/>
-						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+						<!-- <A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/> -->
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
 						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" width="50"/>
 						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="round((select sum(t.SUMM) from PAYDOCSCONS t where t.PAYDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '1' end)::numeric ,2)" local="true"/>
@@ -1768,11 +1769,17 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
 			<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
 			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Документ поставщика" caption="Документ поставщика">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="29"/>
 				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="string" nulls="false"/>
 				<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
+			<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from INVENTORY_GOODS x where x.INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
 			<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" labelwidth="70" width="35" type="boolean" nulls="false"/>
 			<GA name="Отправитель" caption="Отправитель">
 				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100" pid="ELECTCAMPAIGNID" nulls="false"/>
@@ -1804,10 +1811,17 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
 			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from OTHER_INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
 			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
+			<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="600"  type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from OTHER_INVENTORY_GOODS x where x.OTHER_INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
 			<GA name="Документ-основание" caption="Документ-основание">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true"/>
-				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false"/>
+				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="string" nulls="false"/>
 				<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from OTHER_INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+			
 			</GA>
 			<GA name="Поставщик" caption="Поставщик">
 				<A id="AGENTID" name="Юридическое лицо" labelwidth="120"/>
@@ -1904,19 +1918,26 @@
 			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false" local="true"/>
 			<A id="ACCOUNTID" name="Счет" caption="Счет" labelwidth="120"/>
 		</TABLE>
-		<TABLE id="INVENTORY_TRIAL_BALANCESTAGES" name="Номенклатура оборотных ведомостей">
+		<TABLE id="INVENTORY_TRIAL_BALANCE_DICNOMNS" name="Перечень номенклатуры оборотных ведомостей по МОЛ и счету">
 			<A id="INVENTORY_TRIAL_BALANCEDOCSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" nulls="false" visible="false" readonly="true" formula="select b.ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE b, INVENTORY_TRIAL_BALANCEDOCS d where b.id = d.INVENTORY_TRIAL_BALANCEID and d.id=@INVENTORY_TRIAL_BALANCEDOCSID"/>
-			<A id="JURPERSONSID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="150" nulls="false" visible="false" readonly="true" formula="select b.JURPERSONSID from INVENTORY_TRIAL_BALANCE b, INVENTORY_TRIAL_BALANCEDOCS d where b.id = d.INVENTORY_TRIAL_BALANCEID and d.id=@INVENTORY_TRIAL_BALANCEDOCSID"/>
-			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="150" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false" visible="false" readonly="true" formula="select RESPPERSON from INVENTORY_TRIAL_BALANCEDOCS where id=@INVENTORY_TRIAL_BALANCEDOCSID" local="true"/>
-			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150" type="ref" table="DICNOMNS" ret="CODE" nulls="false" local="true"/>
+			<!-- <A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" nulls="false" visible="false" readonly="true" formula="select b.ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE b, INVENTORY_TRIAL_BALANCEDOCS d where b.id = d.INVENTORY_TRIAL_BALANCEID and d.id=@INVENTORY_TRIAL_BALANCEDOCSID"/> -->
+			<!-- <A id="JURPERSONSID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="150" nulls="false" visible="false" readonly="true" formula="select b.JURPERSONSID from INVENTORY_TRIAL_BALANCE b, INVENTORY_TRIAL_BALANCEDOCS d where b.id = d.INVENTORY_TRIAL_BALANCEID and d.id=@INVENTORY_TRIAL_BALANCEDOCSID"/> -->
+			<!-- <A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="150" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false" visible="false" readonly="true" formula="select RESPPERSON from INVENTORY_TRIAL_BALANCEDOCS where id=@INVENTORY_TRIAL_BALANCEDOCSID" local="true"/> -->
+			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
 			<A id="DICMUNTSID" labelwidth="90" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
-			<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string" local="true"/>
-			<GA name="Обороты" caption="Обороты">
-				<A id="BALANCEDATE" name="Дата" caption="Дата" labelwidth="60" width="30" type="date" nulls="false" local="true"/>
-				<A id="DTQUANTITY" name="Приход" caption="Приход" labelwidth="50" width="35" type="number" nulls="true" value="0" local="true"/>
-				<A id="KTQUANTITY" name="Расход" caption="Расход" labelwidth="50" width="35" type="number" nulls="true" value="0" local="true"/>
+		</TABLE>
+		<TABLE id="INVENTORY_TRIAL_BALANCE_CHANGE" name="Обороты по номенклатуре">
+			<A id="INVENTORY_TRIAL_BALANCE_DICNOMNSID" parentkey="cascade"/>
+			<A id="DOCNUMB" name="Документ" caption="Документ" labelwidth="120" type="string" local="true"/>
+			<A id="BALANCEDATE" name="Дата" caption="Дата" labelwidth="600" type="date" nulls="false" local="true"/>
+			<GA name="Приход" caption="Приход">
+				<A id="QUANTITYIN" name="Количество" caption="Количество" labelwidth="150" width="50"  type="number" nulls="true" value="0" local="true"/>
+				<A id="SUMMIN" name="Сумма" caption="Сумма" labelwidth="150" width="50"  type="number" nulls="true"/>
+			</GA>
+			<GA name="Расход" caption="Расход">
+				<A id="QUANTITYOUT" name="Количество" caption="Количество" labelwidth="150" width="50"   type="number" nulls="true" value="0" local="true"/>
+				<A id="SUMMOUT" name="Сумма" caption="Сумма"  labelwidth="150" width="50"   type="number" nulls="true"/>
 			</GA>
 		</TABLE>
 		<TABLE id="VIRT_LEFTOVERS" name="Остатки по оборотным ведомостям" virtual="true" query="select DICNOMNSID ID, null HID, max(LID) LID, 0 CID, max(UID) UID, max(TIM) TIM, ELECTCAMPAIGNID ELECTCAMPAIGNID, JURPERSONSID JURPERSONSID, RESPPERSON RESPPERSON, DICNOMNSID DICNOMNSID, now() BALANCEDATE, (sum(coalesce(DTQUANTITY,0))-sum(coalesce(KTQUANTITY,0))) BALANCE from INVENTORY_TRIAL_BALANCESTAGES s group by ELECTCAMPAIGNID, JURPERSONSID, RESPPERSON, DICNOMNSID">
@@ -1943,6 +1964,10 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="26"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
@@ -1968,6 +1993,10 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="28"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
@@ -1995,6 +2024,10 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="27"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
@@ -2881,8 +2914,11 @@
 				<TAB name="Оборотные ведомости по НФА">
 					<GRID id="INVENTORY_TRIAL_BALANCEDOCSGR" name="Оборотные ведомости по НФА" table="INVENTORY_TRIAL_BALANCEDOCS"/>
 				</TAB>
-				<TAB name="Номенклатура оборотных ведомостей">
-					<GRID id="INVENTORY_TRIAL_BALANCESTAGESGR" name="Номенклатура оборотных ведомостей" table="INVENTORY_TRIAL_BALANCESTAGES"/>
+				<TAB name="Перечень номенклатуры">
+					<GRID id="INVENTORY_TRIAL_BALANCE_DICNOMNSGR" name="Перечень номенклатуры" table="INVENTORY_TRIAL_BALANCE_DICNOMNS"/>
+				</TAB>
+				<TAB name="Обороты по номенклатуре">
+					<GRID id="INVENTORY_TRIAL_BALANCE_CHANGEGR" name="Обороты по номенклатуре" table="INVENTORY_TRIAL_BALANCE_CHANGE"/>
 				</TAB>
 				<TAB name="Остатки">
 					<GRID id="VIRT_LEFTOVERSGR" name="Остатки" table="VIRT_LEFTOVERS" readonly="true"/>
