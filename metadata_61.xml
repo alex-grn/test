@@ -993,22 +993,22 @@
 				<AI id="district//2//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
 				<AI id="district//3//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
 				<AI id="district//3/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
-				<AI id="district//1/salary/10" readonly="SUMFINTIK;SUMFINUIK;TYPEEXPID"/>
-				<AI id="district//1//10" readonly="SUMFINTIK;SUMFINUIK;TYPEEXPID"/>
-				<AI id="district//2/salary/10" readonly="SUMFINTIK;SUMFINTIKCEN;TYPEEXPID"/>
-				<AI id="district//2//10" readonly="SUMFINTIK;SUMFINTIKCEN;TYPEEXPID"/>
-				<AI id="district//3//10" readonly="SUMFINTIK;SUMFINTIKCEN;TYPEEXPID"/>
-				<AI id="district//3/salary/10" readonly="SUMFINTIK;SUMFINUIK;TYPEEXPID"/>
+				<AI id="district//1/salary/10" readonly="SUMFINTIK;SUMFINUIK;TYPEEXPID;SUMFINTIKCEN"/>
+				<AI id="district//1//10" readonly="SUMFINTIK;SUMFINUIK;TYPEEXPID;SUMFINTIKCEN"/>
+				<AI id="district//2/salary/10" readonly="SUMFINTIK;SUMFINTIKCEN;TYPEEXPID;SUMFINTIKCEN;SUMFINUIK"/>
+				<AI id="district//2//10" readonly="SUMFINTIK;SUMFINTIKCEN;TYPEEXPID;SUMFINTIKCEN;SUMFINUIK"/>
+				<AI id="district//3//10" readonly="SUMFINTIK;SUMFINTIKCEN;TYPEEXPID;SUMFINTIKCEN;SUMFINUIK"/>
+				<AI id="district//3/salary/10" readonly="SUMFINTIK;SUMFINUIK;TYPEEXPID;SUMFINTIKCEN"/>
 			</A>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID, DOCDATE"/>
 		</TABLE>
 		<TABLE id="SUBTOTALFINANCEELCOM" name="Сводные данные о финансировании">
 			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
 			<A id="ALLOCATION" name="Выделено средств" caption="Выделено средств" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
-			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" readonly="true" local="true"/>
-			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
-			<A id="PROVISION" name="Резерв" caption="Резерв" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
+			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID" local="true"/>
+			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID" local="true"/>
+			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINUIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID" local="true"/>
+			<A id="PROVISION" name="Резерв" caption="Резерв" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="@ALLOCATION - (select round(sum(COALESCE(f.SUMFINTIK,0)),2)+round(sum(COALESCE(f.SUMFINUIK,0)),2)+round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID)" local="true"/>
 			<TI unique="ELECTCOMMINCAMPID"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
