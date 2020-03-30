@@ -1,0 +1,43 @@
+CREATE OR REPLACE FUNCTION public.p_action_paydocs_to_transactionlog_rollback (
+  id bigint
+)
+RETURNS void AS
+$body$
+/*Действие: Отмена проведения документа в учете*/
+declare
+  nID    BIGINT:=ID;  
+  REC    record;
+begin
+  --Очистим дату оплаты и сменим статус на "В работе"
+  update PAYDOCS p set PAYDATE = null, STATUS = 0 where p.ID = nID;
+  --Удалим записи из журнала операций
+  delete from TRANSACTIONLOG_DOCS t 
+   where exists(select d.KEYOUT 
+                  from DOCLINKS d 
+                 where d.TABLEIN ilike 'PAYDOCS' 
+                   and d.KEYIN = nID 
+                   and d.TABLEOUT ilike 'TRANSACTIONLOG_DOCS'
+                   and t.ID = d.KEYOUT);
+  --Удалим записи из проводки хозяйственной операции
+  delete from TRANSACTIONLOG_STAGES t 
+   where exists(select d.KEYOUT 
+                  from DOCLINKS d 
+                 where d.TABLEIN ilike 'PAYDOCS' 
+                   and d.KEYIN = nID 
+                   and d.TABLEOUT ilike 'TRANSACTIONLOG_STAGES'
+                   and t.ID = d.KEYOUT);
+  --Удалим все связи с журналом операций
+  perform p_system_doclinks_del('PAYDOCS',nID,'TRANSACTIONLOG');
+  perform p_system_doclinks_del('PAYDOCS',nID,'TRANSACTIONLOG_DOCS');
+  perform p_system_doclinks_del('PAYDOCS',nID,'TRANSACTIONLOG_STAGES');
+   
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_paydocs_to_transactionlog_rollback (id bigint)
+  OWNER TO magicbox;

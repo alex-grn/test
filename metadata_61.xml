@@ -1234,7 +1234,7 @@
 			<TABS>
 				<TAB name="Документ">
 					<A id="PAYACCOUNTSID" parentkey="cascade"/>
-					<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from PAYACCOUNTS where id=@PAYACCOUNTSID"/>
+					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from PAYACCOUNTS where id=@PAYACCOUNTSID"/>
 					<GA name="Документ" caption="Документ">
 						<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" value="0" local="true">
 							<AI id="0" name="В работе"/>
@@ -2179,6 +2179,12 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="FinanceelcomRecountFProv" name="Пересчитать финансовое обеспечение за нижестоящие ИК" type="procedure" procedure="p_action_financeelcom_recount_fprov"/>
+		<ACTION id="PaydocsToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_paydocs_to_transactionlog">
+			<FORM name="Параметры">
+				<A id="DDOCDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="PaydocsToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_paydocs_to_transactionlog_rollback"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="PaylistReport" name="Платежная ведомость (0504403)" procedure="" template="payment_statement.xls">
@@ -2705,7 +2711,7 @@
 					<TABS>
 						<TAB name="Документ">
 							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
-							<GRID id="PaydocsGR" name="Документ" table="PAYDOCS" actionlist="setLID"/>
+							<GRID id="PaydocsGR" name="Документ" table="PAYDOCS" actionlist="setLID;PaydocsToTransactionlog;PaydocsToTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Расшифровка платежа">
 							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
