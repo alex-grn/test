@@ -1334,6 +1334,8 @@
 			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="120" type="string"/>
 			<A id="TYPICALOPERSID" labelwidth="120" width="100"/>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Кассовое поступление №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from RECEIPTSDOCS c where c.id = @ID" local="true"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
@@ -1770,11 +1772,17 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
 			<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
 			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Документ поставщика" caption="Документ поставщика">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="29"/>
 				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="string" nulls="false"/>
 				<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
+			<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from INVENTORY_GOODS x where x.INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
 			<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" labelwidth="70" width="35" type="boolean" nulls="false"/>
 			<GA name="Отправитель" caption="Отправитель">
 				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100" pid="ELECTCAMPAIGNID" nulls="false"/>
@@ -1806,10 +1814,17 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
 			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from OTHER_INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
 			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
+			<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="600"  type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from OTHER_INVENTORY_GOODS x where x.OTHER_INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
 			<GA name="Документ-основание" caption="Документ-основание">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true"/>
-				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false"/>
+				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="string" nulls="false"/>
 				<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from OTHER_INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+			
 			</GA>
 			<GA name="Поставщик" caption="Поставщик">
 				<A id="AGENTID" name="Юридическое лицо" labelwidth="120"/>
@@ -1858,6 +1873,10 @@
 				<A id="DOCSUM" name="Сумма документа" caption="Сумма" labelwidth="100" width="10" type="number" nulls="false"/>
 			</GA>
 			<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
+			<!-- <AI id="*" readonly="true"/> -->
+			<TI unique="TRANSACTIONLOGID,TRANSACTIONNUMB"/>
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_STAGES" name="Проводки журнала операций">
 			<A id="TRANSACTIONLOG_DOCSID" parentkey="cascade"/>
