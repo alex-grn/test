@@ -1319,15 +1319,19 @@
 		</TABLE>
 		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
 			<A id="PAYACCOUNTSID" parentkey="cascade"/>
-			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="40" width="30"/>
-			<A id="DOCDATE" name="Дата" labelwidth="40" width="20"/>
+			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="40" width="30" type="number" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
+			<A id="DOCDATE" name="Дата" labelwidth="40" width="20"  formula="now()"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="50" width="40" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID"/>
+			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
+				<AI id="1" name="Создан"/>
+				<AI id="2" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Контрагент" caption="Контрагент">
-				<A id="TRPERSONID" name="Плательщик" caption="Плательщик" labelwidth="70" width="50" nulls="true"/>
-				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
+				<A id="AGENTID" name="Юридическое лицо"/>
+				<A id="AGENTACCID" caption="Реквизит" labelwidth="150" nulls="true"/>
 			</GA>
 			<GA name="Первичный документ" caption="Первичный документ">
-				<A id="BASIS" name="Наименование первичного документа" caption="Наименование" labelwidth="85" width="60" type="string"/>
+				<A id="DOCTYPEID" readonly="true" value="16"/>
 				<A id="BASISNUMB" name="Номер первичного документа" caption="Номер" labelwidth="35" width="20" type="string"/>
 				<A id="BASISDATE" name="Дата первичного документа" caption="Дата" labelwidth="30" width="20" type="date"/>
 			</GA>
@@ -1873,9 +1877,11 @@
 				<A id="DOCSUM" name="Сумма документа" caption="Сумма" labelwidth="100" width="10" type="number" nulls="false"/>
 			</GA>
 			<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
+				<!-- <AI id="*" readonly="true"/>
+			<A/>` -->
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
-			<!-- <AI id="*" readonly="true"/> -->
+
 			<TI unique="TRANSACTIONLOGID,TRANSACTIONNUMB"/>
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_STAGES" name="Проводки журнала операций">
