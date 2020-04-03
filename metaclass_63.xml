@@ -19,6 +19,7 @@
 		<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
 		<A id="AUDITREPORTSUIKID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSUIK" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
 		<A id="AUDITREPORTSTIKID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSTIK" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
+		<A id="AUDITREPORTSIKSRFID" name="Протокол проверок" caption="Протокол проверок" type="ref" table="AUDITREPORTSIKSRF" ret="WORDINGOFTHEFORMSID_ret" nulls="false"/>
 		<A id="LISTOFCHECKSID" name="Перечень проверок и пересчетов" caption="Перечень проверок и пересчетов" type="ref" table="LISTOFCHECKS" ret="NAME" form="ListOfChecks" nulls="true"/>
 		<A id="RECALCULATIONSID" name="Пересчеты" caption="Пересчеты" type="ref" table="RECALCULATIONS" ret="NAME" form="Recalculations" nulls="true"/>
 		<A id="AUDITREPORTID" name="Проверки" caption="Проверки" type="ref" table="AUDITREPORT" ret="ID" form="AuditReport" nulls="true"/>
@@ -87,8 +88,6 @@
 				<AI id="TIKP13" name="TIKPRIL13"/>
 				<AI id="TIKP14" name="TIKPRIL14"/>
 				<AI id="TIKP15" name="TIKPRIL15"/>
-				<AI id="TIKP16" name="TIKPRIL16"/>
-				<AI id="TIKP17" name="TIKPRIL17"/>
 			</A>
 			<A id="NAMETABLEIKSRF" name="ИКСРФ" caption="ИКСРФ" labelwidth="150" type="list" nulls="true" local="true">
 				<AI id="IKSRFS1SD" name="ACCOUNTABILITYIKSRFS1SD"/>
@@ -125,7 +124,7 @@
 			<A id="WORDINGOFTHEFORMSID" visible="false" readonly="true" virtual="true" formula="select WORDINGOFTHEFORMSID from LISTOFCHECKS where id=@LISTOFCHECKSID"/>
 			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="160" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="CODE" nulls="false"/>
 			<A id="CONVERSIONTYPE" name="Тип" caption="Тип" labelwidth="160" type="list" nulls="false" local="true">
-				<AI id="FORMULACONV" name="Формула"/>
+				<AI id="FORMULACONV" name="Формула" readonly="PROCEDURECONV"/>
 				<AI id="PROCEDURECONV" name="Процедура"/>
 			</A>
 			<A id="ROUNDING" name="Округление" caption="Округление" labelwidth="160" type="list" nulls="false" local="true">
@@ -503,6 +502,10 @@
 				</GA>
 			</GA>
 			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="TIKPRIL4" name="Прил. 4">
@@ -532,6 +535,11 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="За участковые избирательные комиссии (гр. 12)" caption="За участковые избирательные комиссии (гр. 12)" labelwidth="320" type="string" nulls="false" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="TIKPRIL5" name="Прил. 5">
@@ -564,7 +572,13 @@
 			<GA id="TIKPRIL5GA9" name="Общая стоимость расходов, рублей">
 				<A id="TOTALCOSTOFEXPENSES" name="9" caption="Общая стоимость расходов, рублей (гр. 9)" labelwidth="300" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;PAIDTIMEINHOURSE;AVERAGECOSTOFRENTING"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P6">
@@ -586,6 +600,11 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="За участковые избирательные комиссии (гр. 10)" caption="За участковые избирательные комиссии (гр. 10)" labelwidth="320" type="string" nulls="false" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
 		<TABLE id="TIKPRIL7" name="Прил. 7">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -612,7 +631,13 @@
 					<A id="PER1UNIT2" name="в расчете на 1 ед. оборудования (гр. 11)" caption="в расчете на 1 ед. оборудования (гр. 11)" labelwidth="250" type="string" nulls="true" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIPMENT;TOTAL;PER1UNIT;PURCHASEDEQUIPMENT2;TOTAL2;PER1UNIT2"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P8">
@@ -640,7 +665,13 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="За участковые избирательные комиссии (гр. 12)" caption="За участковые избирательные комиссии (гр. 12)" labelwidth="320" type="string" nulls="false" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;AVEEXP;TOTAL"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P9">
@@ -671,7 +702,13 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="За участковые избирательные комиссии (гр. 13)" caption="За участковые избирательные комиссии (гр. 13)" labelwidth="320" type="string" nulls="false" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;MEASUREUNIT;QUANT;AVEEXP;TOTAL;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL10" name="Прил. 10">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P10">
@@ -696,7 +733,13 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="За участковые избирательные комиссии (гр. 11)" caption="За участковые избирательные комиссии (гр. 11)" labelwidth="320" type="string" nulls="false" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;TOTAL;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL11" name="Прил. 11">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P11">
@@ -723,6 +766,11 @@
 				<A id="CIVLAWEXPENSES2" name="расходы по гражданско-правовым договорам, рублей (гр. 18)" caption="расходы по гражданско-правовым договорам, рублей (гр. 18)" labelwidth="400" type="string" nulls="true" local="true"/>
 				<A id="AVEPERPERSON2" name="в среднем на 1-го человека, рублей (гр. 19)" caption="в среднем на 1-го человека, рублей (гр. 19)" labelwidth="400" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFCIVIL;SUM;TIKREFERENDUMCOMMISSION;AVEPERPERSON;NUMOFCIVIL2;CIVLAWEXPENSES2;AVEPERPERSON2"/>
+			</A>
 		</TABLE>
 		<TABLE id="TIKPRIL12" name="Прил. 12">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -748,7 +796,13 @@
 				<A id="TOTAL" name="всего, рублей (гр. 6)" caption="всего, рублей" labelwidth="140" type="string" nulls="true" local="true"/>
 				<A id="ONECOPY" name="1 экз., рублей (гр. 7)" caption="1 экз., рублей" labelwidth="140" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TYPEPAPPER;FORMATPRINTED;CIRCULATIONPRINTED;TOTAL;ONECOPY"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL13" name="Прил. 13">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P13">
@@ -788,7 +842,13 @@
 			<GA id="TIKPRIL13GA11" name="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей">
 				<A id="TOTALINPUT" name="14" caption="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей" labelwidth="700" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATSANDSIZES;MATERIALS;QUANT;TOTAL;UNITOFOUTPUT;QUANT2;TOTAL2;UNITOFOUTPUT2;QUANT3;TOTAL3;UNITOFOUTPUT3;TOTALINPUT"/>
+			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL14" name="Прил. 14">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P14">
@@ -814,6 +874,11 @@
 			<GA id="TIKPRIL14GA8" name="Общая стоимость продукции, рублей">
 				<A id="TOTALCOSTPRODUCTION" name="8" caption="Общая стоимость продукции, рублей (гр. 8)" labelwidth="330" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;COSTOFMANUFACT;QUANT;COSTOFREPLICATION;PLACEMENTS;COSTPLACEMENTS;TOTALCOSTPRODUCTION"/>
+			</A>
 		</TABLE>
 
 		<TABLE id="TIKPRIL15" name="Прил. 15">
@@ -837,53 +902,11 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="за участковые избирательные комиссии (гр. 10)" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="300" type="string" nulls="false" visible="true" local="true"/>
 				</GA>
 			</GA>
-		</TABLE>
-		<TABLE id="TIKPRIL16" name="Прил. 16">
-			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
-			<GA id="TIKSTARTGA1P16">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
-			</GA>
-			<GA id="TIKSTARTGA2P16" name="Виды расходов">
-				<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
-			</GA>
-			<GA id="TIKSTARTGA3P16" name="Код строки">
-				<A id="CODE" name="2" caption="Код строки (гр. 2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
-			</GA>
-			<GA id="TIKPRIL16GA4" name="Сумма предусмотренная в бюджете субъекта Российской Федерации на выборы, руб.">
-				<A id="STIPULATEDAMOUNT" name="3" caption="Сумма предусмотренная в бюджете субъекта Российской Федерации на выборы, руб. (гр. 3)" labelwidth="550" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
-			<GA id="TIKPRIL16GA5" name="Фактически выделено на выборы из буджета субъекта Российской Федерации, руб">
-				<A id="FACTAMOUNT" name="4" caption="Фактически выделено на выборы из буджета субъекта Российской Федерации, руб (гр. 4)" labelwidth="550" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
-			<GA id="TIKPRIL16GA6" name="Израсходованно на выборы, руб." caption="Израсходованно на выборы, руб.">
-				<A id="TOTAL" name="Всего (гр. 5)" caption="Всего (гр. 5)" labelwidth="210" type="string" nulls="false" visible="true" local="true"/>
-				<A id="UIKREFERENDUMCOMMISSION" name="В том числе по участковым избирательным комиссиям (гр. 6)" caption="В том числе по участковым избирательным комиссиям (гр. 6)" labelwidth="360" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
-			<GA id="TIKPRIL16GA7" name="В том чилсе компенсации и дополнительная оплата труда (вознаграждение)" caption="В том чилсе компенсации и дополнительная оплата труда (вознаграждение)">
-				<A id="TOTAL2" name="Всего (гр. 7)" caption="Всего (гр. 7)" labelwidth="210" type="string" nulls="false" visible="true" local="true"/>
-				<A id="UIKREFERENDUMCOMMISSION2" name="В том числе по участковым избирательным комиссиям (гр. 8)" caption="В том числе по участковым избирательным комиссиям (гр. 8)" labelwidth="360" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
-		</TABLE>
-		<TABLE id="TIKPRIL17" name="Прил. 17">
-			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
-			<GA id="TIKSTARTGA1P17">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
-			</GA>
-			<GA id="TIKSTARTGA2P17" name="Виды расходов">
-				<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
-			</GA>
-			<GA id="TIKSTARTGA3P17" name="Код строки">
-				<A id="CODE" name="2" caption="Код строки (гр. 2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
-			</GA>
-			<GA id="TIKPRIL17GA4" name="Количество приобретенного оборудования, единиц">
-				<A id="PURCHASEDEQUIP" name="3" caption="Количество приобретенного оборудования, единиц (гр. 3)" labelwidth="350" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
-			<GA id="TIKPRIL17GA5" name="Цена 1-ой единицы, рублей">
-				<A id="PRICEUNIT" name="4" caption="Цена 1-ой единицы, рублей (гр. 4)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
-			<GA id="TIKPRIL17GA6" name="Сумма всего">
-				<A id="TOTAL" name="5" caption="Сумма всего (гр. 5)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
-			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;TOTAL2;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="AUDITREPORTSTIK" name="Протоколы проверок">
@@ -941,7 +964,11 @@
 					<A id="UIKREFERENDUMCOMMISSION" name="Участковые избирательные комиссии (гр. 7)" caption="Участковые избирательные комиссии (гр. 7)" labelwidth="450" type="string" nulls="false" visible="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select d.REVISIONDATE from WORDINGOFTHEFORMS d where d.ID = @WORDINGOFTHEFORMSID"/>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;IKSRFREFERENDUMCOMMISSION;OIKREFERENDUMCOMMISSION;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="ACCOUNTABILITYIKSRFS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
@@ -968,7 +995,11 @@
 					<A id="OIKREFERENDUMCOMMISSION" name="Окружные избирательные комиссии (гр. 9)" caption="Окружные избирательные комиссии (гр. 9)" labelwidth="270" type="string" nulls="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select d.REVISIONDATE from WORDINGOFTHEFORMS d where d.ID = @WORDINGOFTHEFORMSID"/>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;TOTAL2;EXPENIKSRF;EXPENOIK;EXPENTIK;EXPENUIK;OIKREFERENDUMCOMMISSION"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL1" name="Прил. 1">
@@ -992,6 +1023,10 @@
 				</GA>
 			</GA>
 			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;PRESIDELECT;DEPUTIESELECT;OPERATIONASSURANCEIKSRF;TRAININGEVENT"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL2" name="Прил. 2">
@@ -1019,6 +1054,10 @@
 				</GA>
 			</GA>
 			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;TOTAL2;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL3" name="Прил. 3">
@@ -1048,6 +1087,11 @@
 				<A id="ALLTOTAL" name="Всего тиража, рублей (гр. 7)" caption="Всего тиража, рублей (гр. 7)" labelwidth="340" type="string" nulls="true" local="true"/>
 				<A id="INSTANCE" name="1 экз. (гр. 8)" caption="1 экз. (гр. 8)" labelwidth="340" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFVOTE;PAPAREUSE;FORMBALLOT;TOTAL;ALLTOTAL;INSTANCE"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL4" name="Прил. 4">
@@ -1080,6 +1124,11 @@
 					</GA>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATGR3;TOTAL;TOTAL2;TOTAL3;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL5" name="Прил. 5">
@@ -1112,6 +1161,11 @@
 			<GA id="IKSPRIL5GA8" name="Общая стоимость расходов, рублей">
 				<A id="TOTALCOSTOFEXPENSES" name="9" caption="Общая стоимость расходов, рублей (гр. 9)" labelwidth="290" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTALLEN;NUMOFVOTE;PAIDTIMEINHOURSE;INFLIGHT;CAMPS;AVERAGECOSTOFRENTING;TOTALCOSTOFEXPENSES"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL6" name="Прил. 6">
@@ -1136,6 +1190,11 @@
 					</GA>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;TOTAL2;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL7" name="Прил. 7">
@@ -1163,6 +1222,11 @@
 					<A id="PERUNITOFEQUIPMENT2" name="в расчете на 1 ед. оборудования (гр. 11)" caption="в расчете на 1 ед. оборудования (гр. 11)" labelwidth="250" type="string" nulls="true" local="true"/>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIPMENT;TOTAL;PERUNITOFEQUIPMENT;PURCHASEDEQUIPMENT2;TOTAL2;PERUNITOFEQUIPMENT2"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL8" name="Прил. 8">
@@ -1195,6 +1259,11 @@
 					</GA>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;AVEEXP;TOTAL;TOTAL2;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL9" name="Прил. 9">
@@ -1230,6 +1299,11 @@
 					</GA>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;MEASUREUNIT;QUANTITY;AVEEXP;TOTAL;TOTAL2;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		
@@ -1260,6 +1334,11 @@
 					</GA>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;TOTAL;TOTAL2;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL11" name="Прил. 11">
@@ -1283,6 +1362,11 @@
 				<A id="CIVLAWEXPENSES2" name="расходы по гражданско-правовым договорам, рублей (гр. 18)" caption="расходы по гражданско-правовым договорам, рублей (гр. 18)" labelwidth="400" type="string" nulls="true" local="true"/>
 				<A id="AVEPERPERSON2" name="в среднем на 1-го человека, рублей (гр. 19)" caption="в среднем на 1-го человека, рублей (гр. 19)" labelwidth="400" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFCIVIL;CIVLAWEXPENSES;AVEPERPERSON;NUMOFCIVIL2;CIVLAWEXPENSES2;AVEPERPERSON2"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL12" name="Прил. 12">
@@ -1309,6 +1393,11 @@
 				<A id="TOTAL" name="всего, рублей (гр. 6)" caption="всего, рублей" labelwidth="140" type="string" nulls="true" local="true"/>
 				<A id="ONECOPY" name="1 экз., рублей (гр. 7)" caption="1 экз., рублей" labelwidth="140" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TYPEPAPPER;FORMATPRINTED;CIRCULATIONPRINTED;TOTAL;ONECOPY"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL13" name="Прил. 13">
@@ -1350,6 +1439,11 @@
 			<GA id="IKSPRIL13GA11" name="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей">
 				<A id="TOTALINPUT" name="14" caption="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей" labelwidth="700" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATSANDSIZES;MATERIALS;QUANT;TOTAL;UNITOFOUTPUT;QUANT2;TOTAL2;UNITOFOUTPUT2;QUANT3;TOTAL3;UNITOFOUTPUT3;TOTALINPUT"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL14" name="Прил. 14">
@@ -1377,6 +1471,11 @@
 			<GA id="IKSPRIL14GA7" name="Общая стоимость продукции, рублей">
 				<A id="TOTALCOSTPRODUCTION" name="8" caption="Общая стоимость продукции, рублей (гр. 8)" labelwidth="330" type="string" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;COSTOFMANUFACT;QUANT;COSTREPLICATION;PLACEMENTS;COSTPLACEMENTS;TOTALCOSTPRODUCTION"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL15" name="Прил. 15">
@@ -1403,6 +1502,11 @@
 					</GA>
 				</GA>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;TOTAL2;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL15A" name="Прил. 15а">
@@ -1420,6 +1524,11 @@
 			<GA id="IKSPRIL15AGA4" name="Примечание">
 				<A id="NOTE" name="Примечание (гр. 4)" caption="Примечание (гр. 4)" type="string" labelwidth="200" nulls="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;PER1KOIB;NOTE"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL16" name="Прил. 16">
@@ -1447,6 +1556,11 @@
 				<A id="TOTAL2" name="Всего (гр. 7)" caption="Всего (гр. 7)" labelwidth="210" type="string" nulls="false" visible="true" local="true"/>
 				<A id="UIK2" name="В том числе по участковым избирательным комиссиям (гр. 8)" caption="В том числе по участковым избирательным комиссиям (гр. 8)" labelwidth="360" type="string" nulls="false" visible="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;STIPULATEDAMOUNT;FACTAMOUNT;TOTAL;UIK;TOTAL2;UIK2"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="IKSRFPRIL17" name="Прил. 17">
@@ -1469,6 +1583,11 @@
 			<GA id="IKSPRIL17GA6" name="Сумма всего">
 				<A id="TOTAL" name="5" caption="Сумма всего (гр. 5)" labelwidth="220" type="string" nulls="false" visible="true" local="true"/>
 			</GA>
+			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
+				<AI id="true"/>
+				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIP;PRICEUNIT;TOTAL"/>
+			</A>
 		</TABLE>
 		
 		<TABLE id="AUDITREPORTSIKSRF" name="Протоколы проверок">
@@ -1482,7 +1601,7 @@
 			</A>
 		</TABLE>
 		<TABLE id="TESTRESULTIKSRF" name="Результаты проверок">
-			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
+			<A id="AUDITREPORTSIKSRFID" parentkey="cascade"/>
 			<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
 			<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
 			<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
@@ -1643,12 +1762,6 @@
 						<TAB name="Прил. 15">
 							<GRID id="TIKPril15" name="Приложение 15" table="TIKPRIL15"/>
 						</TAB>
-						<TAB name="Прил. 16">
-							<GRID id="TIKPril16" name="Приложение 16" table="TIKPRIL16"/>
-						</TAB>
-						<TAB name="Прил. 17">
-							<GRID id="TIKPril17" name="Приложение 17" table="TIKPRIL17"/>
-						</TAB>
 					</TABS>
 				</TAB>
 				<TAB name="Протокол проверок">
@@ -1733,7 +1846,7 @@
 							<GRID id="IKSRFPril15" name="Приложение 15" table="IKSRFPRIL15"/>
 						</TAB>
 						<TAB name="Прил. 15а">
-							<GRID id="IKSRFPril15a" name="Приложение 15а" table="IKSRFPRIL15a"/>
+							<GRID id="IKSRFPril15a" name="Приложение 15а" table="IKSRFPRIL15A"/>
 						</TAB>
 						<TAB name="Прил. 16">
 							<GRID id="IKSRFPril16" name="Приложение 16" table="IKSRFPRIL16"/>
