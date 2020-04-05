@@ -35,11 +35,8 @@
 				<MI name="Обеспечение государственных контрактов" formlist="Tempordersgcntr"/>
 			</MENU>
 			<MENU name="Межбюджетные транферты">
-				<MI name="Соглашения о предоставлении субсидий/субвенций" formlist="Fine"/>
-				<MI name="Уведомления о направлении субсидий/субвенций" formlist="Journalpays"/>
-				<MI name="Реестр доведенных субсидий/субвенций" formlist="Journalpays"/>
-				<MI name="Уведомления о возврате субсидий/субвенций" formlist="Journalpays"/>
-				<MI name="Реестр возвратов субсидий/субвенций" formlist="Journalpays"/>
+				<MI name="Уведомления о возвратах субсидий (субвенций)" formlist="NotifMBT"/>
+				<MI name="Реестр возвратов субсидий (субвенций)" formlist="Journalpays"/>
 			</MENU>
 			<MENU name="Социальные выплаты">
 				<MI name="Журнал возвратов соцвыплат" formlist="Journalsoc"/>
@@ -149,6 +146,8 @@
 		<A id="TEMPORDERSCOMPID" name="Обеспечения участия в закупках" caption="Обеспечения участия в закупках" labelwidth="300" type="ref" table="TEMPORDERSCOMP" ret="IKZ" form="Temporderscomp"/>
 		<A id="TEMPORDERCOMPRECEIPTSID" name="Поступления обеспечения участия в закупке" caption="Поступления обеспечения участия в закупке" labelwidth="300" type="ref" pid="TEMPORDERSCOMPID" table="TEMPORDERCOMPRECEIPTS" ret="DOCNUMB"/>
 		<A id="TEMPORDERCOMPRETURNSID" name="Возврат обеспечения участия в закупке" caption="Возврат обеспечения участия в закупке" labelwidth="300" type="ref" pid="TEMPORDERSCOMPID" table="TEMPORDERCOMPRETURNS" ret="DOCNUMB_ZV"/>
+		<A id="NOTIFMBTID" name="Уведомление о расчетах между бюджетами" caption="Уведомление о расчетах между бюджетами" labelwidth="300" type="ref" table="NOTIFMBT" ret="NOTIFNUMB" nulls="false"/>
+		<A id="NOTIFMBTKBKID" name="Уведомление о расчетах между бюджетами: таблица" caption="Уведомление о расчетах между бюджетами: таблица" labelwidth="300" type="ref" pid="NOTIFMBTID" table="NOTIFMBTKBK" ret=""/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Группы для модуля НСИ"/>
@@ -1348,6 +1347,46 @@
 			<A id="DOCLINKS_OUT"/>
 			<TI id="iJOURNALTEMP_UK" unique="OWNERID,STATEMENTADBDONEID"/>
 		</TABLE>
+		<TABLE id="NOTIFMBT" name="Уведомления о расчетах между бюджетами">
+			<A id="OWNERID" visible="form" />
+			<A id="FIN_YEAR" name="Финансовый год" caption="Финансовый год" width="30" type="string" len="4" nulls="true" />
+			<A id="NOTIFDATE" name="Дата" caption="Дата" width="30" type="date" nulls="true" />
+			<A id="NOTIFNUMB" name="Номер" caption="Номер" width="40"  type="string" nulls="true" />
+			<A id="AGENT_FROM" name="От кого" caption="От кого" width="50" type="ref" table="AGENT" ret="CODE" nulls="true" />
+			<A id="AGENT_TO" name="Кому" caption="Кому" width="50" type="ref" table="AGENT" ret="CODE" nulls="true" />
+			<A id="TRANSFERT_NAME" name="Наименование трансферта" caption="Наименование трансферта" type="text" width="70" visible="form" nulls="true" />
+			<A id="TARGET_FUND" name="Целевая статья" caption="Целевая статья" width="30" type="string" nulls="true" />
+			<A id="TRANSFERT_TYPE" name="Тип уведомления" caption="Тип уведомления" width="70" type="list" value="0" nulls="true" >
+				<AI id="0" name="неиспользованный остаток подлежит возврату"/>
+				<AI id="1" name="предусмотрено предоставление (изменение) межбюджетного трансферта"/>
+				<AI id="2" name="зачтено расходов (уменьшений), подтвержденных документами"/>
+				<AI id="3" name="восстановленный остаток прошлых лет" />
+			</A>
+			<A id="NOTIF_SUMM" name="Сумма уведомления" caption="Сумма" width="30" type="number" len="17.2" nulls="true" />
+			<A id="CONFIRM_REQ_SUMM" name="Сумма подтверждения потребности" width="100" labelwidth="594" caption="Сумма подтверждения потребности" type="number" len="17.2" nulls="true" />
+			<GA name="Справочно" caption="Справочно" >
+			<A id="REST_SUMM_ALL" name="Неиспользованный остаток с начала года" caption="Неиспользованный остаток с начала года" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			<A id="REST_SUMM_ALL_PY" name="Из них остатки прошлых лет" caption="Из них остатки прошлых лет" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			<A id="LIMIT_SUMM_ALL" name="Утверждено бюджетных назначений" caption="Бюджетные назначения" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			<A id="CONFIRM_COSTS_SUMM_ALL" name="Расходы с начала года" caption="Расходы с начала года" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			<A id="CONFIRM_COSTS_SUMM_ALL_PY" name="Из них остатки прошлых лет" caption="Из них остатки прошлых лет" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			</GA>
+			<TI id="iNOTIFMBT_UK" unique="FIN_YEAR,AGENT_FROM,AGENT_TO,TARGET_FUND,NOTIFDATE,NOTIF_SUMM"/>
+		</TABLE>
+		<TABLE id="NOTIFMBTKBK" name="Содержательная часть" >
+			<A id="NOTIFMBTID" parentkey="cascade" />
+		<GA name="Отправитель" caption="Отправитель" >
+			<A id="KBK_PROVIDER" name="КБК" caption="КБК" width="30" labelwidth="40" type="string" nulls="true" />
+			<A id="REST_SUMM" name="Неиспользованный остаток, подлежащий возврату" caption="Подлежит возврату" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			<A id="LIMIT_SUMM" name="Утверждено бюджетных назначений" caption="Бюджетные назначения" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			<A id="CONFIRM_COSTS_SUMM" name="Расходы, подтвержденные документами" caption="Расходы" width="20" labelwidth="80" type="number" len="17.2" nulls="true" />
+			</GA>
+			<GA name="Получатель" caption="Получатель" >
+			<A id="KBK_RECIPIENT" name="КБК" caption="КБК" width="30" labelwidth="40" type="string" nulls="true" />
+			<A id="REST_FIRSTJAN" name="Неиспользованный остаток на 1 января" caption="Остаток на 1 января" width="35" labelwidth="110" type="number" len="17.2" nulls="true" />
+			<A id="REQUIRE_FIRSTJAN" name="В том числе сумма подтвержденной потребности" caption="В т.ч. подтвержденная потребность" width="35" labelwidth="150" type="number" len="17.2" nulls="true" />
+			</GA>
+		</TABLE>		
 	</TABLES>
 	<ACTIONS name="Действия">
 		<COMMENT name="Действия для модуля Администрирование штрафов"/>
@@ -1667,6 +1706,10 @@
 					<GRID id="Tempordercompreturns" name="Возвращено обеспечений" table="TEMPORDERCOMPRETURNS"/>
 				</TAB>
 			</TABS>
-		</FORM>	
+		</FORM>
+		<FORM id="NotifMBT" name="Уведомления о расчетах между бюджетами" >
+			<GRID id="NotifMBT" name="Уведомления о расчетах между бюджетами" table="NOTIFMBT"/>
+			<GRID id="NotifMBTKBK" name="Уведомления о расчетах между бюджетами: таблица" table="NOTIFMBTKBK"/>
+		</FORM>
 	</FORMS>
 </SYSTEM>
