@@ -302,6 +302,7 @@
 		<A id="INPUTKRFID" name="Входящий файл" caption="Входящий файл" type="ref" table="INPUTKRF" ret="NUMBPP" nulls="false"/>
 		<A id="CASHDOCSID" name="Касса" caption="Касса" type="ref" table="CASHDOCS" ret="ID" nulls="false"/>
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
+		<A id="EXPENSEREPORTSDOCSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_DOCSS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
 		<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
@@ -1654,10 +1655,10 @@
 				<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" readonly="true" visible="false" local="true"/>
 		</TABLE>
 		<TABLE id="PREPAID_EXPENSE" name="Аванс">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" virtual="true" formula="select r.ELECTCAMPAIGNID from EXPENSE_REPORTS r, EXPENSE_DOCS d  where d.id=@EXPENSEREPORTSDOCSID and r.id = d.EXPENSEREPORTSID"/>
 			<GA name="Получено" caption="Получено">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSDOCSID = @EXPENSEREPORTSDOCSID and cid=0" local="true"/>
 				<A id="CASHPAYMENTHEADERID" name="Кассовый документ" caption="Кассовый документ" labelwidth="120" width="50" pid="ELECTCAMPAIGNID" nulls="true"/>
 				<A id="SUMMCASH" caption="Сумма" labelwidth="50" width="30" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID::BIGINT"/>
 				<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" labelwidth="150" width="70" pid="ELECTCAMPAIGNID" nulls="true"/>
@@ -1665,9 +1666,9 @@
 			</GA>
 		</TABLE>
 		<TABLE id="EXPENDED" name="Израсходовано">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
 			<GA name="Приходный документ" caption="Приходный документ">
-				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSDOCSID = @EXPENSEREPORTSDOCSID and cid=0" local="true"/>
 				<A id="DOCDATE" labelwidth="50" width="45"/>
 				<A id="PURPOSE" name="Кому и по какому документу уплачено" caption="Кому и по какому документу уплачено" labelwidth="100" type="text"/>
 			</GA>
@@ -1677,8 +1678,8 @@
 			</GA>
 		</TABLE>
 		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select r.ELECTCAMPAIGNID from EXPENSE_REPORTS r, EXPENSE_DOCS d  where d.id=@EXPENSEREPORTSDOCSID and r.id = d.EXPENSEREPORTSID"/>
 			<GA name="Перерасход выдан" caption="Перерасход выдан">
 				<A id="CASHPAYMENTHEADERID" name="Документ" width="50" pid="ELECTCAMPAIGNID" pid_ref="ELECTCAMPAIGNID"/>
 				<A id="SUMMPAYMENT" name="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID"/>
@@ -1689,7 +1690,7 @@
 			</GA>
 		</TABLE>
 		<TABLE id="EXPENSE_OPERATIONS" name="Типовые операции">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="ACTS" name="Акты выполненных работ и услуг избирательных кампаний">
@@ -2336,6 +2337,7 @@
 		<REPORT id="KRF_F_NE_ZP_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_ne_zp_o.xls"/>
 		<REPORT id="KRF_F_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_no.xls"/>
 		<REPORT id="KRF_F_ZP_PL_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_no.xls"/>
+		<REPORT id="KRF_F_ZP_PL_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_o.xls"/>
 		<REPORT id="KRF_F_ZP_PL_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_o.xls"/>
 		<REPORT id="KRF_R_NE_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_r_ne_zp_no.xls"/>
 		<REPORT id="KRF_R_NE_ZP_O" name="Комплект расчетных форм УИК" procedure="" template="krf_r_ne_zp_o.xls"/>
