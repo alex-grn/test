@@ -148,6 +148,7 @@
 		<A id="TEMPORDERCOMPRETURNSID" name="Возврат обеспечения участия в закупке" caption="Возврат обеспечения участия в закупке" labelwidth="300" type="ref" pid="TEMPORDERSCOMPID" table="TEMPORDERCOMPRETURNS" ret="DOCNUMB_ZV"/>
 		<A id="NOTIFMBTID" name="Уведомление о расчетах между бюджетами" caption="Уведомление о расчетах между бюджетами" labelwidth="300" type="ref" table="NOTIFMBT" ret="NOTIFNUMB" nulls="false" form="NotifMBT" />
 		<A id="NOTIFMBTKBKID" name="Уведомление о расчетах между бюджетами: табличная часть" caption="Уведомление о расчетах между бюджетами: табличная часть" labelwidth="300" type="ref" pid="NOTIFMBTID" table="NOTIFMBTKBK" ret=""/>
+		<A id="NOTIFMBTPPID" name="Уведомление о расчетах между бюджетами: платёжные документы" caption="Уведомление о расчетах между бюджетами: платёжные документы" labelwidth="300" type="ref" pid="NOTIFMBTID" table="NOTIFMBTPP" ret=""/>
 		<A id="JOURNALNOTIFMBTID" name="Журнал возвратов межбюджетных трансфертов" caption="Журнал возвратов межбюджетных трансфертов" labelwidth="300" type="ref" table="JOURNALNOTIFMBT" ret="STATEMENTADBDONEID" form="Journalnotifmbt"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
@@ -1351,7 +1352,12 @@
 		<TABLE id="NOTIFMBT" name="Уведомления о расчетах между бюджетами">
 			<TABS>
 			<TAB name="Основная информация" >
-			<A id="OWNERID" visible="form" />
+			<A id="OWNERID" visible="form" width="50" labelwidth="100" />
+			<A id="STATUS_NOTIFMBT" name="Статус" caption="Статус" type="list" width="50" >
+				<AI id="0" name="В работе" />
+				<AI id="1" name="Принято" />
+				<AI id="2" name="Подписано" />
+			</A>
 			<A id="FIN_YEAR" name="Финансовый год" caption="Финансовый год" width="30" type="string" len="4" nulls="true" />
 			<A id="NOTIFDATE" name="Дата" caption="Дата" width="30" type="date" nulls="true" />
 			<A id="NOTIFNUMB" name="Номер" caption="Номер" width="40"  type="string" nulls="true" />
@@ -1382,7 +1388,7 @@
 		</TABLE>
 		<TABLE id="NOTIFMBTKBK" name="Табличная часть" >
 			<A id="NOTIFMBTID" parentkey="cascade" />
-		<GA name="Отправитель" caption="Отправитель" >
+			<GA name="Отправитель" caption="Отправитель" >
 			<A id="KBK_PROVIDER" name="КБК" caption="КБК" width="100" labelwidth="40" type="string" nulls="true" />
 			<A id="REST_SUMM" name="Неиспользованный остаток, подлежащий возврату" caption="Подлежит возврату" width="33" labelwidth="80" type="number" len="17.2" nulls="true" />
 			<A id="LIMIT_SUMM" name="Утверждено бюджетных назначений" caption="Бюджетные назначения" width="34" labelwidth="80" type="number" len="17.2" nulls="true" />
@@ -1395,7 +1401,14 @@
 			<A id="REQUIRE_FIRSTJAN" name="Потребность в котором подтверждена" caption="Потребность в котором подтверждена" width="50" labelwidth="150" type="number" len="17.2" nulls="true" />
 			</GA>
 			</GA>
-		</TABLE>		
+		</TABLE>
+		<TABLE id="NOTIFMBTPP" name="Платёжные документы" >
+			<A id="NOTIFMBTID" parentkey="cascade" />
+			<A id="JOURNALNOTIFMBTID" />
+			<A id="STATEMENTADBDONEID" name="Идентификатор операции на счете АДБ" />
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
+		</TABLE>
 		<TABLE id="JOURNALNOTIFMBT" name="Журнал возвратов межбюджетных трансфертов">
 			<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
 			<A id="STATEMENTADBDONEID" name="Идентификатор операции на счете АДБ" />
@@ -1564,6 +1577,12 @@
 		<ACTION id="LoadAndConvertFine" name="Загрузить данные" type="script" actionlist="FilelinksToFilebuffer;LoadAndConvertUBR"/>
 		<ACTION id="LinkToCompetition" name="Связать с конкурсом" type="procedure" procedure="p_action_link_to_competition"/>
 		<ACTION id="LinkToContract" name="Связать с заключенным контрактом" type="procedure" procedure="p_action_link_to_contract"/>
+		<ACTION id="NotifMBTAccept" name="Принять уведомление" type="procedure" procedure="p_action_notifmbt_accept"/>
+		<ACTION id="NotifMBTSignStrong" name="Поставить подпись ЭЦП" type="procedure" procedure="p_action_sign_strong"/>
+		<ACTION id="NotifMBTUnSignStrong" name="Снять подпись ЭЦП" type="procedure" procedure="p_action_unsign_strong"/>
+		<ACTION id="NotifMBTLinkToPP" name="Связать с платёжным документом" type="procedure" procedure="p_action_link_to_pp"/>
+		<ACTION id="NotifMBTUnLinkToPP" name="Удалить связь" type="procedure" procedure="p_action_unlink_to_pp"/>
+		<ACTION id="LinkToNotifMBT" name="Связать с уведомлением по расчетам между бюджетами" type="procedure" procedure="p_action_link_to_notifmbt"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -1625,7 +1644,7 @@
 				<TAB name="Выписки">
 					<GRID id="Statementadb" name="Выписки администратора доходов бюджета" table="STATEMENTADB" readonly="true" >
 				<MENU>
-					<MI actionlist="LoadFileADB;LoadFileADBBD" />
+					<MI name="Загрузить из внешней системы" actionlist="LoadFileADB;LoadFileADBBD" />
 					<MI actionlist="View;MoveFolder;Delete;ConfigTables" />
 				</MENU>
 				</GRID>
@@ -1724,11 +1743,22 @@
 			</TABS>
 		</FORM>
 		<FORM id="NotifMBT" name="Уведомления о расчетах между бюджетами" >
-			<GRID id="NotifMBT" name="Уведомления о расчетах между бюджетами" table="NOTIFMBT"/>
-			<GRID id="NotifMBTKBK" name="Уведомление о расчетах между бюджетами: табличная часть" table="NOTIFMBTKBK"/>
+				<GRID id="NotifMBT" name="Уведомления о расчетах между бюджетами" table="NOTIFMBT" actionlist="NotifMBTAccept;NotifMBTLinkToPP" >
+				<MENU >
+					<MI  name="Подпись ЭЦП" actionlist="NotifMBTSignStrong;NotifMBTUnSignStrong" />
+				</MENU>
+				</GRID>
+			<TABS>
+			<TAB name="Табличная часть">
+				<GRID id="NotifMBTKBK" name="Уведомление о расчетах между бюджетами: табличная часть" table="NOTIFMBTKBK"/>
+			</TAB>
+			<TAB name="Связанные платёжные документы">
+				<GRID id="NotifMBTPP" name="Связанные платёжные документы" table="NOTIFMBTPP" actionlist="NotifMBTUnLinkToPP" />
+			</TAB>
+			</TABS>
 		</FORM>
 		<FORM id="Journalnotifmbt" name="Журнал возвратов социальных выплат">
-			<GRID id="Journalnotifmbt" name="Журнал возвратов социальных выплат" table="JOURNALNOTIFMBT"/>
+			<GRID id="Journalnotifmbt" name="Журнал возвратов социальных выплат" table="JOURNALNOTIFMBT" actionlist="LinkToNotifMBT"/>
 		</FORM>		
 	</FORMS>
 </SYSTEM>
