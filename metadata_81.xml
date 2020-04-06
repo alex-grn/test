@@ -1,9 +1,9 @@
-<SYSTEM id="81" name="АИС Социальный регистр населения">
+<SYSTEM id="81" name="АИС СОЦИАЛЬНЫЙ РЕГИСТР НАСЕЛЕНИЯ">
 	<MODULES id="Modules" name="Модули">
-		<MODULE id="AIS_SPN" name="АИС Социальный регистр населения" menu="mAIS_SPN"/>
+		<MODULE id="AIS_SPN" name="АИС СОЦИАЛЬНЫЙ РЕГИСТР НАСЕЛЕНИЯ" menu="mAIS_SPN"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
-		<MENU id="mAIS_SPN" name="АИС СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ">
+		<MENU id="mAIS_SPN" name="АИС СОЦИАЛЬНЫЙ РЕГИСТР НАСЕЛЕНИЯ">
 			<MENU name="Файл">
 				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
 				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
@@ -81,7 +81,7 @@
 		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
-		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ"/>
+		<COMMENT name="ПРОЕКТ СОЦИАЛЬНЫЙ РЕГИСТР НАСЕЛЕНИЯ"/>
 		<A id="COUNTRY_ID" name="Страна" caption="Страна" labelwidth="100" type="ref" table="GEO" ret="CODE" form="fGeo" nulls="true"/>
 		<A id="GEO_TYPE_ID" name="Тип гео.обьекта" caption="Тип географ.обьекта" labelwidth="100" type="ref" table="GEO_TYPE" ret="CODE" form="fGeoType" nulls="false"/>
 		<A id="GEO_ID" name="Адрес" caption="Адрес" labelwidth="50" type="ref" table="GEO" ret="CODE" form="fGeo" nulls="false"/>
@@ -184,6 +184,10 @@
 			<AI id="1" name="Федеральный"/>
 			<AI id="2" name="Региональный"/>
 		</A>
+		<A id="BIRTH_DATE" name="Дата рождения" caption="Дата рождения" type="date" nulls="true"/>
+		<A id="DEATH_DATE" name="Дата смерти" caption="Дата смерти" type="date" nulls="true"/>
+		<A id="END_DATE" name="Дата окончания строка действия" caption="Дата окончания строка действия" type="date" nulls="true"/>
+		<A id="DOC_VID_INFO" name="Реквизиты" caption="Реквизиты" type="list" query="select g.CODE as ID, g.NAME as CODE from metaclass m, metaclass g where m.classnode='GROUPS_ATTRIBUTES' and m.id = g.hid and g.code like 'DOC_VID_INFO_%' order by id" value="DOC_VID_INFO_00" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="DictionaryParam" name="Период действия" caption="Период действия">
@@ -255,6 +259,17 @@
 			<A id="HOUSE" name="Код дома ФИАС" caption="Код дома ФИАС" labelwidth="100" width="36" type="string" nulls="true"/>
 			<A id="FIAS_OBJ" name="Имя адресного объекта ФИАС" caption="Код ФИАС" labelwidth="100" width="36" type="string" nulls="true"/>
 			<A id="ACTIVE" name="Активен" caption="Активен" labelwidth="150" width="50" type="boolean" nulls="false" value="true"/>
+		</GA>
+		<GA id="DOC_VID_INFO_00" name="Основные"/>
+		<GA id="DOC_VID_INFO_01" name="Паспорт">
+			<A id="END_DATE" labelwidth="210"/>
+			<A id="COUNTRY_ID" labelwidth="210"/>
+		</GA>
+		<GA id="DOC_VID_INFO_02" name="Свидетельство о рождении">
+			<A id="BIRTH_DATE" labelwidth="210"/>
+		</GA>
+		<GA id="DOC_VID_INFO_03" name="Свидетельство о смерти">
+			<A id="DEATH_DATE" labelwidth="210"/>
 		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
@@ -474,7 +489,7 @@
 			<TI id="iPERSON_JOB_PERF_END_DATE" index="END_DATE"/>
 			<TI id="iPERSON_JOB_PERF_ACTIVE" index="ACTIVE"/>
 		</TABLE>
-		<COMMENT name="ПРОЕКТ СОЦИАЛЬНАЯ ПОДДЕРЖКА НАСЕЛЕНИЯ - ГЛАВНАЯ ТАБЛИЦА СВЕДЕНИЯ О ГРАЖДАНИНЕ"/>
+		<COMMENT name="ПРОЕКТ СОЦИАЛЬНЫЙ РЕГИСТР НАСЕЛЕНИЯ - ГЛАВНАЯ ТАБЛИЦА СВЕДЕНИЯ О ГРАЖДАНИНЕ"/>
 		<TABLE id="PERSON" name="Сведения о гражданине">
 			<A id="PERSON_VIRT" labelwidth="150" type="string" virtual="true" formula="select COALESCE(@SUR_NAME,'')||' '||COALESCE(@FIRST_NAME,'')||' '||COALESCE(@MIDDLE_NAME,'')||' ('||COALESCE(to_char(@BIRTH_DATE,'dd.mm.yyyy'),'')||')'"/>
 			<GA name="Общие сведения" caption="Общие сведения">
@@ -488,10 +503,10 @@
 					<AI id="1" name="мужской"/>
 					<AI id="2" name="женский"/>
 				</A>
-				<A id="COUNTRY_ID" name="Гражданство" caption="Гражданство" width="50"/>
-				<A id="BIRTH_DATE" name="Дата рождения" caption="Дата рождения" width="30" type="date" nulls="true" local="true"/>
+				<A id="COUNTRY_ID" width="50"/>
+				<A id="BIRTH_DATE" width="30"/>
 				<A id="YOUNG" name="Возраст" caption="Возраст" width="30" type="number" nulls="true" visible="true" virtual="true" formula="select date_part('year',age( @BIRTH_DATE::date))"/>
-				<A id="END_DATE" name="Дата смерти" caption="Дата смерти" width="30" type="date" nulls="true" local="true"/>
+				<A id="DEATH_DATE" width="30"/>
 			</GA>
 			<GA name="Удостоверение личности" caption="Удостоверение личности">
 				<A id="PASSPORTDOCID" caption="Вид документа" labelwidth="100" nulls="true"/>
@@ -515,14 +530,15 @@
 		</TABLE>
 		<TABLE id="PERSON_DOC" name="Документы гражданина">
 			<A id="PERSON_ID" parentkey="cascade"/>
-			<GA name="Документы гражданина" caption="Документы гражданина">
-				<A id="DOC_VID_CODE_VIRT" caption="Сведения о документе" labelwidth="210" type="string" nulls="true" virtual="true" formula="select COALESCE(dv.code,'') ||' '|| COALESCE(@SERIES,'')||' '|| COALESCE(@NUM,'') || ' - ' || COALESCE(p.sur_name,'') || ' ' || COALESCE(p.first_name,'') || ' ' || COALESCE(p.middle_name,'') || ' ' ||  COALESCE(p.snils,'') from DOC_VID dv, PERSON P where p.id = @PERSON_ID::bigint and dv.id = @DOC_VID_ID ::bigint"/>
-				<A id="DOC_VID_ID" caption="Вид документа" labelwidth="210" nulls="true"/>
-				<A id="SERIES" name="Серия" caption="Серия" labelwidth="210" type="string" nulls="true" local="true"/>
-				<A id="NUM" name="Номер" caption="Номер" labelwidth="210" type="string" nulls="true" local="true"/>
-				<A id="ISSUE_EXTENSIONSDATE" name="Дата выдачи документа" caption="Дата выдачи документа" labelwidth="210" type="date" nulls="true" local="true"/>
-				<A id="GIVEDOCUMENTORG" name="Организация, выдавшая документ" caption="Организация, выдавшая документ" labelwidth="210" type="text" nulls="true" local="true"/>
-			</GA>
+				<A id="DOC_VID_ID" caption="Вид документа" labelwidth="210" nulls="false"/>
+				<A id="DOC_VID_CODE_VIRT" name="Сведения о документе" visible="false" labelwidth="210" type="string" nulls="true" virtual="true" formula="select COALESCE(dv.code,'') ||' '|| COALESCE(@SERIES,'')||' '|| COALESCE(@NUM,'') || ' - ' || COALESCE(p.sur_name,'') || ' ' || COALESCE(p.first_name,'') || ' ' || COALESCE(p.middle_name,'') || ' ' ||  COALESCE(p.snils,'') from DOC_VID dv, PERSON P where p.id = @PERSON_ID::bigint and dv.id = @DOC_VID_ID ::bigint"/>
+				<GA caption="Реквизиты документа">
+					<A id="SERIES" name="Серия" caption="Серия" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="NUM" name="Номер" caption="Номер" labelwidth="210" type="string" nulls="true" local="true"/>
+					<A id="ISSUE_EXTENSIONSDATE" name="Дата выдачи документа" caption="Дата выдачи документа" labelwidth="210" type="date" nulls="true" local="true"/>
+					<A id="GIVEDOCUMENTORG" name="Организация, выдавшая документ" caption="Организация, выдавшая документ" labelwidth="210" type="text" nulls="true" local="true"/>
+					<A id="DOC_INFO" type="json" visible="form" formula="select P_SYSTEM_GET_CLASS_BY_CODE('GA',dv.DOC_VID_INFO) from DOC_VID dv where dv.ID = @DOC_VID_ID"/>
+				</GA>
 		</TABLE>
 		<TABLE id="PERSON_ADDR" name="Адрес Физ.лиц">
 			<A id="PERSON_ID" parentkey="cascade"/>
@@ -994,6 +1010,7 @@
 		<COMMENT name="СПРАВОЧНИК для ДОКУМЕНТОВ, УДОСТОВЕРЯЮЩИЕ ЛИЧНОСТЬ"/>
 		<TABLE id="DOC_VID" name="Вид документа">
 			<GA id="DictionaryNote"/>
+			<A id="DOC_VID_INFO"/>
 			<TI id="iDOC_VID_UK" unique="CODE,NAME"/>
 			<TI id="iDOC_VID_NAME" index="NAME"/>
 		</TABLE>
@@ -1396,8 +1413,7 @@
 		<ACTION id="a_child_birth" name="Сформировать назначение" type="procedure" procedure="p_action_child_birth"/>
 		<ACTION id="Generate_docs" name="Сформировать документы" type="procedure" procedure="p_action_generate_doc_ul"/>
 	</ACTIONS>
-	<REPORTS name="Отчеты">
-	</REPORTS>
+	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
 		<COMMENT name="Сведения о гражданине"/>
 		<FORM id="fPerson" name="Сведения о гражданине">
