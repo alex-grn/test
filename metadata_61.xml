@@ -525,8 +525,19 @@
 		<TABLE id="AGENT" name="Юридические лица">
 			<GA id="Dictionary"/>
 			<GA id="AgentParam"/>
+			<A id="LEVELELCOMMITTEE" name="Тип (уровень) избирательной комиссии" caption="Тип (уровень) ИК" virtual="true" type="list" nulls="false" visible="false" formula="select 'region' as value"/>
+			<A id="TYPEAGENT" name="Тип Юридического лица" caption="Тип Юр. лица" type="list" visible="true" nulls="false" local="true" value="'2'" width="30">
+				<AI id="1" name="Юр.лицо"/>
+				<AI id="2" name="Банк"/>
+				<AI id="3" name="ИКСРФ"/>
+			</A>
+			<A id="ELECTCOMMITTEEID" labelwidth="200"  width="70" nulls="true" pid="LEVELELCOMMITTEE"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when @TYPEAGENT='3' then true else false end">
+				<AI id="true" readonly="false"/>
+				<AI id="false" readonly="ELECTCOMMITTEEID"/>
+			</A>
 			<TI id="AGENTUK" unique="CODE"/>
-			<TI id="AGENTNAMEIND" index="NAME"/>
+			<TI id="AGENTNAMEIND" index="NAME"/>	
 		</TABLE>
 		<TABLE id="AGENTACC" name="Счета, открытые в банках">
 			<A id="AGENTID" parentkey="cascade"/>
@@ -1117,6 +1128,8 @@
 		<TABLE id="CONTRACTSDOCS" name="Договоры с юридическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
 			<GA name="Договор" caption="Договор">
 				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" nulls="false" local="true">
 					<AI id="product" name="Поставка товара"/>
@@ -1142,10 +1155,11 @@
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Договор №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c where c.id = @ID" local="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="STAGES" name="Этапы договора">
 			<TABS>
-				<TAB name="Авасовые платежи">
+				<TAB name="Этап договора">
 					<A id="CONTRACTSDOCSID" parentkey="cascade"/>
 					<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
 					<A id="BUDGCLASSID" labelwidth="150" width="50"/>
@@ -1172,7 +1186,7 @@
 					<A id="CODE" name="Код" type="string" visible="true" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@id" local="true"/>
 					<TI unique="CONTRACTSID, NUMBPP"/>
 				</TAB>
-				<TAB name="Авасовые платежи">
+				<TAB name="Авансовые платежи">
 					<A id="SUPEXPENSE" name="Договор с авансовыми платежами" caption="Договор с авансовыми платежами" type="boolean" nulls="false" local="true"/>
 					<A id="SETOFFPREPAYMENT" name="Сумма аванса" caption="Сумма аванса" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
 					<A id="BUDGCLASSID" labelwidth="150" width="50" nulls="true"/>
@@ -1183,6 +1197,8 @@
 		</TABLE>
 		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID" local="true"/>
 			<GA name="Договор" caption="Договор">
 				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="90" width="30" type="list" nulls="false" local="true">
 					<AI id="service" name="Оказание услуг"/>
@@ -1207,6 +1223,7 @@
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Договор №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from PERSON_CONTRACTSDOCS c where c.id = @ID"/>
+			<TI id="PERSON_CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PERSONS_STAGES" name="Этапы договора с физ.лицами">
 			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
@@ -1252,6 +1269,8 @@
 				<TAB name="Документ">
 					<A id="PAYACCOUNTSID" parentkey="cascade"/>
 					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from PAYACCOUNTS where id=@PAYACCOUNTSID"/>
+					<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
+					<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
 					<GA name="Документ" caption="Документ">
 						<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" value="0" local="true">
 							<AI id="0" name="В работе"/>
@@ -1322,6 +1341,7 @@
 			</TABS>
 			<TI id="PURPOSE_CHECK" name="Превышена максимальная длина поля Назначение платежа (24) (макс. 235 символов)" check="235 > length(PURPOSE)"/>
 			<TI id="STATUS_CHECK" name="Отсутствует дата оплаты по выписке" check="(STATUS != '2' or (STATUS = '2' and PAYDATE is not null))"/>
+			<TI id="PAYDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		<!--	<TI id="NULLSREC_CHECK" name="Получатель: должно быть задано или Юридическое лицо, или Физическое лицо" check="AGENTID is null and PERSONID is not null or AGENTID is not null and PERSONID is null"/> -->
 		</TABLE>
 		<TABLE id="PAYDOCSCONS" name="Расшифровка платежа (Платежные поручения)">
@@ -1333,6 +1353,8 @@
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
+					<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
+					<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
 			<TABS>
 				<TAB name="Документ">
 					<A id="PAYACCOUNTSID" parentkey="cascade"/>
@@ -1370,6 +1392,7 @@
 					</GA>
 				</TAB>
 			</TABS>
+			<TI id="RECEIPTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
@@ -1379,6 +1402,8 @@
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="REPORTCASHBOOKS" name="Отчеты кассира">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="600" type="date" nulls="false" readonly="false" local="true"/>
 			<A id="NUMBSHEET" name="Номер листа" caption="Номер листа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
@@ -1392,6 +1417,7 @@
 				<AI id="2" reportlist="СashiersReport"/>
 			</A>
 			<TI unique="CASHDOCSID, DOCDATE"/>
+			<TI id="REPORTCASHBOOKSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="REPORTCASHBOOKSSPEC" name="Данные отчета кассира">
 			<A id="REPORTCASHBOOKSID" parentkey="cascade"/>
@@ -1411,6 +1437,8 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
+				<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
+				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
 			<GA name="Договор о материальной ответственности" caption="Договор о материальной ответственности">
 				<A id="NUMBER" name="Номер" caption="Номер" labelwidth="70" width="40" type="string"/>
@@ -1422,6 +1450,7 @@
 			<GA name="Кому выдан договор" caption="Кому выдана">
 				<A id="RECEIVEDID" name="Кому выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
 			</GA>
+			<TI id="LIABILITYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DATE and DATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PROXY" name="Доверенности">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -1429,6 +1458,8 @@
 				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
+				<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
+				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
 			<GA name="Доверенность" caption="Доверенность">
 				<A id="DOCTYPEID" labelwidth="100" readonly="true" value="22"/>
@@ -1448,6 +1479,7 @@
 				<A id="DOCNUMBER" name="Номер документа" caption="Номер" labelwidth="40" width="20" type="string" nulls="true"/>
 				<A id="DOCNAMEDATE" name="Дата документа" caption="Дата" labelwidth="30" width="10" type="date" nulls="true"/>
 			</GA>
+			<TI id="PROXYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="GOODS" name="Товары">
 			<A id="PROXYID" parentkey="cascade"/>
@@ -1499,7 +1531,8 @@
 		<TABLE id="CASHRECEIPT_HEADER" name="Приходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
-			<A id="ELECTDATE" name="Дата выборов" type="date" visible="false" readonly="true" formula="select electdate from electcampaign where id = @ELECTCAMPAIGNID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="100" visible="false" readonly="true" value="21"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -1520,7 +1553,7 @@
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Приходный кассовый ордер №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHRECEIPT_HEADER c where c.id = @ID" local="true"/>
-			<TI id="CASHRECEIPTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="(electdate + interval '30 day') >= DOCDATE and DOCDATE > (electdate - interval '100 day')"/>
+			<TI id="CASHRECEIPTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="CASHRECEIPT" name="ПКО Расшифровка платежа">
 			<A id="CASHRECEIPTHEADERID" parentkey="cascade"/>
@@ -1539,7 +1572,8 @@
 		<TABLE id="CASHPAYMENT_HEADER" name="Расходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
-			<A id="ELECTDATE" name="Дата выборов" type="date" visible="false" readonly="true" formula="select electdate from electcampaign where id = @ELECTCAMPAIGNID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="23"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -1561,7 +1595,7 @@
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Расходный кассовый ордер №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHPAYMENT_HEADER c where c.id = @ID" local="true"/>
-			<TI id="CASHPAYMENTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="((electdate + interval '30 day') >= DOCDATE) and (DOCDATE > (electdate - interval '100 day'))"/>
+			<TI id="CASHPAYMENTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 			<TI id="STATMENT_CHECK" name="Одновременное заполнение данных физического лица и ведомости недопустимо" check="STATEMENTHEADERID is null or PERSONID is null"/>
 		</TABLE>
 		<TABLE id="CASHPAYMENT" name="РКО Расшифровка платежа">
@@ -1581,6 +1615,8 @@
 		<TABLE id="STATEMENT_HEADER" name="Ведомости на выдачу подотчетным лицам (0504501)">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="false" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="13"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
@@ -1598,6 +1634,7 @@
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Ведомость на выдачу подотчетным лицам №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from STATEMENT_HEADER c where c.id = @ID" local="true"/>
+			<TI id="STATEMENTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="STATEMENT" name="Ведомости на выдачу подотчетным лицам (0504501) Расшифровка платежа">
 			<A id="STATEMENTHEADERID" parentkey="cascade"/>
@@ -1610,6 +1647,8 @@
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
 			<TABS>
 				<TAB name="Заголовок">
 					<A id="CASHDOCSID" parentkey="cascade"/>
@@ -1637,6 +1676,7 @@
 					<A id="RECIPIENTACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.bankacc from elcmtacc e where e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 				</TAB>
 			</TABS>
+			<TI id="CASHCONTRIBUTIONDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="CASHCONTRIBUTION" name="Объявления на взнос наличными Расшифровка платежа">
 			<A id="CASHCONTRIBUTIONID" parentkey="cascade"/>
@@ -1657,6 +1697,8 @@
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="EXPENSE_DOCS" name="Авансовые отчеты">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, EXPENSE_REPORTS c where e.id = c.ELECTCAMPAIGNID and c.id=@EXPENSEREPORTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, EXPENSE_REPORTS c where e.id = c.ELECTCAMPAIGNID and c.id=@EXPENSEREPORTSID" local="true"/>
 			<GA name="Авансовый отчет" caption="Авансовый отчет">
 				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
@@ -1671,6 +1713,7 @@
 				<A id="OVERSPENDING" name="Перерасход" caption="Перерасход" labelwidth="80" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 			</GA>
 			<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" visible="false" readonly="true" local="true"/>
+			<TI id="EXPENSEDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PREPAID_EXPENSE" name="Аванс">
 			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
@@ -1685,6 +1728,8 @@
 		</TABLE>
 		<TABLE id="EXPENDED" name="Израсходовано">
 			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from EXPENSE_DOCS e where e.id = @EXPENSEREPORTSDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from EXPENSE_DOCS e where e.id = @EXPENSEREPORTSDOCSID" local="true"/>
 			<GA name="Приходный документ" caption="Приходный документ">
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENDED where EXPENSEREPORTSDOCSID = @EXPENSEREPORTSDOCSID and cid=0" local="true"/>
 				<A id="DOCDATE" labelwidth="50" width="45"/>
@@ -1694,7 +1739,8 @@
 				<A id="REPORTSUMM" name="По отчету" caption="По отчету" labelwidth="100" width="47" type="number" len="8.2" nulls="true" readonly="false"/>
 				<A id="REGISTERSUMM" name="Принято к учету" caption="Принято к учету" labelwidth="60" width="53" type="number" len="8.2" nulls="true" readonly="false"/>
 			</GA>
-			<A id="KRFCODE" name="Код загрузки" vsible="false" caption="Код загрузки" type="string" nulls="true" readonly="true" local="true"/>
+			<A id="KRFCODE" name="Код загрузки" visible="false" caption="Код загрузки" type="string" nulls="true" readonly="true" local="true"/>
+			<TI id="EXPENDEDDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
 			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
@@ -1723,6 +1769,8 @@
 		</TABLE>
 		<TABLE id="ACTSDOCS" name="Акты выполненных работ и услуг юр.лиц">
 			<A id="ACTSID" parentkey="castcade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
 			<GA name="Внутренний номер документа" caption="Внутренний номер документа">
 				<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="200" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="50" type="date" nulls="true" formula="now()" local="true"/>
@@ -1747,6 +1795,7 @@
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="ACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="ACTSGOODS" name="Спецификация акта юр.лиц">
 			<A id="ACTSDOCSID" parentkey="cascade"/>
@@ -1765,6 +1814,8 @@
 		</TABLE>
 		<TABLE id="PERS_ACTSDOCS" name="Акты выполненных работ и услуг физ.лиц">
 			<A id="ACTSID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
 			<GA name="Внутренний номер документа" caption="Внутренний номер документа">
 				<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="200" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="50"/>
@@ -1789,6 +1840,7 @@
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="PERS_ACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PERS_ACTSGOODS" name="Спецификация акта физ.лица">
 			<A id="PERSACTSDOCSID" parentkey="cascade"/>
@@ -1817,6 +1869,8 @@
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="INVENTORY_DOCS" name="Товарные накладные">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
 			<TABS>
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
@@ -1857,6 +1911,7 @@
 					</GA>
 				</TAB>
 			</TABS>
+			<TI id="INVENTORY_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="INVENTORY_GOODS" name="Спецификация товарных накладных">
 			<A id="INVENTORY_DOCSID" parentkey="cascade"/>
@@ -1874,6 +1929,8 @@
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="OTHER_INVENTORY_DOCS" name="Прочие поступления МЗ">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
 			<TABS>
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
@@ -1911,6 +1968,7 @@
 					</GA>
 				</TAB>
 			</TABS>
+			<TI id="OTHER_INVENTORY_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="OTHER_INVENTORY_GOODS" name="Спецификация документа (Прочие постепления МЗ)">
 			<A id="OTHER_INVENTORY_DOCSID" parentkey="cascade"/>
@@ -1940,6 +1998,8 @@
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_DOCS" name="Журнал операций">
 			<A id="TRANSACTIONLOGID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@TRANSACTIONLOGID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@CTRANSACTIONLOGID" local="true"/>
 			<GA name="Операция" caption="Операция">
 				<A id="TRANSACTIONNUMB" name="Номер операции" caption="Номер" labelwidth="100" width="55" type="string" nulls="false"/>
 				<A id="TRANSACTIONDATE" name="Дата операции" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
@@ -1954,6 +2014,7 @@
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI unique="TRANSACTIONLOGID,TRANSACTIONNUMB"/>
+			<TI id="TRANSACTIONLOG_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_STAGES" name="Проводки журнала операций">
 			<A id="TRANSACTIONLOG_DOCSID" parentkey="cascade"/>
@@ -2047,6 +2108,8 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="26"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
@@ -2063,6 +2126,7 @@
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="WRITEOFF_STATEMENT_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>			
 		</TABLE>
 		<TABLE id="WRITEOFF_STATEMENT_GOODS" name="Спецификация ведомости выдачи МЗ">
 			<A id="WRITEOFF_STATEMENT_HEADERID" parentkey="cascade"/>
@@ -2080,6 +2144,8 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="28"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
@@ -2099,6 +2165,7 @@
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="WRITEOFF_INVOICE_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>			
 		</TABLE>
 		<TABLE id="WRITEOFF_INVOICE_GOODS" name="Спецификация накладных на внутреннее перемещение МЗ">
 			<A id="WRITEOFF_INVOICE_HEADERID" parentkey="cascade"/>
@@ -2115,6 +2182,8 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="27"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
@@ -2135,6 +2204,7 @@
 			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="200" nulls="false"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="WRITEOFF_ACTS_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>			
 		</TABLE>
 		<TABLE id="WRITEOFF_ACTS_GOODS" name="Спецификация акта о списании МЗ">
 			<A id="WRITEOFF_ACTS_HEADERID" parentkey="cascade"/>
