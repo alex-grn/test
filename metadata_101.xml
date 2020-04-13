@@ -1,18 +1,1500 @@
-<SYSTEM id="101" name="Учет материалов">
+<SYSTEM id="101" name="Материальный учет">
 	<MODULES id="Modules" name="Модули">
+		<MODULE id="TMC" name="Материальный учет" menu="TMC"/>
 	</MODULES>
 	<GROUPS_MENU name="Группы меню">
+		<MENU id="TMC" name="Меню модуля Материальный учет">
+			<MENU name="Файл">
+				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
+				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
+				<MI name="Параметры" formlist="Options"/>
+				<MI name="Загруженные файлы" formlist="Filelinks"/>
+				<MENU name="Синхронизация с Бухгалтерским учетом">
+					<MI actionlist="InventoryImport;ContractsImport;EmployeesImport;OracleImport"/>
+				</MENU>
+				<MI name="Выйти" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Учет">
+				<MI name="Транспортные средства" formlist="Vehicles"/>
+				<MI name="Здания и сооружения" formlist="Buildings"/>
+				<MI name="Земельные участки" formlist="Landplot"/>
+				<MI name="Инвентарная картотека иных средств" formlist="Inventoryother"/>
+				<MI name="Оборудование" formlist="Equipment"/>
+				<MI name="Программное обеспечение" formlist="Software"/>
+				<MI name="Оргтехника" formlist="OfficeEquipment"/>
+				<MI name="Средства связи" formlist="Communications"/>
+				<MENU name="Электронно-цифровые подписи">
+					<MI name="Учет ЭЦП" formlist="ElectronicSignatures"/>
+					<MI name="Контроль ЭЦП" formlist="ControlElectronicSignatures"/>
+				</MENU>
+			</MENU>
+			<MENU name="Данные бюджетного учета">
+				<MI name="Договоры" formlist="Contracts"/>
+				<MI name="Инвентарная картотека" formlist="Inventory"/>
+			</MENU>
+			<MENU name="Аналитические отчеты">
+				<MI name="Перечень объектов учета по принадлежности" reportlist="ObjectAccountingList"/>
+				<MI name="Перечень программного обеспечения" reportlist="SoftwareList"/>
+				<MI name="Объекты учета, привязанные к сотруднику" reportlist="ObjectEmployeesList"/>
+				<MI name="Списанные объекты учета за период" reportlist="ObjectOutList"/>
+				<MI name="Введено в эксплуатацию за период" reportlist="ObjectInputList"/>
+				<MI name="Список заявок за период" reportlist="RequestList"/>
+			</MENU>
+			<MENU name="Нормативно-справочная информация">
+				<MI name="Сотрудники" formlist="Employees"/>
+				<MI name="Принадлежность" formlist="Owner"/>
+				<MI name="Местоположения" formlist="Locations"/>
+				<MI name="Типы оборудования" formlist="TypesEquipment"/>
+				<MI name="Виды программного обеспечения" formlist="TypesSoftware"/>
+				<MI name="Типы оргтехники" formlist="TypesOfficeEquipment"/>
+				<MI name="Типы средств связи" formlist="TypesCommunicationFacilities"/>
+				<MI name="Типы электронно-цифровых подписей" formlist="TypesElectronicSignatures"/>
+				<MI name="Статусы" formlist="Statuses"/>
+				<MI name="Технические характеристики" formlist="Specifications"/>
+				<MI name="Типы документов" formlist="DocTypes"/>
+			</MENU>
+		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
+		<A id="TYPEDATA" name="Тип данных" caption="Тип данных" labelwidth="180" type="list" nulls="false">
+			<AI id="NUMSPECIFICATION" name="Число"/>
+			<AI id="STRSPECIFICATION" name="Строка"/>
+			<AI id="DATSPECIFICATION" name="Дата"/>
+		</A>
+		<A id="TYPEOPERATION" name="Тип операции" caption="Тип" type="list" nulls="true">
+			<AI id="0" name="принятие к учету"/>
+			<AI id="1" name="начисление амортизации"/>
+			<AI id="2" name="переоценка"/>
+			<AI id="3" name="перемещение"/>
+			<AI id="4" name="списание"/>
+			<AI id="5" name="дооценка"/>
+			<AI id="6" name="консервация"/>
+			<AI id="7" name="возврат в эксплуатацию"/>
+			<AI id="8" name="списание из состава группового объекта"/>
+			<AI id="9" name="перемещение из состава группового объекта"/>
+			<AI id="10" name="выбытие из состава группового объекта"/>
+			<AI id="15" name="приход в составе групповой карточки"/>
+			<AI id="16" name="передача в эксплуатацию"/>
+			<AI id="17" name="дооценка в составе групповой карточки"/>
+			<AI id="18" name="коррекция"/>
+			<AI id="19" name="списание капитальных вложений"/>
+			<AI id="20" name="изменение параметров амортизации"/>
+			<AI id="21" name="списание недоначисленной амортизации"/>
+			<AI id="22" name="Восстановление налоговой премии"/>
+			<AI id="23" name="Уменьшение первоначальной стоимости"/>
+			<AI id="24" name="Ремонт"/>
+			<AI id="25" name="Приход в составе"/>
+			<AI id="26" name="Списание из состава"/>
+		</A>
+		<A id="FINYEAR" name="Финансовый год" caption="Финансовый год" labelwidth="500" type="list" len="4" nulls="false">
+			<AI id="2018" name="2018"/>
+			<AI id="2019" name="2019"/>
+			<AI id="2020" name="2020"/>
+			<AI id="2021" name="2021"/>
+			<AI id="2022" name="2022"/>
+			<AI id="2023" name="2023"/>
+		</A>
+		<A id="STATUSEPF" name="Статус заявки" caption="Статус" labelwidth="300" type="list" nulls="false" readonly="true" value="0">
+			<AI id="0" name="новая"/>
+			<AI id="1" name="утверждена"/>
+			<AI id="2" name="отклонена"/>
+		</A>
+		<A id="TYPEPURCHASEFIN" name="Тип заявки" caption="Тип заявки" labelwidth="300" type="list" nulls="false">
+			<AI id="0" name="ремонт"/>
+			<AI id="1" name="модернизация"/>
+			<AI id="2" name="обслуживание"/>
+		</A>
+		<A id="TYPEPURCHASEFINSOFT" name="Тип заявки" caption="Тип заявки" labelwidth="300" type="list" nulls="false">
+			<AI id="0" name="сопровождение"/>
+			<AI id="1" name="модернизация"/>
+			<AI id="2" name="развитие"/>
+		</A>
+		<A id="EMPLOYEESID" name="Сотрудник" caption="Сотрудник" labelwidth="300" type="ref" table="EMPLOYEES" ret="CODE" form="Employees" nulls="false"/>
+		<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="300" type="ref" table="OWNER" ret="CODE" form="Owner" nulls="false"/>
+		<A id="LOCATIONSID" name="Местоположение" caption="Местоположение" labelwidth="300" type="ref" table="LOCATIONS" ret="CODE" form="Locations" nulls="true"/>
+		<A id="TYPESEQUIPMENTID" name="Тип оборудования" caption="Тип оборудования" labelwidth="300" type="ref" table="TYPESEQUIPMENT" ret="CODE" form="TypesEquipment" nulls="false"/>
+		<A id="MODELEQUIPMENTID" name="Модель" caption="Модель" labelwidth="300" type="ref" pid="TYPESEQUIPMENTID" table="MODELEQUIPMENT" ret="MODEL" nulls="false"/>
+		<A id="TYPESSOFTWAREID" name="Вид программного обеспечения" caption="Вид программного обеспечения" labelwidth="300" type="ref" table="TYPESSOFTWARE" ret="CODE" form="TypesSoftware" nulls="false"/>
+		<A id="VERSIONSOFTWAREID" name="Версия" caption="Версия" labelwidth="300" type="ref" pid="TYPESSOFTWAREID" table="VERSIONSOFTWARE" ret="VERSION" nulls="false"/>
+		<A id="TYPESOFFICEEQUIPMENTID" name="Тип оргтехники" caption="Тип оргтехники" labelwidth="300" type="ref" table="TYPESOFFICEEQUIPMENT" ret="CODE" form="TypesOfficeEquipment" nulls="false"/>
+		<A id="MODELOFFICEEQUIPMENTID" name="Модель" caption="Модель" labelwidth="300" type="ref" pid="TYPESOFFICEEQUIPMENTID" table="MODELOFFICEEQUIPMENT" ret="MODEL" nulls="false"/>
+		<A id="TYPESNETWORKSEQUIPMENTID" name="Тип оборудования" caption="Тип оборудования" labelwidth="300" type="ref" table="TYPESNETWORKSEQUIPMENT" ret="CODE" form="TypesNetworksEquipment" nulls="false"/>
+		<A id="MODELNETWORKSEQUIPMENTID" name="Модель" caption="Модель" labelwidth="300" type="ref" pid="TYPESNETWORKSEQUIPMENTID" table="MODELNETWORKSEQUIPMENT" ret="MODEL" nulls="false"/>
+		<A id="TYPESCOMMUNICATIONFACILITIESID" name="Тип средств связи" caption="Тип средств связи" labelwidth="300" type="ref" table="TYPESCOMMUNICATIONFACILITIES" ret="CODE" form="TypesCommunicationFacilities" nulls="false"/>
+		<A id="MODELCOMMUNICATIONFACILITIESID" name="Модель" caption="Модель" labelwidth="300" type="ref" pid="TYPESCOMMUNICATIONFACILITIESID" table="MODELCOMMUNICATIONFACILITIES" ret="MODEL" nulls="false"/>
+		<A id="TYPESPURCHASEID" name="Тип заявок" caption="Тип заявок" labelwidth="300" type="ref" table="TYPESPURCHASE" ret="CODEPURCHASEID" form="TypesPurchase" nulls="false"/>
+		<A id="TYPESELECTRONICSIGNATURESID" name="Тип ЭЦП" caption="Тип ЭЦП" labelwidth="300" type="ref" table="TYPESELECTRONICSIGNATURES" ret="CODE" form="TypesElectronicSignatures" nulls="false"/>
+		<A id="STATUSESID" name="Cтатус" caption="Cтатус" labelwidth="300" type="ref" table="STATUSES" ret="CODE" form="Statuses" nulls="false"/>
+		<A id="SPECIFICATIONSID" name="Характеристика" caption="Характеристика" labelwidth="300" type="ref" table="SPECIFICATIONS" ret="CODE" form="Specifications" nulls="true"/>
+		<A id="INVENTORYID" name="Инвентарный номер" caption="Инвентарный номер" labelwidth="300" type="ref" table="INVENTORY" ret="OBJNUMBER" form="Inventory" nulls="true"/>
+		<A id="CONTRACTSID" name="Тип документа" caption="Документ" type="ref" table="CONTRACTS" ret="DOCTYPEID_ret" form="Contracts" nulls="true" visible="form"/>
+		<A id="PURCHASEFINID" name="Заявки на выделение финансирования" caption="Заявки на выделение финансирования" labelwidth="500" type="ref" table="PURCHASEFIN" ret="NOTE" form="PurchaseFin" nulls="false"/>
+		<A id="EQUIPMENTID" name="Тип оборудования" caption="Тип оборудования" labelwidth="500" type="ref" table="EQUIPMENT" ret="TYPESEQUIPMENTID_ret" form="Equipment" nulls="false"/>
+		<A id="SOFTWAREID" name="Программное  обеспечение" caption="Программное  обеспечение" labelwidth="500" type="ref" table="SOFTWARE" ret="TYPESSOFTWAREID_ret" form="Software" nulls="false"/>
+		<A id="OFFICEEQUIPMENTID" name="Оргтехника" caption="Оргтехника" labelwidth="500" type="ref" table="OFFICEEQUIPMENT" ret="TYPESOFFICEEQUIPMENTID_ret" form="OfficeEquipment" nulls="false"/>
+		<A id="COMMUNICATIONSID" name="Средства связи" caption="Средства связи" labelwidth="500" type="ref" table="COMMUNICATIONS" ret="TYPESCOMMUNICATIONFACILITIESID_ret" form="Communications" nulls="false"/>
+		<A id="CLIENT" name="Заказчик" caption="Заказчик" type="text" nulls="true"/>
+		<A id="CONTRACTOR" name="Поставщик" caption="Поставщик" type="text" nulls="true"/>
+		<A id="PRODUCER" name="Изготовитель" caption="Изготовитель" type="text" nulls="true"/>
+		<A id="MODEL" name="Модель " caption="Модель " type="string" nulls="false"/>
+		<A id="MANUFACTURER" name="Производитель" caption="Производитель" type="string" nulls="true"/>
+		<A id="EXEC" name="Материально-ответственное лицо (МОЛ)" caption="Материально-ответственное лицо (МОЛ)" labelwidth="300" type="string" nulls="false"/>
+		<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="300" type="string" nulls="true"/>
+		<A id="WORSNUMBER" name="Заводской номер" caption="Заводской номер" type="string" nulls="true"/>
+		<A id="OBJNUMBER" name="Инвентарный номер" caption="Инвентарный номер" labelwidth="300" type="string" nulls="false"/>
+		<A id="KBK" name="КБК" caption="Код бюджетной классификации" labelwidth="300" type="string" len="20" nulls="true"/>
+		<A id="NUMBOPERATION" name="Номер операции" caption="Номер" labelwidth="75" type="string" nulls="true"/>
+		<A id="SERIAL" name="Серийный номер" caption="Серийный номер" labelwidth="300" type="string" nulls="true"/>
+		<A id="IPADRES" name="IP адрес" caption="IP адрес" labelwidth="180" type="string" nulls="false" local="true"/>
+		<A id="DOMEN" name="Домен" caption="Домен" labelwidth="180" type="string" nulls="true" local="true"/>
+		<A id="SUMNEW" name="Начальная стоимость" caption="Начальная стоимость" labelwidth="300" type="number" len="17.2" nulls="true"/>
+		<A id="SUMAMORT" name="Начальный износ" caption="Начальный износ" labelwidth="300" type="number" len="17.2" nulls="true"/>
+		<A id="SUMAMORTNEW" name="Начисленная амортизация" caption="Начисленная амортизация" labelwidth="300" type="number" len="17.2" nulls="true"/>
+		<A id="SUMPOST" name="Остаточная стоимость" caption="Остаточная стоимость" labelwidth="300" type="number" len="17.2" nulls="true"/>
+		<A id="PRICE" name="Цена" caption="Цена" labelwidth="500" type="number" len="17.2" nulls="true" value="0"/>
+		<A id="QUANT" name="Количество" caption="Количество" labelwidth="500" type="number" len="17.3" nulls="true" value="0"/>
+		<A id="DATESTART" name="Дата начала" caption="Дата начала" labelwidth="500" type="date" nulls="true"/>
+		<A id="DATEFINISH" name="Дата окончания" caption="Дата окончания" labelwidth="500" type="date" nulls="true"/>
+		<A id="DATEOPERATION" name="Дата операции" caption="Дата" labelwidth="45" type="date" nulls="true"/>
+		<A id="DATEISSUE" name="Дата выпуска" caption="Дата выпуска" labelwidth="500" type="date" nulls="true"/>
+		<A id="DATECOMMISSIONING" name="Дата ввода в эксплуатацию" caption="Дата ввода в эксплуатацию" labelwidth="500" type="date" nulls="true"/>
+		<A id="DATBREAK" name="Дата поломки" caption="Дата поломки" labelwidth="500" type="date" nulls="true"/>
+		<A id="DATREPAIR" name="Дата ремонта" caption="Дата ремонта" labelwidth="500" type="date" nulls="true"/>
+		<A id="DATSERVICE" name="Дата обслуживания" caption="Дата обслуживания" labelwidth="500" type="date" nulls="true"/>
+		<A id="ESTABLISHMENTEVIRT" name="Подразделение" caption="Подразделение" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.establishment from employees inv where inv.id = @EMPLOYEESID ::bigint"/>
+		<A id="CONTRACTSIDGRIDVIRT" name="Тип документа" caption="Документ" type="string" form="Contracts" nulls="true" visible="grid" readonly="true" virtual="true" formula="select dt.code from contracts inv, doctypes dt where inv.doctypeid=dt.id and inv.id = @CONTRACTSID ::bigint"/>
+		<A id="DOCNUMBGRIDVIRT" name="Номер договора" caption="Номер" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select inv.docnumb from contracts inv where inv.id = @CONTRACTSID ::bigint"/>
+		<A id="DOCDATEGRIDVIRT" name="Дата договора" caption="Дата" type="date" nulls="true" visible="grid" readonly="true" virtual="true" formula="select inv.docdate from contracts inv where inv.id = @CONTRACTSID ::bigint"/>
+		<A id="NAMEGRIDVIRT" name="Предмет договора" caption="Предмет договора" type="text" nulls="true" visible="grid" readonly="true" virtual="true" formula="select inv.name from contracts inv where inv.id = @CONTRACTSID ::bigint"/>
+		<A id="VEHICLESID" name="Транспортные средства" caption="Транспортные средства" labelwidth="300" type="ref" table="VEHICLES" ret="INVENTORYID" form="Vehicles"/>
+		<A id="VEHDOCSID" name="Транспортные средства спецификция" caption="Транспортные средства спецификция" labelwidth="300" type="ref" pid="VEHICLESID" table="VEHDOCS" ret="DOCNUMBER"/>
+		<A id="BUILDINGSID" name="Здания и сооружения" caption="Здания и сооружения" labelwidth="300" type="ref" table="BUILDINGS" ret="DOCNUMBER" form="Building"/>
+		<A id="BUILDDOCSID" name="Здания и сооружения спецификция" caption="Здания и сооружения спецификция" labelwidth="300" type="ref" pid="BUILDINGSID" table="BUILDDOCS" ret="JURPERSONS"/>
+		<A id="LANDPLOTID" name="Земельные участки" caption="Земельные участки" labelwidth="150" type="ref" table="LANDPLOT" ret="JURPERSONS"/>
+		<A id="LANDDOCSID" name="Земельные участки" caption="Земельные участки" labelwidth="150" type="ref" pid="LANDPLOTID" table="LANDDOCS" ret="JURPERSONS"/>
+		<A id="INVENTORYOTHERID" name="Инвентарная картотека иных средств" caption="Инвентарная картотека иных средств" labelwidth="150" type="ref" table="INVENTORYOTHERID" ret="JURPERSONS"/>
+		<A id="INVENTORYHISTORYOTHERID" name="История инвентарной картотеки иных средств" caption="История инвентарной картотеки иных средств" labelwidth="150" type="ref" pid="INVENTORYOTHERID" table="INVENTORYHISTORYOTHERID" ret="JURPERSONS"/>
+		<A id="FUELSID" name="Учет ГСМ" caption="Учет ГСМ" labelwidth="150" type="ref" table="FUELS" ret="JURPERSONS"/>
+		<A id="FUELSDOCSID" name="История ГСМ" caption="История ГСМ" labelwidth="150" type="ref" pid="FUELSID" table="FUELDOCSID" ret="JURPERSONS"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		<GA id="InvOperation" name="Операция" caption="Операция">
+			<A id="TYPEOPERATION" name="Тип операции" width="40"/>
+			<A id="NUMBOPERATION" name="Номер операции" labelwidth="75" width="40"/>
+			<A id="DATEOPERATION" name="Дата операции" labelwidth="45" width="20"/>
+		</GA>
+		<GA id="InvInformation" name="Сведения об инвентарном объекте" caption="Сведения об инвентарном объекте">
+			<A id="INVENTORYID" name="Инвентарный номер"/>
+			<A id="CARDNUMBVIRT" name="Номер инвентарной карточки" caption="Номер инвентарной карточки" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.cardnumb from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="EXECVIRT" name="МОЛ (Бухгалтерский учет)" caption="МОЛ (Бухгалтерский учет)" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.exec from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="ESTABLISHMENTVIRT" name="Подразделение (Бухгалтерский учет)" caption="Подразделение (Бухгалтерский учет)" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.establishment from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="WORSNUMBERVIRT" name="Заводской номер" caption="Заводской номер" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.worsnumber from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="PRODUCERVIRT" name="Изготовитель" caption="Изготовитель" labelwidth="300" type="text" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.producer from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="DATEISSUEVIRT" name="Дата выпуска" caption="Дата выпуска" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.dateissue from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="DATECOMMISSIONINGVIRT" name="Дата ввода в эксплуатацию" caption="Дата ввода в эксплуатацию" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.datecommissioning from inventory inv where inv.id = @INVENTORYID ::bigint" local="true"/>
+			<A id="DATEOPERATIONDEBITEDFVIRT" name="Дата списания" caption="Дата списания" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select min(h.dateoperation) from inventoryhistory h where h.INVENTORYID=@INVENTORYID ::bigint and h.typeoperation='4'" local="true"/>
+		</GA>
+		<GA id="ContractInformation" name="Сведения о договоре" caption="Сведения о договоре">
+			<A id="CONTRACTSID" name="Тип документа" width="40"/>
+			<A id="DOCNUMBVIRT" name="Номер договора" caption="Номер" labelwidth="70" width="40" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.docnumb from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="DOCDATEVIRT" name="Дата договора" caption="Дата" labelwidth="45" width="20" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.docdate from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="CLIENTVIRT" name="Заказчик" caption="Заказчик" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.client from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="CONTRACTORVIRT" name="Поставщик" caption="Поставщик" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.contractor from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="NAMEVIRT" name="Предмет договора" caption="Предмет договора" width="100" type="text" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.name from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="SUMMVIRT" name="Сумма договора" caption="Сумма договора" labelwidth="400" width="100" type="number" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.summ from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="DATESTARTVIRT" name="Дата начала действия" caption="Дата начала действия" labelwidth="500" width="100" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.datestart from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+			<A id="DATEFINISHVIRT" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="500" width="100" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.datefinish from contracts inv where inv.id = @CONTRACTSID ::bigint" local="true"/>
+		</GA>
+		<GA id="ContractGridInformation">
+			<A id="CONTRACTSIDGRIDVIRT"/>
+			<A id="DOCNUMBGRIDVIRT"/>
+			<A id="DOCDATEGRIDVIRT"/>
+			<A id="NAMEGRIDVIRT"/>
+		</GA>
+		<GA id="EquipmentInformation" name="Сведения об оборудовании" caption="Сведения об оборудовании">
+			<A id="EQUIPMENTID" name="Сведения об оборудовании" nulls="true"/>
+			<A id="MODELEQUIPMENTIDVIRT" name="Модель" caption="Модель" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.model from equipment inv, modelequipment m where inv.id = @EQUIPMENTID ::bigint and inv.modelequipmentid = m.id" local="true"/>
+			<A id="OWNERIDVIRT" name="Принадлежность" caption="Принадлежность" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.code from equipment inv, owner m where inv.id = @EQUIPMENTID ::bigint and inv.ownerid = m.id" local="true"/>
+			<A id="LOCATIONSIDVIRT" name="Местоположение" caption="Местоположение" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.code from equipment inv, locations m where inv.id = @EQUIPMENTID ::bigint and inv.locationsid = m.id" local="true"/>
+			<A id="DESCRIPTIONVIRT" name="Описание" caption="Описание" labelwidth="200" type="text" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.description from equipment inv where inv.id = @EQUIPMENTID ::bigint" local="true"/>
+		</GA>
+		<GA id="SoftwareInformation" name="Сведения о программном  обеспечении" caption="Сведения о программном  обеспечении">
+			<A id="SOFTWAREID" name="Программное  обеспечение" nulls="true"/>
+			<A id="VERSIONSOFTWAREIDVIRT" name="Версия" caption="Версия" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.version from software inv, versionsoftware m where inv.id = @SOFTWAREID ::bigint and inv.versionsoftwareid = m.id" local="true"/>
+			<A id="SERIALVIRT1" name="Серийный номер" caption="Серийный номер" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" local="true"/>
+			<A id="CONTRACTORVIRT1" name="Поставщик" caption="Поставщик" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" local="true"/>
+		</GA>
+		<GA id="OffEquipmentInformation" name="Сведения об оргтехнике" caption="Сведения об оргтехнике">
+			<A id="OFFICEEQUIPMENTID" name="Сведения об оргтехнике" nulls="true"/>
+			<A id="MODELOFFICEEQUIPMENTIDVIRT" name="Модель" caption="Модель" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.model from officeequipment inv, modelofficeequipment m where inv.id = @OFFICEEQUIPMENTID ::bigint and inv.modelofficeequipmentid = m.id" local="true"/>
+			<A id="OELOCATIONSIDVIRT" name="Местоположение" caption="Местоположение" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.code from officeequipment inv, locations m where inv.id = @OFFICEEQUIPMENTID ::bigint and inv.locationsid = m.id" local="true"/>
+			<A id="OEDESCRIPTIONVIRT" name="Описание" caption="Описание" labelwidth="200" type="text" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.description from officeequipment inv where inv.id = @OFFICEEQUIPMENTID ::bigint" local="true"/>
+		</GA>
+		<GA id="NWEquipmentInformation" name="Сведения о сетевом оборудовании" caption="Сведения о сетевом оборудовании">
+			<A id="NETWORKSEQUIPMENTID" name="Сведения о сетевом оборудовании" nulls="true"/>
+			<A id="MODELNETWORKSEQUIPMENTIDVIRT" name="Модель" caption="Модель" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.model from networksequipment inv, modelnetworksequipment m where inv.id = @NETWORKSEQUIPMENTID ::bigint and inv.modelnetworksequipmentid = m.id" local="true"/>
+			<A id="NWEDESCRIPTIONVIRT" name="Описание" caption="Описание" labelwidth="200" type="text" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.description from networksequipment inv where inv.id = @NETWORKSEQUIPMENTID ::bigint" local="true"/>
+			<A id="NWELOCATIONSIDVIRT" name="Местоположение" caption="Местоположение" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.code from networksequipment inv, locations m where inv.id = @NETWORKSEQUIPMENTID ::bigint and inv.locationsid = m.id" local="true"/>
+		</GA>
+		<GA id="ComInformation" name="Сведения о средствах связи" caption="Сведения о средствах связи">
+			<A id="COMMUNICATIONSID" name="Тип средств связи" nulls="true"/>
+			<A id="MODELCOMMUNICATIONFACILITIESIDVIRT" name="Модель" caption="Модель" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.model from communications inv, modelcommunicationfacilities m where inv.id = @COMMUNICATIONSID::bigint and inv.modelcommunicationfacilitiesid=m.id" local="true"/>
+			<A id="DESCRIPTIONVIRT" name="Описание" caption="Описание" labelwidth="200" type="text" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.description from communications inv where inv.id = @COMMUNICATIONSID::bigint" local="true"/>
+			<A id="LOCATIONSIDVIRT" name="Местоположение" caption="Местоположение" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select m.code from communications inv, locations m where inv.id = @COMMUNICATIONSID::bigint and inv.locationsid = m.id" local="true"/>
+		</GA>
+		<GA id="EmployeeInformation" name="Сведения об ответственном сотруднике" caption="Сведения об ответственном сотруднике">
+			<A id="EMPLOYEESID" name="Сотрудник" nulls="true"/>
+			<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" type="string" nulls="false" visible="form" readonly="true" virtual="true" formula="select inv.surname from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" type="string" nulls="false" visible="form" readonly="true" virtual="true" formula="select inv.firstname from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+			<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.middlename from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+			<A id="POSTVIRT" name="Должность" caption="Должность" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.post from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+			<A id="ESTABLISHMENTEVIRT"/>
+			<A id="DATERECEIPTVIRT" name="Дата приема" caption="Дата приема" labelwidth="500" type="date" nulls="false" visible="form" readonly="true" virtual="true" formula="select inv.datereceipt from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+			<A id="DATEDISMISSALVIRT" name="Дата увольнения" caption="Дата увольнения" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.datedismissal from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+			<A id="CONDITIONVIRT" name="Статус исполнения должности" caption="Статус исполнения должности" labelwidth="180" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select inv.condition from employees inv where inv.id = @EMPLOYEESID ::bigint" local="true"/>
+		</GA>
+		<GA id="Repairs" name="Ремонт" caption="Ремонт">
+			<A id="DATBREAK" caption="Дата поломки"/>
+			<A id="DATREPAIR" caption="Дата ремонта"/>
+			<A id="DESCRIPTION" name="Описание неисправности" caption="Описание неисправности"/>
+			<A id="SUMM" name="Стоимость ремонта" caption="Стоимость ремонта"/>
+			<GA id="ContractInformation" name="Сведения о договоре"/>
+		</GA>
+		<GA id="Service" name="Обслуживание" caption="Обслуживание">
+			<A id="DATSERVICE" name="Дата обслуживания"/>
+			<A id="DESCRIPTION" name="Описание работ по обслуживанию"/>
+			<A id="SUMM" name="Стоимость обслуживания"/>
+			<GA id="ContractInformation" name="Сведения о договоре"/>
+		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
-	</TABLES>
+		<TABLE id="OWNER" name="Принадлежность" hid="CODE">
+			<GA id="DictionaryNote"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="EMPLOYEES" name="Сотрудники">
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="CODE" nulls="false"/>
+			<A id="SURNAME" name="Фамилия" caption="Фамилия" type="string" nulls="false" local="true"/>
+			<A id="FIRSTNAME" name="Имя" caption="Имя" type="string" nulls="false" local="true"/>
+			<A id="MIDDLENAME" name="Отчество" caption="Отчество" type="string" nulls="true" local="true"/>
+			<A id="POST" name="Должность" caption="Должность" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENT" name="Подразделение"/>
+			<A id="DATERECEIPT" name="Дата приема" caption="Дата приема" labelwidth="500" type="date" nulls="false" local="true"/>
+			<A id="DATEDISMISSAL" name="Дата увольнения" caption="Дата увольнения" labelwidth="500" type="date" nulls="true" local="true"/>
+			<A id="CONDITION" name="Статус исполнения должности" caption="Статус исполнения должности" labelwidth="180" type="string" nulls="true" local="true"/>
+			<TI unique="OWNERID,CODE"/>
+		</TABLE>
+		<TABLE id="LOCATIONS" name="Местоположения">
+			<GA id="DictionaryNote"/>
+			<A id="OWNERID" name="Принадлежность"/>
+			<TI unique="OWNERID,CODE"/>
+		</TABLE>
+		<TABLE id="TYPESEQUIPMENT" name="Типы оборудования">
+			<A id="CODE" name="Тип оборудования" caption="Тип оборудования"/>
+			<A id="NAME" name="Описание оборудования" caption="Описание оборудования"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="MODELEQUIPMENT" name="Модели">
+			<A id="TYPESEQUIPMENTID" parentkey="cascade"/>
+			<A id="MODEL"/>
+			<A id="MANUFACTURER"/>
+			<A id="DESCRIPTION"/>
+			<TI unique="TYPESEQUIPMENTID,MODEL"/>
+		</TABLE>
+		<TABLE id="TYPESSOFTWARE" name="Виды программного обеспечения">
+			<A id="CODE" name="Вид программного обеспечения" caption="Вид программного обеспечения" labelwidth="250"/>
+			<A id="NAME" name="Описание программного обеспечения" caption="Описание программного обеспечения" labelwidth="250"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="VERSIONSOFTWARE" name="Версии">
+			<A id="TYPESSOFTWAREID" parentkey="cascade"/>
+			<A id="VERSION" name="Версия" caption="Версия" type="string" nulls="false"/>
+			<A id="DESCRIPTION"/>
+			<TI unique="TYPESSOFTWAREID,VERSION"/>
+		</TABLE>
+		<TABLE id="TYPESOFFICEEQUIPMENT" name="Типы оргтехники">
+			<A id="CODE" name="Тип оргтехники" caption="Тип оргтехники"/>
+			<A id="NAME" name="Описание оргтехники" caption="Описание оргтехники"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="MODELOFFICEEQUIPMENT" name="Модели">
+			<A id="TYPESOFFICEEQUIPMENTID" parentkey="cascade"/>
+			<A id="MODEL"/>
+			<A id="MANUFACTURER"/>
+			<A id="DESCRIPTION"/>
+			<TI unique="TYPESOFFICEEQUIPMENTID,MODEL"/>
+		</TABLE>
+		<TABLE id="TYPESCOMMUNICATIONFACILITIES" name="Типы средств связи">
+			<A id="CODE" name="Тип средств связи" caption="Тип средств связи"/>
+			<A id="NAME" name="Описание средств связи" caption="Описание средств связи"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="MODELCOMMUNICATIONFACILITIES" name="Модели">
+			<A id="TYPESCOMMUNICATIONFACILITIESID" parentkey="cascade"/>
+			<A id="MODEL"/>
+			<A id="MANUFACTURER"/>
+			<A id="DESCRIPTION"/>
+			<TI unique="TYPESCOMMUNICATIONFACILITIESID,MODEL"/>
+		</TABLE>
+		<TABLE id="TYPESELECTRONICSIGNATURES" name="Типы электронно-цифровых подписей">
+			<A id="CODE" name="Тип ЭЦП" caption="Тип ЭЦП"/>
+			<A id="NAME" name="Описание типа ЭЦП" caption="Описание типа ЭЦП"/>
+			<A id="NOTE"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="STATUSES" name="Статусы">
+			<A id="CODE" name="Наименование статуса" caption="Наименование статуса" labelwidth="180" type="string" nulls="false"/>
+			<A id="NAME" name="Описание статуса" caption="Описание статуса" labelwidth="180" type="text" nulls="true"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="SPECIFICATIONS" name="Технические характеристики">
+			<A id="CODE" name="Наименование характеристики" caption="Наименование характеристики" labelwidth="180" type="string" nulls="false"/>
+			<A id="NAME" name="Описание характеристики" caption="Описание характеристики" labelwidth="180" type="text" nulls="true"/>
+			<A id="TYPEDATA" name="Тип данных характеристики" caption="Тип данных характеристики"/>
+			<TI unique="CODE"/>
+		</TABLE>
+		<TABLE id="CONTRACTS" name="Договоры">
+			<A id="OWNERID" name="Принадлежность" nulls="false"/>
+			<GA id="Document"/>
+			<A id="CLIENT" name="Заказчик"/>
+			<A id="CONTRACTOR" name="Поставщик"/>
+			<A id="NAME" name="Предмет договора" caption="Предмет договора"/>
+			<A id="SUMM" name="Сумма договора" caption="Сумма договора"/>
+			<A id="DATESTART" caption="Дата начала действия"/>
+			<A id="DATEFINISH" caption="Дата окончания действия"/>
+		</TABLE>
+		<TABLE id="CONTRACTSFINANCING" name="Финансирование">
+			<A id="CONTRACTSID" parentkey="cascade"/>
+			<A id="KBK" name="КБК" nulls="false"/>
+			<A id="SUMM" caption="Сумма договора по КБК" labelwidth="300" nulls="false"/>
+			<A id="SUMMPAID" name="Оплачено по договору" caption="Оплачено по договору" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMMBALANCE" name="Остаток оплаты" caption="Остаток оплаты" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<TI id="CONTRACTSFINANCING_CONTRACTSID_IND" index="CONTRACTSID"/>
+		</TABLE>
+		<TABLE id="CONTRACTSSTAGES" name="Этапы">
+			<A id="CONTRACTSID" parentkey="cascade"/>
+			<A id="NAME" caption="Наименование этапа"/>
+			<A id="DATESTART"/>
+			<A id="DATEFINISH"/>
+			<TI id="CONTRACTSSTAGES_CONTRACTSID_IND" index="CONTRACTSID"/>
+		</TABLE>
+		<TABLE id="INVENTORY" name="Инвентарная картотека">
+			<A id="OBJNUMBER" name="Инвентарный номер"/>
+			<A id="CARDNUMB" name="Номер инвентарной карты" caption="Номер инвентарной карты" labelwidth="300" type="string" nulls="false"/>
+			<A id="OWNERID" name="Принадлежность" nulls="false"/>
+			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+			<A id="OBJNOTE" name="Характеристика инвентарного объекта" caption="Характеристика инвентарного объекта" type="text" nulls="true"/>
+			<A id="OBJMODEL" name="Модель, марка" caption="Модель, марка" type="text" nulls="true"/>
+			<A id="OKOF" name="Код ОКОФ" caption="Код ОКОФ" type="string" nulls="false"/>
+			<A id="WORSNUMBER" name="Заводской номер"/>
+			<A id="PRODUCER" name="Изготовитель"/>
+			<A id="EXEC" name="Материально-ответственное лицо (МОЛ)"/>
+			<A id="ESTABLISHMENT" name="Подразделение"/>
+			<A id="DATEISSUE" name="Дата выпуска"/>
+			<A id="DATECOMMISSIONING" name="Дата ввода в эксплуатацию"/>
+			<A id="SUMNEW" name="Начальная стоимость"/>
+			<A id="SUMAMORT" name="Начальный износ"/>
+			<A id="SUMAMORTNEW" name="Начисленная амортизация"/>
+			<A id="SUMPOST" name="Остаточная стоимость"/>
+			<A id="RAZDEL" name="Связана с разделом" caption="Связана с разделом" type="boolean" visible="grid" readonly="true" virtual="true"/>
+		</TABLE>
+		<TABLE id="INVENTORYHISTORY" name="История">
+			<A id="INVENTORYID" parentkey="cascade"/>
+			<GA id="InvOperation"/>
+			<GA id="Document"/>
+			<A id="SUMNEW" name="Новая начальная стоимость" caption="Новая начальная стоимость" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMAMORT" name="Новый начальный износ" caption="Новый начальный износ" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMAMORTNEW" name="Новая начисленная амортизация" caption="Новая начисленная амортизация" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMPOST" name="Новая остаточная стоимость" caption="Новая остаточная стоимость" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="EXECOLD" name="Материально-ответственное лицо до операции" caption="Материально-ответственное лицо до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="EXECNEW" name="Материально-ответственное лицо после операции" caption="Материально-ответственное лицо после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTOLD" name="Подразделение до операции" caption="Подразделение до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTNEW" name="Подразделение после операции" caption="Подразделение после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<TI id="INVENTORYHISTORY_INVENTORYID_IND" index="INVENTORYID"/>
+		</TABLE>
+		<TABLE id="PURCHASEFIN" name="Заявки">
+			<A id="OWNERID"/>
+			<GA id="EmployeeInformation"/>
+			<A id="FINYEAR" name="Финансовый год"/>
+			<A id="DOCDATE" name="Дата формирования заявки" caption="Дата формирования заявки" labelwidth="500"/>
+			<A id="SUMMNEWVIRT" name="Сумма закупки новых объектов" caption="Сумма закупки новых объектов" labelwidth="400" type="number" len="17.2" visible="form" readonly="true" virtual="true" local="true"/>
+			<A id="SUMMOLDVIRTVIRT" name="Сумма закупки старых объектов" caption="Сумма закупки старых объектов" labelwidth="400" type="number" len="17.2" visible="form" readonly="true" virtual="true" local="true"/>
+			<A id="SUMMTOTALVIRT" name="Сумма заявки ИТОГО" caption="Сумма заявки ИТОГО" labelwidth="400" type="number" len="17.2" visible="form" readonly="true" virtual="true" local="true"/>
+			<A id="NOTE"/>
+		</TABLE>
+		<TABLE id="FILEPURCHASEFIN" name="Файлы">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<GA id="FileInformation"/>
+			<TI id="FILEPURCHASEFIN_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFEQUIPMENT" name="Оборудование(новое)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<A id="TYPESEQUIPMENTID" name="Тип оборудования" nulls="true"/>
+			<A id="MODELEQUIPMENTID" name="Модель" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFEQUIPMENT_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFSOFTWARE" name="Программное обеспечение(новое)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<A id="TYPESSOFTWAREID" name="Вид программного обеспечения"/>
+			<A id="VERSIONSOFTWAREID" name="Версия"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFSOFTWARE_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFOFFICEEQUIPMENT" name="Оргтехника(новая)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<A id="TYPESOFFICEEQUIPMENTID" name="Тип оргтехники" nulls="true"/>
+			<A id="MODELOFFICEEQUIPMENTID" name="Модель" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFOFFICEEQUIPMENT_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFCOMMUNICATIONS" name="Средства связи(новые)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<A id="TYPESCOMMUNICATIONFACILITIESID" name="Тип оборудования" nulls="true"/>
+			<A id="MODELCOMMUNICATIONFACILITIESID" name="Модель" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFCOMMUNICATIONS_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFEQUIPMENTOLD" name="Оборудование(учтенное)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<GA id="EquipmentInformation" name="Сведения об оборудовании"/>
+			<A id="TYPEPURCHASEFIN" name="Тип заявки"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFEQUIPMENTOLD_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFSOFTWAREOLD" name="Программное обеспечение(учтенное)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<GA id="SoftwareInformation" name="Сведения о программном  обеспечении"/>
+			<A id="TYPEPURCHASEFINSOFT" name="Тип заявки"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFSOFTWAREOLD_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFOFFICEEQUIPMENTOLD" name="Оргтехника(учтенная)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<GA id="OffEquipmentInformation" name="Сведения об оргтехнике"/>
+			<A id="TYPEPURCHASEFIN" name="Тип заявки"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PPFOFFICEEQUIPMENTOLD_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="PFCOMMUNICATIONSOLD" name="Средства связи(учтенные)">
+			<A id="PURCHASEFINID" parentkey="cascade"/>
+			<GA id="ComInformation" name="Сведения о средствах связи"/>
+			<A id="TYPEPURCHASEFIN" name="Тип заявки"/>
+			<A id="SUMM"/>
+			<A id="NOTE"/>
+			<A id="STATUSEPF"/>
+			<TI id="PFCOMMUNICATIONSOLD_PURCHASEFINID_IND" index="PURCHASEFINID"/>
+		</TABLE>
+		<TABLE id="EQUIPMENT" name="Оборудование">
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="TYPESEQUIPMENTID" name="Тип оборудования" nulls="true"/>
+			<A id="MODELEQUIPMENTID" name="Модель" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="EMPLOYEESID" name="Ответственный сотрудник" nulls="true"/>
+			<A id="ESTABLISHMENTEVIRT" name="Подразделение"/>
+			<A id="STATUSESID" name="Статус" nulls="true"/>
+			<A id="LOCATIONSID" name="Местоположение"/>
+			<A id="DATEWARRANTYF" name="Дата окончания гарантии" caption="Дата окончания гарантии" labelwidth="500" type="date" nulls="true"/>
+			<GA id="InvInformation"/>
+			<TI id="EQUIPMENT_INVENTORY_IND" index="INVENTORYID"/>
+		</TABLE>
+		<TABLE id="SPECIFICATIONSEQUIPMENT" name="Характеристики оборудования">
+			<A id="EQUIPMENTID" parentkey="cascade"/>
+			<A id="SPECIFICATIONSID" name="Характеристика"/>
+			<A id="STRVALUE"/>
+			<A id="NUMVALUE"/>
+			<A id="DATVALUE"/>
+			<A id="NOTE" name="Примечание"/>
+			<TI id="SPECIFICATIONSEQUIPMENT_EQUIPMENTID_IND" index="EQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPEQUIPMENTREPAIRS" name="Ремонт">
+			<A id="EQUIPMENTID" parentkey="cascade"/>
+			<GA id="Repairs" name="Ремонт"/>
+			<TI id="SPEQUIPMENTREPAIRS_EQUIPMENTID_IND" index="EQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPEQUIPMENTSERVICE" name="Обслуживание">
+			<A id="EQUIPMENTID" parentkey="cascade"/>
+			<GA id="Service" name="Обслуживание"/>
+			<TI id="SPEQUIPMENTSERVICE_EQUIPMENTID_IND" index="EQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPEQUIPMENTPO" name="Программное обеспечение">
+			<A id="EQUIPMENTID" parentkey="cascade"/>
+			<GA name="Сведения о программном  обеспечении" caption="Сведения о программном  обеспечении">
+				<A id="SOFTWAREID" name="Программное  обеспечение" parentkey="cascade"/>
+				<A id="VERSIONSOFTWAREIDVIRT" name="Версия" caption="Версия" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" local="true"/>
+				<A id="CONTRACTORVIRT1" name="Поставщик" caption="Поставщик" labelwidth="300" type="string" nulls="true" visible="form" readonly="true" virtual="true" local="true"/>
+			</GA>
+			<A id="DATECOMMISSIONING" name="Дата установки" caption="Дата установки"/>
+			<A id="NOTE" name="Ключ продукта" caption="Ключ продукта"/>
+			<TI id="SPEQUIPMENTPO_EQUIPMENTID_IND" index="EQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPEQUIPMENTDOC" name="Договоры">
+			<A id="EQUIPMENTID" parentkey="cascade"/>
+			<GA id="ContractInformation"/>
+			<A id="CONTRACTSIDGRIDVIRT" name="Тип документа"/>
+			<A id="DOCNUMBGRIDVIRT" name="Номер договора"/>
+			<A id="DOCDATEGRIDVIRT" name="Дата договора"/>
+			<A id="NAMEGRIDVIRT" name="Предмет договора"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<TI id="SPEQUIPMENTDOC_EQUIPMENTID_IND" index="EQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SOFTWARE" name="Программное  обеспечение">
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="TYPESSOFTWAREID" name="Вид программного обеспечения"/>
+			<A id="VERSIONSOFTWAREID" name="Версия"/>
+			<A id="EMPLOYEESID" name="Ответственный сотрудник" nulls="true"/>
+			<A id="ESTABLISHMENTEVIRT" name="Подразделение"/>
+			<GA id="LicenseInformation" name="Сведения о лицензии"/>
+			<GA id="InvInformation" name="Сведения об инвентарном объекте"/>
+			<TI id="SOFTWARE_INVENTORY_IND" index="INVENTORYID"/>
+		</TABLE>
+		<TABLE id="SPSOFTWAREDOC" name="Договоры">
+			<A id="SOFTWAREID" parentkey="cascade"/>
+			<GA id="ContractInformation"/>
+			<GA id="ContractGridInformation"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<TI id="SPSOFTWAREDOC_SOFTWAREID_IND" index="SOFTWAREID"/>
+		</TABLE>
+		<TABLE id="OFFICEEQUIPMENT" name="Оргтехника">
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="TYPESOFFICEEQUIPMENTID" name="Тип оргтехники" nulls="true"/>
+			<A id="MODELOFFICEEQUIPMENTID" name="Модель" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="EMPLOYEESID" name="Ответственный сотрудник" nulls="true"/>
+			<A id="ESTABLISHMENTEVIRT" name="Подразделение"/>
+			<A id="STATUSESID" name="Статус" nulls="true"/>
+			<A id="LOCATIONSID" name="Местоположение"/>
+			<A id="DATEWARRANTYF" name="Дата окончания гарантии" caption="Дата окончания гарантии" labelwidth="300" type="date" nulls="true"/>
+			<GA id="InvInformation"/>
+			<TI id="OFFICEEQUIPMENT_INVENTORY_IND" index="INVENTORYID"/>
+		</TABLE>
+		<TABLE id="SPECIFICATIONSOFFICEEQUIPMENT" name="Характеристики оргтехники">
+			<A id="OFFICEEQUIPMENTID" parentkey="cascade"/>
+			<A id="SPECIFICATIONSID" name="Характеристика"/>
+			<A id="STRVALUE"/>
+			<A id="NUMVALUE"/>
+			<A id="DATVALUE"/>
+			<A id="NOTE" name="Примечание"/>
+			<TI id="SPECIFICATIONSOFFICEEQUIPMENT_OFFICEEQUIPMENTID_IND" index="OFFICEEQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPOFEREPAIRS" name="Ремонт">
+			<A id="OFFICEEQUIPMENTID" parentkey="cascade"/>
+			<GA id="Repairs" name="Ремонт"/>
+			<TI id="SPOFEREPAIRS_OFFICEEQUIPMENTID_IND" index="OFFICEEQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPOFESERVICE" name="Обслуживание">
+			<A id="OFFICEEQUIPMENTID" parentkey="cascade"/>
+			<GA id="Service" name="Обслуживание"/>
+			<TI id="SPOFESERVICE_OFFICEEQUIPMENTID_IND" index="OFFICEEQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="SPOFEDOC" name="Договоры">
+			<A id="OFFICEEQUIPMENTID" parentkey="cascade"/>
+			<GA id="ContractInformation"/>
+			<A id="CONTRACTSIDGRIDVIRT" name="Тип документа"/>
+			<A id="DOCNUMBGRIDVIRT" name="Номер договора"/>
+			<A id="DOCDATEGRIDVIRT" name="Дата договора"/>
+			<A id="NAMEGRIDVIRT" name="Предмет договора"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<TI id="SPOFEDOC_OFFICEEQUIPMENTID_IND" index="OFFICEEQUIPMENTID"/>
+		</TABLE>
+		<TABLE id="COMMUNICATIONS" name="Средства связи">
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="TYPESCOMMUNICATIONFACILITIESID" name="Тип средств связи" nulls="true"/>
+			<A id="MODELCOMMUNICATIONFACILITIESID" name="Модель" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="EMPLOYEESID" name="Ответственный сотрудник" nulls="true"/>
+			<A id="ESTABLISHMENTEVIRT" name="Подразделение"/>
+			<A id="STATUSESID" name="Статус" nulls="true"/>
+			<A id="LOCATIONSID" name="Местоположение"/>
+			<A id="DATEWARRANTYF" name="Дата окончания гарантии" caption="Дата окончания гарантии" labelwidth="500" type="date" nulls="true"/>
+			<GA id="InvInformation"/>
+			<TI id="COMMUNICATIONS_INVENTORY_IND" index="INVENTORYID"/>
+		</TABLE>
+		<TABLE id="SPECIFICATIONSCOMMUNICATIONS" name="Характеристики оборудования">
+			<A id="COMMUNICATIONSID" parentkey="cascade"/>
+			<A id="SPECIFICATIONSID" name="Характеристика"/>
+			<A id="STRVALUE"/>
+			<A id="NUMVALUE"/>
+			<A id="DATVALUE"/>
+			<A id="NOTE" name="Примечание"/>
+			<TI id="SPECIFICATIONSCOMMUNICATIONS_COMMUNICATIONSID_IND" index="COMMUNICATIONSID"/>
+		</TABLE>
+		<TABLE id="SPCOMREPAIRS" name="Ремонт">
+			<A id="COMMUNICATIONSID" parentkey="cascade"/>
+			<GA id="Repairs" name="Ремонт"/>
+			<TI id="SPCOMREPAIRS_COMMUNICATIONSID_IND" index="COMMUNICATIONSID"/>
+		</TABLE>
+		<TABLE id="SPCOMSERVICE" name="Обслуживание">
+			<A id="COMMUNICATIONSID" parentkey="cascade"/>
+			<GA id="Service" name="Обслуживание"/>
+			<TI id="SPCOMSERVICE_COMMUNICATIONSID_IND" index="COMMUNICATIONSID"/>
+		</TABLE>
+		<TABLE id="SPCOMDOC" name="Договоры">
+			<A id="COMMUNICATIONSID" parentkey="cascade"/>
+			<GA id="ContractInformation"/>
+			<A id="CONTRACTSIDGRIDVIRT" name="Тип документа"/>
+			<A id="DOCNUMBGRIDVIRT" name="Номер договора"/>
+			<A id="DOCDATEGRIDVIRT" name="Дата договора"/>
+			<A id="NAMEGRIDVIRT" name="Предмет договора"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<TI id="SPCOMDOC_COMMUNICATIONSID_IND" index="COMMUNICATIONSID"/>
+		</TABLE>
+		<TABLE id="ELECTRONICSIGNATURES" name="Учет электронно-цифровых подписей">
+			<A id="OWNERID" name="Принадлежность"/>
+			<A id="TYPESELECTRONICSIGNATURESID" name="Тип ЭЦП" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание"/>
+			<A id="DATESTART" name="Дата начала действия ЭЦП" caption="Дата начала действия ЭЦП"/>
+			<A id="DATEFINISH" name="Дата окончания действия ЭЦП" caption="Дата окончания действия ЭЦП"/>
+			<GA id="EmployeeInformation" name="Сведения об ответственном сотруднике"/>
+		</TABLE>
+		<TABLE id="CONTROLELECTRONICSIGNATURES" name="Контроль электронно-цифровых подписей">
+			<A id="OWNERID"/>
+			<GA id="EmployeeInformation" name="Сведения об ответственном сотруднике"/>
+			<A id="NOTE" name="Контрольное сообщение" caption="Контрольное сообщение"/>
+		</TABLE>
+		<TABLE id="VEHICLES" name="Транспортные средства">
+			<TABS>
+				<TAB name="Общие сведения">
+					<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+					<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+					<A id="LOCATIONSID" name="Местоположение" caption="Местоположение" labelwidth="200" type="string"/>
+					<A id="VEHINFORMATION" name="Наименование транспортного средства" caption="Наименование транспортного средства" labelwidth="200" nulls="false" type="text"/>
+					<A id="EXEC" name="Материально-ответственное лицо (МОЛ)"/>
+					<GA name="Учет" caption="Учет">
+						<A id="DATEISSUE" name="Дата выпуска" caption="Дата выпуска" labelwidth="80" width="33" type="date"/>
+						<A id="DATAACCEPT" name="Дата принятия к учету" caption="Дата принятия к учету" labelwidth="80" width="33" type="date"/>
+						<A id="DATECOMMISSIONING" name="Дата ввода в эксплуатацию" caption="Дата ввода в эксплуатацию" labelwidth="80" width="34" type="date"/>
+						<A id="OBJNUMBER" name="Инвентарный номер"/>
+						<A id="DATEREM" name="Дата снятия с учета" caption="Дата снятия с учета" labelwidth="80" width="34" type="date"/>
+					</GA>
+					<GA name="Документы" caption="Документы">
+						<A id="DOCTYPE" name="Тип документа" caption="Тип документа" width="35" type="string"/>
+						<A id="DOCNUMBER" name="Номер документа" caption="Номер документа" width="45" type="string"/>
+						<A id="DOCDATE" name="Дата документа" caption="Дата документа" width="20" type="date"/>
+					</GA>
+					<A id="ACCEPTREG" name="Учитывать в реестре государственного имущества" caption="Учитывать в реестре государственного имущества" type="boolean"/>
+					<A id="INITIALCOST" name="Первоначальная стоимость" caption="Первоначальная стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+					<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="150" width="50" nulls="false" type="number"/>
+					<A id="RESIDUALCOST" name="Остаточная стоимость" caption="Остаточная стоимость" labelwidth="150" width="50" type="number"/>
+					<A id="ADDITIONALCOST" name="Дополнительная стоимость" caption="Дополнительная стоимость" labelwidth="180" width="50" type="number"/>
+				</TAB>
+				<TAB name="Характеристики ТС">
+					<GA name="Регистрационные данные" caption="Регистрационные данные">
+						<A id="VEHICLETYPE" name="Тип Т/С" caption="Тип Т/С" width="30" type="string"/>
+						<A id="VEHICLEBRAND" name="Марка/Модель" caption="Марка/Модель" width="40" type="string"/>
+						<A id="VINNUMBER" name="иденфикационный номер VIN" caption="Идентификационный номер VIN" labelwidth="200" width="30" type="string"/>
+						<A id="VEHICLEPASSPORT" name="Паспорт Т/С" caption="Паспорт Т/С" width="50" type="string"/>
+						<A id="VEHREGCERTIFICATE" name="Свидетельство о регистрации Т/С" caption="Свидетельство о регистрации Т/С" labelwidth="200" width="50" type="string"/>
+						<A id="VEHREGNUMBER" name="Регистрационный знак Т/С" caption="Регистрационный знак Т/С" labelwidth="170" width="50" type="string"/>
+						<A id="VEHREGDATE" name="Дата регистрации Т/С" caption="Дата регистрации Т/С" width="50" type="date"/>
+						<A id="VEHBODYNUMBER" name="Номер кузова(шасси)" caption="Номер кузова(шасси)" labelwidth="120" width="30" type="string"/>
+						<A id="VEHENGINENUMBER" name="Номер двигателя" caption="Номер двигателя" width="40" type="string"/>
+						<A id="VEHICLEPOWER" name="Мощность двигателя (в л.с.)" caption="Мощность двигателя (в л.с.)" width="30" type="number"/>
+					</GA>
+					<GA name="Общие характеристики" caption="Общие характеристики">
+						<A id="VEHICLEPURPOSE" name="Назначение объекта" caption="Назначение объекта" type="text"/>
+						<A id="VEHICLEOTHER" name="Прочие характеристики" caption="Прочие характеристики" type="text"/>
+					</GA>
+					<A id="OCDIENABLED" name="Включено в перечень ОЦДИ" caption="Включено в перечень ОЦДИ" labelwidth="160" width="50" type="string"/>
+					<A id="OKOFCODE" name="Код ОКОФ" caption="Код ОКОФ" labelwidth="75" width="50" type="number"/>
+					<A id="USEFULTIME" name="Срок полезного использования" caption="Срок полезного использования" labelwidth="220" width="50" type="string"/>
+					<A id="PROPERTYOWNAGE" name="Форма собственности" caption="Форма собственности" labelwidth="100" width="50" type="string"/>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="VEHDOCS" name="Транспортные средства спецификция">
+			<TABS>
+				<TAB name="Расходы на содержание">
+					<A id="VEHICLESID" parentkey="cascade"/>
+					<A id="TYPEOFSERVICE" name="Вид услуги" caption="Вид услуги" labelwidth="100" width="50" nulls="false" type="string"/>
+					<A id="JURPERSONS" name="Поставщик" caption="Поставщик" labelwidth="80" width="50" type="string"/>
+					<A id="NAMESERVICE" name="Наименование услуги" caption="Наименование услуги" labelwidth="140" type="text"/>
+					<GA name="Реквизиты договора на оказание услуг" caption="Реквизиты договора на оказание услуг">
+					<A id="DOCTYPE" name="Тип" caption="Тип" width="30" type="string"/>
+					<A id="DOCNUMBER" name="Номер" caption="Номер" width="45" type="string"/>
+					<A id="DOCDATE" name="Дата" caption="Дата" width="25" type="date"/>
+					</GA>
+					<GA name="Даты выполнения работ" caption="Даты выполнения работ">
+					<A id="STARTDATE" name="Дата начала" caption="Дата начала" width="50" type="date"/>
+					<A id="ENDDATE" name="Дата окончания" caption="Дата окончания" width="50" type="date"/>
+					</GA>
+					<GA name="Стоимость оказанных услуг" caption="Стоимость оказанных услуг">
+					<A id="SERVICECOST" name="Стоимость по договору" caption="Стоимость по договору" width="50" type="number"/>
+					<A id="FACTSERVICECOST" name="Фактическая стоимость" caption="Фактическая стоимость" width="50" type="number"/>
+					</GA>
+					<A id="ADDITIONALINFO" name="Дополнительная информация" caption="Дополнительная информация" labelwidth="140" type="text"/>
+					</TAB>
+					</TABS>
+		</TABLE>			
+		<TABLE id="BUILDINGS" name="Здания и сооружения">
+				<TABS>
+				<TAB name="Общие сведения">
+				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+					<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+					<A id="VEHINFORMATION" name="Наименование объекта" caption="Наименование объекта" labelwidth="200" nulls="false" type="text"/>
+					<A id="EXEC" name="Материально-ответственное лицо (МОЛ)"/>
+					<GA name="Учет" caption="Учет">
+						<A id="DATAACCEPT" name="Дата принятия к учету" caption="Дата принятия к учету" labelwidth="80" width="33" nulls="false" type="date"/>
+						<A id="DATECOMMISSIONING" name="Дата ввода в эксплуатацию" caption="Дата ввода в эксплуатацию" labelwidth="80" width="34" type="date"/>
+						<A id="OBJNUMBER" name="Инвентарный номер"/>
+						<A id="DATEREM" name="Дата снятия с учета" caption="Дата снятия с учета" labelwidth="80" width="34" type="date"/>
+					</GA>
+					<GA name="Документы" caption="Документы">
+						<A id="DOCTYPE" name="Тип документа" caption="Тип документа" width="35" type="string"/>
+						<A id="DOCNUMBER" name="Номер документа" caption="Номер документа" width="45" type="string"/>
+						<A id="DOCDATE" name="Дата документа" caption="Дата документа" width="20" type="date"/>
+					</GA>
+						<A id="ACCEPTREG" name="Учитывать в реестре государственного имущества" caption="Учитывать в реестре государственного имущества" type="boolean"/>
+						<A id="INITIALCOST" name="Первоначальная стоимость" caption="Первоначальная стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+						<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="150" width="50" nulls="false" type="number"/>
+						<A id="RESIDUALCOST" name="Остаточная стоимость" caption="Остаточная стоимость" labelwidth="150" width="50" type="number"/>
+						<A id="RECOVERYCOST" name="Восстановительная стоимость" caption="Восстановительная стоимость" labelwidth="180" width="50" type="number"/>
+						<A id="KADASTRCOST" name="Кадастровая стоимость" caption="Кадастровая стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+						<A id="OTHERCOST" name="Иная стоимость" caption="Иная стоимость" labelwidth="130" width="50" type="number"/>
+				</TAB>
+				<TAB name="Характеристики объекта">
+				<GA name="Тип объекта" caption="Тип объекта">
+					<A id="BUILDINGTYPE" name="Тип строения" caption="Тип строения" labelwidth="80" width="35" type="string"/>
+					<A id="BUILDTDATE" name="Год постройки" caption="Год постройки" labelwidth="90" width="30" type="date"/>
+					<A id="EXPLOTATIONYEAR" name="Год ввода в эксплуатацию" caption="Год ввода в эксплуатацию" labelwidth="130" width="35" type="number"/>
+				</GA>
+				<GA name="Тип назначения" caption="Тип назначения">
+					<A id="DESTINYTYPE" name="Тип назначения" caption="Тип назначения" labelwidth="100" width="50" type="string"/>
+					<A id="TYPELIVE" name="Тип жилого фонда" caption="Тип жилого фонда" labelwidth="120" width="50" type="string"/>
+				</GA>
+				<A id="OKOFCODE" name="Код ОКОФ" caption="Код ОКОФ" labelwidth="70" width="50" nulls="false" type="number"/>
+				<A id="SPI" name="Срок полезного использования (в мес.)" caption="Срок полезного использования (в мес.)" labelwidth="200" width="50" type="number"/>
+				<A id="BUILDINGPURPOSE" name="Назначение объекта" caption="Назначение объекта" type="text"/>
+				<GA name="Характеристики объекта" caption="Характеристики объекта">
+					<A id="FOUNDATIONTYPE" name="Тип фундамента" caption="Тип фундамента" labelwidth="100" width="50" type="string"/>
+					<A id="OVERALLAREA" name="Общая площадь кв.м." caption="Общая площадь кв.м." labelwidth="150" width="50" type="number"/>
+					<A id="FLOORS" name="Этажность" caption="Этажность" labelwidth="100" width="50" type="number"/>
+					<A id="MATERIALFLOORS" name="Материал перекрытий" caption="Материал перекрытий" labelwidth="150" width="50" type="string"/>
+					<A id="SIZECUBE" name="Объем куб.м." caption="Объем куб.м." labelwidth="100" width="50" type="number"/>
+					<A id="LENGTH" name="Протяженность" caption="Протяженность" labelwidth="100" width="50" type="number"/>
+					<A id="MATERIALROOF" name="Материал кровли" caption="Материал кровли" labelwidth="100" width="50" type="string"/>
+					<A id="HEIGHT" name="Высота м." caption="Высота м." labelwidth="100" width="50" type="number"/>
+					<A id="UNDFLOORS" name="Подземная этажность" caption="Подземная этажность" labelwidth="150" width="50" type="number"/>
+					<A id="MATERIALWALLS" name="Материал стен" caption="Материал стен" labelwidth="100" width="50" type="string"/>
+					<A id="DEPTH" name="Глубина м." caption="Глубина м." labelwidth="100" width="50" type="number"/>
+					<A id="TECHCONDITION" name="Техническое состояние" caption="Техническое состояние" labelwidth="150" width="50" type="string"/>
+					<A id="USINGLAREA" name="Используемая площадь" caption="Используемая площадь" labelwidth="100" width="50" type="number"/>
+					<A id="OTHERCHAR" name="Иные характеристики" caption="Иные характеристики" labelwidth="100" width="50" type="text"/>
+				</GA>
+			</TAB>
+				<TAB name="Местоположение">
+					<GA name="Местоположение" caption="Местоположение">
+						<A id="COUNTRY" name="Страна" caption="Страна" width="50" type="string"/>
+						<A id="STREET" name="Улица" caption="Улица" width="50" type="string"/>
+						<A id="REGION" name="Регион" caption="Регион" width="50" type="string"/>
+						<A id="HOUSE" name="Дом" caption="Дом" width="50" type="string"/>
+						<A id="AREA" name="Район" caption="Район" width="50" type="string"/>
+						<A id="HOUSING" name="Корпус" caption="Номер документа" width="50" type="string"/>
+						<A id="CITY" name="Город" caption="Город" width="50" type="string"/>
+						<A id="NUMBBUILDING" name="Строение" caption="Строение" width="50" type="string"/>
+						<A id="CITYAREA" name="Внутригородской район" caption="Внутригородской район" labelwidth="180" width="50" type="string"/>
+						<A id="APPARTAMENT" name="Офис/квартира" caption="Офис/квартира" width="50" type="string"/>
+						<A id="ADMDISTRICT" name="Административный округ" caption="Административный округ" labelwidth="180" width="50" type="string"/>
+						<A id="ZIPCODE" name="Почтовый индекс" caption="Почтовый индекс" width="50" type="string"/>
+						<A id="MUNDISTRICT" name="Муниципальный округ" caption="Муниципальный округ" labelwidth="180" width="50" type="string"/>
+					</GA>	
+						<A id="OTHERINFO" name="Прочая информация" caption="Прочая информация" type="text"/>
+				</TAB>	
+				<TAB name="Параметры">
+					<GA name="Кадастровый учет" caption="Кадастровый учет">
+						<A id="KADASTRNUMB" name="Кадастровый номер" caption="Кадастровый номер" labelwidth="150" width="60" type="number"/>
+						<A id="KADASTRREGDATE" name="Дата постановки на учет" caption="Дата постановки на учет" labelwidth="200" width="40" type="date"/>
+						<A id="KADASTRSIGN" name="Признак кадастрового номера" caption="Признак кадастрового номера" labelwidth="200" width="60" type="string"/>
+						<A id="KADASTRENDDATE" name="Дата снятия с учета" caption="Дата снятия с учета" labelwidth="150" width="40" type="date"/>
+					</GA>
+					<GA name="Учет БТИ" caption="Учет БТИ">
+						<A id="BTIINVNUMB" name="Инвентарный номер" caption="Инвентарный номер" labelwidth="150" type="string"/>
+						<A id="BTINUMB" name="Номер тех.паспорта" caption="Номер тех.паспорта" labelwidth="150" width="50" type="string"/>
+						<A id="BTITDATE" name="Дата тех.паспорта" caption="Дата тех.паспорта" labelwidth="150" width="50" type="date"/>
+					</GA>
+					<GA name="Объект культурного наследия" caption="Объект культурного наследия">
+						<A id="CULTHERIT" name="Объект культурного наследия" caption="Объект культурного наследия" labelwidth="200" type="boolean"/>
+						<A id="CULTCATEGORY" name="Категория объекта" caption="Категория объекта" labelwidth="100" type="string"/>
+						<A id="CULTREGNUMB" name="Регистрационный номер" caption="Регистрационный номер" labelwidth="150" width="50" type="string"/>
+						<A id="CULTREGDATE" name="Дата регистрации" caption="Дата регистрации" labelwidth="100" width="50" type="date"/>
+					</GA>
+					<GA name="Незавершенное строительство" caption="Незавершенное строительство">
+						<A id="INCOMBUILD" name="Незавершенное строительство" caption="Незавершенное строительство" type="boolean"/>
+						<GA name="Сведения о строительстве" caption="Сведения о строительстве">
+						<A id="INCOMPRECENT" name="Степень готовности %" caption="Степень готовности %" labelwidth="150" width="50" type="number"/>
+						<A id="INCOMCOST" name="Проектная стоимость" caption="Проектная стоимость" labelwidth="100" width="50" type="number"/>
+						<A id="INCOMTERMDATE" name="Срок строительства" caption="Срок строительства" labelwidth="100" width="50" type="number"/>
+						<A id="INCOMBUDG" name="Бюджет" caption="Бюджет" labelwidth="50" width="50" type="number"/>
+						<A id="INCOMDATEEND" name="Дата окончания строительства" caption="Дата окончания строительства" labelwidth="200" width="50" type="date"/>
+						<A id="INCOMEBUDGUSED" name="Освоенные средства" caption="Освоенные средства" labelwidth="100" width="50" type="number"/>
+						</GA>
+					</GA>
+				</TAB>
+				<TAB name="Размещение объекта на земельном участке">
+					<GA name="Сведения о земельном участке" caption="Сведения о земельном участке">
+						<A id="KADASTRNUMB" name="Кадастровый номер" caption="Кадастровый номер" labelwidth="150" width="60" type="number"/>
+						<A id="OWNAGEFORM" name="Форма собственности" caption="Форма собственности" labelwidth="150" width="40" type="string"/>
+						<A id="LANDPLOTCAT" name="Категория земельного участка" caption="Категория земельного участка" labelwidth="200" width="40" type="number"/>
+						<A id="AREASIZE" name="Площадь кв.м." caption="Площадь кв.м." labelwidth="100" width="60" type="number"/>
+					</GA>
+					<GA name="Выбор земельного участка" caption="Выбор земельного участка">
+						<A id="EXTNUMB" name="Ведомственный номер" caption="Ведомственный номер" labelwidth="150" width="50" type="number"/>
+						<A id="INVNUMBER" name="Инвентарный номер" caption="Инвентарный номер" labelwidth="150" width="50" type="string"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>			
+		<TABLE id="BUILDDOCS" name="Здания и сооружения спецификция">
+			<TABS>
+				<TAB name="Расходы на содержание">
+					<A id="BUILDINGSID" parentkey="cascade"/>
+					<A id="TYPEOFSERVICE" name="Вид услуги" caption="Вид услуги" labelwidth="100" width="50" type="string"/>
+					<A id="JURPERSONS" name="Поставщик" caption="Поставщик" labelwidth="80" width="50" type="string"/>
+					<A id="NAMESERVICE" name="Наименование услуги" caption="Наименование услуги" labelwidth="140" type="text"/>
+					<GA name="Реквизиты договора на оказание услуг" caption="Реквизиты договора на оказание услуг">
+					<A id="DOCTYPE" name="Тип" caption="Тип" width="30" type="string"/>
+					<A id="DOCNUMBER" name="Номер" caption="Номер" width="45" type="string"/>
+					<A id="DOCDATE" name="Дата" caption="Дата" width="25" type="date"/>
+					</GA>
+					<GA name="Даты выполнения работ" caption="Даты выполнения работ">
+					<A id="STARTDATE" name="Дата начала" caption="Дата начала" width="50" type="date"/>
+					<A id="ENDDATE" name="Дата окончания" caption="Дата окончания" width="50" type="date"/>
+					</GA>
+					<GA name="Стоимость оказанных услуг" caption="Стоимость оказанных услуг">
+					<A id="SERVICECOST" name="Стоимость по договору" caption="Стоимость по договору" width="50" type="number"/>
+					<A id="FACTSERVICECOST" name="Фактическая стоимость" caption="Фактическая стоимость" width="50" type="number"/>
+					</GA>
+					<A id="ADDITIONALINFO" name="Дополнительная информация" caption="Дополнительная информация" labelwidth="140" type="text"/>
+					<GA name="Сведения о площадях" caption="Сведения о площадях">
+						<A id="AREATYPE" name="Вид площади" caption="Вид площади" width="50" type="string"/>
+						<A id="AREASIZE" name="Размер площади кв.м." caption="Размер площади кв.м." width="50" type="number"/>
+						<A id="AREADEST" name="Назначение площади" caption="Назначение площади" type="text"/>
+					</GA>
+				</TAB>
+				<TAB name="Ремонт и реконструкция">
+					<GA name="Ремонт и реконструкция" caption="Ремонт и реконструкция">
+						<A id="TYPEOFSERVICEREP" name="Вид услуги" caption="Вид услуги" labelwidth="100" width="50" type="string"/>
+						<A id="JURPERSONSREP" name="Контрагент" caption="Контрагент" labelwidth="80" width="50" type="string"/>
+						<A id="NAMESERVICEREP" name="Наименование услуги" caption="Наименование услуги" labelwidth="140" type="text"/>
+						<A id="REPAIRTYPE" name="Тип ремонта" caption="Тип ремонта" width="50" type="string"/>
+						<A id="REPAIRVIEW" name="Вид ремонта" caption="Вид ремонта" width="50" type="string"/>
+						<A id="STARTDATEREP" name="Дата начала" caption="Дата начала" width="50" type="date"/>
+						<A id="ENDDATEREP" name="Дата окончания" caption="Дата окончания" width="50" type="date"/>
+						<A id="REPAIRSIZE" name="Площадь ремонта кв.м." caption="Площадь ремонта кв.м." width="50" type="number"/>
+						<A id="EXPLOTATIONALLOW" name="Ввод в эксплуатацию" caption="Ввод в эксплуатацию" width="50" type="date"/>
+					</GA>
+					<GA name="Финансирование" caption="Финансирование">
+						<A id="REPAIRPRICE" name="Общая стоимость ремонта" caption="Общая стоимость ремонта" labelwidth="100" width="50" type="number"/>
+						<A id="REPAIRCONTRPRICE" name="Стоимость работ по контракту" caption="Стоимость работ по контракту" labelwidth="140" type="number"/>
+						<A id="PREFUNDS" name="Объем ранее выделенных средств" caption="Объем ранее выделенных средств" labelwidth="80" width="50" type="number"/>
+						<A id="NEEDFUNDS" name="Потребность выделения средств" caption="Потребность выделения средств" width="50" type="number"/>
+						<A id="ALLOCATEDCASH" name="Выделенные денежные средства" caption="Выделенные денежные средства" width="50" type="number"/>
+						<A id="MASTEREDCASH" name="Освоенные денежные средства" caption="Освоенные денежные средства" width="50" type="number"/>
+					</GA>
+				</TAB>
+			</TABS>
+		</TABLE>			
+		<TABLE id="LANDPLOT" name="Земельные участки">
+			<TABS>
+				<TAB name="Общие сведения">
+						<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+						<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+						<A id="VEHINFORMATION" name="Наименование объекта" caption="Наименование объекта" labelwidth="200" nulls="false" type="text"/>
+						<A id="EXEC" name="Материально-ответственное лицо (МОЛ)"/>
+					<GA name="Учет" caption="Учет">
+						<A id="DATAACCEPT" name="Дата принятия к учету" caption="Дата принятия к учету" labelwidth="80" width="33" nulls="false" type="date"/>
+						<A id="DATECOMMISSIONING" name="Дата ввода в эксплуатацию" caption="Дата ввода в эксплуатацию" labelwidth="80" width="34" type="date"/>
+						<A id="OBJNUMBER" name="Инвентарный номер"/>
+						<A id="DATEREM" name="Дата снятия с учета" caption="Дата снятия с учета" labelwidth="80" width="34" type="date"/>
+					</GA>
+					<GA name="Документы" caption="Документы">
+						<A id="DOCTYPE" name="Тип документа" caption="Тип документа" width="35" type="string"/>
+						<A id="DOCNUMBER" name="Номер документа" caption="Номер документа" width="45" type="string"/>
+						<A id="DOCDATE" name="Дата документа" caption="Дата документа" width="20" type="date"/>
+					</GA>
+						<A id="ACCEPTREG" name="Учитывать в реестре государственного имущества" caption="Учитывать в реестре государственного имущества" type="boolean"/>
+						<A id="INITIALCOST" name="Первоначальная стоимость" caption="Первоначальная стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+						<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="150" width="50" nulls="false" type="number"/>
+						<A id="RESIDUALCOST" name="Остаточная стоимость" caption="Остаточная стоимость" labelwidth="150" width="50" type="number"/>
+						<A id="RECOVERYCOST" name="Восстановительная стоимость" caption="Восстановительная стоимость" labelwidth="180" width="50" type="number"/>
+						<A id="KADASTRCOST" name="Кадастровая стоимость" caption="Кадастровая стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+						<A id="OTHERCOST" name="Иная стоимость" caption="Иная стоимость" labelwidth="130" width="50" type="number"/>
+				</TAB>
+				<TAB name="Местоположение">
+					<GA name="Местоположение" caption="Местоположение">
+						<A id="COUNTRY" name="Страна" caption="Страна" width="50" type="string"/>
+						<A id="STREET" name="Улица" caption="Улица" width="50" type="string"/>
+						<A id="REGION" name="Регион" caption="Регион" width="50" type="string"/>
+						<A id="HOUSE" name="Дом" caption="Дом" width="50" type="number"/>
+						<A id="AREA" name="Район" caption="Район" width="50" type="string"/>
+						<A id="HOUSING" name="Корпус" caption="Номер документа" width="50" type="string"/>
+						<A id="CITY" name="Город" caption="Город" width="50" type="string"/>
+						<A id="NUMBBUILDING" name="Строение" caption="Строение" width="50" type="number"/>
+						<A id="CITYAREA" name="Внутригородской район" caption="Внутригородской район" labelwidth="180" width="50" type="string"/>
+						<A id="APPARTAMENT" name="Офис/квартира" caption="Офис/квартира" width="50" type="string"/>
+						<A id="ADMDISTRICT" name="Административный округ" caption="Административный округ" labelwidth="180" width="50" type="string"/>
+						<A id="ZIPCODE" name="Почтовый индекс" caption="Почтовый индекс" width="50" type="number"/>
+						<A id="MUNDISTRICT" name="Муниципальный округ" caption="Муниципальный округ" labelwidth="180" width="50" type="string"/>
+					</GA>	
+						<A id="OTHERINFO" name="Прочая информация" caption="Прочая информация" type="text"/>
+					<GA name="Ориентиры" caption="Ориентиры">
+						<A id="LANDMARKNAME" name="Наименование ориентира" caption="Наименование ориентира" labelwidth="180" width="50" type="string"/>
+						<A id="LANDMARKZIPCODE" name="Почтовый индекс ориентира" caption="Почтовый индекс ориентира" width="50" type="number"/>
+						<A id="LANDMARKDIRECT" name="Направление ориентира" caption="Направление ориентира" labelwidth="180" width="50" type="string"/>
+						<A id="LANDMARKDIST" name="Расстояние до ориентира" caption="Расстояние до ориентира" labelwidth="180" width="50" type="string"/>
+						<A id="LANDMARKLOCPIC" name="Местоположение на карте" caption="Местоположение на карте" labelwidth="180" type="string"/>
+					</GA>
+				</TAB>
+				<TAB name="Характеристики">
+					<GA name="Кадастровый учет" caption="Кадастровый учет">
+						<A id="KADASTRNUMB" name="Кадастровый номер" caption="Кадастровый номер" labelwidth="150" width="60" type="number"/>
+						<A id="KADASTRREGDATE" name="Дата постановки на учет" caption="Дата постановки на учет" labelwidth="200" width="40" type="date"/>
+						<A id="KADASTRSIGN" name="Признак кадастрового номера" caption="Признак кадастрового номера" labelwidth="200" width="60" type="string"/>
+						<A id="KADASTRENDDATE" name="Дата снятия с учета" caption="Дата снятия с учета" labelwidth="150" width="40" type="date"/>
+					</GA>
+					<GA name="Категория и форма использования" caption="Категория и форма использования">
+						<A id="LANDMARKUSE" name="Категория использования" caption="Категория использования" labelwidth="150" type="string"/>
+						<A id="LANDMARKUSEOTHER" name="Иная категория использования" caption="Иная категория использования" labelwidth="100" type="text"/>
+						<A id="LANDMARKUSEFORM" name="Форма использования" caption="РФорма использования" labelwidth="150" width="50" type="string"/>
+						<A id="LANDMARKUSEFORMOTHER" name="Иной вид разрешенного использования" caption="Иной вид разрешенного использования" labelwidth="100" width="50" type="text"/>
+					</GA>
+					<GA name="Площадь" caption="Площадь">
+						<A id="LANDMARKAREASQM" name="Площадь кв.м." caption="Площадь кв.м." labelwidth="100" width="50" type="number"/>
+						<A id="LANDMARKAREAEN" name="Достаточность по площади" caption="Достаточность по площади" labelwidth="100" width="50" type="number"/>
+						<A id="LANDMARKAREAGA" name="Площадь га" caption="Площадь га" labelwidth="100" width="50" type="number"/>
+						<A id="LANDMARKAREADIF" name="Избыточная/Недостаточная площадь" caption="Избыточная/Недостаточная площадь" labelwidth="200" width="50" type="string"/>
+					</GA>
+					<GA name="Составной земельный участок" caption="Составной земельный участок">	
+						<A id="COMMONLANDUSE" name="Единое землепользование" caption="Единое землепользование" labelwidth="100" type="boolean"/>
+						<A id="MULTILANDMARK" name="Многоконтурный участок" caption="Многоконтурный участок" labelwidth="100" type="boolean"/>
+						<A id="COMMONGLANDMARK" name="Вхождение в состав единого землепользования" caption="Вхождение в состав единого землепользования" labelwidth="250" type="boolean"/>
+					</GA>	
+						<A id="OTHERCHAR" name="Иные характеристики" caption="Иные характеристики" labelwidth="100" width="50" type="text"/>
+				</TAB>
+				<TAB name="Дополнительные сведения">
+					<GA name="Собственность" caption="Собственность">
+						<A id="OWNAGEFORM" name="Форма собственности" caption="Форма собственности" labelwidth="150" width="50" type="string"/>
+						<A id="TYPEOFREGULATION" name="Вид правоотношения" caption="Вид правоотношения" labelwidth="150" width="50" type="string"/>
+					</GA>
+					<GA name="Регистрация права собственности" caption="Регистрация права собственности">
+						<A id="NUMBEGRN" name="Номер записи в ЕГРН" caption="Номер записи в ЕГРН" labelwidth="150" width="60" type="number"/>
+						<A id="DATEEGRN" name="Дата записи в ЕГРН" caption="Дата записи в ЕГРН" labelwidth="150" width="40" type="date"/>
+					</GA>
+					<GA name="Регистрация иного вещного права" caption="Регистрация иного вещного права">
+						<A id="NUBEGRNOTHER" name="Номер записи в ЕГРН" caption="Номер записи в ЕГРН" labelwidth="150" width="60" type="number"/>
+						<A id="DATEEGRNOTHER" name="Дата записи в ЕГРН" caption="Дата записи в ЕГРН" labelwidth="150" width="40" type="date"/>
+					</GA>
+					<GA name="Источник" caption="Источник">
+						<A id="FINSOURSE" name="Источник финансирования" caption="Источник финансирования" labelwidth="150" width="60" type="string"/>
+						<A id="BILLCODE" name="Код счета" caption="Код счета" labelwidth="150" width="40" type="number"/>
+					</GA>
+					<GA name="Реестр государственного имущества" caption="Реестр государственного имущества">
+						<A id="REGISTRYNUMB" name="Реестровый номер" caption="Реестровый номер" labelwidth="150" width="60" type="number"/>
+						<A id="REGISTRYDATE" name="Дата присовения" caption="Дата присовения" labelwidth="150" width="40" type="date"/>
+					</GA>
+				</TAB>	
+			</TABS>
+		</TABLE>
+		<TABLE id="LANDDOCS" name="Земельные участки спецификция">
+			<TABS>
+				<TAB name="Расходы на содержание">
+					<A id="LANDPLOTID" parentkey="cascade"/>
+					<A id="TYPEOFSERVICE" name="Вид услуги" caption="Вид услуги" labelwidth="100" width="50" type="string"/>
+					<A id="JURPERSONS" name="Поставщик" caption="Поставщик" labelwidth="80" width="50" type="string"/>
+					<A id="NAMESERVICE" name="Наименование услуги" caption="Наименование услуги" labelwidth="140" type="text"/>
+					<GA name="Реквизиты договора на оказание услуг" caption="Реквизиты договора на оказание услуг">
+					<A id="DOCTYPE" name="Тип" caption="Тип" width="30" type="string"/>
+					<A id="DOCNUMBER" name="Номер" caption="Номер" width="45" type="string"/>
+					<A id="DOCDATE" name="Дата" caption="Дата" width="25" type="date"/>
+					</GA>
+					<A id="ADDITIONALINFO" name="Дополнительная информация" caption="Дополнительная информация" labelwidth="140" type="text"/>
+					<GA name="Сведения о площадях" caption="Сведения о площадях">
+						<A id="AREATYPE" name="Вид площади" caption="Вид площади" width="50" type="string"/>
+						<A id="AREASIZE" name="Размер площади кв.м." caption="Размер площади кв.м." width="50" type="number"/>
+						<A id="AREADEST" name="Назначение площади" caption="Назначение площади" type="text"/>
+					</GA>
+				</TAB>
+				<TAB name="Размещение объектов на земельных участках">
+				<GA name="Выбор сооружения" caption="Выбор сооружения">
+					<A id="NUMBER" name="Номер" caption="Номер" labelwidth="100" width="50" type="string"/>
+					<A id="INVNUMBER" name="Инвентарный номер" caption="Инвентарный номер" labelwidth="100" width="50" type="string"/>
+					<A id="NAME" name="Наименование" caption="Наименование" labelwidth="140" type="text"/>
+				</GA>
+				<GA name="Сведения о здании/сооружении" caption="Сведения о здании/сооружении">
+					<A id="PROPERTYOWNAGE" name="Форма собственности" caption="Форма собственности" labelwidth="100" width="50" type="string"/>
+					<A id="KADASTRNUMB" name="Кадастровый номер" caption="Кадастровый номер" labelwidth="150" width="50" type="number"/>
+					<A id="OVERALLAREA" name="Общая площадь кв.м." caption="Общая площадь кв.м." labelwidth="150" width="50" type="number"/>
+					<A id="TYPEOFOBJECT" name="Тип объекта" caption="Тип объекта" labelwidth="100" width="50" type="string"/>
+					<A id="DESTINYTYPE" name="Иной тип назначения" caption="Иной тип назначения" labelwidth="140" type="text"/>
+				</GA>
+				</TAB>
+			</TABS>
+		</TABLE>
+		<TABLE id="INVENTORYOTHER" name="Инвентарная картотека иных средств">
+			<A id="OBJNUMBER" name="Инвентарный номер"/>
+			<A id="CARDNUMB" name="Номер инвентарной карты" caption="Номер инвентарной карты" labelwidth="300" type="string" nulls="false"/>
+			<A id="OWNERID" name="Принадлежность" nulls="false"/>
+			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+			<A id="OBJNOTE" name="Характеристика инвентарного объекта" caption="Характеристика инвентарного объекта" type="text" nulls="true"/>
+			<A id="OBJMODEL" name="Модель, марка" caption="Модель, марка" type="text" nulls="true"/>
+			<A id="OKOF" name="Код ОКОФ" caption="Код ОКОФ" type="string" nulls="false"/>
+			<A id="WORSNUMBER" name="Заводской номер"/>
+			<A id="PRODUCER" name="Изготовитель"/>
+			<A id="EXEC" name="Материально-ответственное лицо (МОЛ)"/>
+			<A id="ESTABLISHMENT" name="Подразделение"/>
+			<A id="DATEISSUE" name="Дата выпуска"/>
+			<A id="DATECOMMISSIONING" name="Дата ввода в эксплуатацию"/>
+			<A id="SUMNEW" name="Начальная стоимость"/>
+			<A id="SUMAMORT" name="Начальный износ"/>
+			<A id="SUMAMORTNEW" name="Начисленная амортизация"/>
+			<A id="SUMPOST" name="Остаточная стоимость"/>
+			<A id="RAZDEL" name="Связана с разделом" caption="Связана с разделом" type="boolean" visible="grid" readonly="true" virtual="true"/>
+		</TABLE>
+		<TABLE id="INVENTORYHISTORYOTHER" name="История">
+			<A id="INVENTORYOTHERID" parentkey="cascade"/>
+			<GA id="InvOperation"/>
+			<GA id="Document"/>
+			<A id="SUMNEW" name="Новая начальная стоимость" caption="Новая начальная стоимость" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMAMORT" name="Новый начальный износ" caption="Новый начальный износ" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMAMORTNEW" name="Новая начисленная амортизация" caption="Новая начисленная амортизация" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="SUMPOST" name="Новая остаточная стоимость" caption="Новая остаточная стоимость" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="EXECOLD" name="Материально-ответственное лицо до операции" caption="Материально-ответственное лицо до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="EXECNEW" name="Материально-ответственное лицо после операции" caption="Материально-ответственное лицо после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTOLD" name="Подразделение до операции" caption="Подразделение до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTNEW" name="Подразделение после операции" caption="Подразделение после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+		</TABLE>
+		<TABLE id="FUELS" name="Учет ГСМ">
+				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+				<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+				<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+				<A id="JURPERSONS" name="Поставщик" caption="Поставщик" labelwidth="80" width="50" type="string"/>
+				<A id="EXEC" name="Материально-ответственное лицо (МОЛ)" width="50"/>
+				<A id="OBJNUMBER" name="Инвентарный номер"/>
+				<A id="VEHICLENUMBER" name="Номер транспортного средства" caption="Номер транспортного средства" labelwidth="100" width="50" nulls="false" type="string"/>
+			<GA name="Документы" caption="Документы">
+				<A id="DOCTYPE" name="Тип документа" caption="Тип документа" width="35" type="string"/>
+				<A id="DOCNUMBER" name="Номер документа" caption="Номер документа" width="45" type="string"/>
+				<A id="DOCDATE" name="Дата документа" caption="Дата документа" width="20" type="date"/>	
+			</GA>	
+			<GA name="Учет" caption="Учет">
+				<A id="INITIALCOST" name="Первоначальная стоимость" caption="Первоначальная стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+				<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="150" width="50" nulls="false" type="number"/>
+				<A id="AMOUNT" name="Количество в литрах" caption="Количество в литрах" type="number"/>
+			</GA>
+			<A id="OKOF" name="Код ОКОФ" caption="Код ОКОФ" type="string" nulls="false"/>
+		</TABLE>
+		<TABLE id="FUELSDOCS" name="История">
+			<A id="FUELS" parentkey="cascade"/>
+			<A id="TYPEOPERATION" name="Тип операции" caption="Тип операции" type="string" nulls="true"/>
+			<A id="COST" name="Стоимость" caption="Стоимость" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="300" type="number" nulls="true" local="true"/>
+			<A id="AMOUNT" name="Количество" caption="Количество" labelwidth="300" type="number" nulls="true" local="true"/>
+			<A id="EXECOLD" name="Материально-ответственное лицо до операции" caption="Материально-ответственное лицо до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="EXECNEW" name="Материально-ответственное лицо после операции" caption="Материально-ответственное лицо после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTOLD" name="Подразделение до операции" caption="Подразделение до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTNEW" name="Подразделение после операции" caption="Подразделение после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+		</TABLE>
+		<TABLE id="KBSO" name="Книга бланков строгой отчетности">
+				<A id="KBSOSERIAL" name="Серия Книги" caption="Серия книги" labelwidth="100" nulls="false" type="string"/>
+				<A id="KBSONUMBER" name="Номер Книги" caption="Номер книги" labelwidth="100" nulls="false" type="string"/>
+				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+				<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+				<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+				<A id="EXEC" name="Материально-ответственное лицо (МОЛ)" width="50"/>
+				<A id="KBSOSTATUS" name="Состояние" caption="Состояние" labelwidth="100" nulls="false" width="50" type="string"/>
+			<GA name="Бланки" caption="Бланки">	
+				<A id="BSOISSUED" name="Выдано" caption="Выдано" labelwidth="100" nulls="false" width="50" type="string"/>
+				<A id="BSOREALIZED" name="Реализовано" caption="Реализовано" width="50" type="string"/>
+				<A id="BSOREGISTRED" name="Оформлено" caption="Оформлено" width="50" type="string"/>
+				<A id="BSOCRIB" name="Списано" caption="Списано" width="50" type="date"/>	
+			</GA>	
+		</TABLE>
+		<TABLE id="BSO" name="Бланки строгой отчетности">
+				<A id="KBSOID" parentkey="cascade"/>
+				<A id="BSOSERIAL" name="Серия" caption="Серия" labelwidth="100" nulls="false" type="string"/>
+				<A id="BSONUMBER" name="Номер" caption="Номер" labelwidth="100" width="50" nulls="false" type="string"/>
+				<A id="BSOISSUEDTO" name="Выдано под отчет" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+				<A id="BSOREGISTERTO" name="Оформлено на" caption="Наименование номенклатуры" type="text" nulls="false"/>
+				<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+				<A id="BSOSTATUS" name="Состояние" caption="Состояние" labelwidth="100" nulls="false" width="50" type="string"/>
+				<A id="AMOUNT" name="Количество" caption="Количество" labelwidth="100" nulls="false" width="50" type="string"/>
+		</TABLE>
+		<TABLE id="MATERIALS" name="Учет материалов">
+				<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+				<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+				<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+				<A id="AMOUNT" name="Количество" caption="Количество" type="number"/>
+				<A id="JURPERSONS" name="Поставщик" caption="Поставщик" labelwidth="80" width="50" type="string"/>
+				<A id="EXEC" name="Материально-ответственное лицо (МОЛ)" width="50"/>
+			<GA name="Документы" caption="Документы">
+				<A id="DOCTYPE" name="Тип документа" caption="Тип документа" width="35" type="string"/>
+				<A id="DOCNUMBER" name="Номер документа" caption="Номер документа" width="45" type="string"/>
+				<A id="DOCDATE" name="Дата документа" caption="Дата документа" width="20" type="date"/>	
+			</GA>	
+			<GA name="Учет" caption="Учет">
+				<A id="INITIALCOST" name="Первоначальная стоимость" caption="Первоначальная стоимость" labelwidth="180" width="50" nulls="false" type="number"/>
+				<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="150" width="50" nulls="false" type="number"/>
+			</GA>
+			<A id="OKOF" name="Код ОКОФ" caption="Код ОКОФ" type="string" nulls="false"/>
+		</TABLE>
+		<TABLE id="MATERIALSDOCS" name="История">
+			<A id="MATERIALS" parentkey="cascade"/>
+			<A id="TYPEOPERATION" name="Тип операции" caption="Тип операции" type="string" nulls="true"/>
+			<A id="COST" name="Стоимость" caption="Стоимость" labelwidth="300" type="number" len="17.2" nulls="true" local="true"/>
+			<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="300" type="number" nulls="true" local="true"/>
+			<A id="AMOUNT" name="Количество" caption="Количество" labelwidth="300" type="number" nulls="true" local="true"/>
+			<A id="EXECOLD" name="Материально-ответственное лицо до операции" caption="Материально-ответственное лицо до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="EXECNEW" name="Материально-ответственное лицо после операции" caption="Материально-ответственное лицо после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTOLD" name="Подразделение до операции" caption="Подразделение до операции" labelwidth="300" type="string" nulls="true" local="true"/>
+			<A id="ESTABLISHMENTNEW" name="Подразделение после операции" caption="Подразделение после операции" labelwidth="300" type="string" nulls="true" local="true"/>
+		</TABLE>
+		<TABLE id="REQUESTS" name="Заявки">
+			<A id="REQUESTNUMBER" name="Номер заявки" caption="Номер заявки" labelwidth="100"  type="string"/>
+			<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+			<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>
+			<A id="OBJNUMBER" name="Инвентарный номер"/>
+			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+			<A id="EXEC" name="Материально-ответственное лицо (МОЛ)" width="50"/>
+			<A id="REQUESTAPPLICANT" name="Заявитель" caption="Заявитель" labelwidth="200" width="50" type="text"/>
+			<A id="REQUESTTYPE" name="Тип заявки" caption="Тип заявки" labelwidth="200" width="50" type="boolean"/>
+			<A id="OTHERINFO" name="Примечание" caption="Примечание" labelwidth="200" type="text"/>
+			<A id="REQUESTSTARTDATE" name="Дата заявки" caption="Дата заявки" labelwidth="80" width="50" nulls="false" type="date"/>
+			<A id="REQUESTENDDATE" name="Дата выполнения работ" caption="Дата выполнения работ" labelwidth="80" width="50" nulls="false" type="date"/>
+			<A id="APPOINTED" name="Назначенный" caption="Назначенный" labelwidth="80" width="50" nulls="false" type="date"/>
+		</TABLE>
+		<TABLE id="REQUESTSTATUS" name="Статус">
+			<A id="REQUESTS" parentkey="cascade"/>
+			<A id="CURRENTSTATUS" name="Текущий статус" caption="Текущий статус" labelwidth="80" width="50" nulls="false" type="string"/>
+			<A id="DATACHANGINGSTATUS" name="Дата изменения статуса" caption="Дата изменения статуса" labelwidth="80" width="50" nulls="false" type="date"/>
+			<A id="OTHERINFO" name="Примечание" caption="Примечание" labelwidth="200" type="text"/>
+			<A id="CHANGEAUTHOR" name="Автор изменения" caption="Автор изменения" labelwidth="80" nulls="false" type="date"/>
+		</TABLE>
+		<TABLE id="STOCKTAKING" name="Инвентаризация">
+				<GA name="Документы" caption="Документы">
+					<A id="DOCTYPE" name="Тип документа" caption="Тип документа" width="35" type="string"/>
+					<A id="DOCNUMBER" name="Номер документа" caption="Номер документа" width="45" type="string"/>
+					<A id="DOCDATE" name="Дата документа" caption="Дата документа" width="20" type="date"/>
+				</GA>
+					<A id="OWNERID" name="Принадлежность" caption="Принадлежность" labelwidth="100" width="50" nulls="false" type="string"/>
+					<A id="ESTABLISHMENT" name="Подразделение" caption="Подразделение" labelwidth="100" width="50" type="string"/>	
+					<A id="EXEC" name="Материально-ответственное лицо (МОЛ)"/>
+					<A id="OTHERINFO" name="Примечание" caption="Примечание" labelwidth="200" type="text"/>
+				<GA name="Инвентаризация" caption="Инвентаризация">	
+					<A id="STOCKTAKINGSTART" name="Дата начала инвентаризации" caption="Дата начала инвентаризации" labelwidth="80" width="50" nulls="false" type="date"/>
+					<A id="STOCKTAKINGEND" name="Дата окончания инвентаризации" caption="Дата окончания инвентаризации" labelwidth="80" width="50" nulls="false" type="date"/>
+					<A id="LOCATIONSID" name="Местоположение"/>
+				</GA>	
+					<A id="STOCKTAKINGELECT" name="Электронная инвентаризация" caption="Электронная инвентаризация" width="45" type="boolean"/>
+		</TABLE>
+		<TABLE id="STOCKTAKINGDOCS" name="Спецификация инвентаризации">
+			<A id="NAME" name="Наименование номенклатуры" caption="Наименование номенклатуры" type="text" nulls="false"/>
+			<A id="AMOUNT" name="Количество по учету" caption="Количество по учету" width="50" type="number"/>
+			<A id="BALANCECOST" name="Балансовая стоимость" caption="Балансовая стоимость" labelwidth="150" width="50" nulls="false" type="number"/>
+			<A id="VARIANCE" name="Расхождения" caption="Расхождения" labelwidth="150" nulls="false" type="boolean"/>
+			<A id="VARIANCEREASON" name="Причина расхождения" caption="Причина расхождения" labelwidth="150"  nulls="false" type="text"/>
+		</TABLE>
+	</TABLES>	
 	<ACTIONS name="Действия">
+		<ACTION id="Approve" name="Утвердить" type="procedure" procedure="p_statusepf_set_1"/>
+		<ACTION id="Reject" name="Отклонить" type="procedure" procedure="p_statusepf_set_2"/>
+		<ACTION id="Return" name="Откатить смену статуса" type="procedure" procedure="p_statusepf_set_0"/>
+		<ACTION id="InventoryImport" name="Загрузить инвентарные карточки" type="procedure" procedure="p_schedule_inventory_import"/>
+		<ACTION id="ContractsImport" name="Загрузить договоры" type="procedure" procedure="p_schedule_contracts_import"/>
+		<ACTION id="EmployeesImport" name="Загрузить сотрудников" type="procedure" procedure="p_schedule_employees_import"/>
+		<ACTION id="OracleImport" name="Загрузить все разделы" type="procedure" procedure="p_schedule_oracle_import"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
+		<REPORT id="CardComputer" name="Карточка объекта учета (Компьютерное оборудование)" procedure="" template="card_computer.xlsx" nulls="true"/>
+		<REPORT id="CardSoftware" name="Карточка объекта учета (Программное обеспечение)" procedure="" template="card_software.xlsx" nulls="true"/>
+		<REPORT id="CardOfficeequipment" name="Карточка объекта учета (Оргтехника)" procedure="" template="card_officeequipment.xlsx" nulls="true"/>
+		<REPORT id="CardCommunications" name="Карточка объекта учета (Средства связи)" procedure="" template="card_communications.xlsx" nulls="true"/>
+		<REPORT id="CardPurchasefin" name="Заявка на финансирование" procedure="" template="card_purchasefin.xlsx" nulls="true"/>
+		<REPORT id="ObjectAccountingList" name="Перечень объектов учета по принадлежности" procedure="" template="object_accounting_list.xlsx" nulls="true">
+			<FORM>
+				<A id="OWNER" caption="Принадлежность" labelwidth="200" type="ref" table="OWNER" ret="CODE" form="Owner" array="true" nulls="true" local="true"/>
+				<A id="TYPEOBJECT" caption="Тип обьектов учета" labelwidth="200" type="list" nulls="true" formula="" local="true">
+					<AI id="EQUIPMENT" name="Компьютерная техника"/>
+					<AI id="OFFICEEQUIPMENT" name="Оргтехника"/>
+					<AI id="COMMUNICATIONS" name="Средства связи"/>
+				</A>
+				<A id="STATUS" caption="Статус" labelwidth="200" type="ref" table="STATUSES" ret="CODE" form="Statuses" nulls="true" formula="" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="SoftwareList" name="Перечень программного обеспечения" procedure="" template="software_list.xlsx" nulls="true">
+			<FORM>
+				<A id="OWNER" caption="Принадлежность" labelwidth="200" type="ref" table="OWNER" ret="CODE" form="Owner" nulls="true" local="true"/>
+				<A id="TYPESSOFTWARE" caption="Вид ПО" labelwidth="200" type="ref" table="TYPESSOFTWARE" ret="CODE" form="TypesSoftware" nulls="true" formula="" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="ObjectEmployeesList" name="Объекты учета, привязанные к сотруднику" procedure="" template="object_employees_list.xlsx" nulls="true">
+			<FORM>
+				<A id="OWNER" caption="Принадлежность" labelwidth="200" type="ref" table="OWNER" ret="CODE" form="Owner" nulls="true" local="true"/>
+				<A id="TYPEOBJECT" caption="Тип обьектов учета" labelwidth="200" type="list" nulls="true" formula="" local="true">
+					<AI id="EQUIPMENT" name="Компьютерная техника"/>
+					<AI id="OFFICEEQUIPMENT" name="Оргтехника"/>
+					<AI id="COMMUNICATIONS" name="Средства связи"/>
+				</A>
+				<A id="EMPLOYEES" caption="МОЛ - Сотрудник" labelwidth="200" type="ref" table="EMPLOYEES" ret="CODE" form="Employees" nulls="false" formula="" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="ObjectOutList" name="Списанные объекты учета за период" procedure="" template="object_out_list.xlsx" nulls="true">
+			<FORM>
+				<A id="OWNER" caption="Принадлежность" labelwidth="200" type="ref" table="OWNER" ret="CODE" form="Owner" nulls="true" local="true"/>
+				<A id="TYPEOBJECT" caption="Тип обьектов учета" labelwidth="200" type="list" nulls="true" formula="" local="true">
+					<AI id="EQUIPMENT" name="Компьютерная техника"/>
+					<AI id="OFFICEEQUIPMENT" name="Оргтехника"/>
+					<AI id="NETWORKSEQUIPMENT" name="Сетевое оборудование"/>
+					<AI id="COMMUNICATIONS" name="Средства связи"/>
+				</A>
+				<A id="DATE_FROM" caption="Дата c..." labelwidth="200" type="date" formula="now()" local="true"/>
+				<A id="DATE_TO" caption="Дата по..." labelwidth="200" type="date" formula="now()" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="ObjectInputList" name="Введено в эксплуатацию за период" procedure="" template="object_input_list.xlsx" nulls="true">
+			<FORM>
+				<A id="OWNER" caption="Принадлежность" labelwidth="200" type="ref" table="OWNER" ret="CODE" form="Owner" nulls="true" local="true"/>
+				<A id="TYPEOBJECT" caption="Тип обьектов учета" labelwidth="200" type="list" nulls="true" formula="" local="true">
+					<AI id="EQUIPMENT" name="Компьютерная техника"/>
+					<AI id="OFFICEEQUIPMENT" name="Оргтехника"/>
+					<AI id="NETWORKSEQUIPMENT" name="Сетевое оборудование"/>
+					<AI id="COMMUNICATIONS" name="Средства связи"/>
+				</A>
+				<A id="DATE_FROM" caption="Дата c..." labelwidth="200" type="date" formula="now()" local="true"/>
+				<A id="DATE_TO" caption="Дата по..." labelwidth="200" type="date" formula="now()" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="RequestList" name="Список заявок за период" procedure="" template="request_list.xlsx" nulls="true">
+			<FORM>
+				<A id="OWNER" caption="Принадлежность" labelwidth="200" type="ref" table="OWNER" ret="CODE" form="Owner" nulls="true" local="true"/>
+				<A id="REPYEAR" caption="Финансовый год" labelwidth="200" type="int" nulls="true" formula="" local="true"/>
+			</FORM>
+		</REPORT>
 	</REPORTS>
 	<FORMS id="Forms" name="Формы">
+		<FORM id="Owner" name="Принадлежность">
+			<GRID id="Owner" name="Принадлежность" table="OWNER"/>
+		</FORM>
+		<FORM id="Employees" name="Сотрудники">
+			<GRID id="Employees" name="Сотрудники" table="EMPLOYEES"/>
+		</FORM>
+		<FORM id="Locations" name="Местоположения">
+			<GRID id="Locations" name="Местоположение" table="LOCATIONS"/>
+		</FORM>
+		<FORM id="TypesEquipment" name="Типы оборудования">
+			<GRID id="TypesEquipment" name="Типы оборудования" table="TYPESEQUIPMENT"/>
+			<GRID id="ModelEquipment" name="Модели" table="MODELEQUIPMENT"/>
+		</FORM>
+		<FORM id="TypesSoftware" name="Виды программного обеспечения">
+			<GRID id="TypesSoftware" name="Виды программного обеспечения" table="TYPESSOFTWARE"/>
+			<GRID id="VersionSoftware" name="Версии" table="VERSIONSOFTWARE"/>
+		</FORM>
+		<FORM id="TypesOfficeEquipment" name="Типы оргтехники">
+			<GRID id="TypesOfficeEquipment" name="Типы оргтехники" table="TYPESOFFICEEQUIPMENT"/>
+			<GRID id="ModelOfficeEquipment" name="Модели" table="MODELOFFICEEQUIPMENT"/>
+		</FORM>
+		<FORM id="TypesCommunicationFacilities" name="Типы средств связи">
+			<GRID id="TypesCommunicationFacilities" name="Типы средств связи" table="TYPESCOMMUNICATIONFACILITIES"/>
+			<GRID id="ModelCommunicationFacilities" name="Модели" table="MODELCOMMUNICATIONFACILITIES"/>
+		</FORM>
+		<FORM id="TypesElectronicSignatures" name="Типы электронно-цифровых подписей">
+			<GRID id="TypesElectronicSignatures" name="Типы электронно-цифровых подписей" table="TYPESELECTRONICSIGNATURES"/>
+		</FORM>
+		<FORM id="Statuses" name="Статусы">
+			<GRID id="Statuses" name="Статусы" table="STATUSES"/>
+		</FORM>
+		<FORM id="Specifications" name="Технические характеристики">
+			<GRID id="Specifications" name="Технические характеристики" table="SPECIFICATIONS"/>
+		</FORM>
+		<FORM id="Contracts" name="Договоры">
+			<GRID id="Contracts" name="Договоры" table="CONTRACTS"/>
+			<TABS>
+				<TAB name="Финансирование">
+					<GRID id="ContractsFinancing" name="Финансирование" table="CONTRACTSFINANCING"/>
+				</TAB>
+				<TAB name="Этапы">
+					<GRID id="ContractsStages" name="Этапы" table="CONTRACTSSTAGES"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Inventory" name="Инвентарная картотека">
+			<GRID id="Inventory" name="Инвентарная картотека" table="INVENTORY"/>
+			<GRID id="InventoryHistory" name="История" table="INVENTORYHISTORY"/>
+		</FORM>
+		<FORM id="PurchaseFin" name="Заявки">
+			<GRID id="PurchaseFin" name="Заявки" table="PURCHASEFIN" reportlist="CardPurchasefin"/>
+			<TABS>
+				<TAB name="Закупки новых объектов">
+					<TABS>
+						<TAB name="Оборудование">
+							<GRID id="PfEquipment" name="Оборудование" table="PFEQUIPMENT" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="ПО">
+							<GRID id="PfSoftware" name="Программное  обеспечение" table="PFSOFTWARE" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Оргтехника">
+							<GRID id="PfOfficeequipment" name="Оргтехника" table="PFOFFICEEQUIPMENT" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Сети">
+							<GRID id="PfNetworksequipment" name="Сетевое оборудование" table="PFNETWORKSEQUIPMENT" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Связь">
+							<GRID id="PfCommunications" name="Средства связи" table="PFCOMMUNICATIONS" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Комплектующие">
+							<GRID id="PfComponents" name="Комплектующие и расходные материалы" table="PFCOMPONENTS" actionlist="Approve;Reject;Return"/>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Закупки для учтенных объектов">
+					<TABS>
+						<TAB name="Оборудование">
+							<GRID id="PfEquipmentOld" name="Оборудование" table="PFEQUIPMENTOLD" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="ПО">
+							<GRID id="PfSoftwareOld" name="Программное  обеспечение" table="PFSOFTWAREOLD" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Оргтехника">
+							<GRID id="PfOfficeequipmentOld" name="Оргтехника" table="PFOFFICEEQUIPMENTOLD" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Сети">
+							<GRID id="PfNetworksequipmentOld" name="Сетевое оборудование" table="PFNETWORKSEQUIPMENTOLD" actionlist="Approve;Reject;Return"/>
+						</TAB>
+						<TAB name="Связь">
+							<GRID id="PfCommunicationsOld" name="Средства связи" table="PFCOMMUNICATIONSOLD" actionlist="Approve;Reject;Return"/>
+						</TAB>
+					</TABS>
+				</TAB>
+				<TAB name="Файлы">
+					<GRID id="FilePurchaseFin" name="Файлы" table="FILEPURCHASEFIN" actionlist="addFilelinks;loadFilelinks"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Equipment" name="Оборудование">
+			<GRID id="Equipment" name="Оборудование" table="EQUIPMENT" reportlist="CardComputer"/>
+			<TABS>
+				<TAB name="Характеристики оборудования">
+					<GRID id="SpecificationsEquipment" name="Характеристики оборудования" table="SPECIFICATIONSEQUIPMENT"/>
+				</TAB>
+				<TAB name="Ремонт">
+					<GRID id="SpEquipmentRepairs" name="Ремонт" table="SPEQUIPMENTREPAIRS"/>
+				</TAB>
+				<TAB name="Обслуживание">
+					<GRID id="SpEquipmentService" name="Обслуживание" table="SPEQUIPMENTSERVICE"/>
+				</TAB>
+				<TAB name="Программное обеспечение">
+					<GRID id="SpEquipmentPo" name="Программное обеспечение" table="SPEQUIPMENTPO"/>
+				</TAB>
+				<TAB name="Сеть">
+					<GRID id="SpEquipmentLvs" name="Сеть" table="SPEQUIPMENTLVS"/>
+				</TAB>
+				<TAB name="Договоры">
+					<GRID id="SpEquipmentDoc" name="Договоры" table="SPEQUIPMENTDOC"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Software" name="Программное обеспечение">
+			<GRID id="Software" name="Программное обеспечение" table="SOFTWARE" reportlist="CardSoftware"/>
+			<TABS>
+				<TAB name="Оборудование">
+					<GRID id="Softwareequipment" name="Оборудование" table="SPEQUIPMENTPO"/>
+				</TAB>
+				<TAB name="Договоры">
+					<GRID id="SpSoftwareDoc" name="Договоры" table="SPSOFTWAREDOC"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="OfficeEquipment" name="Оргтехника">
+			<GRID id="OfficeEquipment" name="Оргтехника" table="OFFICEEQUIPMENT" reportlist="CardOfficeequipment"/>
+			<TABS>
+				<TAB name="Характеристики оргтехники">
+					<GRID id="SpecificationsOfficeEquipment" name="Характеристики оргтехники" table="SPECIFICATIONSOFFICEEQUIPMENT"/>
+				</TAB>
+				<TAB name="Ремонт">
+					<GRID id="SpOfeRepairs" name="Ремонт" table="SPOFEREPAIRS"/>
+				</TAB>
+				<TAB name="Обслуживание">
+					<GRID id="SpOfeService" name="Обслуживание" table="SPOFESERVICE"/>
+				</TAB>
+				<TAB name="Договоры">
+					<GRID id="SpOfeDoc" name="Договоры" table="SPOFEDOC"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Communications" name="Средства связи">
+			<GRID id="Communications" name="Средства связи" table="COMMUNICATIONS" reportlist="CardCommunications"/>
+			<TABS>
+				<TAB name="Характеристики оборудования">
+					<GRID id="SpecificationsCommunications" name="Характеристики оборудования" table="SPECIFICATIONSCOMMUNICATIONS"/>
+				</TAB>
+				<TAB name="Ремонт">
+					<GRID id="SpComRepairs" name="Ремонт" table="SPCOMREPAIRS"/>
+				</TAB>
+				<TAB name="Обслуживание">
+					<GRID id="SpComService" name="Обслуживание" table="SPCOMSERVICE"/>
+				</TAB>
+				<TAB name="Договоры">
+					<GRID id="SpComDoc" name="Договоры" table="SPCOMDOC"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="ElectronicSignatures" name="Учет электронно-цифровых подписей">
+			<GRID id="ElectronicSignatures" name="Учет электронно-цифровых подписей" table="ELECTRONICSIGNATURES"/>
+		</FORM>
+		<FORM id="ControlElectronicSignatures" name="Контроль электронно-цифровых подписей">
+			<GRID id="ControlElectronicSignatures" name="Контроль электронно-цифровых подписей" table="CONTROLELECTRONICSIGNATURES"/>
+		</FORM>
+		<FORM id="Networks" name="Локальные вычислительные сети">
+			<GRID id="Networks" name="Локальные вычислительные сети" table="NETWORKS" reportlist="CardNetworks"/>
+			<TABS>
+				<TAB name="IP адреса">
+					<GRID id="SpecificayionsIP" name="IP адреса" table="SPECIFICATIONSIP"/>
+				</TAB>
+				<TAB name="Договоры">
+					<GRID id="SpDoc" name="Договоры" table="SPDOC"/>
+				</TAB>
+				<TAB name="Файлы">
+					<GRID id="FileNetworks" name="Файлы" table="FILENETWORKS" actionlist="addFilelinks;loadFilelinks"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Vehicles" name="Транспортные средства">
+			<GRID id="Vehicles" name="Транспортные средства" table="VEHICLES"/>
+			<GRID id="Vehdocs" name="Транспортные средства: документы" table="VEHDOCS"/>
+		</FORM>
+		<FORM id="Buildings" name="Здания и сооружения">
+			<GRID id="Buildings" name="Здания и сооружения" table="BUILDINGS"/>
+			<GRID id="Builddocs" name="Здания и сооружения" table="BUILDDOCS"/>
+		</FORM>
+		<FORM id="Landplot" name="Земельные участки">
+			<GRID id="Landplot" name="Земельные участки" table="LANDPLOT"/>
+			<GRID id="Landdocs" name="Земельные участки спецификция" table="LANDDOCS"/>
+		</FORM>
+		<FORM id="Inventoryother" name="Инвентарная картотека иных средств">
+			<GRID id="Inventoryother" name="Инвентарная картотека" table="INVENTORYOTHER"/>
+			<GRID id="InventoryHistoryother" name="История" table="INVENTORYHISTORYOTHER"/>
+		</FORM>
+		<FORM id="Fuels" name="Инвентарная картотека иных средств">
+			<GRID id="Fuels" name="Учет ГСМ" table="FUELS"/>
+			<GRID id="Fuelsoperations" name="История" table="FUELSOPERATIONS"/>
+		</FORM>
 	</FORMS>
 </SYSTEM>
