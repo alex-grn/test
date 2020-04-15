@@ -336,6 +336,13 @@
 		<A id="WRITEOFF_STATEMENT_HEADERID" name="Ведомость выдачи МЗ" caption="Ведомость выдачи МЗ" labelwidth="200" type="ref" table="WRITEOFF_STATEMENT_HEADER" ret="ID" nulls="false"/>
 		<A id="WRITEOFF_INVOICE_HEADERID" name="Ведомость на внутреннее перемещение МЗ" caption="Ведомость на внутреннее перемещение МЗ" labelwidth="200" type="ref" table="WRITEOFF_INVOICE_HEADER" ret="ID" nulls="false"/>
 		<A id="WRITEOFF_ACTS_HEADERID" name="Акт о списании МЗ" caption="Акт списании МЗ" labelwidth="200" type="ref" table="WRITEOFF_ACTS_HEADER" ret="ID" nulls="false"/>
+		<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
+			<AI id="1" name="1"/>
+			<AI id="2" name="3"/>
+			<AI id="3" name="3"/>
+			<AI id="4" name="4"/>
+			<AI id="5" name="5"/>
+		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
@@ -1284,7 +1291,7 @@
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" labelwidth="250" width="70" type="date" local="true"/>
 						<A id="DOCTYPEID" readonly="true" value="16"/>
-						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE)" local="true"/>
 						<A id="DOCDATE" name="Дата" caption="Дата" width="50" type="date" local="true"/>
 						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
@@ -1295,13 +1302,7 @@
 						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24) (макс. 235 символов)" type="text" nulls="false" local="true"/>
 						<A id="PURPOSELENGHT" name="Длина строки" type="string" visible="false" readonly="true" virtual="true" formula="select 'Назначение платежа ('||length(PURPOSE)||' симв., макс 235 симв.)' from PAYDOCS t where t.ID = @ID"/>
 						<A id="EXPDATE" name="Срок платежа (19)" caption="Срок платежа (19)" type="date" local="true"/>
-						<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
-							<AI id="1" name="1"/>
-							<AI id="2" name="3"/>
-							<AI id="3" name="3"/>
-							<AI id="4" name="4"/>
-							<AI id="5" name="5"/>
-						</A>
+						<A id="PRIORITY"/>
 						<A id="IDPAYMENT" name="Код (22)" caption="Код (22)" type="string" local="true"/>
 					</GA>
 					<A id="DOCLINKS_IN"/>
@@ -2359,6 +2360,13 @@
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesPersFormPP" name="Сформировать ПП" type="procedure" procedure="p_action_stages_pers_form_pp">
+			<FORM name="Параметры">
+				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<A id="PRIORITY"/>
+				<A id="TYPICALOPERSID"/>
+			</FORM>
+		</ACTION>
 		<ACTION id="StagesActsWorkServ" name="Сформировать акт" type="procedure" procedure="p_action_stages_acts_work_serv">
 			<FORM name="Параметры">
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="200" width="20" type="string" nulls="false" local="true"/>
@@ -2917,7 +2925,7 @@
 							<GRID id="PersonsDocsGR" name="Договор" table="PERSON_CONTRACTSDOCS"/>
 						</TAB>
 						<TAB name="Состав работ/услуг">
-							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesActsWorkServ"/>
+							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesActsWorkServ;StagesPersFormPP"/>
 						</TAB>
 					</TABS>
 				</TAB>
