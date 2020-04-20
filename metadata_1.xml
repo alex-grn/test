@@ -74,10 +74,6 @@
 			<AI id="file" name="Файл"/>
 		</A>
 		<A id="FILENAME" name="Имя файла" caption="Имя файла" type="string" nulls="true"/>
-		<A id="DOCTYPEID" name="Тип документа" caption="Тип" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false"/>
-		<A id="DOCPREF" name="Префикс документа" caption="Префикс" type="string" len="80" nulls="true"/>
-		<A id="DOCNUMB" name="Номер документа" caption="Номер" type="string" len="80" nulls="false"/>
-		<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="false"/>
 		<A id="SUMM" name="Сумма" caption="Сумма" type="number" len="17.2" nulls="false" value="0"/>
 		<A id="CLASSNODE" name="Класс" caption="Класс" type="list" nulls="false">
 			<AI id="SYSTEM" name="Система"/>
@@ -243,9 +239,6 @@
 		<A id="UNITID" name="Объект доступа" caption="Объект доступа" type="ref" table="UNITS" ret="NAME" form="Units" nulls="false"/>
 		<A id="LEVACCESSID" name="Уровень доступа" caption="Уровень доступа" type="ref" table="LEVACCESS" ret="NAME" form="LevAccess" nulls="true"/>
 		<A id="FILELINKSID" name="Описание файла" caption="Описание файла" type="ref" table="FILELINKS" ret="DESCRIPTION" form="Filelinks" nulls="true"/>
-		<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID"/>
-		<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID"/>
-		<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID"/>
 		<A id="CONFIGTABLESBUFFID" name="Настройки интерфейса таблиц (буфер)" caption="Настройки интерфейса таблиц (буфер)" type="ref" table="CONFIGTABLESBUFF" ret="TABLEID" nulls="false"/>
 		<A id="CONFIGCOLUMNSBUFFID" name="Настройки интерфейса колонок (буфер)" caption="Настройки интерфейса колонок (буфер)" type="ref" table="CONFIGCOLUMNSBUFF" ret="COLUMNID" nulls="false"/>
 		<A id="CONFIGTABLESID" name="Настройки интерфейса таблиц" caption="Настройки интерфейса таблиц" type="ref" table="CONFIGTABLES" ret="TABLEID" nulls="false"/>
@@ -271,33 +264,11 @@
 			<A id="NAME"/>
 			<A id="NOTE"/>
 		</GA>
-		<GA id="Document" name="Документ" caption="Документ">
-			<A id="DOCTYPEID" caption="Документ" width="40"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
-			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
-		</GA>
-		<GA id="DocumentP" name="Документ" caption="Документ">
-			<A id="DOCTYPEID" labelwidth="90" width="20"/>
-			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
-			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
-		</GA>
-		<GA id="DocumentAutoNumb" name="Документ" caption="Документ">
-			<A id="DOCTYPEID" caption="Документ" width="40"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::numeric+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
-			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
-		</GA>
-		<GA id="DocumentAutoNumbP" name="Документ" caption="Документ">
-			<A id="DOCTYPEID" labelwidth="90" width="20"/>
-			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
-			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::numeric+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
-			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
-		</GA>
 		<GA id="FileInformation" name="Сведения о загруженном файле" caption="Сведения о загруженном файле">
 			<A id="FILELINKSID" name="Описание файла"/>
-			<A id="PRFILEVIRT"/>
-			<A id="SIZEVIRT"/>
-			<A id="DOCDATEVIRT"/>
+			<A id="PRFILEVIRT" name="Имя файла" caption="Имя файла" labelwidth="200" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.filename from filelinks f where f.id = @FILELINKSID"/>
+			<A id="SIZEVIRT" name="Размер файла" caption="Размер файла" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID"/>
+			<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки файла" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID"/>
 		</GA>
 		<GA id="ConfigTables">
 			<GA>
@@ -509,10 +480,6 @@
 			<A id="STRVALUE"/>
 			<A id="NUMVALUE"/>
 			<A id="DATVALUE"/>
-			<TI unique="CODE"/>
-		</TABLE>
-		<TABLE id="DOCTYPES" name="Типы документов">
-			<GA id="Dictionary"/>
 			<TI unique="CODE"/>
 		</TABLE>
 		<TABLE id="FILELINKS" name="Файлы">
@@ -845,7 +812,7 @@
 				<A id="REMOVE" caption="Удалить каскадно из назначения прав" type="boolean" nulls="false" value="true" local="true"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_period="0" schedule_start="15" type="procedure" procedure="p_system_transaction_clear"/>
+		<ACTION id="transaction_clear" name="Очистка таблиц от транзакционных записей по расписанию" schedule_start="15" schedule_period="0" type="procedure" procedure="p_system_transaction_clear"/>
 		<ACTION id="setLID" name="Установить уровень доступа" type="procedure" procedure="p_system_set_levaccess">
 			<FORM>
 				<A id="LEVACCESSID"/>
@@ -954,9 +921,6 @@
 		</FORM>
 		<FORM id="Options" name="Параметры системы">
 			<GRID id="Options" name="Параметры системы" table="OPTIONS"/>
-		</FORM>
-		<FORM id="DocTypes" name="Типы документов">
-			<GRID id="DocTypes" name="Типы документов" table="DOCTYPES"/>
 		</FORM>
 		<FORM id="ConfigTables" name="Настройки интерфейсов">
 			<GRID name="Таблицы" table="CONFIGTABLES" actionlist="ConfigTablesCopy" readonly="true">
