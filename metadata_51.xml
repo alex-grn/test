@@ -635,6 +635,8 @@
 			<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность получателя пособия"/>
 			<A id="LINKREGVIRT" name="Ссылка на реестр" type="boolean" visible="grid" virtual="true" formula="select COALESCE(max('true'), (select COALESCE(max('true'), (select COALESCE(max('true'), (select COALESCE(max('true'), (select COALESCE(max('true'), (select COALESCE(max('true'), (select COALESCE(max('true'),'false') from benefit07 s7 where s7.benefitsrecipientsid = @ID limit 1)) from benefit06 s6 where s6.benefitsrecipientsid = @ID limit 1)) from benefit05 s5 where s5.benefitsrecipientsid = @ID limit 1)) from benefit04 s4 where s4.benefitsrecipientsid = @ID limit 1)) from benefit03 s3 where s3.benefitsrecipientsid = @ID limit 1)) from benefit02 s2 where s2.benefitsrecipientsid = @ID limit 1)) from benefit01 s1 where s1.benefitsrecipientsid = @ID limit 1" local="true"/>
 			<TI unique="LASTNAME,FIRSTNAME,PATRONYMIC,PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER"/>
+		
+<TI id="IR_BENEFITSRECIPIENTS_FD_LOAD" index="PERSONDOCUMENTTYPEID, (COALESCE(NULLIF((LASTNAME)::TEXT,''::TEXT),'-'::TEXT)),(COALESCE(NULLIF((FIRSTNAME)::TEXT,''::TEXT),'-'::TEXT)),(COALESCE(NULLIF((PATRONYMIC)::TEXT,''::TEXT),'-'::TEXT)),(COALESCE(NULLIF((PERSONDOCUMENTSERIES)::TEXT,''::TEXT),'-'::TEXT)),(COALESCE(NULLIF((PERSONDOCUMENTNUMBER)::TEXT,''::TEXT),'-'::TEXT)),CID"/>
 		</TABLE>
 		<TABLE id="BENEFITCHILD" name="Сведения о ребенке получателя пособия">
 			<A id="BENEFITSRECIPIENTSID" parentkey="cascade"/>
@@ -649,6 +651,9 @@
 			</GA>
 			<TI id="BENEFITCHILD_UK1" unique="BENEFITSRECIPIENTSID,DOCBIRTHCHILDTYPEID,DOCBIRTHCHILDSERIAL,DOCBIRTHCHILDNUMBER"/>
 			<TI id="BENEFITCHILD_UK2" unique="BENEFITSRECIPIENTSID,BENEFITCHILDUMBER"/>
+			<TI 
+id="IR_BENEFITCHILD_CHILD_NUM" index="BENEFITSRECIPIENTSID,BENEFITCHILDUMBER,CID"/>
+			<TI id="IR_BENEFITCHILD_RECIP" index="BENEFITSRECIPIENTSID,DOCBIRTHCHILDTYPEID,(COALESCE(NULLIF((DOCBIRTHCHILDSERIAL)::TEXT,''::TEXT),'-'::TEXT)),(COALESCE(NULLIF((DOCBIRTHCHILDNUMBER)::TEXT,''::TEXT),'-'::TEXT)),CID"/>
 			<TI id="IR_BENEFITCHILD_CHILDUMBER" index="ID,BENEFITCHILDUMBER"/>
 		</TABLE>
 		<TABLE id="REMARK" name="Примечания">
