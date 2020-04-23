@@ -1343,7 +1343,8 @@
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" labelwidth="250" width="70" type="date" local="true"/>
 						<A id="DOCTYPEID" readonly="true" value="16"/>
-						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE)" local="true"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" 
+formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid = 0" local="true"/>
 						<A id="DOCDATE" name="Дата" caption="Дата" width="50" type="date" local="true"/>
 						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
@@ -1958,7 +1959,8 @@
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
 					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
-					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
+					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" 
+formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid=0"/>
 					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
 						<AI id="1" name="Создан" actionlist="InventoryDocsToTransactionlog"/>
@@ -2480,6 +2482,19 @@
 		<ACTION id="StagesFormRKO" name="Сформировать РКО" type="procedure" procedure="p_action_stages_form_rko">
 			<FORM name="Параметры">
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION 
+id="StagesFormINV" name="Сформировать Поступление МЗ" type="procedure" procedure="p_action_stages_create_inv">
+			<FORM name="Параметры">
+				<A id="DOCTYPEID" nulls="false" readonly="false" value="29"/>
+				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<GA name="Документ поставщика" caption="Документ поставщика">
+					<A id="SDOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="20" type="string" nulls="false" local="true"/>
+					<A id="DDOCDATEIN" name="Дата" caption="Дата" labelwidth="80" width="20" type="date" nulls="false" local="true"/>
+				</GA>
+				<A id="RESPPERSON"/>
+				<A id="TYPICALOPERSID" pid="DOCTYPEID"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="StagesPersFormPP" name="Сформировать ПП" type="procedure" procedure="p_action_stages_pers_form_pp">
@@ -3049,7 +3064,8 @@
 						</TAB>
 						<TAB name="Состав работ/услуг">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CONTRACTSDOCS f where f.id = @CONTRACTSDOCSID" local="true"/>
-							<GRID id="StagesGR" name="Состав работ/услуг" table="STAGES" actionlist="setLID;StagesFormPP;StagesActsWorkServ"/>
+							<GRID id="StagesGR" name="Состав работ/услуг" table="STAGES" 
+actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
 						</TAB>
 					</TABS>
 				</TAB>
