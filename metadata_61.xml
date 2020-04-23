@@ -829,7 +829,7 @@
 				<A id="BEGINDATE" caption="Дата с" labelwidth="100" width="50" nulls="false" readonly="true"/>
 				<A id="ENDDATE" caption="Дата по" labelwidth="100" width="50" nulls="false" readonly="true"/>
 			</GA>
-			<A id="ELECTCOMMINCAMPID" caption="Избирательная комиссия" labelwidth="200" parentkey="nocascade"/>
+			<A id="ELECTCOMMINCAMPID" caption="Избирательная комиссия" labelwidth="200" parentkey="cascade"/>
 			<A id="LEVELELCOMMITTEE" labelwidth="200" nulls="false" readonly="true" virtual="true" formula="select IK.LEVELELCOMMITTEE from ELECTCOMMINCAMP k, ELECTCOMMITTEE IK where k.id = @ELECTCOMMINCAMPID and IK.ID = k.ELECTCOMMITTEEid">
 				<AI id="territory" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
 				<AI id="circuit" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
@@ -1082,7 +1082,7 @@
 			<TI unique="ELECTCOMMINCAMPID"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
-			<A id="ELECTCOMMITTEEID" labelwidth="300" parentkey="nocascade" readonly="true" virtual="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
+			<A id="ELECTCOMMITTEEID" labelwidth="300" readonly="true" virtual="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
 			<A id="PERSONID" labelwidth="300"/>
 			<A id="FULLNAME" name="Полное имя" caption="Полное имя" labelwidth="300" type="string" readonly="true" virtual="true" formula="select t.name from person t where t.id = @PERSONID" local="true"/>
 			<TI unique="PERSONID"/>
@@ -1182,7 +1182,7 @@
 		</TABLE>
 		<TABLE id="CONTRACTSDOCS" name="Договоры с юридическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
+			<A id="ELECTCAMPAIGNID"  visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
 			<GA name="Договор" caption="Договор">
@@ -1343,8 +1343,7 @@
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" labelwidth="250" width="70" type="date" local="true"/>
 						<A id="DOCTYPEID" readonly="true" value="16"/>
-						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" 
-formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid = 0" local="true"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE)" local="true"/>
 						<A id="DOCDATE" name="Дата" caption="Дата" width="50" type="date" local="true"/>
 						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
@@ -1405,7 +1404,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		</TABLE>
 		<TABLE id="PAYDOCSCONS" name="Расшифровка платежа (Платежные поручения)">
 			<A id="PAYDOCSID" parentkey="cascade"/>
-			<A id="DOCTYPEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select DOCTYPEID from PAYDOCS where id = @PAYDOCSID"/>
+			<A id="DOCTYPEID" visible="false" readonly="true" virtual="true" formula="select DOCTYPEID from PAYDOCS where id = @PAYDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID" local="true"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="600" type="number" len="10.2" nulls="false" local="true"/>
 			<GA id="TYPICALOPERATION"/>
@@ -1455,7 +1454,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		</TABLE>
 		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
-			<A id="DOCTYPEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select r.DOCTYPEID from RECEIPTSDOCS r where r.id = @RECEIPTSDOCSID"/>
+			<A id="DOCTYPEID" visible="false" readonly="true" virtual="true" formula="select r.DOCTYPEID from RECEIPTSDOCS r where r.id = @RECEIPTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="70" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="70" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 			<GA id="TYPICALOPERATION"/>
@@ -1619,7 +1618,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		</TABLE>
 		<TABLE id="CASHRECEIPT" name="ПКО Расшифровка платежа">
 			<A id="CASHRECEIPTHEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from CASHRECEIPT_HEADER where id=@CASHRECEIPTHEADERID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from CASHRECEIPT_HEADER where id=@CASHRECEIPTHEADERID"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
 				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT where CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID and cid=0" local="true"/>
 				<A id="SUMMPAY" name="сумма" caption="сумма" labelwidth="60" width="50"/>
@@ -1683,7 +1682,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		</TABLE>
 		<TABLE id="STATEMENT_HEADER" name="Ведомость на выдачу денег из кассы подотчетным лицам">
 			<A id="CASHDOCSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="false" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="false" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
@@ -1869,7 +1868,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" labelwidth="200" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" labelwidth="200" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" labelwidth="200" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
-				<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, CONTRACTSDOCS cd where cd.id=@CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
+				<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, CONTRACTSDOCS cd where cd.id=@CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -1877,7 +1876,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		</TABLE>
 		<TABLE id="ACTSGOODS" name="Спецификация акта юр.лиц">
 			<A id="ACTSDOCSID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from ACTSDOCS where id=@ACTSDOCSID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from ACTSDOCS where id=@ACTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSGOODS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
 			<A id="CONTRACTSDOCSID" labelwidth="125" width="40" visible="false" readonly="true" virtual="true" formula="select t.CONTRACTSDOCSID from ACTSDOCS t where t.id = @ACTSDOCSID"/>
 			<GA name="Спецификация акта" caption="Спецификация акта">
@@ -1914,7 +1913,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from PERSON_CONTRACTSDOCS t, PERSON a where t.id = @PERSON_CONTRACTSDOCSID and a.id=t.PERSONID"/>
-				<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, PERSON_CONTRACTSDOCS cd where cd.id=@PERSON_CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
+				<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, PERSON_CONTRACTSDOCS cd where cd.id=@PERSON_CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -1922,7 +1921,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		</TABLE>
 		<TABLE id="PERS_ACTSGOODS" name="Спецификация акта физ.лица">
 			<A id="PERSACTSDOCSID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from PERS_ACTSDOCS where id=@PERSACTSDOCSID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from PERS_ACTSDOCS where id=@PERSACTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSGOODS where PERSACTSDOCSID = @PERSACTSDOCSID and cid=0"/>
 			<GA name="Спецификация акта" caption="Спецификация акта">
 				<A id="PERSON_CONTRACTSDOCSID" labelwidth="125" width="40" visible="false" readonly="true" virtual="true" formula="select t.PERSON_CONTRACTSDOCSID from PERS_ACTSDOCS t where t.id = @PERSACTSDOCSID"/>
@@ -1958,9 +1957,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 			<TABS>
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
-					<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
-					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" 
-formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid=0"/>
+					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
+					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
 					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
 						<AI id="1" name="Создан" actionlist="InventoryDocsToTransactionlog"/>
@@ -2004,7 +2002,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="INVENTORY_GOODS" name="Спецификация товарных накладных">
 			<A id="INVENTORY_DOCSID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
 			<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="150" type="bigint" visible="false" virtual="true" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_GOODS where INVENTORY_DOCSID = @INVENTORY_DOCSID and cid=0"/>
 			<GA name="Спецификация договора" caption="Спецификация договора">
@@ -2168,7 +2166,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="INVENTORY_TRIAL_BALANCEDOCS" name="Оборотные ведомости по нефинансовым активам">
 			<A id="INVENTORY_TRIAL_BALANCEID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE where id=@INVENTORY_TRIAL_BALANCEID"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE where id=@INVENTORY_TRIAL_BALANCEID"/>
 			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false" local="true"/>
 			<A id="ACCOUNTID" name="Счет" caption="Счет" labelwidth="120"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when (select count( li.keyin) + count(lo.keyout) from INVENTORY_TRIAL_BALANCE_CHANGE c left join INVENTORY_TRIAL_BALANCE_DICNOMNS d on d.id = c.INVENTORY_TRIAL_BALANCE_DICNOMNSID left join INVENTORY_TRIAL_BALANCEDOCS s on s.id = d. INVENTORY_TRIAL_BALANCEDOCSID left join doclinks li on c.id = li.keyin left join doclinks lo on c.id = lo.keyout where s.id=@id and ( li.tablein='INVENTORY_TRIAL_BALANCE_CHANGE' or lo.tableout='INVENTORY_TRIAL_BALANCE_CHANGE')) = 0 then true else false end">
@@ -2229,8 +2227,8 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="WRITEOFF_STATEMENT_HEADER" name="Ведомость выдачи МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
-			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
@@ -2253,7 +2251,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="WRITEOFF_STATEMENT_GOODS" name="Спецификация ведомости выдачи МЗ">
 			<A id="WRITEOFF_STATEMENT_HEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_STATEMENT_HEADER where id=@WRITEOFF_STATEMENT_HEADERID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа"  type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_STATEMENT_HEADER where id=@WRITEOFF_STATEMENT_HEADERID"/>
 			<A id="PERSONID" name="Получатель" caption="Физическое лицо" labelwidth="300" nulls="false"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_GOODS where WRITEOFF_STATEMENT_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
@@ -2265,8 +2263,8 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="WRITEOFF_INVOICE_HEADER" name="Накладные на внутреннее перемещение МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
-			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
@@ -2281,7 +2279,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 				</A>
 			</GA>
 			<GA name="Отправитель" caption="Отправитель">
-				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" pid="ELECTCOMMITTEEID" nulls="false"/>
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
 			</GA>
 			<GA name="Получатель" caption="Получатель">
 				<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
@@ -2292,7 +2290,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="WRITEOFF_INVOICE_GOODS" name="Спецификация накладных на внутреннее перемещение МЗ">
 			<A id="WRITEOFF_INVOICE_HEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_INVOICE_HEADER where id=@WRITEOFF_INVOICE_HEADERID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_INVOICE_HEADER where id=@WRITEOFF_INVOICE_HEADERID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_GOODS where WRITEOFF_INVOICE_HEADERID = @WRITEOFF_INVOICE_HEADERID and cid=0"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="40" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -2303,8 +2301,8 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="WRITEOFF_ACTS_HEADER" name="Акт о списании МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
-			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
+			<A id="ELECTCOMMITTEEID"  visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
@@ -2331,7 +2329,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		</TABLE>
 		<TABLE id="WRITEOFF_ACTS_GOODS" name="Спецификация акта о списании МЗ">
 			<A id="WRITEOFF_ACTS_HEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_ACTS_HEADER where id=@WRITEOFF_ACTS_HEADERID"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_ACTS_HEADER where id=@WRITEOFF_ACTS_HEADERID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_GOODS where WRITEOFF_ACTS_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="40" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -2482,18 +2480,6 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		<ACTION id="StagesFormRKO" name="Сформировать РКО" type="procedure" procedure="p_action_stages_form_rko">
 			<FORM name="Параметры">
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
-			</FORM>
-		</ACTION>
-		<ACTION id="StagesFormINV" name="Сформировать Поступление МЗ" type="procedure" procedure="p_action_stages_create_inv">
-			<FORM name="Параметры">
-				<A id="DOCTYPEID" nulls="false" readonly="false" value="29"/>
-				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
-				<GA name="Документ поставщика" caption="Документ поставщика">
-					<A id="SDOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="20" type="string" nulls="false" local="true"/>
-					<A id="DDOCDATEIN" name="Дата" caption="Дата" labelwidth="80" width="20" type="date" nulls="false" local="true"/>
-				</GA>
-				<A id="RESPPERSON"/>
-				<A id="TYPICALOPERSID" pid="DOCTYPEID"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="StagesPersFormPP" name="Сформировать ПП" type="procedure" procedure="p_action_stages_pers_form_pp">
@@ -3063,7 +3049,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 						</TAB>
 						<TAB name="Состав работ/услуг">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CONTRACTSDOCS f where f.id = @CONTRACTSDOCSID" local="true"/>
-							<GRID id="StagesGR" name="Состав работ/услуг" table="STAGES" actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
+							<GRID id="StagesGR" name="Состав работ/услуг" table="STAGES" actionlist="setLID;StagesFormPP;StagesActsWorkServ"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -3074,8 +3060,7 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 						</TAB>
 						<TAB name="Состав работ/услуг">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PERSON_CONTRACTSDOCS f  where f.id = @PERSON_CONTRACTSDOCSID" local="true"/>
-							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" 
-actionlist="StagesFormRKO;StagesActsWorkServ;StagesPersFormPP"/>
+							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesActsWorkServ;StagesPersFormPP"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -3142,7 +3127,7 @@ actionlist="StagesFormRKO;StagesActsWorkServ;StagesPersFormPP"/>
 				<TAB name="Расходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">
-							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые ордера" table="CASHPAYMENT_HEADER" reportlist="AccountCashWarrant" actionlist="Insert;Copy;Update;MoveFolder;ConfigTables"/>
+							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые ордера" table="CASHPAYMENT_HEADER" actionlist="Insert;Copy;Update;MoveFolder;ConfigTables" reportlist="AccountCashWarrant"/>
 						</TAB>
 						<TAB name="Расшифровка документа">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHPAYMENT_HEADER f, DOCTYPES d where f.id = @CASHPAYMENT_HEADERID and f.doctypeid = d.id" local="true"/>
