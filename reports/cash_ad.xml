@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="cash_ad.xls" documentPath="cash_ad.xls" outputType="xls" outputNamePattern="cash_ad.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select d2s(c.docdate) as c1,
+										e.name as c2,
+										a.bankacc as c3,
+										e.inn as c5,
+										ag.name as c7,
+										ab.bic as c8,
+										upper(SUBSTR(p_tools_to_propis(COALESCE(round(sum(sp.SUMMPAY),2),0)),1,1))||
+										lower(SUBSTR(p_tools_to_propis(COALESCE(round(sum(sp.SUMMPAY),2),0)),2)) as c11,
+										c.note as c12,
+										replace(round(sum(sp.SUMMPAY),2)::text,'.','-') as c13,
+										sp.symbol as c38
+									from CASHCONTRIBUTION_HEADER c
+									inner join CASHDOCS h on h.id = c.cashdocsid
+									left join JURPERSONS j on j.id = h.jurpersonsid
+									left join electcommittee e on  e.id = j.electcommitteeid
+									left join ELCMTACC a on a.id = c.ELCMTACCID
+									left join agentbanks ab on ab.id = a.agentbanksid
+									left join agent ag on ag.id = ab.agentid
+									left join CASHCONTRIBUTION sp on sp.cashcontributionid = c.id
+									where c.id = ${id}::bigint
+									group by d2s(c.docdate),
+											e.name,
+											a.bankacc,
+											e.inn,
+											ag.name,
+											ab.bic,
+											c.note,
+											sp.symbol
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

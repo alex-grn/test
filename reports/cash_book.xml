@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="cash_book.xls" documentPath="cash_book.xls" outputType="xls" outputNamePattern="cash_book.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="titul" orientation="H">
+				<queries>
+                     <query name="titul" type="sql">
+                        <script>
+								select e.name as org,
+										e.inn,
+										e.kpp,
+										sum(COALESCE(r.countsheets,0)) as count_list,
+										substr(p_tools_to_propis(sum(COALESCE(r.countsheets,0))),1, strpos(p_tools_to_propis(sum(COALESCE(r.countsheets,0))),' р')-1) as count_list_prop,
+										(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${rpersonid}::bigint) as ruk,
+										(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh
+									from CASHDOCS c
+									inner join REPORTCASHBOOKS r on r.cashdocsid = c.id
+									left join jurpersons j on j.id = c.jurpersonsid
+									left join electcommittee e on e.id = j.electcommitteeid
+									where c.id = ${id}::bigint 
+									group by e.name,
+											e.inn,
+											e.kpp
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="header1" orientation="H">
+				<bands>
+					<band name="spec1" orientation="H">
+						<queries>
+							<query name="spec1" type="sql">
+								<script>
+									select nullif(tbl.pp,-1) as pp,tbl.n_doc,tbl.beginer,tbl.cor_acc,tbl.prih,tbl.rash
+									from (
+										select rs.numbpp as pp,
+										rs.docnumb as n_doc,
+										CASE
+											when p.id is null then 'Выдача денег из кассы подотчетным лицам'   
+											when COALESCE(rs.incomecash,0) > 0 then COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'')
+											when COALESCE(rs.expendcash,0) > 0 then COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') 
+										end as beginer,
+										'1.'||d.accnumb as cor_acc,
+										rs.incomecash as prih,
+										rs.expendcash as rash
+									from REPORTCASHBOOKS r
+									inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id and rs.numbpp between 1 and 17
+									inner join DICACCS d on d.id = rs.dicaccsid
+	                                left join PERSON p on p.id = rs.personid
+                                    where r.id = ${header1.repid}::bigint
+                                    union 
+                                    select -1 as pp, null as n_doc, 'Остаток на начало дня' as beginer, NULL as corr_acc, r.openbalance as prih, null as rash
+                                    from REPORTCASHBOOKS r
+                                    where r.id = ${header1.repid}::bigint
+                                    union all 
+                                    select null,null,null,null,null,null
+                                      from generate_series(1,16) g
+                                    order by pp 
+                                    limit 17) tbl
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+					<band name="floor1" orientation="H">
+						<queries>
+							<query name="floor1" type="sql">
+								<script>
+									select tbl.day_prih,
+											tbl.day_rash,
+											tbl.ost,
+											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${kpersonid}::bigint) as cashier,
+											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh,
+											case 
+												when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),' р')-1)
+											end as prih,
+											case 
+												when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),' р')-1)
+											end as rash
+										FROM(
+										select sum(COALESCE(rs.incomecash,0)) as day_prih,
+											sum(COALESCE(rs.expendcash,0)) as day_rash,
+											COALESCE(r.openbalance,0) + sum(COALESCE(rs.incomecash,0)) - sum(COALESCE(rs.expendcash,0)) as ost
+										from REPORTCASHBOOKS r
+										inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id
+										where r.id = ${header1.repid}::bigint 
+										group by r.openbalance) tbl  
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+				</bands>
+				<queries>
+                     <query name="header1" type="sql">
+                        <script>
+								select k.name as org,
+                                       d2s(r.docdate) as dates,
+                                       r.numbsheet as sheets,
+									   r.id as repid
+                                from CASHDOCS c
+                                inner join REPORTCASHBOOKS r on r.cashdocsid = c.id and r.countsheets = 1
+                                inner join jurpersons j on j.id = c.jurpersonsid
+                                inner join electcommittee k on k.id = j.electcommitteeid
+                                where c.id = ${id}::bigint  
+								order by r.docdate
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="header2" orientation="H">
+				<bands>
+					<band name="spec2_1" orientation="H">
+						<queries>
+							<query name="spec2_1" type="sql">
+								<script>
+									select rs.numbpp as pp,
+										rs.docnumb as n_doc,
+										CASE
+											when p.id is null then 'Выдача денег из кассы подотчетным лицам'   
+											when COALESCE(rs.incomecash,0) > 0 then COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'')
+											when COALESCE(rs.expendcash,0) > 0 then COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') 
+										end as beginer,
+										'1.'||d.accnumb as cor_acc,
+										rs.incomecash as prih,
+										rs.expendcash as rash
+									from REPORTCASHBOOKS r
+									inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id and rs.numbpp between 1 and 17
+									inner join DICACCS d on d.id = rs.dicaccsid
+									left join PERSON p on p.id = rs.personid
+									where r.id = ${header2.repid}::bigint
+									union 
+									select null as pp, null as n_doc, 'Остаток на начало дня' as beginer, NULL as corr_acc, r.openbalance as prih, null as rash
+									from REPORTCASHBOOKS r
+									where r.id = ${header2.repid}::bigint
+									order by pp nulls first    
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+					<band name="middle" orientation="H">
+						<queries>
+							<query name="middle" type="sql">
+								<script>
+									select tbl.prih,
+											tbl.rash
+									FROM(
+									select sum(COALESCE(rs.incomecash,0)) as prih,
+											sum(COALESCE(rs.expendcash,0)) as rash
+									from REPORTCASHBOOKS r
+									inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id 
+																		and rs.numbpp between 1 and 17   
+										where r.id = ${header2.repid}::bigint) tbl
+									where exists(select 1
+                                           from REPORTCASHBOOKSSPEC t
+                                          where t.reportcashbooksid = ${header2.repid}::bigint
+                                            and t.numbpp = 18) 
+   							   ;
+								</script>
+							</query>
+						</queries>
+					</band>
+					<band name="spec2_2" orientation="H">
+						<queries>
+							<query name="spec2_2" type="sql">
+								<script>
+									 select rs.numbpp as pp,
+										rs.docnumb as n_doc,
+										CASE
+											when p.id is null then 'Выдача денег из кассы подотчетным лицам'   
+											when COALESCE(rs.incomecash,0) > 0 then COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'')
+											when COALESCE(rs.expendcash,0) > 0 then COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') 
+										end as beginer,
+										'1.'||d.accnumb as cor_acc,
+										rs.incomecash as prih,
+										rs.expendcash as rash
+									from REPORTCASHBOOKS r
+									inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id and rs.numbpp > 17
+									inner join DICACCS d on d.id = rs.dicaccsid
+									left join PERSON p on p.id = rs.personid
+									where r.id = ${header2.repid}::bigint 
+									order by pp 
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+					<band name="floor2" orientation="H">
+						<queries>
+							<query name="floor2" type="sql">
+								<script>
+									select tbl.day_prih,
+											tbl.day_rash,
+											tbl.ost,
+											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${kpersonid}::bigint) as cashier,
+											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh,
+											case 
+												when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),' р')-1)
+											end as prih,
+											case 
+												when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),' р')-1)
+											end as rash
+										FROM(
+										select sum(COALESCE(rs.incomecash,0)) as day_prih,
+											   sum(COALESCE(rs.expendcash,0)) as day_rash,
+											   COALESCE(r.openbalance,0) + sum(COALESCE(rs.incomecash,0)) - sum(COALESCE(rs.expendcash,0)) as ost
+										from REPORTCASHBOOKS r
+									   inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id
+									   where r.id = ${header2.repid}::bigint 
+									   group by r.openbalance) tbl  
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+				</bands>
+				<queries>
+                     <query name="header2" type="sql">
+                        <script>
+								select k.name as org,
+                                       d2s(r.docdate) as dates,
+                                       r.numbsheet as sheets,
+									   r.id as repid
+                                from CASHDOCS c
+                                inner join REPORTCASHBOOKS r on r.cashdocsid = c.id and r.countsheets > 1
+                                inner join jurpersons j on j.id = c.jurpersonsid
+                                inner join electcommittee k on k.id = j.electcommitteeid
+                                where c.id = ${id}::bigint
+								order by r.docdate
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
