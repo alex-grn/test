@@ -1,0 +1,100 @@
+CREATE OR REPLACE FUNCTION public.p_action_paydocs_to_transactionlog (
+  id bigint,
+  uid bigint,
+  ddocdate date
+)
+RETURNS void AS
+$body$
+declare 
+   nID  bigint:=ID;
+   nUID bigint:=UID;
+   rec  record;
+   sp   record;
+   nTRANSACTIONLOGID bigint;
+   nTRANSACTIONLOG_DOCSID bigint;
+   nTRANSACTIONLOG_STAGESID bigint;
+   next_num text;
+begin
+    for rec in (
+        select a.ELECTCAMPAIGNID,
+               a.JURPERSONSID,
+               p.DOCTYPEID,
+               p.DOCNUMB,
+               p.DOCDATE,
+               sum(COALESCE(ps.SUMM,0)) as SUMM,
+               ps.TYPICALOPERSID,
+               count(ps.TYPICALOPERSID) OVER() as count_typ,
+               p.AGENTID,
+               p.PERSONID,
+               p.ID as PAYDOCSID
+          from PAYDOCS p, 
+               PAYACCOUNTS a,
+               PAYDOCSCONS ps
+         where p.id = nID 
+           and a.id = p.PAYACCOUNTSID
+           and ps.PAYDOCSID = p.ID
+      group by a.ELECTCAMPAIGNID,
+               a.JURPERSONSID,
+               p.DOCTYPEID,
+               p.DOCNUMB,
+               p.DOCDATE,
+               ps.TYPICALOPERSID,
+               p.AGENTID,
+               p.PERSONID,
+               p.ID
+    )
+    LOOP
+       update PAYDOCS p set status = '2' where p.ID = rec.PAYDOCSID;
+       if rec.count_typ > 1 then raise using message = "Для платежного поручения указаны разные типовые операции"; end if;
+      --найдем заголовок, если нет его, то добавим
+       BEGIN
+         select t.ID 
+           into STRICT nTRANSACTIONLOGID
+           from TRANSACTIONLOG t 
+          where t.ELECTCAMPAIGNID = rec.ELECTCAMPAIGNID 
+            and t.JURPERSONSID = rec.JURPERSONSID;
+       exception when no_data_found THEN 
+          insert into transactionlog(uid,electcampaignid,jurpersonsid)
+                              values(nUID,rec.ELECTCAMPAIGNID,rec.JURPERSONSID) returning TRANSACTIONLOG.ID into nTRANSACTIONLOGID;
+       end;
+       perform p_system_doclinks_add('PAYDOCS',rec.PAYDOCSID,'TRANSACTIONLOG',nTRANSACTIONLOGID);
+       --сгенерируем следующий номер
+       select (max(t.transactionnumb::integer)+1)::text into next_num from TRANSACTIONLOG_DOCS t where t.transactionlogid = nTRANSACTIONLOGID;
+       
+       --создаем запись в журнале операций
+       insert into TRANSACTIONLOG_DOCS(uid,transactionlogid,transactionnumb,transactiondate,doctypeid,docnumb,docdate,docsum,typicalopersid)
+       values(nUID,nTRANSACTIONLOGID,next_num,DDOCDATE,rec.DOCTYPEID,rec.DOCNUMB,rec.DOCDATE,rec.SUMM,rec.TYPICALOPERSID) 
+       returning TRANSACTIONLOG_DOCS.ID into nTRANSACTIONLOG_DOCSID;
+       perform p_system_doclinks_add('PAYDOCS',rec.PAYDOCSID,'TRANSACTIONLOG_DOCS',nTRANSACTIONLOG_DOCSID);
+       for sp in (
+           select p.BUDGCLASSID,
+                  p.ECONCLASSKTID,
+                  p.TYPEEXPID,
+                  t.ACCOUNTDTID,
+                  case ACCTYPE when '7' then rec.AGENTID end as AGENTID,
+                  case ACCTYPE when '7' then rec.PERSONID end as PERSONID,
+                  t.ACCOUNTKTID,
+                  p.SUMM
+             from PAYDOCSCONS p
+             left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
+             left join DICACCS d on d.ID = t.ACCOUNTDTID 
+            where p.PAYDOCSID = nID
+       )
+       LOOP
+           insert into TRANSACTIONLOG_STAGES(uid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,agentdtid,persondtid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ)
+             values(nUID,nTRANSACTIONLOG_DOCSID,1,sp.BUDGCLASSID,sp.ECONCLASSKTID,sp.TYPEEXPID,sp.ACCOUNTDTID,sp.AGENTID,sp.PERSONID,1,sp.BUDGCLASSID,sp.ECONCLASSKTID,sp.TYPEEXPID,sp.ACCOUNTKTID,sp.SUMM)
+           returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
+           perform p_system_doclinks_add('PAYDOCS',rec.PAYDOCSID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
+       end loop; 
+       
+    END LOOP;    
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_paydocs_to_transactionlog (id bigint, uid bigint, ddocdate date)
+  OWNER TO magicbox;
