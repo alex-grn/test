@@ -145,6 +145,15 @@
 				<AI id="5" name="4"/>
 			</A>
 			<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="true" local="true"/>
+			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list" query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
+               from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
+                from WORDINGOFTHEFORMS w,
+                     PKTO p
+               where w.id = @WORDINGOFTHEFORMSID
+                 and p.reportingformid = w.reportingformid
+                 and p.nametableiksrf is not null
+              group by p.nametableiksrf )))::json) as sJSON) t
+            where (t.sJSON->>'caption')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
 			<TI unique="MEASURESOFSHAPEID"/>
 			<TI id="PROCEDURE_CHECK" name="Необходимо заполнить поле Процедура" check="CONVERSIONTYPE != '2' or (CONVERSIONTYPE = '2' and RECALCPROCEDURE is not null and RECALCPROCEDURE != '')"/>
 			<TI id="FORMULA_CHECK" name="Поле Процедура должно быть пустым" check="CONVERSIONTYPE != '1'  or (CONVERSIONTYPE = '1' and (RECALCPROCEDURE is null or RECALCPROCEDURE = ''))"/>
@@ -160,6 +169,15 @@
 			</A>
 			<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
+			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list" query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
+               from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
+                from WORDINGOFTHEFORMS w,
+                     PKTO p
+               where w.id = @WORDINGOFTHEFORMSID
+                 and p.reportingformid = w.reportingformid
+                 and p.nametableiksrf is not null
+              group by p.nametableiksrf )))::json) as sJSON) t
+            where (t.sJSON->>'caption')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
 		</TABLE>
 	
 	</TABLES>
