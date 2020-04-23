@@ -46,6 +46,7 @@
 					<MI name="Типы документов" formlist="DocTypes"/>
 					<MI name="Должности" formlist="PostsFRM"/>
 					<MI name="Субъекты РФ" formlist="RegionsRFFRM"/>
+					<MI name="Принадлежность" formlist="JurpersonsFRM"/>
 					<MI name="Нормативные документы, устанавливающие размеры оплаты труда" formlist="NormsFECFRM"/>
 					<MI name="Направления расходов" formlist="TypeexpFRM"/>
 				</MENU>
@@ -64,17 +65,22 @@
 					<MI name="Банковские учреждения" formlist="FormAgentBanks"/>
 				</MENU>
 				<MENU name="Бухгалтерский учет">
-					<MI name="Номенклатор" formlist="DicNomnsFRM"/>
-					<MI name="Журналы операций" formlist="MEMOrderFRM"/>
-					<MI name="Классификационные признаки счета" formlist="BudgClassFRM"/>
-					<MI name="Коды операций сектора государственного управления" formlist="EconclassFRM"/>
-					<MI name="План счетов" formlist="DicAccsFRM"/>
-					<MI name="Типовые операции" formlist="TypicalOpersFRM"/>
-					<MI name="Принадлежность" formlist="JurpersonsFRM"/>
-					<MI name="Единицы измерения" formlist="DicmuntsFRM"/>
+					<MENU name="План счетов">
+						<MI name="План счетов" formlist="DicAccsFRM"/>
+						<MI name="Классификационные признаки счета" formlist="BudgClassFRM"/>
+						<MI name="Коды операций сектора государственного управления" formlist="EconclassFRM"/>
+					</MENU>
+					<MENU name="Типовые операции">
+						<MI name="Типы журналов операций" formlist="MEMOrderFRM"/>
+						<MI name="Типовые операции" formlist="TypicalOpersFRM"/>
+					</MENU>
+					<MENU name="Номенклатор">
+						<MI name="Единицы измерения" formlist="DicmuntsFRM"/>
+						<MI name="Номенклатор" formlist="DicNomnsFRM"/>
+					</MENU>
 				</MENU>
 				<MENU name="Справочники по отчётности">
-					<MI name="Показатели отчётности" formlist="ReportingIndicators"/>
+					<MI name="Редакции форм" formlist="ReportingIndicators"/>
 					<MI name="Формы отчётности" formlist="ReportingForm"/>
 					<MI name="Перечень проверок и пересчетов" formlist="ListOfChecks"/>
 				</MENU>
@@ -87,6 +93,10 @@
 		</MENU>
 	</GROUPS_MENU>
 	<ATTRIBUTES name="Атрибуты">
+		<A id="DOCTYPEID" name="Тип документа" caption="Тип" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false"/>
+		<A id="DOCPREF" name="Префикс документа" caption="Префикс" type="string" len="80" nulls="true"/>
+		<A id="DOCNUMB" name="Номер документа" caption="Номер" type="string" len="80" nulls="false"/>
+		<A id="DOCDATE" name="Дата документа" caption="Дата" type="date" nulls="false"/>
 		<A id="LEVELELCOMMITTEE" name="Тип (уровень) избирательной комиссии" caption="Тип (уровень) ИК" type="list" nulls="false">
 			<AI id="central" name="ЦИК России"/>
 			<AI id="region" name="ИКСРФ"/>
@@ -235,7 +245,7 @@
 		<A id="DNAMEEC" name="Дательный падеж" caption="Дательный падеж" type="string" nulls="true"/>
 		<A id="TNAMEEC" name="Творительный падеж" caption="Творительный падеж" type="string" nulls="true"/>
 		<A id="COUNTVTR" name="Число избирателей" caption="Число избирателей" type="string" nulls="true"/>
-		<A id="MESTIMATE" name="Признак исключения из сметы ТИК" caption="Признак исключения из сметы ТИК" type="boolean" nulls="false"/>
+		<A id="MESTIMATE" name="Признак исключения из сметы" caption="Признак исключения из сметы" type="boolean" nulls="false"/>
 		<A id="LEVELESTIMATE" name="Включение в смету" caption="Включение в смету" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
 			<AI id="terdist" name="Смета ТИК за нижестоящие УИК"/>
@@ -292,22 +302,23 @@
 			<AI id="0" name="без НДС"/>
 		</A>
 		<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" type="ref" table="PAYDOCS" ret="PAYDOCSVIRT" nulls="false"/>
-		<A id="RECEIPTSDOCSID" name="Кассовое поступление" caption="Кассовое поступление" type="ref" table="RECEIPTSDOCS" ret="CODE" nulls="false"/>
+		<A id="RECEIPTSDOCSID" name="Кассовое поступление" caption="Кассовое поступление" type="ref" table="RECEIPTSDOCS" ret="DOCNUMBVIRT" nulls="false"/>
 		<A id="PERSDOCTYPEID" name="Тип персонального документа" caption="Тип персонального документа" labelwidth="400" type="list" nulls="true">
 			<AI id="passport" name="Паспорт гражданина РФ"/>
 		</A>
 		<A id="REPORTCASHBOOKSID" name="Отчет кассира" caption="Отчет кассира" type="ref" table="REPORTCASHBOOKS" ret="DOCDATE" nulls="false"/>
-		<A id="CASHPAYMENTHEADERID" name="Заголовок РКО" caption="Заголовок РКО" type="ref" table="CASHPAYMENT_HEADER" ret="CODE" nulls="false"/>
+		<A id="CASHPAYMENTHEADERID" name="РКО" caption="РКО" type="ref" table="CASHPAYMENT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
 		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>
 		<A id="INPUTKRFID" name="Входящий файл" caption="Входящий файл" type="ref" table="INPUTKRF" ret="NUMBPP" nulls="false"/>
 		<A id="CASHDOCSID" name="Касса" caption="Касса" type="ref" table="CASHDOCS" ret="ID" nulls="false"/>
 		<A id="EXPENSEREPORTSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
+		<A id="EXPENSEREPORTSDOCSID" name="Авансовый отчет" caption="Авансовый отчет" type="ref" table="EXPENSE_DOCS" ret="ID" nulls="false"/>
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
 		<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
-		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="CODE" nulls="false"/>
-		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="CODE" nulls="false"/>
-		<A id="CASHCONTRIBUTIONID" name="Заголовок объявления о взносе" caption="Заголовок объявления о взносе" type="ref" table="CASHCONTRIBUTION_HEADER" ret="CODE" nulls="false"/>
+		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
+		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
+		<A id="CASHCONTRIBUTIONID" name="Заголовок объявления о взносе" caption="Заголовок объявления о взносе" type="ref" table="CASHCONTRIBUTION_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
 		<A id="TRANSACTIONLOGID" name="Журналы операций" caption="Журналы операций" type="ref" table="TRANSACTIONLOG" ret="ID" nulls="false"/>
 		<A id="TRANSACTIONLOG_DOCSID" name="Журнал операций" caption="Журнал операций" type="ref" table="TRANSACTIONLOG_DOCS" ret="ID" nulls="false"/>
 		<A id="ACTSID" name="Акты выполненных работ и услуг" caption="Акты выполненных работ и услуг" labelwidth="200" type="ref" table="ACTS" ret="ID" nulls="false"/>
@@ -335,8 +346,37 @@
 		<A id="WRITEOFF_STATEMENT_HEADERID" name="Ведомость выдачи МЗ" caption="Ведомость выдачи МЗ" labelwidth="200" type="ref" table="WRITEOFF_STATEMENT_HEADER" ret="ID" nulls="false"/>
 		<A id="WRITEOFF_INVOICE_HEADERID" name="Ведомость на внутреннее перемещение МЗ" caption="Ведомость на внутреннее перемещение МЗ" labelwidth="200" type="ref" table="WRITEOFF_INVOICE_HEADER" ret="ID" nulls="false"/>
 		<A id="WRITEOFF_ACTS_HEADERID" name="Акт о списании МЗ" caption="Акт списании МЗ" labelwidth="200" type="ref" table="WRITEOFF_ACTS_HEADER" ret="ID" nulls="false"/>
+		<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
+			<AI id="1" name="1"/>
+			<AI id="2" name="3"/>
+			<AI id="3" name="3"/>
+			<AI id="4" name="4"/>
+			<AI id="5" name="5"/>
+		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		<GA id="Document" name="Документ" caption="Документ">
+			<A id="DOCTYPEID" caption="Документ" width="40"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
+			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
+		</GA>
+		<GA id="DocumentP" name="Документ" caption="Документ">
+			<A id="DOCTYPEID" labelwidth="90" width="20"/>
+			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
+			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
+		</GA>
+		<GA id="DocumentAutoNumb" name="Документ" caption="Документ">
+			<A id="DOCTYPEID" caption="Документ" width="40"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::numeric+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCDATE" caption="Дата" labelwidth="45" width="20" formula="now()"/>
+		</GA>
+		<GA id="DocumentAutoNumbP" name="Документ" caption="Документ">
+			<A id="DOCTYPEID" labelwidth="90" width="20"/>
+			<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20"/>
+			<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::numeric+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and docpref = @DOCPREF and cid=0"/>
+			<A id="DOCDATE" labelwidth="45" width="20" formula="now()"/>
+		</GA>
 		<GA id="PERIOD" name="Период действия" caption="Период действия">
 			<A id="BEGINDATE" caption="Дата начала действия"/>
 			<A id="ENDDATE" caption="Дата окончания действия"/>
@@ -365,6 +405,10 @@
 		</GA>
 	</GROUPS_ATTRIBUTES>
 	<TABLES name="Таблицы">
+		<TABLE id="DOCTYPES" name="Типы документов">
+			<GA id="Dictionary"/>
+			<TI unique="CODE"/>
+		</TABLE>
 		<TABLE id="POSTS" name="Должности">
 			<A id="CODE" labelwidth="300"/>
 			<A id="NAME" labelwidth="300" nulls="false"/>
@@ -372,7 +416,7 @@
 			<A id="POSTPRINT" labelwidth="300"/>
 			<A id="QUANTITYELECTORMIN" visible="false"/>
 			<A id="QUANTITYELECTORMAX" visible="false"/>
-			<TI unique="CODE"/>
+			<TI unique="CODE,LEVELELCOMMITTEE"/>
 		</TABLE>
 		<TABLE id="TYPEDAYS" name="Типы дней">
 			<A id="CODE" labelwidth="300"/>
@@ -524,6 +568,17 @@
 		<TABLE id="AGENT" name="Юридические лица">
 			<GA id="Dictionary"/>
 			<GA id="AgentParam"/>
+			<A id="LEVELELCOMMITTEE" name="Тип (уровень) избирательной комиссии" caption="Тип (уровень) ИК" type="list" nulls="false" visible="false" virtual="true" formula="select 'region' as value"/>
+			<A id="TYPEAGENT" name="Тип Юридического лица" caption="Тип Юр. лица" width="30" type="list" nulls="false" visible="true" value="'2'" local="true">
+				<AI id="1" name="Юр.лицо"/>
+				<AI id="2" name="Банк"/>
+				<AI id="3" name="ИКСРФ"/>
+			</A>
+			<A id="ELECTCOMMITTEEID" labelwidth="200" width="70" pid="LEVELELCOMMITTEE" nulls="true"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when @TYPEAGENT='3' then true else false end">
+				<AI id="true" readonly="false"/>
+				<AI id="false" readonly="ELECTCOMMITTEEID"/>
+			</A>
 			<TI id="AGENTUK" unique="CODE"/>
 			<TI id="AGENTNAMEIND" index="NAME"/>
 		</TABLE>
@@ -914,6 +969,10 @@
 				<A id="DOCDATEPS" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" readonly="true" virtual="true" formula="select x.DOCDATE from CASHPAYMENT_HEADER x where x.ID = @CASHPAYMENTHEADERID" local="true"/>
 				<A id="SUMPS" name="Сумма РКО" caption="Сумма РКО" labelwidth="70" width="30" type="number" len="8.2" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID" local="true"/>
 			</GA>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when s.PAYDOCSID is null and s.CASHPAYMENTHEADERID is null then true else false end from SHEETDETAILS s where s.id = @ID">
+				<AI id="true"/>
+				<AI id="false" readonly="true"/>
+			</A>
 			<TI unique="SHEETSID, COMMITTEEMANID"/>
 		</TABLE>
 		<TABLE id="REGISTERSTRANSFERS" name="Документы на перечисление">
@@ -951,10 +1010,16 @@
 		<TABLE id="TYPEEXP" name="Направление расходов">
 			<A id="NUMBPP"/>
 			<A id="NUMBESTIMATE"/>
-			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="string" len="80" nulls="false" local="true"/>
+			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="REGIONSRFID" labelwidth="200"/>
 			<A id="TYPEEXPENSES" labelwidth="200"/>
 			<A id="MESTIMATE"/>
+			<A id="NOACTUAL_COST" name="Признак исключения из фактических расходов" caption="Признак исключения из фактических расходов" type="boolean" nulls="false"/>
+			<A id="TYPEESTIMATE" name="Тип показателя" caption="Тип показателя" labelwidth="200" type="list" nulls="false" local="true">
+				<AI id="П" name="Прочие направления расходов"/>
+				<AI id="К" name="Компенсация члену комиссии, работающему с освобождением от основной работы"/>
+				<AI id="Д" name="Допоплата труда (вознаграждение) члену комиссии"/>
+			</A>
 			<TI unique="NUMBESTIMATE,CODE,REGIONSRFID"/>
 		</TABLE>
 		<TABLE id="TYPEEXPSL" name="Учет выплат при расчете расходов">
@@ -962,13 +1027,18 @@
 			<A id="SLCOMPCHARGESID" labelwidth="200"/>
 			<TI unique="TYPEEXPID,SLCOMPCHARGESID"/>
 		</TABLE>
+		<TABLE id="TYPEEXPCMP" name="Состав направления расходов">
+			<A id="TYPEEXPID" parentkey="cascade"/>
+			<A id="TYPEEXPCMPID" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="ref" table="TYPEEXP" ret="NUMBESTIMATE" nulls="false"/>
+			<TI unique="TYPEEXPID,TYPEEXPCMPID"/>
+		</TABLE>
 		<TABLE id="FINEXP" name="Контроль расходов на оплату труда">
 			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
 			<A id="NUMBPP" readonly="true" virtual="true" formula="select t.NUMBPP from TYPEEXP t where t.id = @TYPEEXPID"/>
 			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula="select t.NUMBESTIMATE from TYPEEXP t where t.id = @TYPEEXPID"/>
 			<A id="TYPEEXPID" labelwidth="200"/>
 			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="true" formula="select f.LEVELESTIMATE from FINANCEELCOM f where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID"/>
-			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select round(COALESCE(f.SUMFINTIK,0)+COALESCE(f.SUMFINTIKCEN,0)+COALESCE(f.SUMFINUIK,0),2) from FINANCEELCOM f where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID" local="true"/>
+			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select case when k.levelelcommittee ilike 'district' then round(COALESCE(f.SUMFINUIK,0)+COALESCE(f.SUMFINTIKCEN,0),2) when k.levelelcommittee ilike 'territory' or k.levelelcommittee ilike 'circuit' then round(COALESCE(f.SUMFINTIK,0)+COALESCE((select case when t.numbestimate ilike '%апу%' then f.SUMFINTIKCEN else 0 end),0),2) end from FINANCEELCOM f, ELECTCOMMINCAMP e, ELECTCOMMITTEE k, TYPEEXP t where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID and e.ID = f.ELECTCOMMINCAMPID and k.ID = e.ELECTCOMMITTEEID and t.ID = f.TYPEEXPID" local="true"/>
 			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
 			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)-@SUMCOSTS" local="true"/>
@@ -985,21 +1055,20 @@
 			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" local="true"/>
 			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="BLOCKCELL" name="Блокировка полей" caption="Блокировка полей" type="string" virtual="true" visible="false" formula="select replace(k.levelelcommittee,'circuit','territory')||'/'||COALESCE((case replace(k.levelelcommittee,'circuit','territory') when 'territory' then v.MESTIMATE else null end)::text,'')||'/'||case k.levelelcommittee when 'district' then m.mfin else '' end||'/'||case k.levelelcommittee when 'district' then (case v.TYPEEXPENSES when 'product' then '' when 'service' then '' when 'worksexec' then '' else coalesce(v.TYPEEXPENSES,'') end) else '' end||'/'||case k.levelelcommittee when 'district' then (case v.NUMBESTIMATE::text when '3' then '10' when '5' then '10' when '10' then '10' else '' END) else '' end from FINANCEELCOM f, ELECTCOMMINCAMP t, ELECTCOMMITTEE k, TYPEEXP v, mfin m where f.id = @ID and t.id = f.ELECTCOMMINCAMPID and k.id = t.ELECTCOMMITTEEID and v.id = f.TYPEEXPID and m.ELECTCOMMITTEEID = k.ID and CURRENT_DATE >= m.begindate and (m.enddate >= CURRENT_DATE or m.enddate is NULL)">
-				<AI id="territory/false///" readonly="SUMFINUIK"/>
-				<AI id="territory/true///" readonly="SUMFINTIKCEN;SUMFINTIK;SUMFINUIK"/>
-				<AI id="district//1/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
-				<AI id="district//1//" readonly="SUMFINTIK;SUMFINUIK"/>
-				<AI id="district//2/salary/" readonly="SUMFINTIK;SUMFINTIKCEN"/>
-				<AI id="district//2//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
-				<AI id="district//3//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
-				<AI id="district//3/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
-				<AI id="district//1/salary/10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
-				<AI id="district//1//10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
-				<AI id="district//2/salary/10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
-				<AI id="district//2//10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
-				<AI id="district//3//10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
-				<AI id="district//3/salary/10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
+			<A id="BLOCKCELL" name="Блокировка полей" caption="Блокировка полей" type="string" visible="false" virtual="true" formula="p_action_financeelcom_block_cells(@ID)">
+				<AI id="territory///" readonly="SUMFINUIK"/>
+				<AI id="district/1/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
+				<AI id="district/1//" readonly="SUMFINTIK;SUMFINUIK"/>
+				<AI id="district/2/salary/" readonly="SUMFINTIK;SUMFINTIKCEN"/>
+				<AI id="district/2//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
+				<AI id="district/3//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
+				<AI id="district/3/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
+				<AI id="district/1/salary/10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
+				<AI id="district/1//10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
+				<AI id="district/2/salary/10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
+				<AI id="district/2//10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
+				<AI id="district/3//10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
+				<AI id="district/3/salary/10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
 			</A>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID, DOCDATE"/>
 		</TABLE>
@@ -1013,9 +1082,9 @@
 			<TI unique="ELECTCOMMINCAMPID"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
-			<A id="ELECTCOMMITTEEID" parentkey="nocascade" readonly="true" virtual="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
+			<A id="ELECTCOMMITTEEID" labelwidth="300" parentkey="nocascade" readonly="true" virtual="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
 			<A id="PERSONID" labelwidth="300"/>
-			<A id="FULLNAME" name="Полное имя" caption="Полное имя" labelwidth="200" type="string" readonly="true" virtual="true" formula="select t.name from person t where t.id = @PERSONID" local="true"/>
+			<A id="FULLNAME" name="Полное имя" caption="Полное имя" labelwidth="300" type="string" readonly="true" virtual="true" formula="select t.name from person t where t.id = @PERSONID" local="true"/>
 			<TI unique="PERSONID"/>
 		</TABLE>
 		<TABLE id="DICNOMNS" name="Номенклатор">
@@ -1083,13 +1152,13 @@
 			<A id="TYPICALOPERSID" parentkey="cascade"/>
 			<GA name="Дебет" caption="Дебет">
 				<A id="DTBUDGCLASSID" labelwidth="200" nulls="true"/>
-				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="100" width="50"/>
-				<A id="ECONCLASSDTID" name="КОСГУ" caption="Счет" labelwidth="100" width="50"/>
+				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="100" width="50" nulls="true"/>
+				<A id="ECONCLASSDTID" name="КОСГУ" caption="Счет" labelwidth="100" width="50" nulls="true"/>
 			</GA>
 			<GA name="Кредит" caption="Кредит">
 				<A id="KTBUDGCLASSID" labelwidth="200" nulls="true"/>
-				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="100" width="50"/>
-				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="100" width="50"/>
+				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="100" width="50" nulls="true"/>
+				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="100" width="50" nulls="true"/>
 			</GA>
 			<A id="MEMORDERID"/>
 			<TI unique="TYPICALOPERSID,ACCOUNTDTID,ECONCLASSDTID,ACCOUNTKTID,ECONCLASSKTID"/>
@@ -1107,11 +1176,15 @@
 				<A id="ELECTDATE" labelwidth="350" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="CONTRACTSDOCS" name="Договоры с юридическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
 			<GA name="Договор" caption="Договор">
 				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" nulls="false" local="true">
 					<AI id="product" name="Поставка товара"/>
@@ -1120,6 +1193,10 @@
 				</A>
 				<A id="DOCNUMB" caption="Номер" labelwidth="70" width="40"/>
 				<A id="DOCDATE" labelwidth="45" width="20"/>
+				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="600" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Не утвержден" actionlist="ApproveCNTR"/>
+					<AI id="2" name="Утвержден" actionlist="NotApproveCNTR" readonly="true"/>
+				</A>
 			</GA>
 			<GA name="Поставщик/подрядчик" caption="Поставщик/подрядчик">
 				<A id="AGENTID" name="Юридическое лицо"/>
@@ -1137,36 +1214,50 @@
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Договор №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c where c.id = @ID" local="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="STAGES" name="Этапы договора">
-			<A id="CONTRACTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
-			<A id="BUDGCLASSID" labelwidth="150" width="50"/>
-			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
-			<A id="TYPEEXPID"/>
-			<GA name="Период действия" caption="Период действия">
-				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
-				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
-			</GA>
-			<GA name="Номенклатура" caption="Номенклатура">
-				<A id="DICNOMNSID"/>
-				<A id="TYPENOM" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
-				<A id="DICMUNTSID" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
-				<A id="QUANTITY" labelwidth="600" nulls="false"/>
-				<A id="SUMM" labelwidth="600" nulls="false"/>
-			</GA>
-			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
-				<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
-				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false"/>
-			</GA>
-			<A id="DOCLINKS_IN"/>
-			<A id="DOCLINKS_OUT"/>
-			<A id="CODE" name="Код" type="string" visible="true" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@id" local="true"/>
-			<TI unique="CONTRACTSID, NUMBPP"/>
+			<TABS>
+				<TAB name="Этап договора">
+					<A id="CONTRACTSDOCSID" parentkey="cascade"/>
+					<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
+					<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+					<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+					<A id="TYPEEXPID"/>
+					<GA name="Период действия" caption="Период действия">
+						<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
+						<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
+					</GA>
+					<GA name="Номенклатура" caption="Номенклатура">
+						<A id="DICNOMNSID"/>
+						<A id="TYPENOM" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
+						<A id="DICMUNTSID" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+						<A id="QUANTITY" labelwidth="600" nulls="false"/>
+						<A id="SUMM" labelwidth="600" nulls="false"/>
+					</GA>
+					<GA name="Исполнение" caption="Исполнение">
+						<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
+						<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
+						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false" readonly="true"/>
+					</GA>
+					<A id="DOCLINKS_IN"/>
+					<A id="DOCLINKS_OUT"/>
+					<A id="CODE" name="Код" type="string" visible="true" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@id" local="true"/>
+					<TI unique="CONTRACTSID, NUMBPP"/>
+				</TAB>
+				<TAB name="Авансовые платежи">
+					<A id="SUPEXPENSE" name="Договор с авансовыми платежами" caption="Договор с авансовыми платежами" type="boolean" nulls="false" local="true"/>
+					<A id="SETOFFPREPAYMENT" name="Сумма аванса" caption="Сумма аванса" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
+					<A id="BUDGCLASSID" labelwidth="150" width="50" nulls="true"/>
+					<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50" nulls="true"/>
+					<A id="TYPEEXPID" labelwidth="150" width="100" nulls="true"/>
+				</TAB>
+			</TABS>
 		</TABLE>
 		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID" local="true"/>
 			<GA name="Договор" caption="Договор">
 				<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="90" width="30" type="list" nulls="false" local="true">
 					<AI id="service" name="Оказание услуг"/>
@@ -1174,6 +1265,10 @@
 				</A>
 				<A id="DOCNUMB" caption="Номер" labelwidth="45" width="50"/>
 				<A id="DOCDATE" labelwidth="45" width="20"/>
+				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="600" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Не утвержден" actionlist="ApproveCNTR"/>
+					<AI id="2" name="Утвержден" actionlist="NotApproveCNTR" readonly="true"/>
+				</A>
 			</GA>
 			<GA name="Контрагент" caption="Контрагент">
 				<A id="PERSONID" name="Физическое лицо" caption="Физическое лицо" labelwidth="70" width="50" nulls="true"/>
@@ -1191,6 +1286,7 @@
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Договор №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from PERSON_CONTRACTSDOCS c where c.id = @ID"/>
+			<TI id="PERSON_CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PERSONS_STAGES" name="Этапы договора с физ.лицами">
 			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
@@ -1212,7 +1308,7 @@
 			<GA name="Исполнение" caption="Исполнение">
 				<A id="SUMMPAY" width="50" readonly="true" virtual="true" formula=""/>
 				<A id="SUMMEXEC" width="50" readonly="true" virtual="true" formula=""/>
-				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false"/>
+				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false" readonly="true"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -1227,8 +1323,9 @@
 				<A id="JURPERSONSID"/>
 				<A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
 				<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID"/>
-				<A id="ACCBALANCE" name="Остаток на счете" caption="Остаток на счете" labelwidth="400" type="number" virtual="true" formula="select COALESCE((select sum(s.summ) from receiptsdocscons s left join receiptsdocs r on s.receiptsdocsid = r.id where r.payaccountsid=@ID and now() > r.docdate),0) - COALESCE((select sum(c.summ) from paydocscons c left join paydocs d on c.paydocsid = d.id where d.payaccountsid=@ID and d.status='2'),0)"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="PAYDOCS" name="Платежные поручения">
@@ -1236,17 +1333,20 @@
 				<TAB name="Документ">
 					<A id="PAYACCOUNTSID" parentkey="cascade"/>
 					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from PAYACCOUNTS where id=@PAYACCOUNTSID"/>
+					<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
+					<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
 					<GA name="Документ" caption="Документ">
 						<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" value="0" local="true">
 							<AI id="0" name="В работе"/>
-							<AI id="1" name="На исполнении" readonly="false"/>
-							<AI id="2" name="Исполнен" readonly="true"/>
+							<AI id="1" name="На исполнении" actionlist="PaydocsToTransactionlog" readonly="false"/>
+							<AI id="2" name="Исполнен" actionlist="PaydocsToTransactionlogRollback" readonly="true"/>
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" labelwidth="250" width="70" type="date" local="true"/>
 						<A id="DOCTYPEID" readonly="true" value="16"/>
-						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
-						<A id="DOCDATE" width="50" formula="now()" local="true"/>
-						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" width="50" type="number" nulls="false" 
+formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCS where PAYACCOUNTSID = @PAYACCOUNTSID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid = 0" local="true"/>
+						<A id="DOCDATE" name="Дата" caption="Дата" width="50" type="date" local="true"/>
+						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
 						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" width="50"/>
 						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="round((select sum(t.SUMM) from PAYDOCSCONS t where t.PAYDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '1' end)::numeric ,2)" local="true"/>
@@ -1255,13 +1355,7 @@
 						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24) (макс. 235 символов)" type="text" nulls="false" local="true"/>
 						<A id="PURPOSELENGHT" name="Длина строки" type="string" visible="false" readonly="true" virtual="true" formula="select 'Назначение платежа ('||length(PURPOSE)||' симв., макс 235 симв.)' from PAYDOCS t where t.ID = @ID"/>
 						<A id="EXPDATE" name="Срок платежа (19)" caption="Срок платежа (19)" type="date" local="true"/>
-						<A id="PRIORITY" name="Очередность платежа (21)" caption="Очередность платежа (21)" type="list" nulls="false" local="true">
-							<AI id="1" name="1"/>
-							<AI id="2" name="3"/>
-							<AI id="3" name="3"/>
-							<AI id="4" name="4"/>
-							<AI id="5" name="5"/>
-						</A>
+						<A id="PRIORITY"/>
 						<A id="IDPAYMENT" name="Код (22)" caption="Код (22)" type="string" local="true"/>
 					</GA>
 					<A id="DOCLINKS_IN"/>
@@ -1304,53 +1398,71 @@
 					</GA>
 				</TAB>
 			</TABS>
-			<TI unique="PAYACCOUNTSID, DOCNUMB"/>
 			<TI id="PURPOSE_CHECK" name="Превышена максимальная длина поля Назначение платежа (24) (макс. 235 символов)" check="235 > length(PURPOSE)"/>
 			<TI id="STATUS_CHECK" name="Отсутствует дата оплаты по выписке" check="(STATUS != '2' or (STATUS = '2' and PAYDATE is not null))"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
-			<TI id="NULLSREC_CHECK" name="Должно быть задано или Юридическое лицо или физическое лицо" check="(AGENTID is not null and PERSONID is not null) != true"/>
+			<TI id="PAYDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PAYDOCSCONS" name="Расшифровка платежа (Платежные поручения)">
 			<A id="PAYDOCSID" parentkey="cascade"/>
 			<A id="DOCTYPEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select DOCTYPEID from PAYDOCS where id = @PAYDOCSID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID" local="true"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PAYDOCSCONS where PAYDOCSID = @PAYDOCSID" local="true"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="600" type="number" len="10.2" nulls="false" local="true"/>
 			<GA id="TYPICALOPERATION"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
-			<A id="PAYACCOUNTSID" parentkey="cascade"/>
-			<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="40" width="30" type="number" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
-			<A id="DOCDATE" name="Дата" labelwidth="40" width="20"  formula="now()"/>
-			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="50" width="40" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID"/>
-			<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="200" type="list" nulls="false" readonly="true" value="1" local="true">
-				<AI id="1" name="Создан"/>
-				<AI id="2" name="Проведен в учете" readonly="true"/>
-			</A>
-			<GA name="Контрагент" caption="Контрагент">
-				<A id="AGENTID" name="Юридическое лицо"/>
-				<A id="AGENTACCID" caption="Реквизит" labelwidth="150" nulls="true"/>
-			</GA>
-			<GA name="Первичный документ" caption="Первичный документ">
-				<A id="DOCTYPEID" readonly="true" value="16"/>
-				<A id="BASISNUMB" name="Номер первичного документа" caption="Номер" labelwidth="35" width="20" type="string"/>
-				<A id="BASISDATE" name="Дата первичного документа" caption="Дата" labelwidth="30" width="20" type="date"/>
-			</GA>
-			<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="120" type="string"/>
-			<A id="TYPICALOPERSID" labelwidth="120" width="100"/>
-			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Кассовое поступление №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from RECEIPTSDOCS c where c.id = @ID" local="true"/>
-			<A id="DOCLINKS_IN"/>
-			<A id="DOCLINKS_OUT"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
+			<TABS>
+				<TAB name="Документ">
+					<A id="PAYACCOUNTSID" parentkey="cascade"/>
+					<GA name="Внутренний номер документа" caption="Внутренний номер документа">
+						<A id="DOCTYPEID" name="Тип документа" caption="Тип" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false" readonly="true" value="34" local="true"/>
+						<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="150" width="50" type="number" formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCS where PAYACCOUNTSID = @PAYACCOUNTSID" local="true"/>
+						<A id="DOCDATE" name="Дата" labelwidth="150" width="50" formula="now()"/>
+					</GA>
+					<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.DOCNUMB||' от '||to_char(f.DOCDATE, 'dd.mm.yyyy') from RECEIPTSDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+					<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="400" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID"/>
+					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
+						<AI id="1" name="Создан"/>
+						<AI id="2" name="Проведен в учете" readonly="true"/>
+					</A>
+					<GA name="Первичный документ" caption="Первичный документ">
+						<A id="DOCTYPEINID" name="Тип документа" caption="Тип" labelwidth="150" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false" readonly="true" value="16" local="true"/>
+						<A id="BASISNUMB" name="Номер первичного документа" caption="Номер" labelwidth="150" width="50" type="string"/>
+						<A id="BASISDATE" name="Дата первичного документа" caption="Дата" labelwidth="150" width="50" type="date"/>
+						<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="150" type="text"/>
+					</GA>
+					<A id="DOCLINKS_IN"/>
+					<A id="DOCLINKS_OUT"/>
+				</TAB>
+				<TAB name="Отправитель">
+					<GA name="Юридическое лицо" caption="Юридическое лицо">
+						<A id="AGENTID" name="Юридическое лицо" nulls="true"/>
+						<A id="AGENTACCID" caption="Счет" labelwidth="150" nulls="true"/>
+					</GA>
+					<GA name="Физическое лицо" caption="Физическое лицо">
+						<A id="PERSONID" name="Физ. лицо" caption="Физ. лицо" labelwidth="150" nulls="true"/>
+						<A id="PERSONACCDOCID" name="Счет" caption="Счет" labelwidth="150" nulls="true"/>
+					</GA>
+				</TAB>
+			</TABS>
+			<TI id="RECEIPTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
+			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
 		</TABLE>
 		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
+			<A id="DOCTYPEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select r.DOCTYPEID from RECEIPTSDOCS r where r.id = @RECEIPTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="70" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="70" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
-			<A id="BUDGCLASSID" labelwidth="70" width="50"/>
-			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="70" width="50"/>
-			<A id="TYPEEXPID" labelwidth="150" width="100"/>
+			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="REPORTCASHBOOKS" name="Отчеты кассира">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="600" type="date" nulls="false" readonly="false" local="true"/>
 			<A id="NUMBSHEET" name="Номер листа" caption="Номер листа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
@@ -1364,6 +1476,7 @@
 				<AI id="2" reportlist="СashiersReport"/>
 			</A>
 			<TI unique="CASHDOCSID, DOCDATE"/>
+			<TI id="REPORTCASHBOOKSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="REPORTCASHBOOKSSPEC" name="Данные отчета кассира">
 			<A id="REPORTCASHBOOKSID" parentkey="cascade"/>
@@ -1383,6 +1496,8 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
+				<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
+				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
 			<GA name="Договор о материальной ответственности" caption="Договор о материальной ответственности">
 				<A id="NUMBER" name="Номер" caption="Номер" labelwidth="70" width="40" type="string"/>
@@ -1394,6 +1509,7 @@
 			<GA name="Кому выдан договор" caption="Кому выдана">
 				<A id="RECEIVEDID" name="Кому выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
 			</GA>
+			<TI id="LIABILITYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DATE and DATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PROXY" name="Доверенности">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -1401,6 +1517,8 @@
 				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
+				<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
+				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
 			<GA name="Доверенность" caption="Доверенность">
 				<A id="DOCTYPEID" labelwidth="100" readonly="true" value="22"/>
@@ -1420,6 +1538,7 @@
 				<A id="DOCNUMBER" name="Номер документа" caption="Номер" labelwidth="40" width="20" type="string" nulls="true"/>
 				<A id="DOCNAMEDATE" name="Дата документа" caption="Дата" labelwidth="30" width="10" type="date" nulls="true"/>
 			</GA>
+			<TI id="PROXYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="GOODS" name="Товары">
 			<A id="PROXYID" parentkey="cascade"/>
@@ -1466,33 +1585,37 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="CASHRECEIPT_HEADER" name="Приходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
-			<A id="ELECTDATE" name="Дата выборов" type="date" visible="false" readonly="true" formula="select electdate from electcampaign where id = @ELECTCAMPAIGNID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="100" visible="false" readonly="true" value="21"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 					<AI id="1" name="Создан"/>
-					<AI id="2" name="Оплачен"/>
-					<AI id="3" name="Аннулирован"/>
+					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
 				<A id="SUMM" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHRECEIPT x where x.CASHRECEIPTHEADERID = @ID::BIGINT"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHRECEIPT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
 			<GA name="Принято от" caption="Принято от">
 				<A id="PERSONID" labelwidth="120"/>
 			</GA>
 			<GA name="Основание" caption="Основание">
-				<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
-				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
+				<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="text"/>
+				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="text"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
-			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Приходный кассовый ордер №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHRECEIPT_HEADER c where c.id = @ID" local="true"/>
-			<TI id="CASHRECEIPTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="(electdate + interval '30 day') >= DOCDATE and DOCDATE > (electdate - interval '100 day')"/>
+			<TI unique="CASHDOCSID, DOCNUMB"/>
+			<TI id="CASHRECEIPTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="CASHRECEIPT" name="ПКО Расшифровка платежа">
 			<A id="CASHRECEIPTHEADERID" parentkey="cascade"/>
@@ -1507,33 +1630,38 @@
 				<A id="TYPEEXPID" labelwidth="150" width="100"/>
 				<A id="TYPICALOPERSID" labelwidth="150" width="100" pid="doctypeid"/>
 			</GA>
+			<TI unique="CASHRECEIPTHEADERID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="CASHPAYMENT_HEADER" name="Расходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
-			<A id="ELECTDATE" name="Дата выборов" type="date" visible="false" readonly="true" formula="select electdate from electcampaign where id = @ELECTCAMPAIGNID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="23"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 					<AI id="1" name="Создан"/>
-					<AI id="2" name="Оплачен"/>
-					<AI id="3" name="Аннулирован"/>
+					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
 				<A id="SUMM" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @ID::BIGINT"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHPAYMENT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
 			<GA name="Выдать" caption="Выдать">
 				<A id="PERSONID" labelwidth="120" nulls="true"/>
 			</GA>
-			<A id="STATEMENTHEADERID" caption="Ведомость на выдачу подотчетным лицам" labelwidth="280" pid="ELECTCAMPAIGNID" nulls="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Расходный кассовый ордер №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHPAYMENT_HEADER c where c.id = @ID" local="true"/>
-			<TI id="CASHPAYMENTDATE_CHECK" name="Дата документа должна быть в промежутке от 100 дней до и до 30 дней после дня выборов" check="((electdate + interval '30 day') >= DOCDATE) and (DOCDATE > (electdate - interval '100 day'))"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
+			<TI unique="CASHDOCSID, DOCNUMB"/>
+			<TI id="CASHPAYMENTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 			<TI id="STATMENT_CHECK" name="Одновременное заполнение данных физического лица и ведомости недопустимо" check="STATEMENTHEADERID is null or PERSONID is null"/>
 		</TABLE>
 		<TABLE id="CASHPAYMENT" name="РКО Расшифровка платежа">
@@ -1549,20 +1677,26 @@
 				<A id="TYPEEXPID" labelwidth="150" width="100" nulls="true"/>
 				<A id="TYPICALOPERSID" labelwidth="150" width="100" pid="DOCTYPEID"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
+			<TI unique="CASHPAYMENTHEADERID, NUMBPP"/>
 		</TABLE>
-		<TABLE id="STATEMENT_HEADER" name="Ведомости на выдачу подотчетным лицам (0504501)">
+		<TABLE id="STATEMENT_HEADER" name="Ведомость на выдачу денег из кассы подотчетным лицам">
 			<A id="CASHDOCSID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="false" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
-				<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="13"/>
+				<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="37"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
-				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
+				<A id="STATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 					<AI id="1" name="Создан"/>
-					<AI id="2" name="Оплачен"/>
-					<AI id="3" name="Аннулирован"/>
+					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
 				<A id="SUMM" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from STATEMENT x where x.STATEMENTHEADERID = @ID::BIGINT"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from STATEMENT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
 			<GA name="Основание" caption="Основание">
 				<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
@@ -1570,29 +1704,36 @@
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Ведомость на выдачу подотчетным лицам №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from STATEMENT_HEADER c where c.id = @ID" local="true"/>
+			<TI unique="CASHDOCSID, DOCNUMB"/>
+			<TI id="STATEMENTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
-		<TABLE id="STATEMENT" name="Ведомости на выдачу подотчетным лицам (0504501) Расшифровка платежа">
+		<TABLE id="STATEMENT" name="Ведомость на выдачу денег из кассы подотчетным лицам. Расшифровка ">
 			<A id="STATEMENTHEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" nulls="false" visible="false" readonly="true" formula="select t.DOCTYPEID from CASHPAYMENT_HEADER t where t.ID = @CASHPAYMENTHEADERID" local="true"/>
-			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" nulls="false" visible="false" readonly="true" formula="select t.DOCTYPEID from STATEMENT_HEADER t where t.ID = @STATEMENTHEADERID" local="true"/>
+			<GA name="Выдано" caption="Выдано">
 				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="80" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STATEMENT where STATEMENTHEADERID = @STATEMENTHEADERID and cid=0" local="true"/>
-				<A id="SUMMPAY" labelwidth="60" width="50"/>
+				<A id="SUMMPAY" name="Выдано" caption="Выдано" labelwidth="60" width="50"/>
 				<A id="PERSONID" name="Контрагент" caption="Контрагент" labelwidth="80" nulls="true"/>
 			</GA>
 			<GA id="TYPICALOPERATION"/>
+			<TI unique="STATEMENTHEADERID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
 			<TABS>
 				<TAB name="Заголовок">
 					<A id="CASHDOCSID" parentkey="cascade"/>
 					<A id="CASHPAYMENTHEADERID" labelwidth="100"/>
-					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" local="true"/>
+					<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="36"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHCONTRIBUTION_HEADER where CASHDOCSID = @CASHCONTRIBUTION_HEADERID and cid=0" local="true"/>
 					<A id="DOCDATE" labelwidth="50" width="43"/>
 					<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="100" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" readonly="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t, CASHDOCS c where c.id=@CASHDOCSID and t.id = c.JURPERSONSID" local="true"/>
 					<A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
-					<A id="SUMM" caption="Сумма" labelwidth="100" width="30" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
+					<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="100" width="30" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
 					<A id="NOTE" name="Комментарий" caption="Комментарий" labelwidth="100" width="70" type="string" nulls="true" local="true"/>
 					<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Объявление на взнос наличными №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHCONTRIBUTION_HEADER c where c.id = @ID" local="true"/>
+					<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHCONTRIBUTION_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 				</TAB>
 				<TAB name="Отправитель">
 					<A id="SENDERNAME" name="От кого" caption="От кого" labelwidth="100" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select name from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
@@ -1609,6 +1750,8 @@
 					<A id="RECIPIENTACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.bankacc from elcmtacc e where e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 				</TAB>
 			</TABS>
+			<TI unique="CASHDOCSID, DOCNUMB"/>
+			<TI id="CASHCONTRIBUTIONDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="CASHCONTRIBUTION" name="Объявления на взнос наличными Расшифровка платежа">
 			<A id="CASHCONTRIBUTIONID" parentkey="cascade"/>
@@ -1618,6 +1761,7 @@
 			<A id="BUDGCLASSID" name="КПС" caption="КПС" labelwidth="80" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false" local="true"/>
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="50" width="38"/>
 			<A id="NOTE" name="Расшифровка" caption="Расшифровка" labelwidth="80" width="100" type="string" nulls="true" local="true"/>
+			<TI unique="CASHCONTRIBUTIONID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -1629,11 +1773,14 @@
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="EXPENSE_DOCS" name="Авансовые отчеты">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, EXPENSE_REPORTS c where e.id = c.ELECTCAMPAIGNID and c.id=@EXPENSEREPORTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, EXPENSE_REPORTS c where e.id = c.ELECTCAMPAIGNID and c.id=@EXPENSEREPORTSID" local="true"/>
 			<GA name="Авансовый отчет" caption="Авансовый отчет">
 				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
 				<A id="PERSONID" name="Контрагент" caption="Контрагент" labelwidth="160" nulls="true"/>
+				<A id="ELECTCOMMITTEEID" name="УИК" caption="УИК" labelwidth="160" nulls="true"/>
 				<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
 				<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
 			</GA>
@@ -1641,12 +1788,14 @@
 				<A id="BALANCESUMM" name="Остаток" caption="Остаток" labelwidth="80" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 				<A id="OVERSPENDING" name="Перерасход" caption="Перерасход" labelwidth="80" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 			</GA>
+			<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" visible="false" readonly="true" local="true"/>
+			<TI id="EXPENSEDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PREPAID_EXPENSE" name="Аванс">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" virtual="true" formula="select r.ELECTCAMPAIGNID from EXPENSE_REPORTS r, EXPENSE_DOCS d  where d.id=@EXPENSEREPORTSDOCSID and r.id = d.EXPENSEREPORTSID"/>
 			<GA name="Получено" caption="Получено">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PREPAID_EXPENSE where EXPENSEREPORTSDOCSID = @EXPENSEREPORTSDOCSID and cid=0" local="true"/>
 				<A id="CASHPAYMENTHEADERID" name="Кассовый документ" caption="Кассовый документ" labelwidth="120" width="50" pid="ELECTCAMPAIGNID" nulls="true"/>
 				<A id="SUMMCASH" caption="Сумма" labelwidth="50" width="30" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID::BIGINT"/>
 				<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" labelwidth="150" width="70" pid="ELECTCAMPAIGNID" nulls="true"/>
@@ -1654,9 +1803,11 @@
 			</GA>
 		</TABLE>
 		<TABLE id="EXPENDED" name="Израсходовано">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from EXPENSE_DOCS e where e.id = @EXPENSEREPORTSDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from EXPENSE_DOCS e where e.id = @EXPENSEREPORTSDOCSID" local="true"/>
 			<GA name="Приходный документ" caption="Приходный документ">
-				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENDED where EXPENSEREPORTSDOCSID = @EXPENSEREPORTSDOCSID and cid=0" local="true"/>
 				<A id="DOCDATE" labelwidth="50" width="45"/>
 				<A id="PURPOSE" name="Кому и по какому документу уплачено" caption="Кому и по какому документу уплачено" labelwidth="100" type="text"/>
 			</GA>
@@ -1664,10 +1815,12 @@
 				<A id="REPORTSUMM" name="По отчету" caption="По отчету" labelwidth="100" width="47" type="number" len="8.2" nulls="true" readonly="false"/>
 				<A id="REGISTERSUMM" name="Принято к учету" caption="Принято к учету" labelwidth="60" width="53" type="number" len="8.2" nulls="true" readonly="false"/>
 			</GA>
+			<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" visible="false" readonly="true" local="true"/>
+			<TI id="EXPENDEDDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from EXPENSE_REPORTS where id=@EXPENSEREPORTSID"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select r.ELECTCAMPAIGNID from EXPENSE_REPORTS r, EXPENSE_DOCS d  where d.id=@EXPENSEREPORTSDOCSID and r.id = d.EXPENSEREPORTSID"/>
 			<GA name="Перерасход выдан" caption="Перерасход выдан">
 				<A id="CASHPAYMENTHEADERID" name="Документ" width="50" pid="ELECTCAMPAIGNID" pid_ref="ELECTCAMPAIGNID"/>
 				<A id="SUMMPAYMENT" name="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID"/>
@@ -1678,7 +1831,7 @@
 			</GA>
 		</TABLE>
 		<TABLE id="EXPENSE_OPERATIONS" name="Типовые операции">
-			<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="ACTS" name="Акты выполненных работ и услуг избирательных кампаний">
@@ -1688,75 +1841,96 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID" labelwidth="200"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="ACTSDOCS" name="Акты выполненных работ и услуг юр.лиц">
-			<A id="ACTSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
-			<A id="DOCDATE" labelwidth="100" width="46"/>
+			<A id="ACTSID" parentkey="castcade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
+			<GA name="Внутренний номер документа" caption="Внутренний номер документа">
+				<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="200" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="50" type="date" nulls="true" formula="now()" local="true"/>
+			</GA>
 			<GA name="Документ поставщика" caption="Документ поставщика">
-				<A id="DOCTYPEID" labelwidth="100" width="100" visible="true" readonly="true" value="24"/>
-				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="100" width="50" type="string" local="true"/>
-				<A id="DOCDATEIN" name="Номер" caption="Номер" labelwidth="100" width="46" type="date" local="true"/>
-				<A id="SUMM" labelwidth="50" width="54" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from ACTSGOODS t where t.ACTSDOCSID = @ID"/>
+				<A id="DOCTYPEID" labelwidth="200" width="100" visible="true" readonly="true" value="24"/>
+				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="200" width="50" type="string" local="true"/>
+				<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="200" width="50" type="date" local="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.DOCNUMBIN||' от '||to_char(f.DOCDATEIN, 'dd.mm.yyyy') from ACTSDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+				<A id="SUMM" labelwidth="400" width="54" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from ACTSGOODS t where t.ACTSDOCSID = @ID"/>
+				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Создан" actionlist="ActsdocsToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" actionlist="ActsdocsTransactionlogRollback" readonly="true"/>
+				</A>
 			</GA>
 			<GA name="Договор" caption="Договор">
-				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100"/>
-				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
-				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
-				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
+				<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="200"/>
+				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" labelwidth="200" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
+				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" labelwidth="200" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" labelwidth="200" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
 				<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, CONTRACTSDOCS cd where cd.id=@CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="ACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="ACTSGOODS" name="Спецификация акта юр.лиц">
 			<A id="ACTSDOCSID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from ACTSDOCS where id=@ACTSDOCSID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="140" width="30" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSGOODS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSGOODS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
 			<A id="CONTRACTSDOCSID" labelwidth="125" width="40" visible="false" readonly="true" virtual="true" formula="select t.CONTRACTSDOCSID from ACTSDOCS t where t.id = @ACTSDOCSID"/>
 			<GA name="Спецификация акта" caption="Спецификация акта">
-				<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="140" type="ref" pid="CONTRACTSDOCSID" table="STAGES" ret="CODE" nulls="false" local="true"/>
-				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="140" width="70" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
+				<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="150" type="ref" pid="CONTRACTSDOCSID" table="STAGES" ret="CODE" nulls="false" local="true"/>
+				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="150" width="70" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
 				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="120" width="20" type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@STAGESID"/>
 				<A id="STAGEQUANTITY" name="Количество" caption="Количество" labelwidth="80" width="10" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
-				<A id="QUANTITY" labelwidth="140" width="50" type="number" nulls="false"/>
-				<A id="SUMM" labelwidth="50" width="50" type="number" len="8.2" nulls="true"/>
+				<A id="QUANTITY" labelwidth="150" width="50" type="number" nulls="false"/>
+				<A id="SUMM" labelwidth="150" width="50" type="number" len="8.2" nulls="true"/>
 			</GA>
 			<GA id="TYPICALOPERATION"/>
-			<A id="DOCLINKS_IN"/>
-			<A id="DOCLINKS_OUT"/>
 		</TABLE>
 		<TABLE id="PERS_ACTSDOCS" name="Акты выполненных работ и услуг физ.лиц">
 			<A id="ACTSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
-			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="100" width="46"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
+			<GA name="Внутренний номер документа" caption="Внутренний номер документа">
+				<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="200" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="50"/>
+			</GA>
 			<GA name="Акт оказанных услуг" caption="Акт оказанных услуг">
-				<A id="DOCTYPEID" labelwidth="100" width="100" visible="false" readonly="true" value="31"/>
-				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="100" width="50" type="string" local="true"/>
-				<A id="DOCDATEIN" name="Номер" caption="Номер" labelwidth="100" width="46" type="date" local="true"/>
-				<A id="SUMM" labelwidth="50" width="54" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula=""/>
+				<A id="DOCTYPEID" labelwidth="200" width="100" visible="false" readonly="true" value="31"/>
+				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="200" width="50" type="string" local="true"/>
+				<A id="DOCDATEIN" name="Номер" caption="Номер" labelwidth="200" width="50" type="date" local="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.DOCNUMBIN||' от '||to_char(f.DOCDATEIN, 'dd.mm.yyyy') from PERS_ACTSDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+				<A id="SUMM" labelwidth="400" width="54" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERS_ACTSGOODS t where t.PERSACTSDOCSID = @ID"/>
+				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Создан" actionlist="PersActsdocsToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" actionlist="PersActsdocsTransactionlogRollback" readonly="true"/>
+				</A>
 			</GA>
 			<GA name="Договор" caption="Договор">
 				<A id="PERSON_CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100"/>
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
+				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from PERSON_CONTRACTSDOCS t, PERSON a where t.id = @PERSON_CONTRACTSDOCSID and a.id=t.PERSONID"/>
 				<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, PERSON_CONTRACTSDOCS cd where cd.id=@PERSON_CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="PERS_ACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PERS_ACTSGOODS" name="Спецификация акта физ.лица">
 			<A id="PERSACTSDOCSID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from PERS_ACTSDOCS where id=@PERSACTSDOCSID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="140" width="30" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSGOODS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
-			<A id="PERSONID" labelwidth="125" width="40" visible="false" readonly="true" virtual="true" formula="select t.PERSONID from PERS_ACTSDOCS t where t.id = @PERSACTSDOCSID"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSGOODS where PERSACTSDOCSID = @PERSACTSDOCSID and cid=0"/>
 			<GA name="Спецификация акта" caption="Спецификация акта">
-				<A id="PERSSTAGESID" name="Спецификация" caption="Спецификация" labelwidth="140" type="ref" pid="TRPERSONID" table="PERSONS_STAGES" nulls="false" local="true"/>
-				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="140" width="70" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
-				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="120" width="20" type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@STAGESID"/>
-				<A id="STAGEQUANTITY" name="Количество" caption="Количество" labelwidth="80" width="10" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
-				<A id="QUANTITY" labelwidth="140" width="50" type="number" nulls="false"/>
+				<A id="PERSON_CONTRACTSDOCSID" labelwidth="125" width="40" visible="false" readonly="true" virtual="true" formula="select t.PERSON_CONTRACTSDOCSID from PERS_ACTSDOCS t where t.id = @PERSACTSDOCSID"/>
+				<A id="PERSSTAGESID" name="Спецификация" caption="Спецификация" labelwidth="150" type="ref" pid="PERSON_CONTRACTSDOCSID" table="PERSONS_STAGES" ret="CODE" nulls="false" local="true"/>
+				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="150" width="70" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, PERSONS_STAGES s where t.id = s.DICNOMNSID and s.id=@PERSSTAGESID"/>
+				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="120" width="20" type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, PERSONS_STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@PERSSTAGESID"/>
+				<A id="STAGEQUANTITY" name="Количество" caption="Количество" labelwidth="80" width="10" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from PERSONS_STAGES s where s.id=@PERSSTAGESID"/>
+				<A id="QUANTITY" labelwidth="150" width="50" type="number" nulls="false"/>
 				<A id="SUMM" labelwidth="50" width="50" type="number" len="8.2" nulls="true"/>
 			</GA>
 			<GA id="TYPICALOPERATION"/>
@@ -1770,24 +1944,33 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="DOCLINKS_IN">
+				<AI id="*" name="Любая связь" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT">
+				<AI id="*" name="" readonly="true"/>
+			</A>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="INVENTORY_DOCS" name="Товарные накладные">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
 			<TABS>
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
 					<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
-					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
+					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" 
+formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid=0"/>
 					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
-						<AI id="1" name="Создан"/>
-						<AI id="2" name="Проведен в учете" readonly="true"/>
+						<AI id="1" name="Создан" actionlist="InventoryDocsToTransactionlog"/>
+						<AI id="2" name="Проведен в учете" actionlist="InventoryDocsToTransactionlogRollback" readonly="true"/>
 					</A>
 					<GA name="Документ поставщика" caption="Документ поставщика">
 						<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="29"/>
 						<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="string" nulls="false"/>
 						<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false"/>
-						<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+						<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 					</GA>
 					<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from INVENTORY_GOODS x where x.INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
 					<GA name="Отправитель" caption="Отправитель">
@@ -1799,21 +1982,31 @@
 					<GA name="Получатель" caption="Получатель">
 						<A id="RESPPERSON" name="МОЛ" caption="МОЛ" nulls="false"/>
 					</GA>
-					<A id="DOCLINKS_IN"/>
-					<A id="DOCLINKS_OUT"/>
+					<A id="DOCLINKS_IN">
+						<AI id="*" name="Любая связь" readonly="true"/>
+					</A>
+					<A id="DOCLINKS_OUT">
+						<AI id="*" name="" readonly="true"/>
+					</A>
 				</TAB>
 				<TAB name="Зачет аванса">
-					<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" type="boolean" nulls="false"/>
+					<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" type="boolean" nulls="false" local="true"/>
 					<A id="SETOFFPREPAYMENT" name="Сумма для зачета аванса" caption="Сумма для зачета аванса" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
-					<GA id="TYPICALOPERATION"/>
+					<GA id="TYPICALOPERATION" name="Типовая операция" caption="Типовая операция">
+						<A id="BUDGCLASSID" labelwidth="150" width="50" nulls="true"/>
+						<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50" nulls="true"/>
+						<A id="TYPEEXPID" labelwidth="150" width="100" nulls="true"/>
+						<A id="TYPICALOPERSID" labelwidth="150" width="100" pid="doctypeid" nulls="true"/>
+					</GA>
 				</TAB>
-			</TABS>	
+			</TABS>
+			<TI id="INVENTORY_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="INVENTORY_GOODS" name="Спецификация товарных накладных">
 			<A id="INVENTORY_DOCSID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
 			<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="150" type="bigint" visible="false" virtual="true" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_GOODS where INVENTORY_DOCSID = @INVENTORY_DOCSID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_GOODS where INVENTORY_DOCSID = @INVENTORY_DOCSID and cid=0"/>
 			<GA name="Спецификация договора" caption="Спецификация договора">
 				<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="150" type="ref" pid="CONTRACTSDOCSID" table="STAGES" ret="CODE" nulls="false" local="true"/>
 				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="150" width="60" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
@@ -1825,21 +2018,23 @@
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
 		<TABLE id="OTHER_INVENTORY_DOCS" name="Прочие поступления МЗ">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, INVENTORY c where e.id = c.ELECTCAMPAIGNID and c.id=@INVENTORYID" local="true"/>
 			<TABS>
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
 					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from OTHER_INVENTORY_DOCS where INVENTORYID = @INVENTORYID and cid=0"/>
 					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
-						<AI id="1" name="Создан"/>
-						<AI id="2" name="Проведен в учете" readonly="true"/>
+						<AI id="1" name="Создан" actionlist="OthInventoryDocsToTransactionlog"/>
+						<AI id="2" name="Проведен в учете" actionlist="OthInventoryDocsToTransactionlogRollback" readonly="true"/>
 					</A>
-					<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="600"  type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from OTHER_INVENTORY_GOODS x where x.OTHER_INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
+					<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="600" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from OTHER_INVENTORY_GOODS x where x.OTHER_INVENTORY_DOCSID = @ID::BIGINT" local="true"/>
 					<GA name="Документ-основание" caption="Документ-основание">
 						<A id="DOCTYPEID" labelwidth="120" width="100" visible="true"/>
 						<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="55" type="string" nulls="false"/>
 						<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false"/>
-						<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from OTHER_INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+						<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from OTHER_INVENTORY_DOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 					</GA>
 					<GA name="Поставщик" caption="Поставщик">
 						<A id="AGENTID" name="Юридическое лицо" labelwidth="120"/>
@@ -1848,19 +2043,29 @@
 					<GA name="Получатель" caption="Получатель">
 						<A id="RESPPERSON" name="Получатель" caption="Получатель" labelwidth="120" nulls="false"/>
 					</GA>
-			<!-- <A id="DOCLINKS_IN"/> -->
-			<!-- <A id="DOCLINKS_OUT"/> -->
+					<A id="DOCLINKS_IN">
+						<AI id="*" name="Любая связь" readonly="true"/>
+					</A>
+					<A id="DOCLINKS_OUT">
+						<AI id="*" name="" readonly="true"/>
+					</A>
 				</TAB>
-				<!-- <TAB name="Зачет аванса">
-					<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" type="boolean" nulls="false"/>
+				<TAB name="Зачет аванса">
+					<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" type="boolean" nulls="false" local="true"/>
 					<A id="SETOFFPREPAYMENT" name="Сумма для зачета аванса" caption="Сумма для зачета аванса" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
-					<GA id="TYPICALOPERATION"/>
-				</TAB> -->
-			</TABS>	
+					<GA id="TYPICALOPERATION" name="Типовая операция" caption="Типовая операция">
+						<A id="BUDGCLASSID" labelwidth="150" width="50"/>
+						<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
+						<A id="TYPEEXPID" labelwidth="150" width="100" nulls="true"/>
+						<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
+					</GA>
+				</TAB>
+			</TABS>
+			<TI id="OTHER_INVENTORY_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="OTHER_INVENTORY_GOODS" name="Спецификация документа (Прочие постепления МЗ)">
 			<A id="OTHER_INVENTORY_DOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from OTHER_INVENTORY_GOODS where OTHER_INVENTORY_DOCSID = @OTHER_INVENTORY_DOCSID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from OTHER_INVENTORY_GOODS where OTHER_INVENTORY_DOCSID = @OTHER_INVENTORY_DOCSID and cid=0"/>
 			<GA name="Номенклатура" caption="Номенклатура">
 				<A id="DICNOMNSID" labelwidth="150"/>
 				<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -1882,12 +2087,20 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="DOCLINKS_IN">
+				<AI id="*" name="Любая связь" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT">
+				<AI id="*" name="" readonly="true"/>
+			</A>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_DOCS" name="Журнал операций">
 			<A id="TRANSACTIONLOGID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="true" readonly="true" formula="select e.begindateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@TRANSACTIONLOGID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="true" readonly="true" formula="select e.enddateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@CTRANSACTIONLOGID" local="true"/>
 			<GA name="Операция" caption="Операция">
-				<A id="TRANSACTIONNUMB" name="Номер операции" caption="Номер" labelwidth="100" width="55" type="string" nulls="false"/>
+				<A id="TRANSACTIONNUMB" name="Номер операции" caption="Номер" labelwidth="100" width="55" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(TRANSACTIONNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from TRANSACTIONLOG_DOCS where TRANSACTIONLOGID = @TRANSACTIONLOGID and cid=0"/>
 				<A id="TRANSACTIONDATE" name="Дата операции" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
 			</GA>
 			<GA name="Документ" caption="Документ">
@@ -1897,21 +2110,23 @@
 				<A id="DOCSUM" name="Сумма документа" caption="Сумма" labelwidth="100" width="10" type="number" nulls="false"/>
 			</GA>
 			<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
-				<!-- <AI id="*" readonly="true"/>
-			<A/>` -->
-			<A id="DOCLINKS_IN"/>
-			<A id="DOCLINKS_OUT"/>
-
+			<A id="DOCLINKS_IN">
+				<AI id="*" name="Любая связь" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT">
+				<AI id="*" name="" readonly="true"/>
+			</A>
 			<TI unique="TRANSACTIONLOGID,TRANSACTIONNUMB"/>
+			<TI id="TRANSACTIONLOG_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_STAGES" name="Проводки журнала операций">
 			<A id="TRANSACTIONLOG_DOCSID" parentkey="cascade"/>
 			<GA name="Дебет" caption="Дебет">
-				<A id="DTFINSECURITY" name="КФО" caption="КФО" labelwidth="140" width="100" type="number" nulls="false" value="1"/>
-				<A id="DTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
-				<A id="DTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
-				<A id="DTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
-				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="140" width="100"/>
+				<A id="DTFINSECURITY" name="КФО" caption="КФО" labelwidth="140" width="100" type="number" nulls="true" value="1"/>
+				<A id="DTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="true"/>
+				<A id="DTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="true"/>
+				<A id="DTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="true"/>
+				<A id="ACCOUNTDTID" name="Счет" caption="Счет" labelwidth="140" width="100" nulls="true"/>
 				<A id="DTANALYTICS1" name="Аналитика 1" caption="Аналитика 1" labelwidth="140" width="100" type="string"/>
 				<A id="DTANALYTICS2" name="Аналитика 2" caption="Аналитика 2" labelwidth="140" width="100" type="string"/>
 				<A id="AGENTDTID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="140" type="ref" table="AGENT" ret="CODE" form="FormAgent" nulls="true" local="true"/>
@@ -1922,10 +2137,10 @@
 			</GA>
 			<GA name="Кредит" caption="Кредит">
 				<A id="KTFINSECURITY" name="КФО" caption="КФО" labelwidth="140" width="100" type="number" nulls="false" value="1"/>
-				<A id="KTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="false"/>
-				<A id="KTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="false"/>
-				<A id="KTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="false"/>
-				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="140" width="100"/>
+				<A id="KTBUDGCLASSID" name="КПС" caption="КПС" labelwidth="140" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="true"/>
+				<A id="KTECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="140" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="true"/>
+				<A id="KTTYPEEXPID" name="Направление расходов" caption="Направление расходов" labelwidth="140" type="ref" table="TYPEEXP" ret="CODE" nulls="true"/>
+				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="140" width="100" nulls="true"/>
 				<A id="KTANALYTICS1" name="Аналитика 1" caption="Аналитика 1" labelwidth="140" width="100" type="string"/>
 				<A id="KTANALYTICS2" name="Аналитика 2" caption="Аналитика 2" labelwidth="140" width="100" type="string"/>
 				<A id="AGENTKTID" name="Юридическое лицо" caption="Юридическое лицо" labelwidth="140" type="ref" table="AGENT" ret="CODE" form="FormAgent" nulls="true" local="true"/>
@@ -1943,6 +2158,12 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when (select count( li.keyin) + count(lo.keyout) from INVENTORY_TRIAL_BALANCE_CHANGE c left join INVENTORY_TRIAL_BALANCE_DICNOMNS d on d.id = c.INVENTORY_TRIAL_BALANCE_DICNOMNSID left join INVENTORY_TRIAL_BALANCEDOCS s on s.id = d. INVENTORY_TRIAL_BALANCEDOCSID left join INVENTORY_TRIAL_BALANCE i on i.id = s.INVENTORY_TRIAL_BALANCEID left join doclinks li on c.id = li.keyin left join doclinks lo on c.id = lo.keyout where i.id=@id and ( li.tablein='INVENTORY_TRIAL_BALANCE_CHANGE' or lo.tableout='INVENTORY_TRIAL_BALANCE_CHANGE')) = 0 then true else false end">
+				<AI id="true" readonly="false"/>
+				<AI id="false" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="INVENTORY_TRIAL_BALANCEDOCS" name="Оборотные ведомости по нефинансовым активам">
@@ -1950,28 +2171,39 @@
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE where id=@INVENTORY_TRIAL_BALANCEID"/>
 			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false" local="true"/>
 			<A id="ACCOUNTID" name="Счет" caption="Счет" labelwidth="120"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when (select count( li.keyin) + count(lo.keyout) from INVENTORY_TRIAL_BALANCE_CHANGE c left join INVENTORY_TRIAL_BALANCE_DICNOMNS d on d.id = c.INVENTORY_TRIAL_BALANCE_DICNOMNSID left join INVENTORY_TRIAL_BALANCEDOCS s on s.id = d. INVENTORY_TRIAL_BALANCEDOCSID left join doclinks li on c.id = li.keyin left join doclinks lo on c.id = lo.keyout where s.id=@id and ( li.tablein='INVENTORY_TRIAL_BALANCE_CHANGE' or lo.tableout='INVENTORY_TRIAL_BALANCE_CHANGE')) = 0 then true else false end">
+				<AI id="true" readonly="false"/>
+				<AI id="false" readonly="true"/>
+			</A>
 		</TABLE>
 		<TABLE id="INVENTORY_TRIAL_BALANCE_DICNOMNS" name="Перечень номенклатуры оборотных ведомостей по МОЛ и счету">
 			<A id="INVENTORY_TRIAL_BALANCEDOCSID" parentkey="cascade"/>
-			<!-- <A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" nulls="false" visible="false" readonly="true" formula="select b.ELECTCAMPAIGNID from INVENTORY_TRIAL_BALANCE b, INVENTORY_TRIAL_BALANCEDOCS d where b.id = d.INVENTORY_TRIAL_BALANCEID and d.id=@INVENTORY_TRIAL_BALANCEDOCSID"/> -->
-			<!-- <A id="JURPERSONSID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="150" nulls="false" visible="false" readonly="true" formula="select b.JURPERSONSID from INVENTORY_TRIAL_BALANCE b, INVENTORY_TRIAL_BALANCEDOCS d where b.id = d.INVENTORY_TRIAL_BALANCEID and d.id=@INVENTORY_TRIAL_BALANCEDOCSID"/> -->
-			<!-- <A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="150" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false" visible="false" readonly="true" formula="select RESPPERSON from INVENTORY_TRIAL_BALANCEDOCS where id=@INVENTORY_TRIAL_BALANCEDOCSID" local="true"/> -->
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="50" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
 			<A id="DICMUNTSID" labelwidth="90" width="50" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
+			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when (select count( li.keyin) + count(lo.keyout) from INVENTORY_TRIAL_BALANCE_CHANGE c left join INVENTORY_TRIAL_BALANCE_DICNOMNS d on d.id = c.INVENTORY_TRIAL_BALANCE_DICNOMNSID left join doclinks li on c.id = li.keyin left join doclinks lo on c.id = lo.keyout where d.id=@ID and ( li.tablein='INVENTORY_TRIAL_BALANCE_CHANGE' or lo.tableout='INVENTORY_TRIAL_BALANCE_CHANGE')) = 0 then true else false end">
+				<AI id="true" readonly="false"/>
+				<AI id="false" readonly="true"/>
+			</A>
 		</TABLE>
 		<TABLE id="INVENTORY_TRIAL_BALANCE_CHANGE" name="Обороты по номенклатуре">
 			<A id="INVENTORY_TRIAL_BALANCE_DICNOMNSID" parentkey="cascade"/>
 			<A id="DOCNUMB" name="Документ" caption="Документ" labelwidth="120" type="string" local="true"/>
 			<A id="BALANCEDATE" name="Дата" caption="Дата" labelwidth="600" type="date" nulls="false" local="true"/>
 			<GA name="Приход" caption="Приход">
-				<A id="QUANTITYIN" name="Количество" caption="Количество" labelwidth="150" width="50"  type="number" nulls="true" value="0" local="true"/>
-				<A id="SUMMIN" name="Сумма" caption="Сумма" labelwidth="150" width="50"  type="number" nulls="true"/>
+				<A id="QUANTITYIN" name="Количество" caption="Количество" labelwidth="150" width="50" type="number" nulls="true" value="0" local="true"/>
+				<A id="SUMMIN" name="Сумма" caption="Сумма" labelwidth="150" width="50" type="number" nulls="true"/>
 			</GA>
 			<GA name="Расход" caption="Расход">
-				<A id="QUANTITYOUT" name="Количество" caption="Количество" labelwidth="150" width="50"   type="number" nulls="true" value="0" local="true"/>
-				<A id="SUMMOUT" name="Сумма" caption="Сумма"  labelwidth="150" width="50"   type="number" nulls="true"/>
+				<A id="QUANTITYOUT" name="Количество" caption="Количество" labelwidth="150" width="50" type="number" nulls="true" value="0" local="true"/>
+				<A id="SUMMOUT" name="Сумма" caption="Сумма" labelwidth="150" width="50" type="number" nulls="true"/>
 			</GA>
+			<A id="DOCLINKS_IN">
+				<AI id="*" name="Любая связь" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT">
+				<AI id="*" name="" readonly="true"/>
+			</A>
 		</TABLE>
 		<TABLE id="VIRT_LEFTOVERS" name="Остатки по оборотным ведомостям" virtual="true" query="select DICNOMNSID ID, null HID, max(LID) LID, 0 CID, max(UID) UID, max(TIM) TIM, ELECTCAMPAIGNID ELECTCAMPAIGNID, JURPERSONSID JURPERSONSID, RESPPERSON RESPPERSON, DICNOMNSID DICNOMNSID, now() BALANCEDATE, (sum(coalesce(DTQUANTITY,0))-sum(coalesce(KTQUANTITY,0))) BALANCE from INVENTORY_TRIAL_BALANCESTAGES s group by ELECTCAMPAIGNID, JURPERSONSID, RESPPERSON, DICNOMNSID">
 			<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" nulls="false" visible="true" readonly="true"/>
@@ -1991,21 +2223,25 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="WRITEOFF_STATEMENT_HEADER" name="Ведомость выдачи МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="26"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true" formula="now()" local="true"/>
-				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_STATEMENT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
-				<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400"  type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from WRITEOFF_STATEMENT_GOODS x where x.WRITEOFF_STATEMENT_HEADERID = @ID::BIGINT" local="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_STATEMENT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+				<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from WRITEOFF_STATEMENT_GOODS x where x.WRITEOFF_STATEMENT_HEADERID = @ID::BIGINT" local="true"/>
 				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
-					<AI id="1" name="Создан"/>
-					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="1" name="Создан" actionlist="WriteoffToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" actionlist="WriteoffToTransactionlogRollback" readonly="true"/>
 				</A>
 			</GA>
 			<GA name="Отправитель" caption="Отправитель">
@@ -2013,12 +2249,13 @@
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="WRITEOFF_STATEMENT_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="WRITEOFF_STATEMENT_GOODS" name="Спецификация ведомости выдачи МЗ">
 			<A id="WRITEOFF_STATEMENT_HEADERID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_STATEMENT_HEADER where id=@WRITEOFF_STATEMENT_HEADERID"/>
 			<A id="PERSONID" name="Получатель" caption="Физическое лицо" labelwidth="300" nulls="false"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" visible="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_GOODS where WRITEOFF_STATEMENT_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_STATEMENT_GOODS where WRITEOFF_STATEMENT_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="40" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
 			<A id="DICMUNTSID" labelwidth="120" width="30" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -2026,19 +2263,21 @@
 			<A id="SUMM" name="Сумма" labelwidth="90" width="50" type="number" nulls="false"/>
 			<GA id="TYPICALOPERATION"/>
 		</TABLE>
-		<TABLE id="WRITEOFF_INVOICE_HEADER" name="Накладные на внетреннее перемещение МЗ">
+		<TABLE id="WRITEOFF_INVOICE_HEADER" name="Накладные на внутреннее перемещение МЗ">
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="28"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true" formula="now()" local="true"/>
-				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_INVOICE_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
-				<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400"  type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from WRITEOFF_INVOICE_GOODS x where x.WRITEOFF_INVOICE_HEADERID = @ID::BIGINT" local="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_INVOICE_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+				<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from WRITEOFF_INVOICE_GOODS x where x.WRITEOFF_INVOICE_HEADERID = @ID::BIGINT" local="true"/>
 				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
-					<AI id="1" name="Создан"/>
-					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="1" name="Создан" actionlist="WriteoffInvToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" actionlist="WriteoffInvToTransactionlogRollback" readonly="true"/>
 				</A>
 			</GA>
 			<GA name="Отправитель" caption="Отправитель">
@@ -2049,11 +2288,12 @@
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="WRITEOFF_INVOICE_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="WRITEOFF_INVOICE_GOODS" name="Спецификация накладных на внутреннее перемещение МЗ">
 			<A id="WRITEOFF_INVOICE_HEADERID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_INVOICE_HEADER where id=@WRITEOFF_INVOICE_HEADERID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" visible="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_GOODS where WRITEOFF_INVOICE_HEADERID = @WRITEOFF_INVOICE_HEADERID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_INVOICE_GOODS where WRITEOFF_INVOICE_HEADERID = @WRITEOFF_INVOICE_HEADERID and cid=0"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="40" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
 			<A id="DICMUNTSID" labelwidth="120" width="30" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -2065,19 +2305,34 @@
 			<A id="WRITEOFFID" parentkey="cascade"/>
 			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from WRITEOFF where id=@WRITEOFFID"/>
 			<A id="ELECTCOMMITTEEID" parentkey="nocascade" visible="false" readonly="true" virtual="true" formula="select j.electcommitteeid from jurpersons j, WRITEOFF w where w.id = @WRITEOFFID and  j.id = w.JURPERSONSID"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, WRITEOFF c where e.id = c.ELECTCAMPAIGNID and c.id=@WRITEOFFID" local="true"/>
 			<GA name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="120" width="100" visible="true" readonly="true" value="27"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_HEADER where WRITEOFFID = @WRITEOFFID and cid=0"/>
 				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="true" formula="now()" local="true"/>
+				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_ACTS_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
+				<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from WRITEOFF_ACTS_GOODS x where x.WRITEOFF_ACTS_HEADERID = @ID::BIGINT" local="true"/>
+				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Создан"/>
+					<AI id="2" name="Проведен в учете" readonly="true"/>
+				</A>
 			</GA>
-			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
+			<GA name="Основание для списания" caption="Основание для списания">
+				<A id="DOCNUMBBASIS" name="Номер приказа (распоряжения)" caption="Номер приказа (распоряжения)" labelwidth="400" type="string" nulls="false" local="true"/>
+				<A id="DOCDATEBASIS" name="Дата приказа (распоряжения)" caption="Дата приказа (распоряжения)" labelwidth="400" type="date" nulls="true" local="true"/>
+				<A id="REASON" name="Причина списания" caption="Причина списания" labelwidth="200" type="text" nulls="false" local="true"/>
+				<A id="OPINION" name="Заключение комиссии" caption="Заключение комиссии" labelwidth="200" type="text" nulls="false" local="true"/>
+			</GA>
+			<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="200" nulls="false"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
+			<TI id="WRITEOFF_ACTS_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="WRITEOFF_ACTS_GOODS" name="Спецификация акта о списании МЗ">
 			<A id="WRITEOFF_ACTS_HEADERID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="nocascade" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from WRITEOFF_ACTS_HEADER where id=@WRITEOFF_ACTS_HEADERID"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" visible="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_GOODS where WRITEOFF_ACTS_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="100" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from WRITEOFF_ACTS_GOODS where WRITEOFF_ACTS_HEADERID = @WRITEOFF_STATEMENT_HEADERID and cid=0"/>
 			<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="150"/>
 			<A id="TYPENOM" labelwidth="150" width="40" readonly="true" virtual="true" formula="select t.TYPENOM from DICNOMNS t where t.id = @DICNOMNSID"/>
 			<A id="DICMUNTSID" labelwidth="120" width="30" readonly="true" virtual="true" formula="select t.DICMUNTSID from DICNOMNS t where t.id = @DICNOMNSID"/>
@@ -2159,6 +2414,14 @@
 			<P id="convname" value="ЦИК XML Первоначальная загрузка"/>
 			<P id="errorone" value="false"/>
 		</ACTION>
+		<ACTION id="ImportReportUIK" name="Загрузить Отчет УИК" type="script" actionlist="LoadAndConvertFile">
+			<P id="convname" value="Загрузка отчета УИК по выборам из комплекта расчетных форм"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="ImportExpenceReport" name="Загрузить Авансовый отчет" type="script" actionlist="LoadAndConvertFile">
+			<P id="convname" value="Загрузка авансовых отчетов"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
 		<ACTION id="ImportElectcampaign" name="Загрузить классификатор ИК, сведения о членах ИК и сведения об избирательных кампаниях" type="script" actionlist="LoadAndConvertFile">
 			<P id="convname" value="ТИК XML Первоначальная загрузка"/>
 			<P id="errorone" value="false"/>
@@ -2221,6 +2484,26 @@
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesFormINV" name="Сформировать Поступление МЗ" type="procedure" procedure="p_action_stages_create_inv">
+			<FORM name="Параметры">
+				<A id="DOCTYPEID" nulls="false" readonly="false" value="29"/>
+				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<GA name="Документ поставщика" caption="Документ поставщика">
+					<A id="SDOCNUMBIN" name="Номер" caption="Номер" labelwidth="120" width="20" type="string" nulls="false" local="true"/>
+					<A id="DDOCDATEIN" name="Дата" caption="Дата" labelwidth="80" width="20" type="date" nulls="false" local="true"/>
+				</GA>
+				<A id="RESPPERSON"/>
+				<A id="TYPICALOPERSID" pid="DOCTYPEID"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="StagesPersFormPP" name="Сформировать ПП" type="procedure" procedure="p_action_stages_pers_form_pp">
+			<FORM name="Параметры">
+				<A id="DOCTYPEID" nulls="false" readonly="false" value="16"/>
+				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<A id="PRIORITY"/>
+				<A id="TYPICALOPERSID" pid="DOCTYPEID"/>
+			</FORM>
+		</ACTION>
 		<ACTION id="StagesActsWorkServ" name="Сформировать акт" type="procedure" procedure="p_action_stages_acts_work_serv">
 			<FORM name="Параметры">
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="200" width="20" type="string" nulls="false" local="true"/>
@@ -2258,7 +2541,24 @@
 		</ACTION>
 		<ACTION id="PaydocsToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_paydocs_to_transactionlog_rollback"/>
 		<ACTION id="InventoryDocsToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_inventory_docs_to_transactionlog"/>
-        <ACTION id="InventoryDocsToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_inventory_docs_to_transactionlog_rollback"/>
+		<ACTION id="InventoryDocsToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_inventory_docs_to_transactionlog_rollback"/>
+		<ACTION id="OthInventoryDocsToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_oth_inventory_docs_to_transactionlog"/>
+		<ACTION id="OthInventoryDocsToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_oth_inventory_docs_to_transactionlog_rollback"/>
+		<ACTION id="WriteoffToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_writeoff_to_transactionlog"/>
+		<ACTION id="WriteoffToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_writeoff_to_transactionlog_rollback"/>
+		<ACTION id="WriteoffInvToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_writeoff_inv_to_transactionlog"/>
+		<ACTION id="WriteoffInvToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_writeoff_inv_to_transactionlog_rollback"/>
+		<ACTION id="ActsdocsToTransactionlog" name="Провести документ в учете" type="procedure" procedure=""/>
+		<ACTION id="ActsdocsTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure=""/>
+		<ACTION id="PersActsdocsToTransactionlog" name="Провести документ в учете" type="procedure" procedure=""/>
+		<ACTION id="PersActsdocsTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure=""/>
+		<ACTION id="FinanceelcomRecountUpDigit" name="Пересчитать итоги" type="procedure" procedure="p_action_financeelcom_recount_updigit"/>
+		<ACTION id="ApproveCNTR" name="Утвердить договор" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="2"/>
+		</ACTION>
+		<ACTION id="NotApproveCNTR" name="Снять утверждение договора" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="PaylistReport" name="Платежная ведомость (0504403)" procedure="" template="payment_statement.xls">
@@ -2400,6 +2700,9 @@
 		<REPORT id="CashAd" name="Объявление на взнос наличными" procedure="" template="cash_ad.xls"/>
 	</REPORTS>
 	<FORMS id="Forms" name="Формы">
+		<FORM id="DocTypes" name="Типы документов">
+			<GRID id="DocTypes" name="Типы документов" table="DOCTYPES"/>
+		</FORM>
 		<FORM id="PostsFRM" name="Должности">
 			<GRID id="PostsGR" name="Должности" table="POSTS">
 				<MENU>
@@ -2443,11 +2746,14 @@
 					<MI actionlist="Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="TypeexpslGR" name="Учет выплат при расчете расходов" table="TYPEEXPSL">
-				<MENU>
-					<MI actionlist="setLID;Insert;Copy;Update;Delete;MoveFolder;ConfigTables"/>
-				</MENU>
-			</GRID>
+			<TABS>
+				<TAB name="Состав направления расходов">
+					<GRID id="TypeExpCMPGR" name="Состав направления расходов" table="TYPEEXPCMP"/>
+				</TAB>
+				<TAB name="Учет выплат при расчете расходов">
+					<GRID id="TypeexpslGR" name="Учет выплат при расчете расходов" table="TYPEEXPSL"/>
+				</TAB>
+			</TABS>
 		</FORM>
 		<FORM id="FormPerson" name="Физические лица">
 			<GRID id="GridPerson" name="Физические лица" table="PERSON">
@@ -2711,7 +3017,7 @@
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
 					<GRID id="FinanceelcomGR" name="Сведения о финансовом обеспечении" table="FINANCEELCOM" readonly="true">
 						<MENU>
-							<MI actionlist="Insert;Update;Delete;MoveFolder;FinanceelcomRecountFProv;ConfigTables"/>
+							<MI actionlist="Insert;Update;Delete;MoveFolder;FinanceelcomRecountFProv;FinanceelcomRecountUpDigit;ConfigTables"/>
 						</MENU>
 					</GRID>
 					<GRID id="SubtotalfinanceelcomGR" name="ИТОГО" table="SUBTOTALFINANCEELCOM" readonly="true">
@@ -2753,20 +3059,23 @@
 				<TAB name="Договоры с юридическими лицами">
 					<TABS>
 						<TAB name="Договор">
-							<GRID id="ContractsDocsGR" name="Договор" table="CONTRACTSDOCS"/>
+							<GRID id="ContractsDocsGR" name="Договор" table="CONTRACTSDOCS" actionlist="ApproveCNTR;NotApproveCNTR"/>
 						</TAB>
 						<TAB name="Состав работ/услуг">
-							<GRID id="StagesGR" name="Состав работ/услуг" table="STAGES" actionlist="setLID;StagesFormPP;StagesActsWorkServ"/>
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CONTRACTSDOCS f where f.id = @CONTRACTSDOCSID" local="true"/>
+							<GRID id="StagesGR" name="Состав работ/услуг" table="STAGES" actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
 						</TAB>
 					</TABS>
 				</TAB>
 				<TAB name="Договоры с физическими лицами">
 					<TABS>
 						<TAB name="Договор">
-							<GRID id="PersonsDocsGR" name="Договор" table="PERSON_CONTRACTSDOCS"/>
+							<GRID id="PersonsDocsGR" name="Договор" table="PERSON_CONTRACTSDOCS" actionlist="ApproveCNTR;NotApproveCNTR"/>
 						</TAB>
 						<TAB name="Состав работ/услуг">
-							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesActsWorkServ"/>
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PERSON_CONTRACTSDOCS f  where f.id = @PERSON_CONTRACTSDOCSID" local="true"/>
+							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" 
+actionlist="StagesFormRKO;StagesActsWorkServ;StagesPersFormPP"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -2779,16 +3088,14 @@
 			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="PayaccountsFRM" name="Расчетные (лицевые) счета в банке">
-			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID" reportlist="PaymentOrder"/>
+			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID"/>
 			<TABS>
 				<TAB name="Платежные поручения">
 					<TABS>
 						<TAB name="Документ">
-							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
-							<GRID id="PaydocsGR" name="Документ" table="PAYDOCS" actionlist="setLID;PaydocsToTransactionlog;PaydocsToTransactionlogRollback"/>
+							<GRID id="PaydocsGR" name="Документ" table="PAYDOCS" actionlist="setLID;PaydocsToTransactionlog;PaydocsToTransactionlogRollback" reportlist="PaymentOrder"/>
 						</TAB>
 						<TAB name="Расшифровка платежа">
-							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
 							<A id="PAYDOCSVIRT" caption="Документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @PAYDOCSID and f.doctypeid = d.id" local="true"/>
 							<GRID id="PaydocsconsGR" name="Расшифровка платежа" table="PAYDOCSCONS"/>
 						</TAB>
@@ -2797,11 +3104,9 @@
 				<TAB name="Кассовые поступления">
 					<TABS>
 						<TAB name="Кассовые поступления">
-							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
-							<GRID id="ReceiptsDocsGR" name="Документ" table="RECEIPTSDOCS" actionlist="setLID"/>
+							<GRID id="ReceiptsDocsGR" name="Документ" table="RECEIPTSDOCS"/>
 						</TAB>
 						<TAB name="Расшифровка платежа">
-							<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select e.NAME from PAYACCOUNTS p, ELECTCAMPAIGN e where p.id = @PAYACCOUNTSID and e.id = p.ELECTCAMPAIGNID" local="true"/>
 							<A id="RECEIPTSVIRT" caption="Документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Кассовое поступление № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from RECEIPTSDOCS f where f.id = @RECEIPTSDOCSID" local="true"/>
 							<GRID id="ReceiptsDocsConsGR" name="Расшифровка платежа" table="RECEIPTSDOCSCONS"/>
 						</TAB>
@@ -2820,49 +3125,50 @@
 			<GRID id="INPUTKRFGR" name="Загрузка данных из комплектов расчетных форм" table="INPUTKRF" actionlist="uploadFileInINPUTKRF;loadFilelinks;AutoRunConvINPUTKRF;CheckErrorsKRF"/>
 			<GRID id="ERRORKRFGR" name="Ошибки комплектов расчетных форм" table="ERRORKRF" readonly="true"/>
 		</FORM>
-		<FORM id="CashFRM" name="Касса избирательной кампании">
-			<GRID id="CashGR" name="Касса избирательной кампании" table="CASHDOCS" actionlist="CreateReportCashbooks" reportlist="CashBook"/>
+		<FORM id="CashFRM" name="Касса избирательной комиссии">
+			<GRID id="CashGR" name="Касса избирательной комиссии" table="CASHDOCS" actionlist="Insert;Copy;Update;MoveFolder;ConfigTables;CreateReportCashbooks" reportlist="CashBook"/>
 			<TABS>
 				<TAB name="Приходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">
-							<GRID id="CASHRECEIPTHEADERGR" name="Приходные кассовые документы" table="CASHRECEIPT_HEADER" reportlist="CashReceiptOrder"/>
+							<GRID id="CASHRECEIPTHEADERGR" name="Приходные кассовые ордера" table="CASHRECEIPT_HEADER" reportlist="CashReceiptOrder"/>
 						</TAB>
-						<TAB name="Расшифровка платежа">
-							<A id="CASHRECEIPTHEADERVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Приходный кассовый ордер №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from CASHRECEIPT_HEADER where ID = @CASHRECEIPT_HEADERID" local="true"/>
-							<GRID id="CASHRECEIPTGR" name="ПКО расшифровка платежа" table="CASHRECEIPT"/>
+						<TAB name="Расшифровка документа">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHRECEIPT_HEADER f, DOCTYPES d where f.id = @CASHRECEIPT_HEADERID and f.doctypeid = d.id" local="true"/>
+							<GRID id="CASHRECEIPTGR" name="Расшифровка документа" table="CASHRECEIPT"/>
 						</TAB>
 					</TABS>
 				</TAB>
 				<TAB name="Расходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">
-							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые документы" table="CASHPAYMENT_HEADER" reportlist="AccountCashWarrant"/>
+							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые ордера" table="CASHPAYMENT_HEADER" reportlist="AccountCashWarrant" actionlist="Insert;Copy;Update;MoveFolder;ConfigTables"/>
 						</TAB>
-						<TAB name="Расшифровка платежа">
-							<A id="CASHRECEIPTHEADERVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Расходный кассовый ордер №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from CASHPAYMENT_HEADER where ID = @CASHPAYMENT_HEADERID" local="true"/>
-							<GRID id="CASHPAYMENTGR" name="РКО расшифровка платежа" table="CASHPAYMENT"/>
+						<TAB name="Расшифровка документа">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHPAYMENT_HEADER f, DOCTYPES d where f.id = @CASHPAYMENT_HEADERID and f.doctypeid = d.id" local="true"/>
+							<GRID id="CASHPAYMENTGR" name="Расшифровка документа" table="CASHPAYMENT" actionlist=""/>
 						</TAB>
 					</TABS>
 				</TAB>
-				<TAB name="Ведомости на выдачу подотчетным лицам (0504501)">
+				<TAB name="Ведомость на выдачу денег из кассы подотчетным лицам">
 					<TABS>
 						<TAB name="Документ">
-							<GRID id="STATEMENTHEADERGR" name="Платежные ведомости" table="STATEMENT_HEADER" reportlist="PaymentOfTheMoney"/>
+							<GRID id="STATEMENTHEADERGR" name="Ведомость на выдачу денег из кассы подотчетным лицам" table="STATEMENT_HEADER" reportlist="PaymentOfTheMoney"/>
 						</TAB>
-						<TAB name="Расшифровка платежа">
-							<A id="CASHRECEIPTHEADERVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Платежная ведомость №'||docnumb||' от '||to_char(docdate, 'dd.mm.yyyy') from STATEMENT_HEADER where ID = @STATEMENT_HEADERID" local="true"/>
-							<GRID id="STATEMENTGR" name="Расшифровка платежа" table="STATEMENT"/>
+						<TAB name="Спецификация документа">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from STATEMENT_HEADER f, DOCTYPES d where f.id = @STATEMENT_HEADERID and f.doctypeid = d.id" local="true"/>
+							<GRID id="STATEMENTGR" name="Спецификация документа" table="STATEMENT"/>
 						</TAB>
 					</TABS>
 				</TAB>
 				<TAB name="Объявления на взнос наличными">
 					<TABS>
 						<TAB name="Документ">
-							<GRID id="CASHCONTRIBUTIONHEADERGR" name="Расходные кассовые документы" table="CASHCONTRIBUTION_HEADER" reportlist="AccountCashWarrant;CashAd"/>
+							<GRID id="CASHCONTRIBUTIONHEADERGR" name="Объявления на взнос наличными" table="CASHCONTRIBUTION_HEADER" reportlist="AccountCashWarrant;CashAd"/>
 						</TAB>
-						<TAB name="Расшифровка платежа">
-							<GRID id="CASHCONTRIBUTIONGR" name="РКО расшифровка платежа" table="CASHCONTRIBUTION"/>
+						<TAB name="Спецификация документа">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHCONTRIBUTION_HEADER f, DOCTYPES d where f.id = @CASHCONTRIBUTION_HEADERID and f.doctypeid = d.id" local="true"/>
+							<GRID id="CASHCONTRIBUTIONGR" name="Спецификация документа" table="CASHCONTRIBUTION"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -2879,7 +3185,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Expense_ReportsFRM" name="Авансовые отчеты избирательной кампании">
-			<GRID id="Expense_ReportsGR" name="Авансовые отчеты избирательной кампании" table="EXPENSE_REPORTS"/>
+			<GRID id="Expense_ReportsGR" name="Авансовые отчеты избирательной кампании" table="EXPENSE_REPORTS" actionlist="ImportExpenceReport"/>
 			<TABS>
 				<TAB name="Авансовые отчеты">
 					<GRID id="EXPENSE_DOCSGR" name="Документы аванса" table="EXPENSE_DOCS" reportlist="ExpenseReport"/>
@@ -2909,10 +3215,10 @@
 				<TAB name="Акты выполненных работ и услуг юридических лиц">
 					<TABS>
 						<TAB name="Акты выполненных работ и услуг">
-							<GRID id="ActsDocsGR" name="Акты выполненных работ и услуг" table="ACTSDOCS"/>
+							<GRID id="ActsDocsGR" name="Акты выполненных работ и услуг" table="ACTSDOCS" actionlist="ActsdocsToTransactionlog;ActsdocsTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Номенклатура">
-							<A id="ATCSVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Акт выполнения работ/оказания услуг №'||docnumbin||' от '||to_char(docdatein, 'dd.mm.yyyy') from ACTSDOCS where ID = @ACTSDOCSID" local="true"/>
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from ACTSDOCS f, DOCTYPES d where f.id = @ACTSDOCSID and f.doctypeid = d.id" local="true"/>
 							<GRID id="ActsGoodsGR" name="Номенклатура" table="ACTSGOODS"/>
 						</TAB>
 					</TABS>
@@ -2920,10 +3226,10 @@
 				<TAB name="Акты выполненных работ и услуг физических лиц">
 					<TABS>
 						<TAB name="Акты выполненных работ и услуг">
-							<GRID id="PesrActsDocsGR" name="Документы" table="PERS_ACTSDOCS"/>
+							<GRID id="PesrActsDocsGR" name="Документы" table="PERS_ACTSDOCS" actionlist="PersActsdocsToTransactionlog;PersActsdocsTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Номенклатура">
-							<A id="ATCSVIRT" labelwidth="180" type="string" readonly="true" virtual="true" formula="select 'Акт оказаных услуг №'||docnumbin||' от '||to_char(docdatein, 'dd.mm.yyyy') from PERS_ACTSDOCS where ID = @PERS_ACTSDOCSID" local="true"/>
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from PERS_ACTSDOCS f, DOCTYPES d where f.id = @PERS_ACTSDOCSID and f.doctypeid = d.id" local="true"/>
 							<GRID id="PersActsGoodsGR" name="Номенклатура" table="PERS_ACTSGOODS"/>
 						</TAB>
 					</TABS>
@@ -2939,6 +3245,7 @@
 							<GRID id="InventoryDocsGR" name="Документы" table="INVENTORY_DOCS" actionlist="InventoryDocsToTransactionlog;InventoryDocsToTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Спецификация товарной накладной">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from INVENTORY_DOCS f, DOCTYPES d where f.id = @INVENTORY_DOCSID and f.doctypeid = d.id" local="true"/>
 							<GRID id="InventoryGoodsGR" name="Спецификация документа" table="INVENTORY_GOODS"/>
 						</TAB>
 					</TABS>
@@ -2946,9 +3253,10 @@
 				<TAB name="Прочие поступления МЗ">
 					<TABS>
 						<TAB name="Поступления МЗ">
-							<GRID id="OtherInventoryDocsGR" name="Документы" table="OTHER_INVENTORY_DOCS"/>
+							<GRID id="OtherInventoryDocsGR" name="Документы" table="OTHER_INVENTORY_DOCS" actionlist="OthInventoryDocsToTransactionlog;OthInventoryDocsToTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Спецификация документа">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumbin||' от '||to_char(f.docdatein, 'dd.mm.yyyy') from OTHER_INVENTORY_DOCS f, DOCTYPES d where f.id = @OTHER_INVENTORY_DOCSID and f.doctypeid = d.id" local="true"/>
 							<GRID id="OtherInventoryGoodsGR" name="Спецификация документа" table="OTHER_INVENTORY_GOODS"/>
 						</TAB>
 					</TABS>
@@ -2978,9 +3286,10 @@
 				<TAB name="Ведомости выдачи МЗ">
 					<TABS>
 						<TAB name="Ведомости выдачи МЗ">
-							<GRID id="WRITEOFF_STATEMENT_HEADERGR" name="Документы" table="WRITEOFF_STATEMENT_HEADER"/>
+							<GRID id="WRITEOFF_STATEMENT_HEADERGR" name="Документы" table="WRITEOFF_STATEMENT_HEADER" actionlist="WriteoffToTransactionlog;WriteoffToTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Спецификация ведомости выдачи МЗ">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_STATEMENT_HEADER f, DOCTYPES d where f.id = @WRITEOFF_STATEMENT_HEADERID and f.doctypeid = d.id" local="true"/>
 							<GRID id="WRITEOFF_STATEMENT_GOODSGR" name="Спецификация документа" table="WRITEOFF_STATEMENT_GOODS"/>
 						</TAB>
 					</TABS>
@@ -2988,9 +3297,10 @@
 				<TAB name="Накладные на внутреннее перемещение МЗ">
 					<TABS>
 						<TAB name="Накладные на внутреннее перемещение МЗ">
-							<GRID id="WRITEOFF_INVOICE_HEADERGR" name="Документы" table="WRITEOFF_INVOICE_HEADER"/>
+							<GRID id="WRITEOFF_INVOICE_HEADERGR" name="Документы" table="WRITEOFF_INVOICE_HEADER" actionlist="WriteoffInvToTransactionlog;WriteoffInvToTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Спецификация накладной на внутреннее перемещение МЗ">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_INVOICE_HEADER f, DOCTYPES d where f.id = @WRITEOFF_INVOICE_HEADERID and f.doctypeid = d.id" local="true"/>
 							<GRID id="WRITEOFF_INVOICE_GOODSGR" name="Спецификация документа" table="WRITEOFF_INVOICE_GOODS"/>
 						</TAB>
 					</TABS>
@@ -3001,6 +3311,7 @@
 							<GRID id="WRITEOFF_ACTS_HEADERGR" name="Документы" table="WRITEOFF_ACTS_HEADER"/>
 						</TAB>
 						<TAB name="Спецификация акта о списании МЗ">
+							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_ACTS_HEADER f, DOCTYPES d where f.id = @WRITEOFF_ACTS_HEADERID and f.doctypeid = d.id" local="true"/>
 							<GRID id="WRITEOFF_ACTS_GOODSGR" name="Спецификация документа" table="WRITEOFF_ACTS_GOODS"/>
 						</TAB>
 					</TABS>
