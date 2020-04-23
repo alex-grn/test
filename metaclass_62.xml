@@ -1,19 +1,16 @@
 <SYSTEM id="62" name="Учет расходов на выборы 2">
 	<MODULES id="Modules" name="Модули"/>
 	<GROUPS_MENU name="Группы меню"/>
-	<ATTRIBUTES name="Атрибуты">
-
-	</ATTRIBUTES>
+	<ATTRIBUTES name="Атрибуты"</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
-	
-	<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
+		<TABLE id="WORDINGOFTHEFORMS" name="Редакции форм">
 			<A id="REPORTINGFORMID" name="Код формы" limit="50" caption="Код формы" labelwidth="400"/>
-			<A id="REPORTINGFORMVIRT" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select r.NAMEFORM||' от '||TO_CHAR(w.REVISIONDATE, 'DD.MM.YYYY') from REPORTINGFORM r, WORDINGOFTHEFORMS w where w.ID = @id and r.id = w.REPORTINGFORMID" local="true"/>
+			<A id="REPORTINGFORMVIRT" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="true" visible="true" virtual="true" formula="select r.CODEFORM||' от '||TO_CHAR(w.REVISIONDATE, 'DD.MM.YYYY') from REPORTINGFORM r, WORDINGOFTHEFORMS w where w.ID = @id and r.id = w.REPORTINGFORMID" local="true"/>
 			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" nulls="false" local="true"/>
 			<TI unique="CODEFORMID,REVISIONDATE"/>
-	</TABLE>
-	<TABLE id="MEASURESOFSHAPE" name="Показатели формы">
+		</TABLE>
+		<TABLE id="MEASURESOFSHAPE" name="Показатели формы">
 			<A id="WORDINGOFTHEFORMSID" parentkey="cascade"/>
 			<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="text" nulls="false" local="true"/>
 			<A id="CODE" name="Код строки формы" caption="Код строки формы" labelwidth="600" type="string" nulls="false" local="true"/>
@@ -25,9 +22,8 @@
 				<A id="COMPLETIONIKSRF" name="ИКСРФ" caption="ИКСРФ" width="15" type="boolean" local="true"/>
 			</GA>
 			<TI unique="CODE,WORDINGOFTHEFORMSID"/>
-	</TABLE>
-	
-	<TABLE id="REPORTINGFORM" name="Формы отчётности">
+		</TABLE>
+		<TABLE id="REPORTINGFORM" name="Формы отчётности">
 			<A id="CODEFORM" name="Код формы" caption="Код формы" labelwidth="400" type="string" nulls="false" local="true"/>
 			<A id="NAMEFORM" name="Наименование формы" caption="Наименование формы" labelwidth="150" type="text" nulls="false" local="true"/>
 		</TABLE>
@@ -83,13 +79,10 @@
 				<AI id="IKSRFP17" name="IKSRFPRIL17"/>
 			</A>
 		</TABLE>
-		
 		<TABLE id="LISTOFCHECKS" name="Перечень проверок и пересчетов">
 			<A id="WORDINGOFTHEFORMSID" labelwidth="150"/>
 			<A id="DEFINITION" name="Описание" caption="Описание" labelwidth="150" type="text" local="true"/>
-			<A id="DATELISTOFCHEKS" name="Дата" caption="Дата" labelwidth="600" type="date" local="true"/>
 		</TABLE>
-		
 		<TABLE id="RECALCULATIONS" name="Пересчеты">
 			<A id="LISTOFCHECKSID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" visible="false" readonly="true" formula="select WORDINGOFTHEFORMSID from LISTOFCHECKS where id=@LISTOFCHECKSID"/>
@@ -116,7 +109,7 @@
 		<TABLE id="TERMSRECALC" name="Слагаемые пересчетов">
 			<A id="RECALCULATIONSID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" labelwidth="150"/>
-			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="150" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
+			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="150" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="CODE" nulls="false"/>
 			<A id="ACTIONTERMS" name="Действие" caption="Действие" labelwidth="150" type="list" nulls="true" local="true">
 				<AI id="1" name="Умножение"/>
 				<AI id="2" name="Деление"/>
@@ -125,7 +118,6 @@
 			<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 		</TABLE>
-		
 		<TABLE id="AUDITREPORT" name="Проверки">
 			<A id="LISTOFCHECKSID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" visible="false" readonly="true" formula="select WORDINGOFTHEFORMSID from LISTOFCHECKS where id=@LISTOFCHECKSID"/>
@@ -145,23 +137,22 @@
 				<AI id="5" name="4"/>
 			</A>
 			<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="true" local="true"/>
-			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list" query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
-               from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
-                from WORDINGOFTHEFORMS w,
-                     PKTO p
-               where w.id = @WORDINGOFTHEFORMSID
-                 and p.reportingformid = w.reportingformid
-                 and p.nametableiksrf is not null
-              group by p.nametableiksrf )))::json) as sJSON) t
-            where (t.sJSON->>'caption')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
-			<TI unique="MEASURESOFSHAPEID"/>
+			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list"          query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
+         from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
+          from WORDINGOFTHEFORMS w,
+      PKTO p
+where w.id = @WORDINGOFTHEFORMSID
+and p.reportingformid = w.reportingformid
+and p.nametableiksrf is not null
+group by p.nametableiksrf )))::json) as sJSON) t
+where (t.sJSON->>'caption')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
 			<TI id="PROCEDURE_CHECK" name="Необходимо заполнить поле Процедура" check="CONVERSIONTYPE != '2' or (CONVERSIONTYPE = '2' and RECALCPROCEDURE is not null and RECALCPROCEDURE != '')"/>
 			<TI id="FORMULA_CHECK" name="Поле Процедура должно быть пустым" check="CONVERSIONTYPE != '1'  or (CONVERSIONTYPE = '1' and (RECALCPROCEDURE is null or RECALCPROCEDURE = ''))"/>
 		</TABLE>
 		<TABLE id="TERMSAUDIT" name="Слагаемые проверок">
 			<A id="AUDITREPORTID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" labelwidth="150"/>
-			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="150" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
+			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="150" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="CODE" nulls="false"/>
 			<A id="ACTIONTERMS" name="Действие" caption="Действие" labelwidth="150" type="list" nulls="true" local="true">
 				<AI id="1" name="Умножение"/>
 				<AI id="2" name="Деление"/>
@@ -170,24 +161,26 @@
 			<A id="COEFFICIENT" name="Коэффициент" caption="Коэффициент" labelwidth="150" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="REVISIONDATE" name="Дата редакции" caption="Дата редакции" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list" query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
-               from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
-                from WORDINGOFTHEFORMS w,
-                     PKTO p
-               where w.id = @WORDINGOFTHEFORMSID
-                 and p.reportingformid = w.reportingformid
-                 and p.nametableiksrf is not null
-              group by p.nametableiksrf )))::json) as sJSON) t
-            where (t.sJSON->>'caption')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
+from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
+from WORDINGOFTHEFORMS w,
+PKTO p
+where w.id = @WORDINGOFTHEFORMSID
+and p.reportingformid = w.reportingformid
+and p.nametableiksrf is not null
+group by p.nametableiksrf )))::json) as sJSON) t
+where (t.sJSON->>'caption')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
 		</TABLE>
-	
 	</TABLES>
-	<ACTIONS name="Действия">
+	<ACTIONS name="Действия"
+>
 
 	</ACTIONS>
-	<REPORTS name="Отчеты">
+	<REPORTS name="Отчеты"
+>
 
 	</REPORTS>
-	<FORMS id="Forms" name="Формы">
+	<FORMS id="Forms" name="Формы"
+>
 
 	</FORMS>
 </SYSTEM>
