@@ -317,7 +317,7 @@
 		<A id="CONTRACTID" name="Поставщик" caption="Поставщик" type="ref" table="CONTRACTS" ret="DOCNUMB" nulls="false"/>
 		<A id="RESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
 		<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" type="ref" table="MTRESPONSPERS" ret="FULLNAME" nulls="false"/>
-		<A id="CASHRECEIPTHEADERID" name="Заголовок ПКО" caption="Заголовок ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
+		<A id="CASHRECEIPTHEADERID" name="ПКО" caption="ПКО" type="ref" table="CASHRECEIPT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
 		<A id="STATEMENTHEADERID" name="Заголовок Ведомости" caption="Заголовок Ведомости" type="ref" table="STATEMENT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
 		<A id="CASHCONTRIBUTIONID" name="Заголовок объявления о взносе" caption="Заголовок объявления о взносе" type="ref" table="CASHCONTRIBUTION_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
 		<A id="TRANSACTIONLOGID" name="Журналы операций" caption="Журналы операций" type="ref" table="TRANSACTIONLOG" ret="ID" nulls="false"/>
@@ -1766,8 +1766,13 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 		<TABLE id="EXPENSE_DOCS" name="Авансовые отчеты">
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, EXPENSE_REPORTS c where e.id = c.ELECTCAMPAIGNID and c.id=@EXPENSEREPORTSID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, EXPENSE_REPORTS c where e.id = c.ELECTCAMPAIGNID and c.id=@EXPENSEREPORTSID" local="true"/>
+			<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" value="0" local="true">
+				<AI id="0" name="Новый/Загружен из КРФ"/>
+				<AI id="1" name="Проведен в учете" readonly="true"/>
+			</A>
 			<GA name="Авансовый отчет" caption="Авансовый отчет">
 				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
+				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="25"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
 				<A id="PERSONID" name="Контрагент" caption="Контрагент" labelwidth="160" nulls="true"/>
@@ -1781,6 +1786,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 			</GA>
 			<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" visible="false" readonly="true" local="true"/>
 			<A id="CODE" name="Код" caption="Код" type="string" virtual="true" nulls="true" visible="false" readonly="true" local="true" formula="select 'Авансовый отчет №'||DOCNUMB||' от '||to_char(DOCDATE, 'DD.MM.YYYY' ) from EXPENSE_DOCS where id=@id"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="EXPENSEREPORTSID, DOCNUMB"/>
 			<TI id="EXPENSEDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
@@ -1795,38 +1802,47 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="SUMMPAYDOC" name="Сумма" caption="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from PAYDOCSCONS x where x.PAYDOCSID = @PAYDOCSID::BIGINT"/>
 			</GA>
 			<TI unique="EXPENSE_DOCS_ID, NUMBPP"/>
+			<TI id="DOC_CHECK" name="Одновременное заполнение ПП и РКО недопустимо!" check="CASHPAYMENTHEADERID is null or PAYDOCSID is null"/>
 		</TABLE>
 		<TABLE id="EXPENDED" name="Израсходовано">
 			<A id="EXPENSE_DOCS_ID" parentkey="cascade"/>
-			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from EXPENSE_DOCS e where e.id = @EXPENSE_DOCS_ID" local="true"/>
-			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from EXPENSE_DOCS e where e.id = @EXPENSE_DOCS_ID" local="true"/>
 			<GA name="Приходный документ" caption="Приходный документ">
-				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENDED where EXPENSE_DOCS_ID = @EXPENSE_DOCS_ID and cid=0" local="true"/>
-				<A id="DOCDATE" labelwidth="50" width="45"/>
+				<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" parentkey="cascade" type="bigint" nulls="false" visible="false" readonly="true" virtual="false" formula="select t.DOCTYPEID from EXPENSE_DOCS t where t.ID = @EXPENSE_DOCS_ID"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENDED where EXPENSE_DOCS_ID = @EXPENSE_DOCS_ID and cid=0" local="true"/>
+				<A id="DOCNUMB" name="Номер документа" caption="Номер документа" labelwidth="100" width="50" type="string" nulls="false" readonly="false"/>
+				<A id="DOCDATE" name="Дата документа" caption="Дата документа" labelwidth="100" width="50"/>
 				<A id="PURPOSE" name="Кому и по какому документу уплачено" caption="Кому и по какому документу уплачено" labelwidth="100" type="text"/>
 			</GA>
 			<GA name="Суммы" caption="Суммы">
-				<A id="REPORTSUMM" name="По отчету" caption="По отчету" labelwidth="100" width="47" type="number" len="8.2" nulls="true" readonly="false"/>
-				<A id="REGISTERSUMM" name="Принято к учету" caption="Принято к учету" labelwidth="60" width="53" type="number" len="8.2" nulls="true" readonly="false"/>
+				<A id="REPORTSUMM" name="По отчету" caption="По отчету" labelwidth="100" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
+				<A id="REGISTERSUMM" name="Принято к учету" caption="Принято к учету" labelwidth="100" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 			</GA>
+			<GA id="TYPICALOPERATION"/>
 			<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" visible="false" readonly="true" local="true"/>
-			<TI id="EXPENDEDDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="BALANCE_INFORMATION" name="Сведения о выдаче остатка, внесениии перерасхода">
-			<A id="EXPENSE_DOCS_ID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" formula="select r.ELECTCAMPAIGNID from EXPENSE_REPORTS r, EXPENSE_DOCS d  where d.id=@EXPENSE_DOCS_ID and r.id = d.EXPENSEREPORTSID"/>
-			<GA name="Перерасход выдан" caption="Перерасход выдан">
-				<A id="CASHPAYMENTHEADERID" name="Документ" width="50" pid="ELECTCAMPAIGNID" pid_ref="ELECTCAMPAIGNID"/>
-				<A id="SUMMPAYMENT" name="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID"/>
-			</GA>
-			<GA name="Остаток внесен" caption="Остаток внесен">
-				<A id="CASHRECEIPTHEADERID" name="Документ" width="50" pid="ELECTCAMPAIGNID" pid_ref="ELECTCAMPAIGNID"/>
-				<A id="SUMMRECEIPT" name="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHRECEIPT x where x.CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID"/>
-			</GA>
-		</TABLE>
-		<TABLE id="EXPENSE_OPERATIONS" name="Типовые операции">
-			<A id="EXPENSEREPORTSDOCSID" parentkey="cascade"/>
-			<GA id="TYPICALOPERATION"/>
+			<TABS>
+				<TAB name="Перерасход выдан">
+					<A id="EXPENSE_DOCS_ID" parentkey="cascade"/>
+					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" formula="select r.ELECTCAMPAIGNID from EXPENSE_REPORTS r, EXPENSE_DOCS d  where d.id=@EXPENSE_DOCS_ID and r.id = d.EXPENSEREPORTSID"/>
+					<GA name="Перерасход выдан" caption="Перерасход выдан">
+						<A id="CASHPAYMENTHEADERID" name="РКО" caption="РКО" labelwidth="150" width="50" pid="ELECTCAMPAIGNID" pid_ref="ELECTCAMPAIGNID" nulls="true"/>
+						<A id="SUMMPAYMENT" name="Сумма" caption="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID"/>
+						<A id="PAYDOCSID" name="Платежное поручение" caption="Платежное поручение" labelwidth="150" width="50" pid="ELECTCAMPAIGNID" nulls="true"/>
+						<A id="SUMMPAYDOC" name="Сумма" caption="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from PAYDOCSCONS x where x.PAYDOCSID = @PAYDOCSID::BIGINT"/>
+					</GA>
+				</TAB>
+				<TAB name="Остаток внесен">
+					<GA name="Остаток внесен" caption="Остаток внесен">
+						<A id="CASHRECEIPTHEADERID" name="ПКО" caption="ПКО" labelwidth="150" width="50" pid="ELECTCAMPAIGNID" pid_ref="ELECTCAMPAIGNID" nulls="true"/>
+						<A id="SUMMRECEIPT" name="Сумма" caption="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHRECEIPT x where x.CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID"/>
+						<A id="RECEIPTSDOCSID" name="Кассовое посручение" caption="Платежное поручение" labelwidth="150" width="50" pid="ELECTCAMPAIGNID" nulls="true"/>
+						<!-- <A id="RECEIPTSDOCSID" name="Кассовое поступление" caption="Кассовое поступление" type="ref" table="RECEIPTSDOCS" ret="DOCNUMBVIRT" nulls="false"/> -->
+				
+						<A id="SUMMPAYDOC" name="Сумма" caption="Сумма" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from RECEIPTSDOCSCONS x where x.RECEIPTSDOCSID = @RECEIPTSDOCSID::BIGINT"/>
+					</GA>
+				</TAB>
+			</TABS>	
 		</TABLE>
 		<TABLE id="ACTS" name="Акты выполненных работ и услуг избирательных кампаний">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -3196,9 +3212,6 @@ actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
 						</TAB>
 						<TAB name="Сведения о выдаче остатка, внесениии перерасхода">
 							<GRID id="BALANCE_INFORMATIONGR" name="Сведения о выдаче остатка, внесениии перерасхода" table="BALANCE_INFORMATION"/>
-						</TAB>
-						<TAB name="Типовые операции">
-							<GRID id="EXPENSE_OPERATIONSGR" name="Типовые операции" table="EXPENSE_OPERATIONS"/>
 						</TAB>
 					</TABS>
 				</TAB>
