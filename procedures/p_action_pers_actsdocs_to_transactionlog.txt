@@ -1,0 +1,117 @@
+CREATE OR REPLACE FUNCTION public.p_action_pers_actsdocs_to_transactionlog (
+  id bigint,
+  uid bigint
+)
+RETURNS text AS
+$body$
+declare 
+   nID  bigint:=ID;
+   nUID bigint:=UID;
+   rec  record;
+   sp   record;
+   nTRANSACTIONLOGID bigint;
+   nTRANSACTIONLOG_DOCSID bigint;
+   nTRANSACTIONLOG_STAGESID bigint;
+   next_num text;
+   --определим уровни доступа
+   nLID_TRANSACTIONLOG        bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG',nUID);
+   nLID_TRANSACTIONLOG_DOCS   bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_DOCS',nUID);
+   nLID_TRANSACTIONLOG_STAGES bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID);
+begin
+    for rec in (
+        select a.ELECTCAMPAIGNID,
+               a.JURPERSONSID,
+               p.DOCDATE,
+               p.DOCTYPEID,
+               p.DOCNUMBIN,
+               p.DOCDATEIN,
+               sum(COALESCE(ps.SUMM,0)) as SUMM,
+               ps.TYPICALOPERSID,
+               count(ps.TYPICALOPERSID) OVER() as count_typ,
+               c.PERSONID,
+               p.ID as PERS_ACTSDOCSID,
+               a.ID as ACTSID,
+               t.name as TYPENAME
+          from PERS_ACTSDOCS p, 
+               ACTS a,
+               PERS_ACTSGOODS ps,
+               PERSON_CONTRACTSDOCS c,
+               TYPICALOPERS t
+         where p.id = nID 
+           and a.id = p.ACTSID
+           and ps.PERSACTSDOCSID = p.ID
+           and c.ID = p.PERSON_CONTRACTSDOCSID
+           and t.ID = ps.TYPICALOPERSID
+      group by a.ELECTCAMPAIGNID,
+               a.JURPERSONSID,
+               p.DOCDATE,
+               p.DOCTYPEID,
+               p.DOCNUMBIN,
+               p.DOCDATEIN,
+               ps.TYPICALOPERSID,
+               c.PERSONID,
+               p.ID,
+               a.ID,
+               t.name
+    )
+    LOOP
+       update PERS_ACTSDOCS p set status = '2' where p.ID = rec.PERS_ACTSDOCSID;
+       if rec.count_typ > 1 then raise using message = 'Для платежного поручения указаны разные типовые операции'; end if;
+      --найдем заголовок, если нет его, то добавим
+       BEGIN
+         select t.ID 
+           into STRICT nTRANSACTIONLOGID
+           from TRANSACTIONLOG t 
+          where t.ELECTCAMPAIGNID = rec.ELECTCAMPAIGNID 
+            and t.JURPERSONSID = rec.JURPERSONSID;
+       exception when no_data_found THEN 
+          insert into transactionlog(uid,lid,electcampaignid,jurpersonsid)
+                              values(nUID,nLID_TRANSACTIONLOG,rec.ELECTCAMPAIGNID,rec.JURPERSONSID) returning TRANSACTIONLOG.ID into nTRANSACTIONLOGID;
+       end;
+       
+       --сгенерируем следующий номер
+       select coalesce(regexp_replace(max(lpad(TRANSACTIONNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) into next_num from TRANSACTIONLOG_DOCS where TRANSACTIONLOGID = nTRANSACTIONLOGID;
+       
+       --создаем запись в журнале операций
+       insert into TRANSACTIONLOG_DOCS(uid,lid,transactionlogid,transactionnumb,transactiondate,doctypeid,docnumb,docdate,docsum,typicalopersid,tponame)
+       values(nUID,nLID_TRANSACTIONLOG_DOCS,nTRANSACTIONLOGID,COALESCE(next_num,'1'),rec.DOCDATE,rec.DOCTYPEID,rec.DOCNUMBIN,rec.DOCDATEIN,rec.SUMM,rec.TYPICALOPERSID,rec.TYPENAME) 
+       returning TRANSACTIONLOG_DOCS.ID into nTRANSACTIONLOG_DOCSID;
+       
+       for sp in (
+           select case when t.ACCOUNTDTID is not null then COALESCE(t.DTBUDGCLASSID,p.BUDGCLASSID) else null end as DTBUDGCLASSID,
+                  case when t.ACCOUNTKTID is not null then COALESCE(t.KTBUDGCLASSID,p.BUDGCLASSID) else null end as KTBUDGCLASSID,
+                  case when t.ACCOUNTKTID is not null then COALESCE(t.ECONCLASSKTID,p.ECONCLASSKTID) else null end as ECONCLASSKTID,
+                  case when t.ACCOUNTDTID is not null then COALESCE(t.ECONCLASSDTID,p.ECONCLASSKTID) else null end as ECONCLASSDTID,
+                  case when t.ACCOUNTDTID is not null then p.TYPEEXPID else null end as DTYPEEXPID,
+                  case when t.ACCOUNTKTID is not null then p.TYPEEXPID else null end as KTYPEEXPID,
+                  t.ACCOUNTDTID,
+                  case when t.ACCOUNTDTID is not null then 1 else null end as dKFO,
+                  case when t.ACCOUNTKTID is not null then 1 else null end as kKFO,
+                  case when t.ACCOUNTKTID is not null then rec.PERSONID else null end as personid,
+                  t.ACCOUNTKTID,
+                  p.SUMM,
+                  p.ID 
+             from PERS_ACTSGOODS p
+             left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
+             left join DICACCS d on d.ID = t.ACCOUNTDTID 
+            where p.PERSACTSDOCSID = nID
+       )
+       LOOP
+           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,personktid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ)
+             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM)
+           returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
+           perform p_system_doclinks_add('PERS_ACTSGOODS',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
+       end loop; 
+       
+    END LOOP; 
+    return 'Документ проведён в учёте';  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_pers_actsdocs_to_transactionlog (id bigint, uid bigint)
+  OWNER TO magicbox;
