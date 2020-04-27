@@ -1,0 +1,101 @@
+CREATE OR REPLACE FUNCTION public.p_action_writeoff_acts_to_transactionlog_rollback (
+  id bigint
+)
+RETURNS text AS
+$body$
+/*Действие: Отмена проведения документа в учете*/
+declare
+  nID    BIGINT:=ID;  
+  REC    record;
+  aINVENT TEXT[]:= ARRAY['INVENTORY_TRIAL_BALANCEDOCS','INVENTORY_TRIAL_BALANCE_DICNOMNS'];
+  aOTHERS TEXT[]:= ARRAY['INVENTORY_TRIAL_BALANCE_CHANGE','TRANSACTIONLOG_DOCS','TRANSACTIONLOG_STAGES'];
+  tINVENT text;
+begin
+  --Сменим статус на "В работе"
+  update WRITEOFF_ACTS_HEADER p set STATUS = '1' where p.ID = nID;
+  --Удалим записи из разделов
+  FOREACH tINVENT IN array aOTHERS
+    loop
+       execute 'delete from '||tINVENT||' t
+                      where exists(select 1
+                                     from doclinks d
+                                    where d.tablein ilike ''WRITEOFF_ACTS_HEADER''
+                                      and d.keyin = '||nID||'
+                                      and d.tableout ilike '''||tINVENT||'''
+                                      and t.id = d.keyout);';
+    end loop;
+  --смотрим есть ли записи. НЕТ? удаляем родителей ????  
+  delete from INVENTORY_TRIAL_BALANCE_DICNOMNS t 
+                      where exists(select 1
+                                     from doclinks d
+                                    where d.tablein ilike 'WRITEOFF_ACTS_HEADER'
+                                      and d.keyin = nID
+                                      and d.tableout ilike 'INVENTORY_TRIAL_BALANCE_DICNOMNS'
+                                      and t.id = d.keyout)
+                        and not exists(select 1
+                                         from INVENTORY_TRIAL_BALANCE_CHANGE s
+                                        where s.INVENTORY_TRIAL_BALANCE_DICNOMNSID = t.ID);  
+  delete from INVENTORY_TRIAL_BALANCEDOCS t
+                      where exists(select 1
+                                     from doclinks d
+                                    where d.tablein ilike 'WRITEOFF_ACTS_HEADER'
+                                      and d.keyin = nID
+                                      and d.tableout ilike 'INVENTORY_TRIAL_BALANCEDOCS'
+                                      and t.id = d.keyout)
+                        and not exists(select 1 
+                                         from INVENTORY_TRIAL_BALANCE_DICNOMNS dd,
+                                              INVENTORY_TRIAL_BALANCE_CHANGE s
+                                        where dd.INVENTORY_TRIAL_BALANCEDOCSID = t.ID
+                                          and s.INVENTORY_TRIAL_BALANCE_DICNOMNSID = dd.ID);
+  
+  --Удалим все связи с журналом операций
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'TRANSACTIONLOG',NULL,false);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'TRANSACTIONLOG_DOCS',NULL,false);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'TRANSACTIONLOG_STAGES',NULL,false);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'INVENTORY_TRIAL_BALANCE',NULL,false);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'INVENTORY_TRIAL_BALANCEDOCS',NULL,false);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'INVENTORY_TRIAL_BALANCE_DICNOMNS',NULL,false);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'INVENTORY_TRIAL_BALANCE_CHANGE',NULL,false);
+  
+  for rec in (
+      select p.ID
+        from WRITEOFF_ACTS_HEADER sp,
+             WRITEOFF p
+       where sp.ID = nID
+         and p.ID = sp.WRITEOFFID
+  )
+  loop
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'TRANSACTIONLOG',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'TRANSACTIONLOG_DOCS',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'TRANSACTIONLOG_STAGES',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'INVENTORY_TRIAL_BALANCE',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'INVENTORY_TRIAL_BALANCEDOCS',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'INVENTORY_TRIAL_BALANCE_DICNOMNS',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF',rec.ID,'INVENTORY_TRIAL_BALANCE_CHANGE',NULL,false);
+  end loop;
+  for rec in (
+      select p.ID
+        from WRITEOFF_ACTS_GOODS p
+       where p.WRITEOFF_ACTS_HEADERID = nID
+  )
+  loop
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'TRANSACTIONLOG',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'TRANSACTIONLOG_DOCS',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'TRANSACTIONLOG_STAGES',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'INVENTORY_TRIAL_BALANCE',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'INVENTORY_TRIAL_BALANCEDOCS',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'INVENTORY_TRIAL_BALANCE_DICNOMNS',NULL,false);
+       perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'INVENTORY_TRIAL_BALANCE_CHANGE',NULL,false);
+  end loop;
+  
+  return 'Отмена проведения документа в учёте выполнена';
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_writeoff_acts_to_transactionlog_rollback (id bigint)
+  OWNER TO magicbox;
