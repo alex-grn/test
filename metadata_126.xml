@@ -18,6 +18,7 @@
 				<MI name="Основания для межбюджетных трансфертов" formlist="Mbt_contract"/>
 			</MENU>
 			<MENU name="Учет">
+				<MI name="Отчеты получателей межбюджетных трансфертов" formlist="Mbt_report"/>
 				<MI name="Журнал операций по исполнению бюджета" formlist="Jurnalexp"/>
 			</MENU>
 			<MENU name="Справочники">
@@ -75,7 +76,7 @@
 						<AI id="0" name="Соглашение"/>
 						<AI id="1" name="Постановление правительства"/>
 					</A>
-					<A id="CONTRACT_NOM" name="Номер основания" button="true" caption="Номер" labelwidth="50" width="43" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(contract_nom,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" local="true"/>
+					<A id="CONTRACT_NOM" name="Номер основания" caption="Номер" labelwidth="50" width="43" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(contract_nom,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true" local="true"/>
 					<A id="CONTRACT_DATE" name="Дата основания" caption="Дата" labelwidth="50" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
@@ -127,7 +128,7 @@
 						<AI id="0" name="Распоряжение"/>
 						<AI id="1" name="Реестр"/>
 					</A>
-					<A id="DISTRIB_NOM" name="Номер распоряжения" button="true" caption="Номер" labelwidth="50" width="43" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(distrib_nom,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" local="true"/>
+					<A id="DISTRIB_NOM" name="Номер распоряжения" caption="Номер" labelwidth="50" width="43" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(distrib_nom,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true" local="true"/>
 					<A id="DISTRIB_DATE" name="Дата распоряжения" caption="Дата" labelwidth="50" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
@@ -169,9 +170,54 @@
 			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<TI id="DISTRIB_MBT_REC_UK" name="Такой получатель МБП уже существует" unique="DISTRIB_MBTID,MBT_RECIPID"/>
 		</TABLE>
+		<TABLE id="MBT_REPORT" name="Отчеты получателей межбюджетных трансфертов">
+			<A id="REPORT_DATE" name="Дата отчета" caption="Дата отчета" labelwidth="550" type="date" nulls="false" formula="now()" local="true"/>
+			<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
+			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="100" type="text" local="true"/>
+			<GA caption="Суммы">
+				<A id="BALANCE_SUM_VIRT" name="Сумма остатка на начало года" caption="Сумма остатка на начало года" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select sum(BALANCE_SUM) from MBT_REPORT_REC where MBT_REPORTID=@ID" local="true"/>
+				<A id="SPENT_SUM_VIRT" name="Сумма кассового расхода получателя трансфертов" caption="Сумма кассового расхода получателя трансфертов" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select sum(SPENT_SUM) from MBT_REPORT_REC where MBT_REPORTID=@ID" local="true"/>
+				<A id="OLDSPENT_SUM_VIRT" name="Сумма поступлений дебиторской задолженности прошлых лет" caption="Сумма поступлений дебиторской задолженности прошлых лет" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select sum(OLDSPENT_SUM) from MBT_REPORT_REC where MBT_REPORTID=@ID" local="true"/>
+			</GA>
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" width="50" type="list" visible="true" readonly="true" value="0" local="true">
+				<AI id="0" name="Черновик" actionlist="MakeEntryREP"/>
+				<AI id="1" name="Отработан" actionlist="DeleteEntryREP;To_form_NOTIF;Disband_NOTIF" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT">
+				<AI id="*" name="Любая связь" readonly="true"/>
+			</A>
+			<TI id="MBT_REPORT_UK" name="Отчет на эту дату уже существует " unique="REPORT_DATE"/>
+		</TABLE>
+		<TABLE id="MBT_REPORT_REC" name="Расшифровка отчетов получателей межбюджетных трансфертов">
+			<A id="MBT_REPORTID" name="Отчеты получателей межбюджетных трансфертов" parentkey="cascade" type="ref" table="MBT_REPORT" local="true"/>
+			<A id="MBT_RECIPID" name="Получатель МБТ" caption="Получатель трансферта" labelwidth="200"/>
+			<A id="MBT_LISTID" name="Код МБТ" labelwidth="200"/>
+			<A id="KBR_VIRT" name="КРБ" caption="Бюджетная классификация расходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from KBR where id =(select KBR_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+			<A id="BKD_VIRT" name="КДБ" caption="Бюджетная классификация доходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from BKD where id =(select BKD_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+			<A id="ACODES_VIRT" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from ACODES where id =(select ACODES_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			<GA caption="Суммы">
+				<A id="BALANCE_SUM" name="Сумма остатка на начало года" caption="Сумма остатка на начало года" labelwidth="550" type="number" len="18.2" local="true"/>
+				<A id="SPENT_SUM" name="Сумма кассового расхода получателя трансфертов" caption="Сумма кассового расхода получателя трансфертов" labelwidth="550" type="number" len="18.2" local="true"/>
+				<A id="OLDSPENT_SUM" name="Сумма поступлений дебиторской задолженности прошлых лет" caption="Сумма поступлений дебиторской задолженности прошлых лет" labelwidth="550" type="number" len="18.2" local="true"/>
+			</GA>
+			<TI id="MBT_REPORT_REC_UK" name="Запись по этому получателю МБТ и коду МБТ уже существует" unique="MBT_REPORTID, MBT_RECIPID, MBT_LISTID"/>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
-		<ACTION id="To_form_notice" name="Сформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
+		<ACTION id="To_form_notice" name="Сформировать уведомления по расчетам между бюджетами" type="procedure" procedure="">
+			<FORM>
+				<A id="TRANSFERT_TYPE" name="Тип уведомления" caption="Тип уведомления" labelwidth="150" type="list" nulls="true" value="OUT14_LBO">
+					<AI id="OUT14_LBO" name="предусмотрено предоставление (изменение) межбюджетного трансферта"/>
+				</A>
+				<A id="NOTIFDATE" name="Дата уведомления" caption="Дата уведомления" labelwidth="500" type="date" nulls="true"/>
+				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="100" type="text" local="true"/>
+				<A id="PERSON_ID" name="Руководитель" caption="Руководитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="PERSON1_ID" name="Исполнитель" caption="Исполнитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="Disband_notice" name="Расформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
 		<COMMENT name="заменить на p_action_fin_makeentrycon"/>
 		<ACTION id="MakeEntryCON" name="Отработать" type="procedure" procedure="p_action_set_status">
 			<P id="val" value="1"/>
@@ -192,11 +238,30 @@
 		</ACTION>
 		<COMMENT name="заменить на p_action_fin_disband_dis"/>
 		<ACTION id="Disband_DIS" name="Расформировать распоряжение на перечисление МБТ" type="procedure" procedure=""/>
+		<ACTION id="MakeEntryREP" name="Отработать" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
+		<ACTION id="DeleteEntryREP" name="Снять отработку" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="0"/>
+		</ACTION>
+		<ACTION id="To_form_NOTIF" name="Сформировать уведомления по расчетам между бюджетами" type="procedure" procedure="">
+			<FORM>
+				<A id="TRANSFERT_TYPE" name="Тип уведомления" caption="Тип уведомления" labelwidth="150" type="list" nulls="true">
+					<AI id="REST_PMBT" name="неиспользованный остаток подлежит возврату"/>
+					<AI id="KR_PMBT" name="зачтено расходов (уменьшений), подтвержденных документами"/>
+				</A>
+				<A id="NOTIFDATE" name="Дата уведомления" caption="Дата уведомления" labelwidth="500" type="date" nulls="true"/>
+				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="100" type="text" local="true"/>
+				<A id="PERSON_ID" name="Руководитель" caption="Руководитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="PERSON1_ID" name="Исполнитель" caption="Исполнитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="Disband_NOTIF" name="Расформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Expshd_MBT" name="Расходные расписания">
-			<GRID id="Expshd_MBT" name="Расходные расписания" table="EXPSHD" actionlist="MakeEntryRR;DeleteEntryRR"/>
+			<GRID id="Expshd_MBT" name="Расходные расписания" table="EXPSHD" actionlist="MakeEntryRR;DeleteEntryRR;To_form_notice;Disband_notice"/>
 			<TABS>
 				<TAB name="Бюджетные ассигнования">
 					<GRID id="Expshd_Ba_MBT" name="Расходные расписания: Бюджетные ассигнования" table="EXPSHD_BA"/>
@@ -227,6 +292,10 @@
 		<FORM id="Distrib_mbt" name="Распоряжения на перечисления межбюджетных трансфертов">
 			<GRID id="Distrib_mbt" name="Распоряжения на перечисления межбюджетных трансфертов" table="DISTRIB_MBT"/>
 			<GRID id="Distrib_mbt_rec" name="Суммы распоряжения по получателям" table="DISTRIB_MBT_REC"/>
+		</FORM>
+		<FORM id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов">
+			<GRID id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов" table="MBT_REPORT" actionlist="MakeEntryREP;DeleteEntryREP;To_form_NOTIF;Disband_NOTIF"/>
+			<GRID id="Mbt_report_rec" name="Расшифровка по МБТ" table="MBT_REPORT_REC"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
