@@ -3326,26 +3326,30 @@
 				<queries>
                      <query name="estimatespec" type="sql">
                         <script>
-							    select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ
+							    select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
                                             from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
-                                                         t.code as tcode, t.typeestimate, MAX(t.numbpp) as numbpp
+                                                         t.code as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
                                                     from TYPEEXP T,
-                                                         REGIONSRF Rf
-                                                   where not t.mestimate
+                                                         REGIONSRF Rf,
+                                                         folders fl
+                                                   where not t.NOACTUAL_COST
                                                      and t.numbestimate not ilike '%АПУ%'
                                                      and rf.id = t.regionsrfid
-                                                  group by t.numbestimate, t.code, t.typeestimate) T
+                                                     and fl.id = t.hid
+                                                  group by t.numbestimate, t.code, t.typeestimate, fl.name) T
                                             left join 
-                                              (select sum(COALESCE(f.sumfintikcen,f.sumfinuik,0)) as summ, rr.idgasregionsrf, tp.numbestimate
+                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                                      ec.levelelcampaign
                                                  from REGISTER r 
                                             left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
                                             left join TYPEEXP tp on tp.id = f.typeexpid
                                             left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
                                             left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
+                                            left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
                                             where r.id = ${id}::bigint
-                                            group by tp.numbestimate, rr.idgasregionsrf) s on s.numbestimate = t.numbestimate
-                                           where t.regcode ilike '%'||(select rf.idgasregionsrf
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign) s on s.numbestimate = t.numbestimate
+                                           where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
                                                                               ELECTCOMMITTEE ik,
@@ -3353,7 +3357,9 @@
                                                                        where r.id = ${id}::bigint
                                                                          and e.id = r.electcommincampid
                                                                          and ik.id = e.electcommitteeid
-                                                                         and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%'
+                                                                         and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
+                                              and (s.levelelcampaign ilike 'region' and t.foldername ilike '%регион%' 
+                                                Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%федер%')
                                             order by t.numbpp  
 								;
 						</script>
@@ -3368,17 +3374,23 @@
                                             from REGISTER r,
                                                  FINANCEELCOM F,
                                                  TYPEEXP T,
+                                                 folders fl,
                                                  ELECTCOMMINCAMP E,
-                                                 ELECTCOMMITTEE IK
+                                                 ELECTCOMMITTEE IK,
+                                                 electcampaign ec
                                             where r.id = ${id}::bigint
-                                              and f.electcommincampid = r.electcommincampid 
-                                              and e.id = r.electcommincampid
+                                              and f.electcommincampid = r.electcommincampid
+                                              and e.id = r.electcommincampid 
+                                              and ec.id = e.electcampaignid
                                               and ik.id = e.electcommitteeid
                                               and (t.regionsrfid = ik.regionsrfid
                                                or t.regionsrfid = (select rf.id from REGIONSRF Rf where rf.idgasregionsrf = '00'))
+                                              and fl.id = t.hid
                                               and t.id = f.typeexpid
 											  and t.numbestimate not ilike '%АПУ%' and t.numbestimate not ilike '%.%'
-                                              and not t.mestimate
+                                              and not t.NOACTUAL_COST and (not t.mestimate or t.mestimate is null)
+                                              and (ec.levelelcampaign ilike 'region' and fl.name ilike '%регион%' 
+                                                Or ec.levelelcampaign not ilike 'region' and fl.name ilike '%федер%')
 								;
 						</script>
                      </query>
@@ -3398,24 +3410,28 @@
                         <script>
 							    select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
                                             from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
-                                                         t.code as tcode, t.typeestimate, MAX(t.numbpp) as numbpp
+                                                         t.code as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
                                                     from TYPEEXP T,
-                                                         REGIONSRF Rf
+                                                         REGIONSRF Rf,
+                                                         folders fl
                                                    where not t.NOACTUAL_COST
                                                      and t.numbestimate not ilike '%АПУ%'
                                                      and rf.id = t.regionsrfid
-                                                  group by t.numbestimate, t.code, t.typeestimate) T
+                                                     and fl.id = t.hid
+                                                  group by t.numbestimate, t.code, t.typeestimate, fl.name) T
                                             left join 
-                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate
+                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                                      ec.levelelcampaign
                                                  from REGISTER r 
-                                            left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid 
+                                            left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
                                             left join TYPEEXP tp on tp.id = f.typeexpid
                                             left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
                                             left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
+                                            left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
                                             where r.id = ${id}::bigint
-                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate) s on s.numbestimate = t.numbestimate
-                                           where t.regcode ilike '%'||(select rf.idgasregionsrf
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign) s on s.numbestimate = t.numbestimate
+                                           where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
                                                                               ELECTCOMMITTEE ik,
@@ -3423,7 +3439,9 @@
                                                                        where r.id = ${id}::bigint
                                                                          and e.id = r.electcommincampid
                                                                          and ik.id = e.electcommitteeid
-                                                                         and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%'
+                                                                         and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
+                                              and (s.levelelcampaign ilike 'region' and t.foldername ilike '%регион%' 
+                                                Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%федер%')
                                             order by t.numbpp   
 								;
 						</script>
@@ -3438,17 +3456,23 @@
                                             from REGISTER r,
                                                  FINANCEELCOM F,
                                                  TYPEEXP T,
+                                                 folders fl,
                                                  ELECTCOMMINCAMP E,
-                                                 ELECTCOMMITTEE IK
+                                                 ELECTCOMMITTEE IK,
+                                                 electcampaign ec
                                             where r.id = ${id}::bigint
-                                              and f.electcommincampid = r.electcommincampid 
-                                              and e.id = r.electcommincampid
+                                              and f.electcommincampid = r.electcommincampid
+                                              and e.id = r.electcommincampid 
+                                              and ec.id = e.electcampaignid
                                               and ik.id = e.electcommitteeid
                                               and (t.regionsrfid = ik.regionsrfid
                                                or t.regionsrfid = (select rf.id from REGIONSRF Rf where rf.idgasregionsrf = '00'))
+                                              and fl.id = t.hid
                                               and t.id = f.typeexpid
 											  and t.numbestimate not ilike '%АПУ%' and t.numbestimate not ilike '%.%'
                                               and not t.NOACTUAL_COST and (not t.mestimate or t.mestimate is null)
+                                              and (ec.levelelcampaign ilike 'region' and fl.name ilike '%регион%' 
+                                                Or ec.levelelcampaign not ilike 'region' and fl.name ilike '%федер%')
 								;
 						</script>
                      </query>
