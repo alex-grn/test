@@ -22,7 +22,7 @@
 			</MENU>
 			<MENU name="Учет">
 				<MI name="Исполнение бюджета" formlist="Exec_Bud"/>
-				<MI name="Журнал операций по исполнению расходной части бюджета" formlist="Jurnalexp"/>
+				<MI name="Журнал операций по исполнению бюджета" formlist="Jurnalexp"/>
 				<MENU name="Значения по умолчанию">
 					<MI name="Структурные подразделения" formlist="Default_Depart"/>
 					<MI name="КОСГУ" formlist="Default_Econ_Class"/>
@@ -143,7 +143,7 @@
 			<A id="EXEC_BUD_DETAILID" name="Код" caption="Код"/>
 			<GA caption="Подразделения, курирующие расходы">
 				<A id="DEPART_VIRT" name="КАР" caption="Куратор расходов" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
-				<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID_KOM from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_KOM_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 			</GA>
 			<A id="ECON_CLASS_VIRT" name="КОСГУ" caption="КОСГУ" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ECON_CLASS where id = (select ECON_CLASS_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 			<A id="SUBSIDIES_VIRT" name="Код целевой субсидии" caption="Код целевой субсидии" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from SUBSIDIES where id = (select SUBSIDIES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
@@ -157,7 +157,7 @@
 		<TABLE id="UFK_NOTIF" name="Казначейские уведомления">
 			<TABS>
 				<TAB name="Основная информация">
-					<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="400" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(nom_ku,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" local="true"/>
+					<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="400" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(nom_ku,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true" local="true"/>
 					<A id="DATE_KU" name="Дата" caption="Дата формирования казначейского уведомления" labelwidth="600" type="date" nulls="false" formula="now()" local="true"/>
 					<GA caption="Участник бюджетного процесса">
 						<A id="KOD_UBP" name="Код УБП" caption="Код" labelwidth="50" width="30" type="string" local="true"/>
@@ -256,7 +256,7 @@
 					<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
 						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
 					</A>
-					<A id="NOM_RR" name="Номер" caption="Номер расходного расписания" labelwidth="400" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(nom_rr,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" local="true"/>
+					<A id="NOM_RR" name="Номер" caption="Номер расходного расписания" labelwidth="400" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(nom_rr,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true" local="true"/>
 					<A id="DATE_FORM_RR" name="Дата" caption="Дата формирования расходного расписания" labelwidth="600" type="date" nulls="false" formula="now()" local="true"/>
 					<GA caption="Участник бюджетного процесса">
 						<A id="KOD_UBP" name="Код УБП" caption="Код" labelwidth="50" width="30" type="string" local="true"/>
@@ -285,7 +285,7 @@
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
 					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
 						<AI id="0" name="Черновик" actionlist="MakeEntryRR"/>
-						<AI id="1" name="Отработан" actionlist="DeleteEntryRR" readonly="true"/>
+						<AI id="1" name="Отработан" actionlist="DeleteEntryRR;To_form_notice;Disband_notice" readonly="true"/>
 					</A>
 				</TAB>
 				<TAB name="Ответственные исполнители">
@@ -331,6 +331,9 @@
 					<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
 						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
 					</A>
+					<A id="DOCLINKS_IN">
+						<AI id="*" name="Любая связь" readonly="true"/>
+					</A>
 				</TAB>
 			</TABS>
 			<TI id="EXPSHD_UK" unique="NOM_RR, DATE_FORM_RR"/>
@@ -344,6 +347,9 @@
 			<A id="NOTE_BA_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
 				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета"/>
+			</A>
+			<A id="DOCLINKS_IN">
+				<AI id="*" name="Любая связь" readonly="true"/>
 			</A>
 			<TI id="EXPSHD_ВА_ID_IND" index="EXPSHDID"/>
 		</TABLE>
@@ -615,11 +621,11 @@
 			<TABS>
 				<TAB name="Детальная информация">
 					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="300" parentkey="cascade" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID" local="true"/>
-					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="p_action_exec_bud_detail_fill_code(@EXEC_BUD_KBRID, @DEPART_ID, @DEPART_ID_KOM, @ECON_CLASS_ID, @SUBSIDIES_ID, @CAPOBJECTS_ID, @EVENT_ID, @ACODES_ID, @DEPART5_ID)"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="p_action_exec_bud_detail_fill_code(@EXEC_BUD_KBRID, @DEPART_ID, @DEPART_KOM_ID, @ECON_CLASS_ID, @SUBSIDIES_ID, @CAPOBJECTS_ID, @EVENT_ID, @ACODES_ID, @DEPART5_ID)"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
 					<GA caption="Подразделения, курирующие расходы">
 						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
-						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
 					</GA>
 					<A id="ECON_CLASS_ID"/>
 					<A id="SUBSIDIES_ID"/>
@@ -726,7 +732,7 @@
 			<A id="RECORD_TYPESID" name="Тип операции"/>
 			<A id="SUM" name="Сумма" caption="Сумма" labelwidth="550" type="number" len="18.2" local="true"/>
 		</TABLE>
-		<TABLE id="JURNALEXP" name="Журнал операций по исполнению расходной части бюджета">
+		<TABLE id="JURNALEXP" name="Журнал операций по исполнению бюджета">
 			<TABS>
 				<TAB name="Основная информация">
 					<A id="DOCLINKS_IN">
@@ -759,7 +765,7 @@
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
 						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
-						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
 					</GA>
 					<A id="ECON_CLASS_ID"/>
 					<A id="SUBSIDIES_ID"/>
@@ -777,7 +783,7 @@
 			<TI id="JURNALEXP_YEAR_U_IND" index="YEAR_U"/>
 			<TI id="JURNALEXP_KBR_ID_IND" index="KBR_ID"/>
 		</TABLE>
-		<TABLE id="JURNALEXP_FOR_EXEC_BUD_KBR" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true">
+		<TABLE id="JURNALEXP_FOR_EXEC_BUD_KBR" name="Журнал операций по исполнению бюджета" tablename="JURNALEXP" virtual="true">
 			<TABS>
 				<TAB name="Основная информация">
 					<A id="DOCLINKS_IN">
@@ -810,7 +816,7 @@
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
 						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
-						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
 					</GA>
 					<A id="ECON_CLASS_ID"/>
 					<A id="SUBSIDIES_ID"/>
@@ -822,7 +828,7 @@
 				</TAB>
 			</TABS>
 		</TABLE>
-		<TABLE id="JURNALEXP_FOR_EXEC_BUD_DETAIL" name="Журнал операций по исполнению расходной части бюджета" tablename="JURNALEXP" virtual="true">
+		<TABLE id="JURNALEXP_FOR_EXEC_BUD_DETAIL" name="Журнал операций по исполнению бюджета" tablename="JURNALEXP" virtual="true">
 			<TABS>
 				<TAB name="Основная информация">
 					<A id="DOCLINKS_IN">
@@ -855,7 +861,7 @@
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
 						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
-						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
 					</GA>
 					<A id="ECON_CLASS_ID"/>
 					<A id="SUBSIDIES_ID"/>
@@ -973,7 +979,7 @@
 			<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500"/>
 		</TABLE>
 		<TABLE id="DETAIL" name="Детализация бюджетных данных">
-			<A id="DOCNUMB" name="Номер детализации" caption="Номер детализации" labelwidth="200" width="60" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" local="true"/>
+			<A id="DOCNUMB" name="Номер детализации" caption="Номер детализации" labelwidth="200" width="60" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true" local="true"/>
 			<A id="DOCDATE" name="Дата детализации" caption="Дата детализации" labelwidth="250" width="40" type="date" nulls="false" formula="now()" local="true"/>
 			<A id="NOM_KU" name="Номер" caption="Номер казначейского уведомления" labelwidth="200" width="60" type="string" local="true"/>
 			<A id="DATE_KU" name="Дата" caption="Дата  казначейского уведомления" labelwidth="250" width="40" type="date" local="true"/>
@@ -1013,9 +1019,9 @@
 			</A>
 		</TABLE>
 		<TABLE id="DISTRIBDATA" name="Распределение бюджетных данных">
-			<A id="DOCNUMB" name="Номер распределения" caption="Номер распределения" labelwidth="130" width="70" type="string" len="80" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U"/>
+			<A id="DOCNUMB" name="Номер распределения" caption="Номер распределения" labelwidth="140" width="70" type="string" len="80" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true"/>
 			<A id="DOCDATE" name="Дата распределения" caption="Дата распределения" labelwidth="130" width="30" type="date" nulls="false" formula="now()"/>
-			<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+			<A id="BUDGETS_ID" labelwidth="140" width="60" visible="form"/>
 			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 			<A id="NOTE" name="Примечание" caption="Примечание"/>
 			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
@@ -1024,8 +1030,10 @@
 			</A>
 			<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
 				<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
+				<AI id="Expshd" name="Расходные расписания" readonly="true"/>
 			</A>
 		</TABLE>
+		<COMMENT name="Заполнить формулы по расчету остатков"/>
 		<TABLE id="DISTRIBDATA_KBR" name="Распределение бюджетных данных: статьи">
 			<A id="DISTRIBDATAID" name="Распределение бюджетных данных" caption="Распределение бюджетных данных" labelwidth="300" parentkey="cascade" type="ref" table="DISTRIBDATA" ret="DOCNUMB" form="Distribdata"/>
 			<A id="PLANNING_PERIOD" name="Плановый период" caption="Плановый период" labelwidth="500" type="list" visible="form" value="0" local="true">
@@ -1038,7 +1046,7 @@
 			<A id="EXEC_BUD_DETAILID" name="Код" caption="Детализированный код" labelwidth="150" pid="EXEC_BUD_KBRID"/>
 			<GA caption="Подразделения, курирующие расходы">
 				<A id="DEPART_VIRT" name="КАР" caption="Куратор расходов" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
-				<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID_KOM from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_KOM_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 			</GA>
 			<A id="ECON_CLASS_VIRT" name="КОСГУ" caption="КОСГУ" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ECON_CLASS where id = (select ECON_CLASS_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 			<A id="SUBSIDIES_VIRT" name="Код целевой субсидии" caption="Код целевой субсидии" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from SUBSIDIES where id = (select SUBSIDIES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
@@ -1079,7 +1087,7 @@
 			<GA caption="Документы">
 				<GA caption="Документ, подтверждающий обоснование потребности">
 					<A id="DOCTYPEID" name="Тип" caption="Тип" labelwidth="30" width="40"/>
-					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and cid=0 and year_u = @YEAR_U"/>
+					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where doctypeid=@DOCTYPEID and cid=0 and year_u = @YEAR_U" button="true"/>
 					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" nulls="false" formula="now()"/>
 				</GA>
 				<GA caption="Документ получателя бюджетных средств или иное основание для обоснование потребности">
@@ -1115,7 +1123,7 @@
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
 						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
-						<A id="DEPART_ID_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
 					</GA>
 					<A id="ECON_CLASS_ID"/>
 					<A id="SUBSIDIES_ID"/>
@@ -1130,48 +1138,34 @@
 	<ACTIONS name="Действия">
 		<ACTION id="MakeEntryKU" name="Отработать" type="procedure" procedure="p_action_fin_makeentryku"/>
 		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryku"/>
-		<COMMENT name="заменить на p_action_fin_makeentryrr"/>
-		<ACTION id="MakeEntryRR" name="Отработать" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="1"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_deleteentryrr"/>
-		<ACTION id="DeleteEntryRR" name="Снять отработку" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="0"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_makeentrydd"/>
-		<ACTION id="MakeEntryDD" name="Отработать" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="1"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_deleteentrydd"/>
-		<ACTION id="DeleteEntryDD" name="Снять отработку" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="0"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_makeentrydet"/>
-		<ACTION id="MakeEntryDET" name="Отработать" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="1"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_deleteentrydet"/>
-		<ACTION id="DeleteEntryDET" name="Снять отработку" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="0"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_makeentryneed"/>
-		<ACTION id="MakeEntryNEED" name="Отработать" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="1"/>
-		</ACTION>
-		<COMMENT name="заменить на p_action_fin_deleteentryneed"/>
-		<ACTION id="DeleteEntryNEED" name="Снять отработку" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="0"/>
-		</ACTION>
+		<ACTION id="MakeEntryRR" name="Отработать" type="procedure" procedure="p_action_fin_makeentryrr"/>
+		<ACTION id="DeleteEntryRR" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryrr"/>
+		<ACTION id="MakeEntryDD" name="Отработать" type="procedure" procedure="p_action_fin_makeentrydd"/>
+		<ACTION id="DeleteEntryDD" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentrydd"/>
+		<ACTION id="MakeEntryDET" name="Отработать" type="procedure" procedure="p_action_fin_makeentrydet"/>
+		<ACTION id="DeleteEntryDET" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentrydet"/>
+		<ACTION id="MakeEntryNEED" name="Отработать" type="procedure" procedure="p_action_fin_makeentryneed"/>
+		<ACTION id="DeleteEntryNEED" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryneed"/>
 		<ACTION id="CalculateEXEC_BUD" name="Рассчитать показатели" type="procedure" procedure="p_action_exec_bud_calculate"/>
 		<ACTION id="ClearEXEC_BUD" name="Очистить показатели" type="procedure" procedure="p_action_exec_bud_clear_indicators"/>
-		<ACTION id="To_form_RR" name="Сформировать расходные расписания" type="procedure" procedure=""/>
-		<ACTION id="Disband_RR" name="Расформировать расходные расписания" type="procedure" procedure=""/>
-		<ACTION id="To_form_DET" name="Сформировать детализацию" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="2"/>
+		<ACTION id="To_form_RR" name="Сформировать расходные расписания" type="procedure" procedure="p_action_distribdata_form_rr">
+			<FORM name="Параметры">
+				<A id="DDATE_FORM_RR" name="Дата формирования расходного расписания" caption="Дата формирования расходного расписания" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<A id="DDATE_UTV_RR" name="Дата введения в действие расходного расписания" caption="Дата введения в действие расходного расписания" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<A id="RPERSONID" name="Руководитель (уполномоченное лицо)" caption="Руководитель (уполномоченное лицо)" labelwidth="500" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="OPERSONID" name="Ответственный исполнитель" caption="Ответственный исполнитель" labelwidth="500" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="STEL_ISP" name="Телефон" caption="Телефон" type="string" format="+7(DDD)DDD-DD-DD" nulls="true" local="true"/>
+				<A id="DDATA_POD_RR" name="Дата подписания руководителем (уполномоченным лицом)" caption="Дата подписания руководителем (уполномоченным лицом)" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+			</FORM>
 		</ACTION>
-		<ACTION id="Disband_DET" name="Расформировать детализацию" type="procedure" procedure="p_action_set_status">
-			<P id="val" value="1"/>
+		<ACTION id="Disband_RR" name="Расформировать расходные расписания" type="procedure" procedure="p_action_distribdata_form_rr_rollback"/>
+		<ACTION id="To_form_DET" name="Сформировать детализацию" type="procedure" procedure="p_action_ufk_notif_form_det">
+			<FORM name="Параметры">
+				<A id="DDATE" name="Дата детализации (по умолчанию текущая)" caption="Дата детализации (по умолчанию текущая)" labelwidth="200" width="20" type="date" local="true"/>
+				<A id="SNOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+			</FORM>
 		</ACTION>
+		<ACTION id="Disband_DET" name="Расформировать детализацию" type="procedure" procedure="p_action_ufk_notif_form_det_rollback"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -1234,8 +1228,8 @@
 		<FORM id="Record_Types" name="Типы операций">
 			<GRID id="Record_Types" name="Типы операций" table="RECORD_TYPES"/>
 		</FORM>
-		<FORM id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета">
-			<GRID id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" table="JURNALEXP"/>
+		<FORM id="Jurnalexp" name="Журнал операций по исполнению бюджета">
+			<GRID id="Jurnalexp" name="Журнал операций по исполнению бюджета" table="JURNALEXP"/>
 		</FORM>
 		<FORM id="Default_Depart" name="Значения по умолчанию: Структурные подразделения">
 			<GRID id="Default_Depart" name="Значения по умолчанию: Структурные подразделения" table="DEFAULT_DEPART"/>
