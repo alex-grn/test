@@ -188,7 +188,7 @@
 			<AI id="central" name="Федеральная избирательная кампания"/>
 		</A>
 		<A id="ELECTDATE" name="День голосования" caption="День голосования" type="date" nulls="false"/>
-		<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" type="ref" table="ELECTCAMPAIGN" ret="CODE" form="ElCampFRM" nulls="false"/>
+		<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" type="ref" table="ELECTCAMPAIGN" ret="CODE" nulls="false"/>
 		<A id="ELECTCOMMITTEECODE" name="Код избирательной комиссии" caption="Наименование избирательной комиссии" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
 		<A id="ADDRESS" name="Адрес" caption="Адрес" labelwidth="200" type="text" nulls="true"/>
 		<A id="TYPEADDRESS" name="Тип адреса" caption="Тип адреса" type="list" nulls="false">
@@ -1593,8 +1593,6 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
-			<A id="DOCLINKS_IN"/>
-			<A id="DOCLINKS_OUT"/>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="CASHRECEIPT_HEADER" name="Приходные кассовые документы">
@@ -1622,6 +1620,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="text"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="CASHDOCSID, DOCNUMB, DOCSTATUS"/>
 			<TI id="CASHRECEIPTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
@@ -1702,6 +1702,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Ведомость на выдачу подотчетным лицам №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from STATEMENT_HEADER c where c.id = @ID" local="true"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="DOCLINKS_OUT"/>
 			<TI unique="CASHDOCSID, DOCNUMB"/>
 			<TI id="STATEMENTDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
@@ -3177,7 +3179,7 @@ actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
 			<GRID id="ERRORKRFGR" name="Ошибки комплектов расчетных форм" table="ERRORKRF" readonly="true"/>
 		</FORM>
 		<FORM id="CashFRM" name="Касса избирательной комиссии">
-			<GRID id="CashGR" name="Касса избирательной комиссии" table="CASHDOCS" actionlist="Insert;Copy;Update;MoveFolder;ConfigTables;CreateReportCashbooks" reportlist="CashBook"/>
+			<GRID id="CashGR" name="Касса избирательной комиссии" table="CASHDOCS" actionlist="CreateReportCashbooks" reportlist="CashBook"/>
 			<TABS>
 				<TAB name="Приходные кассовые ордера">
 					<TABS>
