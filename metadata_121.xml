@@ -188,7 +188,7 @@
 						<AI id="2" name="Источники внешнего финансирования дефицита бюджета"/>
 					</A>
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
 						<AI id="0" name="Черновик" actionlist="MakeEntryKU"/>
 						<AI id="1" name="Отработано" actionlist="To_form_DET;DeleteEntryKU" readonly="true"/>
 						<AI id="2" name="Детализировано" actionlist="Disband_DET" readonly="true"/>
@@ -283,7 +283,7 @@
 						<AI id="2" name="Источники внешнего финансирования дефицита бюджета"/>
 					</A>
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
-					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
 						<AI id="0" name="Черновик" actionlist="MakeEntryRR"/>
 						<AI id="1" name="Отработан" actionlist="DeleteEntryRR;To_form_notice;Disband_notice" readonly="true"/>
 					</A>
@@ -319,7 +319,6 @@
 					<A id="DATE_BU" name="Дата учета РР в бюджетном учете в ОрФК отправителе" caption="Дата учета РР в бюджетном учете в ОрФК отправителе" labelwidth="600" type="date" local="true"/>
 					<A id="DATE_UTV_R_R" name="Дата введения в действие реестра РР" caption="Дата введения в действие реестра РР" labelwidth="600" type="date" local="true"/>
 				</TAB>
-				<COMMENT name="Заполнить формулы по расчету итогов"/>
 				<TAB name="Итоговые суммы">
 					<A id="SUM_BA_1Y" name="ИТОГО сумма БА или их изменений на текущий финансовый год по РР" caption="ИТОГО сумма БА или их изменений на текущий финансовый год по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="select sum(SUM_BA_Y1) from EXPSHD_BA where EXPSHDID=@ID" local="true"/>
 					<A id="SUM_BA_2Y" name="ИТОГО сумма БА или их изменений на 1-й год планового периода по РР" caption="ИТОГО сумма БА или их изменений на 1-й год планового периода по РР" labelwidth="600" type="number" len="18.2" visible="form" readonly="true" virtual="true" formula="select sum(SUM_BA_Y2) from EXPSHD_BA where EXPSHDID=@ID" local="true"/>
@@ -717,6 +716,15 @@
 				<AI id="BO" name="Принятые бюджетные обязательства"/>
 				<AI id="PDO" name="Принятые денежные обязательства"/>
 				<AI id="KR" name="Кассовый расход"/>
+				<AI id="REST_PMBT" name="Остаток средств МБТ на начало года"/>
+				<AI id="IN_PMBT" name="Поступило за отчетный период средств в доход получателей МБТ"/>
+				<AI id="KR_PMBT" name="Кассовый расход получателей МБТ"/>
+				<AI id="IN_DZ_PMBT" name="Поступление дебиторской задолженности прошлых лет"/>
+				<AI id="OUT_DZ_PMBT" name="Перечислено дебиторской задолженности прошлых лет в доход  бюджета"/>
+				<AI id="OUT_REST_PMBT" name="Возвращено остатков прошлых лет в доход  бюджета"/>
+				<AI id="KRV_PMBT" name="Восстановлено кассовых выплат текущего года"/>
+				<AI id="KR2_PMBT" name="Перечислено за счет восстановления кассы текущего года в объеме потребности"/>
+				<AI id="NEED_REST_PMBT" name="Подтверждение потребности в неиспользованном остатке"/>
 			</A>
 			<A id="NOTE"/>
 			<TI id="RECORD_TYPES_UK_CODE" unique="CODE"/>
@@ -986,7 +994,7 @@
 			<A id="BUDGETS_ID" labelwidth="150" width="60" visible="form"/>
 			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 			<A id="NOTE"/>
-			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
 				<AI id="0" name="Черновик" actionlist="MakeEntryDET"/>
 				<AI id="1" name="Отработан" actionlist="DeleteEntryDET" readonly="true"/>
 			</A>
@@ -1010,10 +1018,22 @@
 			</A>
 		</TABLE>
 		<TABLE id="DETAIL_KBR_D" name="Детализация кодов расходов бюджета">
-			<A id="DETAIL_KBRID" name="Код расходов бюджета" caption="Код расходов бюджета" parentkey="cascade" type="ref" table="DETAIL_KBR"/>
-			<GA id="G_EXEC_BUD_DETAIL" caption="Детализированный код расходов бюджета"/>
+			<A id="DETAIL_KBRID" name="Код расходов бюджета" caption="Код расходов бюджета" parentkey="cascade" type="ref" table="DETAIL_KBR" readonly="true"/>
+			<GA id="G_EXEC_BUD_DETAIL" caption="Детализированный код расходов бюджета">
+				<A id="EXEC_BUD_DETAILID" name="Код" caption="Код" readonly="true"/>
+				<GA caption="Подразделения, курирующие расходы">
+					<A id="DEPART_VIRT" name="КАР" caption="Куратор расходов" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+					<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_KOM_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				</GA>
+				<A id="ECON_CLASS_VIRT" name="КОСГУ" caption="КОСГУ" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ECON_CLASS where id = (select ECON_CLASS_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="SUBSIDIES_VIRT" name="Код целевой субсидии" caption="Код целевой субсидии" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from SUBSIDIES where id = (select SUBSIDIES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="CAPOBJECTS_VIRT" name="Объект" caption="Объект капитального строительства" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from CAPOBJECTS where id = (select CAPOBJECTS_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="EVENT_VIRT" name="Мероприятие" caption="Мероприятие" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from EVENTS where id = (select EVENT_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="ACODES_VIRT" name="Аналитический код" caption="Аналитический код" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ACODES where id = (select ACODES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+				<A id="DEPART5_VIRT" name="Код департамента Минфина" caption="Структурное подразделение органа, исполняющего бюджет" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART5 where id = (select DEPART5_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
+			</GA>
 			<A id="SUM_SER" name="Сумма" caption="Сумма детализации" labelwidth="140" width="60" type="number" len="18.2" local="true"/>
-			<A id="RECORD_TYPE" name="Тип" caption="Тип бюджетных данных" labelwidth="140" width="40" type="list" nulls="false" local="true">
+			<A id="RECORD_TYPE" name="Тип" caption="Тип бюджетных данных" labelwidth="140" width="40" type="list" nulls="false" readonly="true" local="true">
 				<AI id="SEP_LBO" name="ЛБО"/>
 				<AI id="SEP_BA" name="Бюджетные ассигнования"/>
 			</A>
@@ -1024,7 +1044,7 @@
 			<A id="BUDGETS_ID" labelwidth="140" width="60" visible="form"/>
 			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 			<A id="NOTE" name="Примечание" caption="Примечание"/>
-			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
 				<AI id="0" name="Черновик" actionlist="To_form_RR;Disband_RR;MakeEntryDD"/>
 				<AI id="1" name="Отработан" actionlist="To_form_RR;Disband_RR;DeleteEntryDD" readonly="true"/>
 			</A>
@@ -1043,7 +1063,7 @@
 			</A>
 			<A id="EXEC_BUDID" name="Год" caption="Год" labelwidth="50" width="20" type="ref" table="EXEC_BUD" ret="YEAR_U" visible="true" readonly="true" formula="select ID from EXEC_BUD where BUDGETS_ID = (select BUDGETS_ID from DISTRIBDATA where ID = @DISTRIBDATAID) and YEAR_U = ((select YEAR_U from DISTRIBDATA where ID = @DISTRIBDATAID)::numeric+@PLANNING_PERIOD::numeric)" local="true"/>
 			<A id="EXEC_BUD_KBRID" name="Код расходов бюджета" caption="Код расходов бюджета" labelwidth="200" width="80" pid="EXEC_BUDID" visible="form"/>
-			<A id="EXEC_BUD_DETAILID" name="Код" caption="Детализированный код" labelwidth="150" pid="EXEC_BUD_KBRID"/>
+			<A id="EXEC_BUD_DETAILID" name="Код" caption="Детализированный код" labelwidth="150" pid="EXEC_BUD_KBRID" nulls="false"/>
 			<GA caption="Подразделения, курирующие расходы">
 				<A id="DEPART_VIRT" name="КАР" caption="Куратор расходов" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 				<A id="DEPART_VIRT_KOM" name="КОМ" caption="Куратор основного мероприятия" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART where id = (select DEPART_KOM_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
@@ -1099,7 +1119,7 @@
 			<A id="BUDGETS_ID" labelwidth="300" width="60" nulls="false" visible="form"/>
 			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 			<A id="NOTE" name="Примечание" caption="Примечание"/>
-			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
+			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
 				<AI id="0" name="Черновик" actionlist="MakeEntryNEED"/>
 				<AI id="1" name="Отработан" actionlist="DeleteEntryNEED" readonly="true"/>
 			</A>
@@ -1161,8 +1181,8 @@
 		<ACTION id="Disband_RR" name="Расформировать расходные расписания" type="procedure" procedure="p_action_distribdata_form_rr_rollback"/>
 		<ACTION id="To_form_DET" name="Сформировать детализацию" type="procedure" procedure="p_action_ufk_notif_form_det">
 			<FORM name="Параметры">
-				<A id="DDATE" name="Дата детализации (по умолчанию текущая)" caption="Дата детализации (по умолчанию текущая)" labelwidth="200" width="20" type="date" local="true"/>
-				<A id="SNOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+				<A id="DDATE" name="Дата детализации (по умолчанию текущая)" caption="Дата детализации (по умолчанию текущая)" labelwidth="400" type="date" formula="now()" local="true"/>
+				<A id="SNOTE" name="Примечание" caption="Примечание" labelwidth="150" type="text" local="true"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="Disband_DET" name="Расформировать детализацию" type="procedure" procedure="p_action_ufk_notif_form_det_rollback"/>
@@ -1267,10 +1287,10 @@
 			<GRID id="Default_Depart5_Kbr" name="Бюджетная классификация" table="DEFAULT_DEPART5_KBR"/>
 		</FORM>
 		<FORM id="Detail" name="Детализация бюджетных данных">
-			<GRID id="Detail" name="Детализация бюджетных данных" table="DETAIL" actionlist="MakeEntryDET;DeleteEntryDET"/>
+			<GRID id="Detail" name="Детализация бюджетных данных" table="DETAIL" actionlist="MakeEntryDET;DeleteEntryDET;View;ConfigTables" readonly="true"/>
 			<TABS>
 				<TAB name="Код расходов">
-					<GRID id="Detail_Kbr" name="Код расходов бюджета" table="DETAIL_KBR"/>
+					<GRID id="Detail_Kbr" name="Код расходов бюджета" table="DETAIL_KBR" actionlist="View;ConfigTables" readonly="true"/>
 				</TAB>
 				<TAB name="Детализация">
 					<A id="YEAR_U_VIRT" caption="Учетный год" labelwidth="80" width="20" type="int" readonly="true" virtual="true" formula="select YEAR_U from DETAIL_KBR where id = @DETAIL_KBRID" local="true"/>
@@ -1279,7 +1299,7 @@
 					<A id="SUM_ALL_VIRT" caption="Всего" labelwidth="50" width="20" type="number" len="18.2" readonly="true" virtual="true" formula="select coalesce(k.SUM_IN,0) from DETAIL_KBR k where k.id = @DETAIL_KBRID" local="true"/>
 					<COMMENT name="Разница между SUM_IN и суммой всех сток по спецификации SUM_SER, то есть остаток, который мы еще не распределии"/>
 					<A id="SUM_RES_VIRT" caption="Остаток" labelwidth="50" width="20" type="number" len="18.2" readonly="true" virtual="true" formula="select coalesce(k.SUM_IN,0) - coalesce(sum(d.SUM_SER),0) from DETAIL_KBR k, DETAIL_KBR_D d where k.id = @DETAIL_KBRID and d.DETAIL_KBRID = k.id group by k.SUM_IN" local="true"/>
-					<GRID id="Detail_Kbr_D" name="Детализация кодов расходов бюджета" table="DETAIL_KBR_D"/>
+					<GRID id="Detail_Kbr_D" name="Детализация кодов расходов бюджета" table="DETAIL_KBR_D" actionlist="Update;View;ConfigTables" readonly="true"/>
 				</TAB>
 			</TABS>
 		</FORM>
