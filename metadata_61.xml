@@ -2602,6 +2602,8 @@ formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]'
 		<ACTION id="PersActsdocsToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_pers_actsdocs_to_transactionlog"/>
 		<ACTION id="CashreceiptToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_cashreceipt_to_transactionlog"/>
 		<ACTION id="CashreceiptToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_cashreceipt_to_transactionlog_rollback"/>
+		<ACTION id="CashpaymentToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_cashpayment_to_transactionlog"/>
+		<ACTION id="CashpaymentToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_cashpayment_to_transactionlog_rollback"/>
 		<ACTION id="StatementToTransactionlog" name="Провести документ в учете" type="procedure" procedure="p_action_statement_to_transactionlog"/>
 		<ACTION id="StatementToTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_statement_to_transactionlog_rollback"/>
 		<ACTION id="PersActsdocsTransactionlogRollback" name="Отмена проведения документа в учете" type="procedure" procedure="p_action_pers_actsdocs_to_transactionlog_rollback"/>
@@ -3195,7 +3197,7 @@ actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
 				<TAB name="Расходные кассовые ордера">
 					<TABS>
 						<TAB name="Документ">
-							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые ордера" table="CASHPAYMENT_HEADER" reportlist="AccountCashWarrant"/>
+							<GRID id="CASHPAYMENTHEADERGR" name="Расходные кассовые ордера" table="CASHPAYMENT_HEADER" actionlist="CashpaymentToTransactionlog;CashpaymentToTransactionlogRollback" reportlist="AccountCashWarrant"/>
 						</TAB>
 						<TAB name="Расшифровка документа">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHPAYMENT_HEADER f, DOCTYPES d where f.id = @CASHPAYMENT_HEADERID and f.doctypeid = d.id" local="true"/>
