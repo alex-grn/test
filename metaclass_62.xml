@@ -2,6 +2,10 @@
 	<MODULES id="Modules" name="Модули"/>
 	<GROUPS_MENU name="Группы меню"/>
 	<ATTRIBUTES name="Атрибуты">
+		<A id="TYPE_ERR" name="Уровень значимости" caption="Уровень значимости" labelwidth="160" type="list" nulls="false" local="true">
+				<AI id="1" name="Предупреждение"/>
+				<AI id="2" name="Ошибка"/>
+			</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -127,6 +131,16 @@
 				<AI id="1" name="Формула"/>
 				<AI id="2" name="Процедура"/>
 			</A>
+			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list"          query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
+         from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
+          from WORDINGOFTHEFORMS w,
+      PKTO p
+where w.id = @WORDINGOFTHEFORMSID
+and p.reportingformid = w.reportingformid
+and p.nametableiksrf is not null
+group by p.nametableiksrf )))::json) as sJSON) t
+where (t.sJSON->>'name')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
+			<A id="TYPE_ERR"/>
 			<A id="ROUNDING" name="Округление" caption="Округление" labelwidth="160" type="list" nulls="false" local="true">
 				<AI id="1" name="Стандартное"/>
 			</A>
@@ -138,15 +152,6 @@
 				<AI id="5" name="4"/>
 			</A>
 			<A id="RECALCPROCEDURE" name="Процедура" caption="Процедура" labelwidth="160" type="text" nulls="true" local="true"/>
-			<A id="GRAPHA" name="Номер графы" caption="Номер графы" labelwidth="160" type="list"          query="select (t.sJSON->>'code')::text as id,(t.sJSON->>'name')::text as code
-         from (select json_array_elements(P_SYSTEM_GET_TABLE_FIELDS(upper((select p_find_name_from_list('PKTO','NAMETABLEIKSRF',p.nametableiksrf)
-          from WORDINGOFTHEFORMS w,
-      PKTO p
-where w.id = @WORDINGOFTHEFORMSID
-and p.reportingformid = w.reportingformid
-and p.nametableiksrf is not null
-group by p.nametableiksrf )))::json) as sJSON) t
-where (t.sJSON->>'name')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
 			<TI id="PROCEDURE_CHECK" name="Необходимо заполнить поле Процедура" check="CONVERSIONTYPE != '2' or (CONVERSIONTYPE = '2' and RECALCPROCEDURE is not null and RECALCPROCEDURE != '')"/>
 			<TI id="FORMULA_CHECK" name="Поле Процедура должно быть пустым" check="CONVERSIONTYPE != '1'  or (CONVERSIONTYPE = '1' and (RECALCPROCEDURE is null or RECALCPROCEDURE = ''))"/>
 		</TABLE>
@@ -171,10 +176,53 @@ and p.nametableiksrf is not null
 group by p.nametableiksrf )))::json) as sJSON) t
 where (t.sJSON->>'name')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6%','%7%','%8%','%9%','%0%'])"/>
 		</TABLE>
+		
+		<TABLE id="REPORT_INCLUSION" name="Предоставленная отчетность нижестоящих комиссий (временная таблица)">
+			<A id="ELECTCAMPAIGNID" labelwidth="200"/>
+			<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
+			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="200" type="date" nulls="false" local="true"/>
+			<A id="ELECTCOMMITTEEID" labelwidth="200"/>
+			<GA id="STATUSMODEL" name="Статусная модель" caption="Статусная модель">
+				<A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" visible="true" readonly="true" local="true">
+					<AI id="1" name="Включить в свод"/>
+					<AI id="0" name="Не включать в свод"/>
+				</A>
+				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="190" width="50" type="list" nulls="false" local="true">
+					<AI id="1" name="Представлен"/>	
+				</A>
+				<A id="TESTED" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="190" width="50" type="list" nulls="false" local="true">
+					<AI id="1" name="Расчитан"/>
+					<AI id="2" name="Сформирован свод"/>
+				</A>
+				<A id="CHECKED" name="Проверка" caption="Проверка" labelwidth="190" width="50" type="list" nulls="false" local="true">
+					<AI id="1" name="Без ошибок"/>
+				</A>
+				<A id="SUBMITTED" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="190" width="50" type="list" nulls="false" local="true">
+					<AI id="1" name="Отправлен"/>
+				</A>
+				<A id="INC_TBL" name="Наименование таблицы по отчетам, включаемым в свод" caption="Наименование таблицы по отчетам, включаемым в свод" type="string" nulls="false" visible="true" local="true"/>
+				<A id="INC_REP_ID" name="ID отчета, включаемого в свод" caption="ID отчета, включаемого в свод" labelwidth="190" width="50" type="bigint" nulls="false" visible="true"  local="true"/>
+				<A id="REP_TBL" name="Наименование таблицы по сводному отчету" caption="Наименование таблицы по сводному отчету" type="string" nulls="false" visible="true" local="true"/>
+				<A id="REPORT_ID" name="ID сводного отчета" caption="ID сводного отчета" labelwidth="190" width="50" type="bigint" nulls="false" visible="true"  local="true"/>
+					
+			</GA>
+		</TABLE>
 	</TABLES>
-	<ACTIONS name="Действия"
->
-
+	<ACTIONS name="Действия">
+		<ACTION id="InclusionStatus" name="Включить в свод" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
+		<ACTION id="InclusionReportUIK" name="Подобрать отчеты УИК для включения в свод ТИК за нижестоящие" type="procedure" procedure=""/>
+		<ACTION id="InclusionReportTIK" name="Подобрать отчеты ТИК для включения в свод ИКСРФ за нижестоящие" type="procedure" procedure=""/>
+		<ACTION id="Consolidation" name="Сформировать свод за нижестоящие комиссии" type="procedure" procedure="">
+			<FORM name="Формирование сводного отчета за нижестоящие комиссии">
+				<GRID name="Предоставленная отчетность нижестоящих комиссий" table="REPORT_INCLUSION" readonly="true">
+					<MENU>
+						<MI actionlist="View;InclusionStatus;"/>
+					</MENU>
+				</GRID>
+			</FORM>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты"
 >
