@@ -1147,7 +1147,7 @@
 		<TABLE id="TYPICALOPERS" name="Типовые операции">
 			<A id="CODE" name="Код типовой операции" caption="Код типовой операции" labelwidth="200" type="string" len="100" nulls="false" local="true"/>
 			<A id="NAME" name="Содержание хозяйственной операции" caption="Содержание хозяйственной операции" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200" />
+			<A id="DOCTYPEID"  parentkey="cascade" name="Тип документа" caption="Тип документа" labelwidth="200" />
 			<TI unique="CODE,DOCTYPEID"/>
 		</TABLE>
 		<TABLE id="TYPICALOPERSVIRT" name="Типовые операции" tablename="TYPICALOPERS" query="select t.* from TYPICALOPERS t where t.DOCTYPEID = (select d.id from doctypes d where d.code ilike '%Акт%выполнения%работ%оказания%услуг%')">
@@ -1410,6 +1410,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 					</GA>
 				</TAB>
 			</TABS>
+			<TI unique="PAYACCOUNTSID, DOCNUMB"/>
 			<TI id="PURPOSE_CHECK" name="Превышена максимальная длина поля Назначение платежа (24) (макс. 235 символов)" check="235 > length(PURPOSE)"/>
 			<TI id="STATUS_CHECK" name="Отсутствует дата оплаты по выписке" check="(STATUS != '2' or (STATUS = '2' and PAYDATE is not null))"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
@@ -1439,8 +1440,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 					<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.DOCNUMB||' от '||to_char(f.DOCDATE, 'dd.mm.yyyy') from RECEIPTSDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 					<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="400" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from RECEIPTSDOCSCONS t where t.RECEIPTSDOCSID = @ID"/>
 					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
-						<AI id="1" name="Создан"/>
-						<AI id="2" name="Проведен в учете" readonly="true"/>
+						<AI id="1" name="Создан" actionlist="ReceiptsdocsToTransactionlog"/>
+						<AI id="2" name="Проведен в учете" readonly="true" actionlist="ReceiptsdocsToTransactionlogRollback"/>
 					</A>
 					<GA name="Первичный документ" caption="Первичный документ">
 						<A id="DOCTYPEINID" name="Тип документа" caption="Тип" labelwidth="150" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false" readonly="true" value="16" local="true"/>
@@ -1462,6 +1463,7 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 					</GA>
 				</TAB>
 			</TABS>
+			<TI unique="PAYACCOUNTSID, DOCNUMB"/>
 			<TI id="RECEIPTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
 		</TABLE>
@@ -1471,36 +1473,9 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="70" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
 			<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="70" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 			<GA id="TYPICALOPERATION"/>
+			<TI unique="RECEIPTSDOCSID, NUMBPP"/>
 		</TABLE>
-		<TABLE id="REPORTCASHBOOKS" name="Отчеты кассира">
-			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
-			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
-			<A id="CASHDOCSID" parentkey="cascade"/>
-			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="600" type="date" nulls="false" readonly="false" local="true"/>
-			<A id="NUMBSHEET" name="Номер листа" caption="Номер листа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
-			<A id="COUNTSHEETS" name="Количество листов" caption="Количество листов" labelwidth="600" type="number" len="2" nulls="false" readonly="false" local="true"/>
-			<A id="OPENBALANCE" name="Остаток на начало дня" caption="Остаток на начало дня" labelwidth="300" type="number" len="8.2" nulls="false" readonly="false" local="true"/>
-			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" virtual="true" formula="select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
-			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" virtual="true" formula="select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
-			<A id="OUTBALANCE" name="Остаток на конец дня" caption="Остаток на конец дня" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" virtual="true" formula="COALESCE(@OPENBALANCE,0) + (select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID) - (select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID)" local="true"/>
-			<A id="SHOWREPORT" name="Отчет" caption="Отчет" type="string" visible="false" virtual="true" formula="select case when @COUNTSHEETS = 1 then '1' when @COUNTSHEETS > 1 then '2' end">
-				<AI id="1" reportlist="СashiersReport1"/>
-				<AI id="2" reportlist="СashiersReport"/>
-			</A>
-			<TI unique="CASHDOCSID, DOCDATE"/>
-			<TI id="REPORTCASHBOOKSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
-		</TABLE>
-		<TABLE id="REPORTCASHBOOKSSPEC" name="Данные отчета кассира">
-			<A id="REPORTCASHBOOKSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="Номер по порядку" caption="Номер по порядку" labelwidth="600" type="number" len="2" nulls="false" readonly="false" local="true"/>
-			<A id="DOCNUMB" name="Номер документа" caption="Номер документа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
-			<A id="PERSONID" name="Физическое лицо" caption="Физическое лицо" labelwidth="300" nulls="true"/>
-			<A id="PRSINFO" name="От кого получено или кому выдано" caption="От кого получено или кому выдано" labelwidth="300" type="string" readonly="true" formula="select case when @PERSONID is null then 'Выдача денег из кассы подотчетным лицам' when COALESCE(@INCOMECASH,0) > 0 then (select COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'') from person p where p.id = @PERSONID) when COALESCE(@EXPENDCASH,0) > 0 then (select COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') from person p where p.id = @PERSONID)  end " local="true"/>
-			<A id="DICACCSID" name="Номер корреспондирующего счета" caption="Номер корреспондирующего счета" labelwidth="600"/>
-			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="50" width="50" type="number" len="8.2" nulls="false" local="true"/>
-			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="50" width="50" type="number" len="8.2" nulls="false" local="true"/>
-			<TI unique="REPORTCASHBOOKSID, NUMBPP"/>
-		</TABLE>
+	
 		<TABLE id="LIABILITY" name="Договоры о материальной ответственности">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
@@ -1608,8 +1583,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="DOCTYPEID" labelwidth="50" width="100" visible="false" readonly="true" value="21"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
-					<AI id="1" name="Создан"/>
-					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="1" name="Создан" actionlist="CashreceiptToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" actionlist="CashreceiptToTransactionlogRollback" readonly="true"/>
 					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
@@ -1692,8 +1667,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 				<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="37"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="STATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
-					<AI id="1" name="Создан"/>
-					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="1" name="Создан" actionlist="StatementToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" readonly="true" actionlist="StatementToTransactionlogRollback"/>
 					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
@@ -1766,6 +1741,35 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="50" width="50"/>
 			<A id="NOTE" name="Расшифровка" caption="Расшифровка" labelwidth="80" width="100" type="string" nulls="true" local="true"/>
 			<TI unique="CASHCONTRIBUTIONID, NUMBPP"/>
+		</TABLE>
+		<TABLE id="REPORTCASHBOOKS" name="Отчеты кассира">
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="CASHDOCSID" parentkey="cascade"/>
+			<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="600" type="date" nulls="false" readonly="false" local="true"/>
+			<A id="NUMBSHEET" name="Номер листа" caption="Номер листа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
+			<A id="COUNTSHEETS" name="Количество листов" caption="Количество листов" labelwidth="600" type="number" len="2" nulls="false" readonly="false" local="true"/>
+			<A id="OPENBALANCE" name="Остаток на начало дня" caption="Остаток на начало дня" labelwidth="300" type="number" len="8.2" nulls="false" readonly="false" local="true"/>
+			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" virtual="true" formula="select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
+			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" virtual="true" formula="select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID" local="true"/>
+			<A id="OUTBALANCE" name="Остаток на конец дня" caption="Остаток на конец дня" labelwidth="300" type="number" len="8.2" nulls="false" readonly="true" virtual="true" formula="COALESCE(@OPENBALANCE,0) + (select sum(COALESCE(r.INCOMECASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID) - (select sum(COALESCE(r.EXPENDCASH,0)) from REPORTCASHBOOKSSPEC r where r.REPORTCASHBOOKSID = @ID)" local="true"/>
+			<A id="SHOWREPORT" name="Отчет" caption="Отчет" type="string" visible="false" virtual="true" formula="select case when @COUNTSHEETS = 1 then '1' when @COUNTSHEETS > 1 then '2' end">
+				<AI id="1" reportlist="СashiersReport1"/>
+				<AI id="2" reportlist="СashiersReport"/>
+			</A>
+			<TI unique="CASHDOCSID, DOCDATE"/>
+			<TI id="REPORTCASHBOOKSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
+		</TABLE>
+		<TABLE id="REPORTCASHBOOKSSPEC" name="Данные отчета кассира">
+			<A id="REPORTCASHBOOKSID" parentkey="cascade"/>
+			<A id="NUMBPP" name="Номер по порядку" caption="Номер по порядку" labelwidth="600" type="number" len="2" nulls="false" readonly="false" local="true"/>
+			<A id="DOCNUMB" name="Номер документа" caption="Номер документа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
+			<A id="PERSONID" name="Физическое лицо" caption="Физическое лицо" labelwidth="300" nulls="true"/>
+			<A id="PRSINFO" name="От кого получено или кому выдано" caption="От кого получено или кому выдано" labelwidth="300" type="string" readonly="true" formula="select case when @PERSONID is null then 'Выдача денег из кассы подотчетным лицам' when COALESCE(@INCOMECASH,0) > 0 then (select COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'') from person p where p.id = @PERSONID) when COALESCE(@EXPENDCASH,0) > 0 then (select COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') from person p where p.id = @PERSONID)  end " local="true"/>
+			<A id="DICACCSID" name="Номер корреспондирующего счета" caption="Номер корреспондирующего счета" labelwidth="600"/>
+			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="50" width="50" type="number" len="8.2" nulls="false" local="true"/>
+			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="50" width="50" type="number" len="8.2" nulls="false" local="true"/>
+			<TI unique="REPORTCASHBOOKSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="EXPENSE_REPORTS" name="Авансовые отчеты избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -1902,6 +1906,8 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 						<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" labelwidth="200" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
 						<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, CONTRACTSDOCS cd where cd.id=@CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
 					</GA>
+					<A id="DOCLINKS_IN"/>
+					<A id="DOCLINKS_OUT"/>
 				</TAB>
 				<TAB name="Зачет аванса">
 					<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" type="boolean" nulls="false" local="true"/>
@@ -1914,8 +1920,6 @@ formula="select coalesce(regexp_replace(max(lpad(docnumb::text,80,' ')), '[^0-9]
 					</GA>
 				</TAB>
 			</TABS>
-			<A id="DOCLINKS_IN"/>
-			<A id="DOCLINKS_OUT"/>
 			<TI unique="ACTSID, NUMBPP"/>
 			<TI id="ACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
@@ -3146,7 +3150,7 @@ actionlist="setLID;StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
 		<FORM id="DicmuntsFRM" name="Единицы измерения">
 			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS" actionlist="setLID"/>
 		</FORM>
-		<FORM id="PayaccountsFRM" name="Расчетные (лицевые) счета в банке">
+		<FORM id="PayaccountsFRM" name="Расчетно-платежные документы">
 			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID"/>
 			<TABS>
 				<TAB name="Платежные поручения">
