@@ -94,7 +94,8 @@
 					</GA>
 					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" value="0" local="true">
 						<AI id="0" name="Черновик" actionlist="MakeEntryCON"/>
-						<AI id="1" name="Отработан" actionlist="DeleteEntryCON;To_form_DIS;Disband_DIS" readonly="true"/>
+						<AI id="1" name="Отработан" actionlist="DeleteEntryCON;To_form_DIS" readonly="true"/>
+						<AI id="2" name="Сформировано распоряжение на перечисление МБТ" actionlist="Disband_DIS" readonly="true"/>
 					</A>
 				</TAB>
 				<TAB name="Ответственные исполнители">
@@ -109,6 +110,7 @@
 					<A id="BO_NUMB_EXT" name="Учетный номер бюджетного обязательства" caption="Учетный номер бюджетного обязательства" labelwidth="350" type="string" visible="true" local="true"/>
 					<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
 						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
+						<AI id="Distrib_mbt" name="Распоряжения на перечисления межбюджетных трансфертов" readonly="true"/>
 					</A>
 				</TAB>
 			</TABS>
@@ -218,16 +220,13 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="Disband_notice" name="Расформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
-		<COMMENT name="заменить на p_action_fin_makeentrycon"/>
 		<ACTION id="MakeEntryCON" name="Отработать" type="procedure" procedure="p_action_fin_makeentrycon">
 			<P id="val" value="1"/>
 		</ACTION>
-		<COMMENT name="заменить на p_action_fin_deleteentrycon"/>
 		<ACTION id="DeleteEntryCON" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentrycon">
 			<P id="val" value="0"/>
 		</ACTION>
-		<COMMENT name="заменить на p_action_fin_to_form_dis"/>
-		<ACTION id="To_form_DIS" name="Сформировать распоряжение на перечисление МБТ" type="procedure" procedure="p_action_fin_to_form_dis">
+		<ACTION id="To_form_DIS_PROC" name="Сформировать распоряжение на перечисление МБТ" type="procedure" procedure="p_action_fin_to_form_dis">
 			<FORM>
 				<A id="DISTRIB_TYPE" name="Тип распоряжения" caption="Тип" labelwidth="100" width="50" type="list" nulls="false" value="0" local="true">
 					<AI id="0" name="Распоряжение"/>
@@ -239,8 +238,15 @@
 				<A id="PERSON1_ID" name="Исполнитель" caption="Исполнитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
 			</FORM>
 		</ACTION>
-		<COMMENT name="заменить на p_action_fin_disband_dis"/>
-		<ACTION id="Disband_DIS" name="Расформировать распоряжение на перечисление МБТ" type="procedure" procedure="p_action_fin_disband_dis"/>
+		<ACTION id="To_form_DIS_STATUS" name="Сменить статус" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="2"/>
+		</ACTION>
+		<ACTION id="To_form_DIS" name="Сформировать распоряжение на перечисление МБТ" type="script" actionlist="To_form_DIS_PROC;To_form_DIS_STATUS"/>
+		<ACTION id="Disband_DIS_PROC" name="Расформировать распоряжение на перечисление МБТ" type="procedure" procedure="p_action_fin_disband_dis"/>
+		<ACTION id="Disband_DIS_STATUS" name="Сменить статус" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
+		<ACTION id="Disband_DIS" name="Расформировать распоряжение на перечисление МБТ" type="script" actionlist="Disband_DIS_PROC;Disband_DIS_STATUS"/>
 		<ACTION id="MakeEntryREP" name="Отработать" type="procedure" procedure="p_action_set_status">
 			<P id="val" value="1"/>
 		</ACTION>
