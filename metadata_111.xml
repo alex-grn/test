@@ -31,12 +31,11 @@
 		<A id="PROCLISTID" name="Бюджетная процедура ВФК" caption="Бюджетная процедура ВФК" labelwidth="160" type="ref" table="PROCLIST" ret="NAME" form="fProclist" nulls="false"/>
 		<A id="PROCESSLISTID" name="Процесс ВФК" caption="Процесс ВФК" labelwidth="160" type="ref" table="PROCESSLIST" ret="NAME" form="fProcesslist" nulls="false"/>
 		<A id="OPERLISTID" name="Операции ВФК" caption="Операции ВФК" labelwidth="160" type="ref" table="OPERLIST" ret="NAME" form="fOperlist" nulls="false"/>
-		<A id="ACTIONID" name="Действие ВФК" caption="Действие ВФК" labelwidth="160" type="ref" table="ACTION" ret="NAME"/>
+		<A id="ACTIONID" name="Наименование действия" caption="Наименование действия" labelwidth="160" type="ref" table="ACTION" ret="NAME"/>
 		<A id="PURFREQCNTRLID" name="Периодичность контроля" caption="Периодичность контроля" labelwidth="160" type="ref" table="PURFREQCNTRL" ret="NAME" form="fPurfreqcntrl" nulls="false"/>
 		<A id="PUR_FUNCTIONAL_ROLESID" name="Функциональные роли ВФК" caption="Функциональные роли ВФК" labelwidth="160" type="ref" table="PUR_FUNCTIONAL_ROLES" ret="NAME" form="fPur_Functional_Roles" nulls="false"/>
 		<A id="CARD_VFCID" name="Наименование карты" caption="Наименование карты" labelwidth="100" type="ref" table="CARD_VFC" ret="NAME" form="fCard_VFC" nulls="false"/>
 		<A id="CONFMATRIX_ID" name="Код" caption="Код" labelwidth="500" type="ref" table="CONFMATRIX" ret="CODE" form="fConfmatrix" nulls="true"/>
-		
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Справочник с Полным и кратким наименованием"/>
@@ -64,13 +63,15 @@
 		<COMMENT name="Действия ВФК"/>
 		<TABLE id="ACTION" name="Действия ВФК">
 			<A id="OPERLISTID" name="Операции ВФК" parentkey="cascade"/>
-			<GA id="DictionaryVFC"/>
+			<A id="CODE" name="Код" caption="Код" labelwidth="500" type="string" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="160" type="text" nulls="true" local="true"/>
 			<A id="PUR_FUNCTIONAL_ROLESID" name="Функциональная роль" caption="Функциональная роль"/>
 			<GA caption="Матрица бюджетного риска">
-			<A id="CONFMATRIX_ID" name="Код матрицы" caption="Код матрицы" labelwidth="500"/>
-			<A id="PROBLEVEL_VIRT" name="Вероятность наступления" caption="Вероятность наступления" labelwidth="160" type="string" readonly="true" virtual="true" formula="select PROBLEVEL from CONFMATRIX where ID = @CONFMATRIX_ID" local="true"/>
-			<A id="CONSEQUENCES_VIRT" name="Последствия" caption="Последствия" labelwidth="160" type="string" readonly="true" virtual="true" formula="select CONSEQUENCES from CONFMATRIX where ID = @CONFMATRIX_ID" local="true"/>
-			<A id="RISK_LVL_VIRT" name="Уровень рисков" caption="Уровень рисков" labelwidth="160" type="string" readonly="true" virtual="true" formula="select RISK_LVL from CONFMATRIX where ID = @CONFMATRIX_ID" local="true"/>
+				<A id="CONFMATRIX_ID" name="Код матрицы" caption="Код матрицы" labelwidth="500"/>
+				<A id="PROBLEVEL_VIRT" name="Вероятность наступления" caption="Вероятность наступления" labelwidth="160" type="string" readonly="true" virtual="true" formula="select PROBLEVEL from CONFMATRIX where ID = @CONFMATRIX_ID" local="true"/>
+				<A id="CONSEQUENCES_VIRT" name="Последствия" caption="Последствия" labelwidth="160" type="string" readonly="true" virtual="true" formula="select CONSEQUENCES from CONFMATRIX where ID = @CONFMATRIX_ID" local="true"/>
+				<A id="RISK_LVL_VIRT" name="Уровень рисков" caption="Уровень рисков" labelwidth="160" type="string" readonly="true" virtual="true" formula="select RISK_LVL from CONFMATRIX where ID = @CONFMATRIX_ID" local="true"/>
 			</GA>
 			<A id="RISK_BUDG" name="Бюджетные риски" caption="Бюджетные риски" labelwidth="160" type="string" nulls="false" local="true"/>
 			<A id="PROPOSALS" name="Предложения по применению контрольных действий" caption="Предложения по применению контрольных действий" labelwidth="305" type="string" nulls="false" local="true"/>
@@ -118,8 +119,8 @@
 			<A id="DOC_YEAR" name="Год" caption="Год" width="33" type="string" nulls="false" local="true"/>
 			<A id="PUR_FUNCTIONAL_ROLESID" name="Функциональная роль" caption="Функциональная роль"/>
 			<A id="USERID" name="Ответственный" caption="Ответственный" labelwidth="160"/>
-			<A id="ACTIONID" name="Код действия"/>
-			<A id="OPRLIST_NAME" name="Наименование действия" caption="Наименование действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CODEACTION" name="Код действия" caption="Код действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="ACTIONID" name="Наименование действия" caption="Наименование действия"/>
 			<GA name="Документ-основание" caption="Документ-основание">
 				<A id="VAL_DOC_CODE" name="Тип" caption="Тип" width="33" type="string" nulls="true" local="true"/>
 				<A id="VAL_DOC_NUMB" name="Номер" caption="Номер" width="33" type="string" nulls="true" local="true"/>
@@ -143,11 +144,11 @@
 		<COMMENT name="Плановый журнал ВФК"/>
 		<TABLE id="PLANJOURNAL" name="Плановый журнал ВФК" tablename="JOURNAL" virtual="true" query="select * from JOURNAL where STATUS in ('1')">
 			<A id="DOC_NUMB" name="Номер" caption="Номер" labelwidth="160" width="33" type="string" nulls="false" local="true"/>
-			<A id="DOC_DATE" name="Дата" caption="Дата" width="33" type="date" nulls="false" local="true" formula="now()"/>
-			<A id="DOC_YEAR" name="Год" caption="Год" width="33" type="string" nulls="false" local="true" formula="to_char(now(),'YYYY')"/>
+			<A id="DOC_DATE" name="Дата" caption="Дата" width="33" type="date" nulls="false" formula="now()" local="true"/>
+			<A id="DOC_YEAR" name="Год" caption="Год" width="33" type="string" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 			<A id="PUR_FUNCTIONAL_ROLESID" name="Функциональная роль" caption="Функциональная роль"/>
-			<A id="ACTIONID" name="Код действия"/>
-			<A id="OPRLIST_NAME" name="Наименование действия" caption="Наименование действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CODEACTION" name="Код действия" caption="Код действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="ACTIONID" name="Наименование действия" caption="Наименование действия"/>
 			<GA name="Документ-основание" caption="Документ-основание">
 				<A id="VAL_DOC_CODE" name="Тип" caption="Тип" width="33" type="string" nulls="true" local="true"/>
 				<A id="VAL_DOC_NUMB" name="Номер" caption="Номер" width="33" type="string" nulls="true" local="true"/>
@@ -174,8 +175,8 @@
 			<A id="DOC_DATE" name="Дата" caption="Дата" width="33" type="date" nulls="false" local="true"/>
 			<A id="DOC_YEAR" name="Год" caption="Год" width="33" type="string" nulls="false" local="true"/>
 			<A id="PUR_FUNCTIONAL_ROLESID" name="Функциональная роль" caption="Функциональная роль"/>
-			<A id="ACTIONID" name="Код действия"/>
-			<A id="OPRLIST_NAME" name="Наименование действия" caption="Наименование действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="CODEACTION" name="Код действия" caption="Код действия" labelwidth="160" type="string" nulls="false" local="true"/>
+			<A id="ACTIONID" name="Наименование действия" caption="Наименование действия"/>
 			<GA name="Документ-основание" caption="Документ-основание">
 				<A id="VAL_DOC_CODE" name="Тип" caption="Тип" width="33" type="string" nulls="true" local="true"/>
 				<A id="VAL_DOC_NUMB" name="Номер" caption="Номер" width="33" type="string" nulls="true" local="true"/>
