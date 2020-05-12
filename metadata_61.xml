@@ -1065,6 +1065,7 @@
 			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="BLOCKCELL" name="Блокировка полей" caption="Блокировка полей" type="string" visible="false" virtual="true" formula="p_action_financeelcom_block_cells(@ID)">
 				<AI id="territory///" readonly="SUMFINUIK"/>
+				<AI id="circuit///" readonly="SUMFINUIK"/>
 				<AI id="district/1/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
 				<AI id="district/1//" readonly="SUMFINTIK;SUMFINUIK"/>
 				<AI id="district/2/salary/" readonly="SUMFINTIK;SUMFINTIKCEN"/>
@@ -1077,6 +1078,11 @@
 				<AI id="district/2//10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
 				<AI id="district/3//10" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINTIKCEN;SUMFINUIK"/>
 				<AI id="district/3/salary/10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
+			</A>
+			<A id="ACTIONCELL" name="Действия по уровню комиссии" caption="Действия по уровню комиссии" type="string" visible="false" virtual="true" formula="select e.LEVELELCOMMITTEE from ELECTCOMMITTEE e, ELECTCOMMINCAMP c where c.ELECTCOMMITTEEID = e.ID and c.ID = @ELECTCOMMINCAMPID">
+				<AI id="district" actionlist="FinanceelcomRecountUpDigit"/>
+				<AI id="territory" actionlist="FinanceelcomRecountFProv"/>
+				<AI id="circuit" actionlist="FinanceelcomRecountFProv"/>				
 			</A>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID, DOCDATE"/>
 		</TABLE>
@@ -1621,8 +1627,8 @@
 				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="23"/>
 				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
-					<AI id="1" name="Создан"/>
-					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="1" name="Создан" actionlist="CashpaymentToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" readonly="true" actionlist="CashpaymentToTransactionlogRollback"/>
 					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
 				<A id="DOCDATE" labelwidth="50" width="43"/>
@@ -1788,9 +1794,10 @@
 			<GA name="Авансовый отчет" caption="Авансовый отчет">
 				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
 				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="25"/>
-				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="160" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-				<A id="DOCDATE" labelwidth="50" width="43"/>
-				<A id="PERSONID" name="Контрагент" caption="Контрагент" labelwidth="160" nulls="true"/>
+				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
+				<A id="DOCDATE" labelwidth="50" width="50"/>
+				<A id="PERSONID" name="Контрагент" caption="Контрагент" labelwidth="100" width="35" nulls="true"/>
+				<A id="SUMM" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.REPORTSUMM),2) from EXPENDED x where x.EXPENSE_DOCS_ID = @ID::BIGINT"/>
 				<A id="ELECTCOMMITTEEID" name="УИК" caption="УИК" labelwidth="160" nulls="true"/>
 				<A id="DECLARATION" name="Заявление на выдачу аванса" caption="Заявление на выдачу аванса" labelwidth="160" type="string"/>
 				<A id="PURPOSE" name="Назначение аванса" caption="Назначение аванса" labelwidth="160" type="string"/>
@@ -2362,8 +2369,8 @@
 				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_ACTS_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 				<A id="SUMM" name="Сумма по документу" caption="Сумма по документу" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMM),2) from WRITEOFF_ACTS_GOODS x where x.WRITEOFF_ACTS_HEADERID = @ID::BIGINT" local="true"/>
 				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
-					<AI id="1" name="Создан"/>
-					<AI id="2" name="Проведен в учете" readonly="true"/>
+					<AI id="1" name="Создан" actionlist="WriteoffActsToTransactionlog"/>
+					<AI id="2" name="Проведен в учете" readonly="true" actionlist="WriteoffActsToTransactionlogRollback"/>
 				</A>
 			</GA>
 			<GA name="Основание для списания" caption="Основание для списания">
