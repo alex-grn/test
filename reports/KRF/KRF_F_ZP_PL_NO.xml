@@ -3338,7 +3338,7 @@
                                                      and fl.id = t.hid
                                                   group by t.numbestimate, t.code, t.typeestimate, fl.name) T
                                             left join 
-                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                              (select case when not tp.mestimate and tp.typeestimate = 'П' then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
                                                       ec.levelelcampaign
                                                  from REGISTER r 
                                             left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
@@ -3348,7 +3348,7 @@
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
                                             left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
                                             where r.id = ${id}::bigint
-                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign) s on s.numbestimate = t.numbestimate
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign, tp.typeestimate) s on s.numbestimate = t.numbestimate
                                            where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
@@ -3389,6 +3389,7 @@
                                               and t.id = f.typeexpid
 											  and t.numbestimate not ilike '%АПУ%' and t.numbestimate not ilike '%.%'
                                               and not t.NOACTUAL_COST and (not t.mestimate or t.mestimate is null)
+											  and t.typeestimate = 'П'
                                               and (ec.levelelcampaign ilike 'region' and fl.name ilike '%регион%' 
                                                 Or ec.levelelcampaign not ilike 'region' and fl.name ilike '%федер%')
 								;
@@ -3418,7 +3419,7 @@
                                                      and fl.id = t.hid
                                                   group by t.numbestimate, t.code, t.typeestimate, fl.name) T
                                             left join 
-                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                              (select case when not tp.mestimate and tp.typeestimate = 'П' then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
                                                       ec.levelelcampaign
                                                  from REGISTER r 
                                             left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
@@ -3428,7 +3429,7 @@
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
                                             left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
                                             where r.id = ${id}::bigint
-                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign) s on s.numbestimate = t.numbestimate
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign, tp.typeestimate) s on s.numbestimate = t.numbestimate
                                            where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
@@ -3469,6 +3470,7 @@
                                               and t.id = f.typeexpid
 											  and t.numbestimate not ilike '%АПУ%' and t.numbestimate not ilike '%.%'
                                               and not t.NOACTUAL_COST and (not t.mestimate or t.mestimate is null)
+											  and t.typeestimate = 'П'
                                               and (ec.levelelcampaign ilike 'region' and fl.name ilike '%регион%' 
                                                 Or ec.levelelcampaign not ilike 'region' and fl.name ilike '%федер%')
 								;
