@@ -16,27 +16,29 @@
 		<A id="AUDITREPORTID" name="Проверки" caption="Проверки" type="ref" table="AUDITREPORT" ret="ID" form="AuditReport" nulls="true"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
+	
 	<TABLES name="Таблицы">
+	
 		<COMMENT name="Справочники"/>
 		<COMMENT name="Отчётность ИК"/>
-		<TABLE id="ACCOUNTABILITYUIK" name="Отчётность УИК">
-			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="200" type="string" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200" type="text" nulls="false" local="true"/>
+		
+		<TABLE id="ACCOUNTABILITYUIK" name="Отчетность УИК">
+			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/>
 			<A id="ELECTCAMPAIGNID" labelwidth="200"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="200" type="date" nulls="false" local="true"/>
 			<A id="ELECTCOMMITTEEID" labelwidth="200"/>
 			<GA id="UIKSTATUSMODEL" name="Статусная модель" caption="Статусная модель">
-				<A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="true" visible="true" value="1" local="true">
-					<AI id="1" name="1" actionlist="FillListOfIndincators;ImportReportUIK"/>
-					<AI id="2" name="2" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;ImportReportUIK"/>
-					<AI id="3" name="3" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;ImportReportUIK"/>
-					<AI id="4" name="4" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;SubmitReport;ImportReportUIK"/>
-					<AI id="5" name="5" actionlist="CheckReport;ImportReportUIK" readonly="true"/>
-					<AI id="6" name="6" actionlist="CheckReport;ImportReportUIK" readonly="true"/>
-					<AI id="7" name="7" actionlist="FillListOfIndincators;ImportReportUIK;SpecReportsRecountingSumm"/>
-					<AI id="8" name="8" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/>
-					<AI id="9" name="9" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/>
+				<A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" visible="true" value="1" local="true">
+					<AI id="1" name="Новый / Новый / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK"/>
+					<AI id="2" name="В работе / Загружен / Нет / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;ImportReportUIK"/>
+					<AI id="3" name="В работе / Расчитан / Нет / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;ImportReportUIK"/>
+					<AI id="4" name="В работе / Расчитан / Без ошибок / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;SubmitReport;ImportReportUIK"/>
+					<AI id="5" name="Представлен / Расчитан / Без ошибок / Отправлен" actionlist="CheckReport;ImportReportUIK" readonly="true"/>
+					<AI id="6" name="В своде / Расчитан / Без ошибок / Отправлен" actionlist="CheckReport;ImportReportUIK" readonly="true"/>
+					<AI id="7" name="В работе / Не расчитан / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;SpecReportsRecountingSumm"/>
+					<AI id="8" name="В работе / Расчитан / Ошибки / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/>
+					<AI id="9" name="Отклонен / Отклонен / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/>
 				</A>
 				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="190" width="50" type="list" nulls="false" virtual="true" value="1" local="true" formula="select case when @STATUS = '1' then '1' when @STATUS = '5' then '3' when @STATUS = '6' then '4' when @STATUS = '9' then '5' else '2' end">
 					<AI id="1" name="Новый"/>
@@ -63,10 +65,11 @@
 				</A>
 			</GA>
 		</TABLE>
+		
 		<TABLE id="ACCOUNTABILITYUIKS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1S1">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" width="60" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2S1" name="Наименование показателя">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
@@ -75,21 +78,21 @@
 				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="200" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
 			<GA id="UIKSECTION1GA4" name="Всего">
-				<A id="TOTAL" name="3" caption="Всего (гр.3)" labelwidth="200" type="number" len="8.0" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
+				<A id="TOTAL" name="3" caption="Всего (гр.3)" labelwidth="200" type="number" len="8" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
 			</GA>
 			<GA id="UIKSECTION1GA5" name="УИК">
-				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="number" len="8.0" nulls="false" visible="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="number" len="8" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="ACCOUNTABILITYUIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1S2">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" width="60" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2S2" name="Наименование показателя">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="200"/>
@@ -103,16 +106,16 @@
 			<GA id="UIKSECTION2GA5" name="УИК">
 				<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковых избирательных комиссий (комиссий референдума) (гр. 13)" labelwidth="415" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="UIKPRIL2" name="Прил. 2">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P2">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2P2" name="Виды расходов">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
@@ -126,16 +129,16 @@
 			<GA id="UIKPRIL2GA5" name="Участковых избирательных комиссий">
 				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="UIKPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P6">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2P6" name="Виды расходов">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Виды расходов (гр. 1)" labelwidth="220"/>
@@ -149,16 +152,16 @@
 			<GA id="UIKPRIL6GA5" name="Участковых избирательных комиссий">
 				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="UIKPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P8">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2P8" name="Виды расходов ">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
@@ -167,7 +170,7 @@
 				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
 			<GA id="IKSPRIL8GA4" name="Количество (штук)">
-				<A id="QUANT" name="3" caption="Количество (штук) (гр. 3)" labelwidth="220"  type="number" len="8.0" nulls="true" local="true"/>			
+				<A id="QUANT" name="3" caption="Количество (штук) (гр. 3)" labelwidth="220"  type="number" len="8" nulls="true" local="true"/>			
 			</GA>
 			<GA id="UIKPRIL8GA4" name="Сумма расходов, всего, рублей">
 				<A id="TOTAL" name="5" caption="Сумма расходов, всего, рублей (гр.5)" labelwidth="220" type="number" len="8.2"  nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
@@ -175,16 +178,16 @@
 			<GA id="UIKPRIL8GA5" name="Участковых избирательных комиссий">
 				<A id="UIKREFERENDUMCOMMISSION" name="13" caption="Участковых избирательных комиссий (гр. 13)" labelwidth="265" type="number" len="8.2"  nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="UIKPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P9">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2P9" name="Виды расходов">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
@@ -193,21 +196,21 @@
 				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
 			<GA id="UIKPRIL9GA4" name="Сумма расходов, всего, рублей">
-				<A id="TOTAL" name="6" caption="Сумма расходов, всего, рублей (гр.6)" labelwidth="220" type="string" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
+				<A id="TOTAL" name="6" caption="Сумма расходов, всего, рублей (гр.6)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
 			</GA>
 			<GA id="UIKPRIL9GA5" name="Участковых избирательных комиссий">
-				<A id="UIKREFERENDUMCOMMISSION" name="14" caption="Участковых избирательных комиссий (гр. 14)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION" name="14" caption="Участковых избирательных комиссий (гр. 14)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="UIKPRIL11" name="Прил. 11">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P11">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2P11" name="Виды расходов">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
@@ -216,21 +219,21 @@
 				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
 			<GA id="UIKPRIL11GA4" name="Всего">
-				<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр.4)" labelwidth="220" type="string" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
+				<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр.4)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
 			</GA>
 			<GA id="UIKPRIL11GA5" name="Участковых избирательных комиссий">
-				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="UIKPRIL15" name="Прил. 15">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P15">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="UIKSTARTGA2P15" name="Виды расходов">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Наименование показателя (гр. 1)" labelwidth="220"/>
@@ -239,17 +242,17 @@
 				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
 			<GA id="UIKPRIL15GA4" name="Сумма расходов, всего, рублей">
-				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" labelwidth="220" type="string" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
+				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр.3)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
 			</GA>
 			<GA id="UIKPRIL15GA5" name="Участковых избирательных комиссий">
-				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="string" nulls="false" visible="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="AUDITREPORTSUIK" name="Протоколы проверок">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" name="Форма отчёта" caption="Форма отчёта" labelwidth="150" nulls="false"/>
@@ -260,49 +263,84 @@
 				<AI id="3" name="Нет ошибок и предупреждений"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TESTRESULTSUIK" name="Результаты проверок">
 			<A id="AUDITREPORTSUIKID" parentkey="cascade"/>
-			<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
+			<A id="WORDINGOFTHEFORMSID" visible="false" readonly="true" formula="select WORDINGOFTHEFORMSID from AUDITREPORTSUIK where id=@AUDITREPORTSUIKID"/>
+			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="160" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
+			<A id="TYPE_ERR"/>
 			<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
 			<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
 		</TABLE>
+		
+		
+		
 		<TABLE id="ACCOUNTABILITYTIK" name="Отчетность ТИК">
-			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/>
 			<A id="ELECTCAMPAIGNID"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
 			<A id="ELECTCOMMITTEEID"/>
 			<A id="TYPEDOC" name="Тип" caption="Тип" labelwidth="400" type="list" nulls="true" local="true">
 				<AI id="1" name="Первичный"/>
-				<AI id="2" name="Сводный"/>
+				<AI id="2" name="Сводный за нижестоящие"/>
+				<AI id="3" name="Сводный ТИК"/>
+				<AI id="4" name="Корректировочный"/>
 			</A>
-			<GA id="TIKSTATUSMODEL" name="Статусная модель" caption="Статусная модель">
-				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="500" type="list" nulls="false" readonly="true" value="1" local="true">
+			<GA id="STATUSMODEL" name="Статусная модель" caption="Статусная модель">
+				<A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" value="1" local="true">
+					<AI id="1" name="Новый / Новый / Нет / Не отправлен"/>
+					<AI id="2" name="В работе / Сформирован из БУ / Нет / Не отправлен"/>
+					<AI id="3" name="В работе / Расчитан / Нет / Не отправлен"/>
+					<AI id="4" name="В работе / Расчитан / Без ошибок / Не отправлен"/>
+					<AI id="5" name="Представлен / Расчитан / Без ошибок / Отправлен" readonly="true"/>
+					<AI id="6" name="В своде / Расчитан / Без ошибок / Отправлен" readonly="true"/>
+					<AI id="7" name="В работе / Не расчитан / Нет / Не отправлен"/>
+					<AI id="8" name="В работе / Расчитан / Ошибки / Нет"/>
+					<AI id="9" name="Отклонен / Отклонен / Нет / Не отправлен"/>
+					<AI id="10" name="В работе / Сформирован свод / Нет / Не отправлен"/>
+					<AI id="11" name="В работе / Сформирован свод / Без ошибок / Не отправлен"/>
+					<AI id="12" name="Представлен / Сформирован свод / Без ошибок / Отправлен"/>
+					<AI id="13" name="В своде / Принят / Без ошибок / Отправлен"/>
+					<AI id="14" name="В работе / Свод не сформирован / Нет / Не отправлен"/>
+					<AI id="15" name="В работе / Сформирован свод / Ошибки / Нет"/>
+					<AI id="16" name="Отклонен / Отклонен / Нет / Не отправлен"/>
+					<AI id="17" name="В своде / Расчитан / Нет / Отправлен"/>
+					
+				</A>
+				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="190" width="50" type="list" nulls="false" readonly="true" value="1" local="true">
 					<AI id="1" name="Новый"/>
 					<AI id="2" name="В работе"/>
-					<AI id="3" name="Сформирован из БУ ТИК"/>
-					<AI id="4" name="Пересчитан"/>
-					<AI id="5" name="Проверяется"/>
-					<AI id="6" name="Сведён"/>
-					<AI id="7" name="Включен в свод" readonly="true"/>
-					<AI id="8" name="Предоставлен" readonly="true"/>
-					<AI id="9" name="Отклонён"/>
+					<AI id="3" name="Представлен"/>
+					<AI id="4" name="В своде"/>
+					<AI id="5" name="Отклонен"/>
 				</A>
-				<A id="TESTEDTIK" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="100" width="50" type="list" nulls="false" readonly="true" local="true">
-					<AI id="1" name="Не проверен"/>
-					<AI id="2" name="Проверен"/>
+				<A id="TESTED" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="160" width="50" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Новый"/>
+					<AI id="2" name="Сформирован из БУ"/>
+					<AI id="3" name="Расчитан"/>
+					<AI id="4" name="Не расчитан"/>
+					<AI id="5" name="Отклонен"/>
+					<AI id="6" name="Сформирован свод"/>
+					<AI id="7" name="Принят"/>
+					<AI id="8" name="Свод не сформирован"/>
 				</A>
-				<A id="SUBMITTEDTIK" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="160" width="50" type="list" nulls="false" readonly="true" local="true">
+				<A id="CHECKED" name="Проверка" caption="Проверка" labelwidth="190" width="50" type="list" nulls="false" virtual="true" value="1" local="true">
+					<AI id="1" name="Нет"/>
+					<AI id="2" name="Без ошибок"/>
+					<AI id="3" name="Ошибки"/>
+				</A>
+				<A id="SUBMITTED" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="160" width="50" type="list" nulls="false" readonly="true" value="1" local="true">
 					<AI id="1" name="Не отправлен"/>
 					<AI id="2" name="Отправлен"/>
 				</A>
 			</GA>
 		</TABLE>
+		
 		<TABLE id="ACCOUNTABILITYTIKS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1S1">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" width="60" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2S1" name="Наименование показателя">
 				<GA name=" ">
@@ -316,27 +354,27 @@
 			</GA>
 			<GA id="TIKSECTION1GA4" name="Всего" caption="Всего">
 				<GA name=" ">
-				<A id="TOTAL" name="3" caption="Всего (гр.3)" labelwidth="200" type="number" len="8.0" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION" local="true"/>
+				<A id="TOTAL" name="3" caption="Всего (гр.3)" labelwidth="200" type="number" len="8" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION" local="true"/>
 				</GA>
 			</GA>
 			<GA id="TIKSECTION1GA5" name="в том числе" caption="в том числе">
 				<GA name="ТИК">
-					<A id="TIKREFERENDUMCOMMISSION" name="6" caption="территориальные избирательные комиссии (комиссии референдума) (гр. 6)" labelwidth="450" type="number" len="8.0" nulls="false" visible="true" formula="COALESCE((select sum(COALESCE(k2.tikreferendumcommission::integer,0)) from ACCOUNTABILITYTIKS1SD k, MEASURESOFSHAPE m, ACCOUNTABILITYTIKS1SD k2, MEASURESOFSHAPE m2 where k.id = @ID and k.accountabilitytikid = k2.accountabilitytikid and m.id = k.measuresofshapeid and RIGHT(m.code,1) = '0' and m2.code != m.code and m2.id = k2.measuresofshapeid and m2.code ilike substr(m.code,1,2)||'_'),0)" local="true"/>
+					<A id="TIKREFERENDUMCOMMISSION" name="6" caption="территориальные избирательные комиссии (комиссии референдума) (гр. 6)" labelwidth="450" type="number" len="8" nulls="false" visible="true" formula="COALESCE((select sum(COALESCE(k2.tikreferendumcommission::integer,0)) from ACCOUNTABILITYTIKS1SD k, MEASURESOFSHAPE m, ACCOUNTABILITYTIKS1SD k2, MEASURESOFSHAPE m2 where k.id = @ID and k.accountabilitytikid = k2.accountabilitytikid and m.id = k.measuresofshapeid and RIGHT(m.code,1) = '0' and m2.code != m.code and m2.id = k2.measuresofshapeid and m2.code ilike substr(m.code,1,2)||'_'),0)" local="true"/>
 				</GA>
 				<GA name="УИК">
-					<A id="UIKREFERENDUMCOMMISSION_FROMUIK" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="number" len="8.0" nulls="false" visible="true" readonly="true" local="true"/>
+					<A id="UIKREFERENDUMCOMMISSION_FROMUIK" name="7" caption="Участковые избирательные комиссии (комиссий референдума) (гр.7)" labelwidth="410" type="number" len="8" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="ACCOUNTABILITYTIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1S2">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2S2" name="Наименование показателя">
 				<GA name=" ">
@@ -389,16 +427,16 @@
 				</GA>
 				</GA>				
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENSESTIK;EXPENSESUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL2" name="Прил. 2">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P2">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P2" name="Виды расходов">
 				<GA name=" ">
@@ -436,16 +474,16 @@
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL4" name="Прил. 4">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P4">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P4" name="Виды расходов">
 				<GA name=" ">
@@ -471,35 +509,35 @@
 			<GA id="TIKPRIL4GA4" name="Тираж, штук">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="CIRCULATION" name="4" caption="Тираж, штук (гр. 4)" labelwidth="220" type="number" len="8.0" nulls="false" local="true"/>
+				<A id="CIRCULATION" name="4" caption="Тираж, штук (гр. 4)" labelwidth="220" type="number" len="8" nulls="false" local="true"/>
 				</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL4GA6" name="ТИК" caption="Территориальных избирательных комиссий">
 				<GA name="Всего">
 				<GA name=" ">
-					<A id="SUM" name="10" caption="Всего (гр.10)" labelwidth="320" type="number" len="8.0" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
+					<A id="SUM" name="10" caption="Всего (гр.10)" labelwidth="320" type="number" len="8" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
 				</GA>
 				</GA>
 				<GA id="TIKPRIL4GA7" name="Из них">
 					<GA name="ТИК">
-						<A id="TIKREFERENDUMCOMMISSION" name="11" caption="Территориальных избирательных комиссий (гр. 11)" labelwidth="320" type="number" len="8.0" nulls="false" local="true"/>
+						<A id="TIKREFERENDUMCOMMISSION" name="11" caption="Территориальных избирательных комиссий (гр. 11)" labelwidth="320" type="number" len="8" nulls="false" local="true"/>
 					</GA>
 					<GA name="За УИК">
-						<A id="UIKREFERENDUMCOMMISSION" name="12" caption="За участковые избирательные комиссии (гр. 12)" labelwidth="320" type="number" len="8.0" nulls="false" local="true"/>
+						<A id="UIKREFERENDUMCOMMISSION" name="12" caption="За участковые избирательные комиссии (гр. 12)" labelwidth="320" type="number" len="8" nulls="false" local="true"/>
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL5" name="Прил. 5">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P5">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P5" name="Виды расходов">
 				<GA name=" ">
@@ -518,14 +556,14 @@
 			<GA id="TIKPRIL5GA4" name="Общая протяженность маршрутов, км">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="TOTALLEN" name="3" caption="Общая протяженность маршрутов, км (гр. 3)" labelwidth="300" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="TOTALLEN" name="3" caption="Общая протяженность маршрутов, км (гр. 3)" labelwidth="300" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL5GA5" name="Общая численность избирателей на всех маршрутах, человек">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="TOTNUMOFVOTE" name="4" caption="Общая численность избирателей на всех маршрутах, человек (гр. 4)" labelwidth="410" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="TOTNUMOFVOTE" name="4" caption="Общая численность избирателей на всех маршрутах, человек (гр. 4)" labelwidth="410" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
@@ -558,16 +596,16 @@
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTALLEN;TOTNUMOFVOTE"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P6">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P6" name="Виды расходов">
 				<GA name=" ">
@@ -605,16 +643,16 @@
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL7" name="Прил. 7">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P7">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P7" name="Виды расходов">
 				<GA name=" ">
@@ -633,7 +671,7 @@
 			<GA id="TIKPRIL7GA4" name="ТИК" caption="Территориальные избирательные комиссии">
 				<GA name="Приобретено (изготовлено) оборудования, единиц">
 					<GA name=" ">
-					<A id="PURCHASEDEQUIPMENT" name="6" caption="Приобретено (изготовлено) оборудования, единиц (гр. 6)" labelwidth="350" type="number" len="8.0" nulls="true" local="true"/>
+					<A id="PURCHASEDEQUIPMENT" name="6" caption="Приобретено (изготовлено) оборудования, единиц (гр. 6)" labelwidth="350" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="TIKPRIL7GA5" name="расходы ТИК, рублей" caption="расходы территориальных избирательных комиссий, рублей">
@@ -648,7 +686,7 @@
 			<GA id="IKSPRIL7GA6" name="ВСЕГО" caption="ВСЕГО">
 				<GA name="приобретено оборудования, единиц">
 					<GA name=" ">
-					<A id="PURCHASEDEQUIPMENT2" name="9" caption="приобретено оборудования, единиц (гр. 9)" labelwidth="260" type="number" len="8.0" nulls="true" readonly="true" formula="@PURCHASEDEQUIPMENT + @PURCHASEDEQUIPMENT_FROMTIK" local="true"/>
+					<A id="PURCHASEDEQUIPMENT2" name="9" caption="приобретено оборудования, единиц (гр. 9)" labelwidth="260" type="number" len="8" nulls="true" readonly="true" formula="@PURCHASEDEQUIPMENT + @PURCHASEDEQUIPMENT_FROMTIK" local="true"/>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL7GA7" name="итого расходов, рублей" caption="итого расходов, рублей">
@@ -660,16 +698,16 @@
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIPMENT;TOTAL"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P8">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P8" name="Виды расходов">
 				<GA name=" ">
@@ -688,7 +726,7 @@
 			<GA id="IKSPRIL8GA4" name="Количество (штук)">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="QUANT" name="3" caption="Количество (штук) (гр. 3)" labelwidth="220"  type="number" len="8.0" nulls="true" local="true"/>
+				<A id="QUANT" name="3" caption="Количество (штук) (гр. 3)" labelwidth="220"  type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>				
 			</GA>
@@ -728,16 +766,16 @@
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P9">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P9" name="Виды расходов">
 				<GA name=" ">
@@ -756,35 +794,35 @@
 			<GA id="TIKPRIL9GA8" name="Территориальных избирательных комиссий" caption="Территориальных избирательных комиссий">
 				<GA name="Всего">
 					<GA name=" ">
-					<A id="SUM" name="11" caption="Всего (гр. 11)" labelwidth="320" type="int" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
+					<A id="SUM" name="11" caption="Всего (гр. 11)" labelwidth="320" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
 					</GA>
 				</GA>
 				<GA id="TIKPRIL9GA9" name="Из них">
 					<GA name="ТИК">
-						<A id="TIKREFERENDUMCOMMISSION" name="12" caption="Территориальных избирательных комиссий (гр. 12)" labelwidth="320" type="int" nulls="false" local="true"/>
+						<A id="TIKREFERENDUMCOMMISSION" name="12" caption="Территориальных избирательных комиссий (гр. 12)" labelwidth="320" type="number" len="8.2" nulls="false" local="true"/>
 					</GA>
 					<GA name="За УИК">
-						<A id="UIKREFERENDUMCOMMISSION" name="13" caption="За участковые избирательные комиссии (гр. 13)" labelwidth="320" type="int" nulls="false" local="true"/>
+						<A id="UIKREFERENDUMCOMMISSION" name="13" caption="За участковые избирательные комиссии (гр. 13)" labelwidth="320" type="number" len="8.2" nulls="false" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL9GA10" name="Участковых избирательных комиссий">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="UIKREFERENDUMCOMMISSIONFROMUIK" name="14" caption="Участковых избирательных комиссий (гр. 14)" labelwidth="410" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSIONFROMUIK" name="14" caption="Участковых избирательных комиссий (гр. 14)" labelwidth="410" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL10" name="Прил. 10">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P10">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P10" name="Виды расходов">
 				<GA name=" ">
@@ -803,42 +841,42 @@
 			<GA id="TIKPRIL10GA4" name="Количество">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="QUANT" name="3" caption="Количество (гр. 3)" labelwidth="220" type="int" nulls="true" local="true"/>
+				<A id="QUANT" name="3" caption="Количество (гр. 3)" labelwidth="220" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL10GA6" name="Территориальных избирательных комиссий" caption="Территориальных избирательных комиссий">
 				<GA name="Всего">
 					<GA name=" ">
-					<A id="SUM" name="9" caption="Всего (гр. 9)" labelwidth="320" type="int" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
+					<A id="SUM" name="9" caption="Всего (гр. 9)" labelwidth="320" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
 					</GA>
 				</GA>
 				<GA id="TIKPRIL10GA7" name="Из них">
 					<GA name="ТИК">
-						<A id="TIKREFERENDUMCOMMISSION" name="10" caption="Территориальных избирательных комиссий (гр. 10)" labelwidth="320" type="int" nulls="false" local="true"/>
+						<A id="TIKREFERENDUMCOMMISSION" name="10" caption="Территориальных избирательных комиссий (гр. 10)" labelwidth="320" type="number" len="8.2" nulls="false" local="true"/>
 					</GA>
 					<GA name="За УИК">
-						<A id="UIKREFERENDUMCOMMISSION" name="11" caption="За участковые избирательные комиссии (гр. 11)" labelwidth="320" type="int" nulls="false" local="true"/>
+						<A id="UIKREFERENDUMCOMMISSION" name="11" caption="За участковые избирательные комиссии (гр. 11)" labelwidth="320" type="number" len="8.2" nulls="false" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL10GA8" name="Участковых избирательных комиссий" caption="Участковых избирательных комиссий">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="UIKREFERENDUMCOMMISSION_FROMUIK" name="12" caption="Участковых избирательных комиссий (гр. 12)" labelwidth="410" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION_FROMUIK" name="12" caption="Участковых избирательных комиссий (гр. 12)" labelwidth="410" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL11" name="Прил. 11">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P11">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P11" name="Виды расходов">
 				<GA name=" ">
@@ -862,29 +900,29 @@
 				<GA name="Численность граждан привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">					
-					<A id="NUMOFCIVILUIK_UIK" name="3" caption="Численность граждан привлекавшихся к работе, человек (гр. 3)" labelwidth="220" type="int" nulls="true" readonly="true" local="true"/>
+					<A id="NUMOFCIVILUIK_UIK" name="3" caption="Численность граждан привлекавшихся к работе, человек (гр. 3)" labelwidth="220" type="number" len="8" nulls="true" readonly="true" local="true"/>
 					</GA>
 					</GA>				
 				</GA>
 				<GA id="TIKPRIL11GA5" name="расходы по гражданско-правовым договорам, рублей">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL_UIK" name="4" caption="всего (гр. 4)" labelwidth="220" type="int" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION_UIK + @UIKREFERENDUMCOMMISSION_UIK" local="true"/>
+						<A id="TOTAL_UIK" name="4" caption="всего (гр. 4)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION_UIK + @UIKREFERENDUMCOMMISSION_UIK" local="true"/>
 						</GA>
 					</GA>
 					<GA id="TIKPRIL11GA6" name="из них расходы" caption="из них расходы">
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION_UIK" name="6" caption="территориальных избирательных комиссий (гр. 6)" labelwidth="380" type="int" nulls="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION_UIK" name="6" caption="территориальных избирательных комиссий (гр. 6)" labelwidth="380" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="УИК">
-							<A id="UIKREFERENDUMCOMMISSION_UIK" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+							<A id="UIKREFERENDUMCOMMISSION_UIK" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
 				<GA name="в среднем на 1-го человека, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="AVEPERPERSON_UIK" name="8" caption="в среднем на 1-го человека, рублей (гр. 8)" labelwidth="220" type="int" nulls="true" readonly="true" formula="@TOTAL_UIK / @NUMOFCIVILUIK_UIK" local="true"/>
+					<A id="AVEPERPERSON_UIK" name="8" caption="в среднем на 1-го человека, рублей (гр. 8)" labelwidth="220" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL_UIK / @NUMOFCIVILUIK_UIK" local="true"/>
 					</GA>
 					</GA>				
 				</GA>
@@ -893,24 +931,24 @@
 				<GA name="численность граждан, привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="NUMOFCIVIL" name="9" caption="численность граждан, привлекавшихся к работе, человек (гр. 9)" labelwidth="400" type="int" nulls="true" local="true"/>
+					<A id="NUMOFCIVIL" name="9" caption="численность граждан, привлекавшихся к работе, человек (гр. 9)" labelwidth="400" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 					</GA>				
 				</GA>
 				<GA id="TIKPRIL11GA8" name="расходы по гражданско-правовым договорам, рублей" caption="расходы по гражданско-правовым договорам, рублей">
 					<GA name="Всего">
 						<GA name=" ">
-						<A id="SUM" name="10" caption="Всего (гр. 10)" labelwidth="390" type="int" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION" local="true"/>
+						<A id="SUM" name="10" caption="Всего (гр. 10)" labelwidth="390" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION" local="true"/>
 						</GA>
 					</GA>
 					<GA id="TIKPRIL11GA9" name="из них расходы" caption="из них расходы">
 						<GA name="ТИК">
-						<A id="TIKREFERENDUMCOMMISSION" name="12" caption="территориальных избирательных комиссий (гр. 12)" labelwidth="380" type="int" nulls="true" local="true"/>
+						<A id="TIKREFERENDUMCOMMISSION" name="12" caption="территориальных избирательных комиссий (гр. 12)" labelwidth="380" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 					</GA>
 					<GA name="в среднем на 1-го человека, рублей">
 						<GA name=" ">
-						<A id="AVEPERPERSON" name="13" caption="в среднем на 1-го человека, рублей (гр. 13)" labelwidth="390" type="int" nulls="true" readonly="true" formula="@SUM / @NUMOFCIVIL" local="true"/>
+						<A id="AVEPERPERSON" name="13" caption="в среднем на 1-го человека, рублей (гр. 13)" labelwidth="390" type="number" len="8.2" nulls="true" readonly="true" formula="@SUM / @NUMOFCIVIL" local="true"/>
 						</GA>
 					</GA>
 				</GA>
@@ -919,35 +957,35 @@
 				<GA name="численность граждан привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="NUMOFCIVIL2" name="17" caption="численность граждан привлекавшихся к работе, человек (гр. 17)" labelwidth="400" type="int" nulls="true" readonly="true" formula="@NUMOFCIVILUIK_UIK + @NUMOFCIVIL" local="true"/>
+					<A id="NUMOFCIVIL2" name="17" caption="численность граждан привлекавшихся к работе, человек (гр. 17)" labelwidth="400" type="number" len="8" nulls="true" readonly="true" formula="@NUMOFCIVILUIK_UIK + @NUMOFCIVIL" local="true"/>
 					</GA>
 					</GA>
 				</GA>
 				<GA name="расходы по гражданско-правовым договорам, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="CIVLAWEXPENSES2" name="18" caption="расходы по гражданско-правовым договорам, рублей (гр. 18)" labelwidth="400" type="int" nulls="true" readonly="true" formula="@TOTAL_UIK + @SUM" local="true"/>
+					<A id="CIVLAWEXPENSES2" name="18" caption="расходы по гражданско-правовым договорам, рублей (гр. 18)" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL_UIK + @SUM" local="true"/>
 					</GA>
 					</GA>
 				</GA>
 				<GA name="в среднем на 1-го человека, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="AVEPERPERSON2" name="19" caption="в среднем на 1-го человека, рублей (гр. 19)" labelwidth="400" type="int" nulls="true" readonly="true" formula="@CIVLAWEXPENSES2 / @NUMOFCIVIL2" local="true"/>
+					<A id="AVEPERPERSON2" name="19" caption="в среднем на 1-го человека, рублей (гр. 19)" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" formula="@CIVLAWEXPENSES2 / @NUMOFCIVIL2" local="true"/>
 					</GA>
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFCIVIL;TIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL12" name="Прил. 12">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P12">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P12" name="Виды расходов">
 				<GA name=" ">
@@ -971,27 +1009,27 @@
 			</GA>
 			<GA id="TIKPRIL12GA6" name="Тираж печатной информационной продукции для избирателей">
 				<GA name=" ">
-				<A id="CIRCULATIONPRINTED" name="5" caption="Тираж печатной информационной продукции для избирателей (гр. 5)" labelwidth="420" type="int" nulls="true" local="true"/>
+				<A id="CIRCULATIONPRINTED" name="5" caption="Тираж печатной информационной продукции для избирателей (гр. 5)" labelwidth="420" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL12GA7" name="Стоимость изготовления информационной продукции для избирателей" caption="Стоимость изготовления информационной продукции для избирателей">
 				<GA name="всего, рублей">
-					<A id="TOTAL" name="6" caption="всего, рублей" labelwidth="140" type="int" nulls="true" local="true"/>
+					<A id="TOTAL" name="6" caption="всего, рублей" labelwidth="140" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 				<GA name="1 экз., рублей">
-					<A id="ONECOPY" name="7" caption="1 экз., рублей" labelwidth="140" type="int" nulls="true" readonly="true" formula="@TOTAL / @CIRCULATIONPRINTED" local="true"/>
+					<A id="ONECOPY" name="7" caption="1 экз., рублей" labelwidth="140" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL / @CIRCULATIONPRINTED" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TYPEPAPPER;FORMATPRINTED;CIRCULATIONPRINTED;TOTAL"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL13" name="Прил. 13">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P13">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P13" name="Виды расходов">
 				<GA name=" ">
@@ -1010,7 +1048,7 @@
 			<GA id="TIKPRIL13GA4" name="Изготовление наглядной информации для избирателей" caption="Изготовление наглядной информации для избирателей">
 				<GA id="TIKPRIL13GA5" name="характеристики продукции" caption="характеристики продукции">
 					<GA name="форматы, размеры">
-						<A id="FORMATSANDSIZES" name="3" caption="форматы, размеры (гр. 3)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="FORMATSANDSIZES" name="3" caption="форматы, размеры (гр. 3)" labelwidth="250" type="string" nulls="true" local="true"/>
 					</GA>
 					<GA name="Материал используемый для изготовления продукции">
 						<A id="MATERIALS" name="4" caption="Материал используемый для изготовления продукции (гр. 4)" labelwidth="370" type="string" nulls="true" local="true"/>
@@ -1018,65 +1056,65 @@
 				</GA>
 				<GA name="Количество">
 					<GA name=" ">
-					<A id="QUANT" name="5" caption="Количество (гр. 5)" labelwidth="260" type="int" nulls="true" local="true"/>
+					<A id="QUANT" name="5" caption="Количество (гр. 5)" labelwidth="260" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="TIKPRIL13GA6" name="стоимость изготовления продукции, рублей" caption="стоимость изготовления продукции, рублей">
 					<GA name="всего">
-						<A id="TOTAL" name="6" caption="всего (гр. 6)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="TOTAL" name="6" caption="всего (гр. 6)" labelwidth="250" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 					<GA name="1-ой единицы продукции">
-						<A id="UNITOFOUTPUT" name="7" caption="1-ой единицы продукции (гр. 7)" labelwidth="250" type="int" nulls="true" readonly="true" formula="@TOTAL / @QUANT" local="true"/>
+						<A id="UNITOFOUTPUT" name="7" caption="1-ой единицы продукции (гр. 7)" labelwidth="250" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL / @QUANT" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL13GA7" name="Размещение наружной информационной продукции" caption="Размещение наружной информационной продукции">
 				<GA name="Количество наружной продукции">
 					<GA name=" ">
-					<A id="QUANT2" name="8" caption="Количество наружной продукции (гр. 8)" labelwidth="260" type="int" nulls="true" local="true"/>
+					<A id="QUANT2" name="8" caption="Количество наружной продукции (гр. 8)" labelwidth="260" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="TIKPRIL13GA8" name="стоимость размещения продукции, рублей" caption="стоимость размещения продукции, рублей">
 					<GA name="всего">
-						<A id="TOTAL2" name="9" caption="всего (гр. 9)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="TOTAL2" name="9" caption="всего (гр. 9)" labelwidth="250" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 					<GA name="1-ой единицы продукции">
-						<A id="UNITOFOUTPUT2" name="10" caption="1-ой единицы продукции (гр. 10)" labelwidth="250" type="int" nulls="true" readonly="true" formula="@TOTAL2 / @QUANT2" local="true"/>
+						<A id="UNITOFOUTPUT2" name="10" caption="1-ой единицы продукции (гр. 10)" labelwidth="250" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL2 / @QUANT2" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL13GA9" name="Монтаж (демонтаж) наружной продукции" caption="Монтаж (демонтаж) наружной продукции">
 				<GA name="Количество наружной продукции, подлежащей монтажу (демонтажу)">
 					<GA name=" ">
-					<A id="QUANT3" name="11" caption="Количество наружной продукции, подлежащей монтажу (демонтажу) (гр. 11)" labelwidth="460" type="int" nulls="true" local="true"/>
+					<A id="QUANT3" name="11" caption="Количество наружной продукции, подлежащей монтажу (демонтажу) (гр. 11)" labelwidth="460" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="TIKPRIL13GA10" name="стоимость монтажа (демонтажа) продукции, рублей" caption="стоимость размещения продукции, рублей">
 					<GA name="всего">
-						<A id="TOTAL3" name="12" caption="всего (гр. 12)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="TOTAL3" name="12" caption="всего (гр. 12)" labelwidth="250" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 					<GA name="1-ой единицы продукции">
-						<A id="UNITOFOUTPUT3" name="13" caption="1-ой единицы продукции (гр. 13)" labelwidth="250" type="int" nulls="true" readonly="true" formula="@TOTAL3 / @QUANT3" local="true"/>
+						<A id="UNITOFOUTPUT3" name="13" caption="1-ой единицы продукции (гр. 13)" labelwidth="250" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL3 / @QUANT3" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL13GA11" name="Общие затраты, рублей">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="TOTALINPUT" name="14" caption="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей" labelwidth="700" type="int" nulls="true" readonly="true" formula="@TOTAL + @TOTAL2 + @TOTAL3" local="true"/>
+				<A id="TOTALINPUT" name="14" caption="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей" labelwidth="700" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL + @TOTAL2 + @TOTAL3" local="true"/>
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATSANDSIZES;MATERIALS;QUANT;TOTAL;QUANT2;TOTAL2;QUANT3;TOTAL3"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL14" name="Прил. 14">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P14">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P14" name="Виды расходов">
 				<GA name=" ">
@@ -1090,40 +1128,40 @@
 			</GA>
 			<GA id="TIKPRIL14GA4" name="Стоимость изоготовления продукции, рублей">
 				<GA name=" ">
-				<A id="COSTOFMANUFACT" name="3" caption="Стоимость изоготовления продукции, рублей (гр. 3)" labelwidth="330" type="int" nulls="true" local="true"/>
+				<A id="COSTOFMANUFACT" name="3" caption="Стоимость изоготовления продукции, рублей (гр. 3)" labelwidth="330" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL14GA5" name="Тиражирование" caption="Тиражирование">
 				<GA name="количество продукции">
-					<A id="QUANT" name="4" caption="количество продукции (гр. 4)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="QUANT" name="4" caption="количество продукции (гр. 4)" labelwidth="320" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				<GA name="тоимость тиражирования, рублей">
-					<A id="COSTOFREPLICATION" name="5" caption="Стоимость тиражирования, рублей (гр. 5)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="COSTOFREPLICATION" name="5" caption="Стоимость тиражирования, рублей (гр. 5)" labelwidth="320" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL14GA7" name="Размещение продукции" caption="Размещение продукции">
 				<GA name="Место размещения">
-					<A id="PLACEMENTS" name="6" caption="Место размещения (гр. 6)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="PLACEMENTS" name="6" caption="Место размещения (гр. 6)" labelwidth="320" type="string" nulls="true" local="true"/>
 				</GA>
 				<GA name="Стоимость размещения продукции, рублей">
-					<A id="COSTPLACEMENTS" name="7" caption="Стоимость размещения продукции, рублей (гр. 7)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="COSTPLACEMENTS" name="7" caption="Стоимость размещения продукции, рублей (гр. 7)" labelwidth="320" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="TIKPRIL14GA8" name="Общая стоимость продукции, рублей">
 				<GA name=" ">				
-				<A id="TOTALCOSTPRODUCTION" name="8" caption="Общая стоимость продукции, рублей (гр. 8)" labelwidth="330" type="int" nulls="true" readonly="true" formula="@COSTOFMANUFACT + @COSTOFREPLICATION + @COSTPLACEMENTS" local="true"/>
+				<A id="TOTALCOSTPRODUCTION" name="8" caption="Общая стоимость продукции, рублей (гр. 8)" labelwidth="330" type="number" len="8.2" nulls="true" readonly="true" formula="@COSTOFMANUFACT + @COSTOFREPLICATION + @COSTPLACEMENTS" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;COSTOFMANUFACT;QUANT;COSTOFREPLICATION;PLACEMENTS;COSTPLACEMENTS"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TIKPRIL15" name="Прил. 15">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<GA id="TIKSTARTGA1P15">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="TIKSTARTGA2P15" name="Виды расходов">
 				<GA name=" ">
@@ -1147,15 +1185,15 @@
 				<GA id="TIKPRIL15GA6" name="ТИК" caption="территориальных избирательных комиссий">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL2" name="8" caption="всего (гр. 8)" labelwidth="210" type="int" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
+						<A id="TOTAL2" name="8" caption="всего (гр. 8)" labelwidth="210" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@TIKREFERENDUMCOMMISSION + @UIKREFERENDUMCOMMISSION" local="true"/>
 						</GA>
 					</GA>
 					<GA id="TIKPRIL15GA7" name="из них расходы" caption="из них расходы">
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION" name="9" caption="территориальной избирательной комиссии (гр. 9)" labelwidth="300" type="int" nulls="false" visible="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION" name="9" caption="территориальной избирательной комиссии (гр. 9)" labelwidth="300" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="UIKREFERENDUMCOMMISSION" name="10" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="300" type="int" nulls="false" visible="true" local="true"/>
+							<A id="UIKREFERENDUMCOMMISSION" name="10" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="300" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
@@ -1164,17 +1202,17 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="UIKREFERENDUMCOMMISSIONFROMUIK" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSIONFROMUIK" name="11" caption="Участковых избирательных комиссий (гр. 11)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>			
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completiontik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="AUDITREPORTSTIK" name="Протоколы проверок">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" name="Форма отчёта" caption="Форма отчёта" labelwidth="150" nulls="false"/>
@@ -1185,40 +1223,74 @@
 				<AI id="3" name="Нет ошибок и предупреждений"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TESTRESULTSTIK" name="Результаты проверок">
 			<A id="AUDITREPORTSTIKID" parentkey="cascade"/>
-			<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
+			<A id="WORDINGOFTHEFORMSID" visible="false" readonly="true" formula="select WORDINGOFTHEFORMSID from AUDITREPORTSTIK where id=@AUDITREPORTSTIKID"/>
+			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="160" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
+			<A id="TYPE_ERR"/>
 			<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
 			<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
 		</TABLE>
-		<TABLE id="ACCOUNTABILITYIKSRF" name="Отчеты ИКСРФ">
-			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="false" local="true"/>
-			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="150" type="text" nulls="false" local="true"/>
+		
+		
+		
+		<TABLE id="ACCOUNTABILITYIKSRF" name="Отчетность ИКСРФ">
+			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/>
 			<A id="ELECTCAMPAIGNID"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
 			<A id="ELECTCOMMITTEEID"/>
 			<A id="TYPEDOC" name="Тип" caption="Тип" labelwidth="400" type="list" nulls="true" local="true">
 				<AI id="1" name="Первичный"/>
-				<AI id="2" name="Сводный"/>
+				<AI id="2" name="Сводный за нижестоящие"/>
+				<AI id="3" name="Сводный ИКСРФ"/>
+				<AI id="4" name="Корректировочный"/>
 			</A>
-			<GA id="IKSRFSTATUSMODEL" name="Статусная модель" caption="Статусная модель">
-				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="500" type="list" nulls="false" readonly="true" value="1" local="true">
+			<GA id="STATUSMODEL" name="Статусная модель" caption="Статусная модель">
+				<A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" value="1" local="true">
+					<AI id="1" name="Новый / Новый / Нет / Не отправлен"/>
+					<AI id="2" name="В работе / Сформирован из БУ / Нет / Не отправлен"/>
+					<AI id="3" name="В работе / Расчитан / Нет / Не отправлен"/>
+					<AI id="4" name="В работе / Расчитан / Без ошибок / Не отправлен"/>
+					<AI id="5" name="Представлен / Расчитан / Без ошибок / Отправлен" readonly="true"/>
+					<AI id="6" name="В своде / Расчитан / Без ошибок / Отправлен" readonly="true"/>
+					<AI id="7" name="В работе / Не расчитан / Нет / Не отправлен"/>
+					<AI id="8" name="В работе / Расчитан / Ошибки / Нет"/>
+					<AI id="9" name="Отклонен / Отклонен / Нет / Не отправлен"/>
+					<AI id="10" name="В работе / Сформирован свод / Нет / Не отправлен"/>
+					<AI id="11" name="В работе / Сформирован свод / Без ошибок / Не отправлен"/>
+					<AI id="12" name="Представлен / Сформирован свод / Без ошибок / Отправлен"/>
+					<AI id="13" name="В своде / Принят / Без ошибок / Отправлен"/>
+					<AI id="14" name="В работе / Свод не сформирован / Нет / Не отправлен"/>
+					<AI id="15" name="В работе / Сформирован свод / Ошибки / Нет"/>
+					<AI id="16" name="Отклонен / Отклонен / Нет / Не отправлен"/>
+					<AI id="17" name="В своде / Расчитан / Нет / Отправлен"/>
+					
+				</A>
+				<A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="190" width="50" type="list" nulls="false" readonly="true" value="1" local="true">
 					<AI id="1" name="Новый"/>
 					<AI id="2" name="В работе"/>
-					<AI id="3" name="Сформирован из БУ ТИК"/>
-					<AI id="4" name="Пересчитан"/>
-					<AI id="5" name="Проверяется"/>
-					<AI id="6" name="Сведён"/>
-					<AI id="7" name="Включен в свод" readonly="true"/>
-					<AI id="8" name="Предоставлен" readonly="true"/>
-					<AI id="9" name="Отклонён"/>
+					<AI id="3" name="Представлен"/>
+					<AI id="4" name="В своде"/>
+					<AI id="5" name="Отклонен"/>
 				</A>
-				<A id="TESTEDTIK" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="100" width="50" type="list" nulls="false" readonly="true" local="true">
-					<AI id="1" name="Не проверен"/>
-					<AI id="2" name="Проверен"/>
+				<A id="TESTED" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="160" width="50" type="list" nulls="false" readonly="true" value="1" local="true">
+					<AI id="1" name="Новый"/>
+					<AI id="2" name="Сформирован из БУ"/>
+					<AI id="3" name="Расчитан"/>
+					<AI id="4" name="Не расчитан"/>
+					<AI id="5" name="Отклонен"/>
+					<AI id="6" name="Сформирован свод"/>
+					<AI id="7" name="Принят"/>
+					<AI id="8" name="Свод не сформирован"/>
 				</A>
-				<A id="SUBMITTEDTIK" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="160" width="50" type="list" nulls="false" readonly="true" local="true">
+				<A id="CHECKED" name="Проверка" caption="Проверка" labelwidth="190" width="50" type="list" nulls="false" virtual="true" value="1" local="true">
+					<AI id="1" name="Нет"/>
+					<AI id="2" name="Без ошибок"/>
+					<AI id="3" name="Ошибки"/>
+				</A>
+				<A id="SUBMITTED" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="160" width="50" type="list" nulls="false" readonly="true" value="1" local="true">
 					<AI id="1" name="Не отправлен"/>
 					<AI id="2" name="Отправлен"/>
 				</A>
@@ -1227,7 +1299,7 @@
 		<TABLE id="ACCOUNTABILITYIKSRFS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1S1">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2S1" name="Наименование показателя">
 				<GA name=" ">
@@ -1241,33 +1313,33 @@
 			</GA>
 			<GA id="IKSSECTION1GA1" name="Всего" caption="Всего">
 				<GA name=" ">
-				<A id="TOTAL" name="3" caption="Всего (гр. 3)" labelwidth="190" type="number" len="8.0" nulls="false" visible="true" readonly="true" virtual="true" formula="@IKSRFREFERENDUMCOMMISSION + @OIKREFERENDUMCOMMISSION + @TIKREFERENDUMCOMMISSION_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMTIK" local="true"/>
+				<A id="TOTAL" name="3" caption="Всего (гр. 3)" labelwidth="190" type="number" len="8" nulls="false" visible="true" readonly="true" virtual="true" formula="@IKSRFREFERENDUMCOMMISSION + @OIKREFERENDUMCOMMISSION + @TIKREFERENDUMCOMMISSION_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMTIK" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSSECTION1GA2" name="в том числе" caption="в том числе">
 				<GA name="ИКСРФ">
-					<A id="IKSRFREFERENDUMCOMMISSION" name="4" caption="избирательные комиссии субъектов Российской Федерации (гр. 4)" labelwidth="450" type="number" len="8.0" nulls="true" local="true"/>
+					<A id="IKSRFREFERENDUMCOMMISSION" name="4" caption="избирательные комиссии субъектов Российской Федерации (гр. 4)" labelwidth="450" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				<GA name="ОИК">
-					<A id="OIKREFERENDUMCOMMISSION" name="5" caption="окружные избирательные комиссии (гр. 5)" labelwidth="450" type="number" len="8.0" nulls="true" local="true"/>
+					<A id="OIKREFERENDUMCOMMISSION" name="5" caption="окружные избирательные комиссии (гр. 5)" labelwidth="450" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				<GA name="ТИК">
-					<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="6" caption="территориальные избирательные комиссии (комиссии референдума) (гр. 6)" labelwidth="450" type="number" len="8.0" nulls="false" visible="true" readonly="true" local="true"/>
+					<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="6" caption="территориальные избирательные комиссии (комиссии референдума) (гр. 6)" labelwidth="450" type="number" len="8" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 				<GA name="УИК">
-					<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="7" caption="участковые избирательные комиссии (гр. 7)" labelwidth="450" type="number" len="8.0" nulls="false" visible="true" readonly="true" local="true"/>
+					<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="7" caption="участковые избирательные комиссии (гр. 7)" labelwidth="450" type="number" len="8" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;IKSRFREFERENDUMCOMMISSION;OIKREFERENDUMCOMMISSION;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="ACCOUNTABILITYIKSRFS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1S2">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2S2" name="Наименование показателя">
 				<GA name=" ">
@@ -1348,16 +1420,16 @@
 					</GA>						
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENOIK;EXPENTIK;EXPENUIK;OIKREFERENDUMCOMMISSION"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL1" name="Прил. 1">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P1">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P1" name="Наименование показателя">
 				<GA name=" ">
@@ -1388,16 +1460,16 @@
 					<A id="TRAININGEVENT" name="7" caption="мероприятия по обучению организаторов выборов и избирателей (гр. 7)" labelwidth="450" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PRESIDELECT;DEPUTIESELECT;OPERATIONASSURANCEIKSRF;TRAININGEVENT"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL2" name="Прил. 2">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P2">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P2" name="Наименование показателя">
 				<GA name=" ">
@@ -1468,16 +1540,16 @@
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL3" name="Прил. 3">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P3">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P3" name="Виды расходов">
 				<GA name=" ">
@@ -1491,7 +1563,7 @@
 			</GA>
 			<GA id="IKSPRIL3GA4" name="Численность избирателей, человек (гр. 3)">
 				<GA name=" ">
-				<A id="NUMOFVOTE" name="3" caption="Численность избирателей, человек (гр. 3)" labelwidth="350" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="NUMOFVOTE" name="3" caption="Численность избирателей, человек (гр. 3)" labelwidth="350" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL3GA5" name="Вид используемой бумаги, плотность (г/м2) (гр. 4)">
@@ -1506,7 +1578,7 @@
 			</GA>
 			<GA id="IKSPRIL3GA7" name="Тираж, штук (гр. 6)">
 				<GA name=" ">
-				<A id="TOTAL" name="6" caption="Тираж, штук (гр. 6)" labelwidth="350" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="TOTAL" name="6" caption="Тираж, штук (гр. 6)" labelwidth="350" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL3GA8" name="Стоимость изготовления избирательного бюллетеня" caption="Стоимость изготовления избирательного бюллетеня">
@@ -1517,16 +1589,16 @@
 					<A id="INSTANCE" name="8" caption="1 экз. (гр. 8)" labelwidth="340" type="number" len="8.3" nulls="true" readonly="true" formula="@ALLTOTAL / @TOTAL" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFVOTE;PAPAREUSE;FORMBALLOT;TOTAL;ALLTOTAL"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL4" name="Прил. 4">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P4">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P4" name="Виды расходов">
 				<GA name=" ">
@@ -1559,7 +1631,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="TOTAL" name="4" caption="Тираж, штук (гр. 4)" labelwidth="200" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="TOTAL" name="4" caption="Тираж, штук (гр. 4)" labelwidth="200" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>
@@ -1608,16 +1680,16 @@
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATGR3;TOTAL;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL5" name="Прил. 5">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P5">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P5" name="Виды расходов">
 				<GA name=" ">
@@ -1636,14 +1708,14 @@
 			<GA id="IKSPRIL5GA4" name="Общая протяженность маршрутов, км">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="TOTALLEN" name="3" caption="Общая протяженность маршрутов, км (гр. 3)" labelwidth="290" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="TOTALLEN" name="3" caption="Общая протяженность маршрутов, км (гр. 3)" labelwidth="290" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL5GA5" name="Общая численность избирателей на всех маршрутах, человек">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="NUMOFVOTE" name="4" caption="Общая численность избирателей на всех маршрутах, человек (гр. 4)" labelwidth="410" type="number" len="8.0" nulls="true" local="true"/>
+				<A id="NUMOFVOTE" name="4" caption="Общая численность избирателей на всех маршрутах, человек (гр. 4)" labelwidth="410" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 			</GA>
@@ -1676,16 +1748,16 @@
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTALLEN;NUMOFVOTE;INFLIGHT;CAMPS;TOTALCOSTOFEXPENSES"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P6">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P6" name="Виды расходов">
 				<GA name=" ">
@@ -1756,16 +1828,16 @@
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL7" name="Прил. 7">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P7">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P7" name="Виды расходов">
 					<GA name=" ">
@@ -1784,7 +1856,7 @@
 			<GA id="IKSPRIL7GA3" name="Избирательная комиссия субъекта Российской Федерации" caption="Избирательная комиссия субъекта Российской Федерации">
 				<GA name="приобретено (изготовлено) оборудования, единиц">
 					<GA name=" ">
-					<A id="PURCHASEDEQUIPMENT" name="3" caption="приобретено (изготовлено) оборудования, единиц (гр. 3)" labelwidth="350" type="number" len="8.0" nulls="true" local="true"/>
+					<A id="PURCHASEDEQUIPMENT" name="3" caption="приобретено (изготовлено) оборудования, единиц (гр. 3)" labelwidth="350" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL7GA4" name="расходы ИКСРФ, рублей" caption="расходы избирательной комиссии субъекта Российской Федерации, рублей">
@@ -1799,7 +1871,7 @@
 			<GA id="IKSPRIL7GA4" name="Территориальные избирательные комиссии" caption="Территориальные избирательные комиссии">
 				<GA name="приобретено (изготовлено) оборудования, единиц">
 					<GA name=" ">
-					<A id="PURCHASEDEQUIPMENT_FROMTIK" name="6" caption="приобретено (изготовлено) оборудования, единиц (гр. 6)" labelwidth="350" type="number" len="8.0" nulls="true" readonly="true" local="true"/>
+					<A id="PURCHASEDEQUIPMENT_FROMTIK" name="6" caption="приобретено (изготовлено) оборудования, единиц (гр. 6)" labelwidth="350" type="number" len="8" nulls="true" readonly="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL7GA5" name="расходы ТИК, рублей" caption="расходы территориальных избирательных комиссий, рублей">
@@ -1814,7 +1886,7 @@
 			<GA id="IKSPRIL7GA6" name="ВСЕГО" caption="ВСЕГО">
 				<GA name="приобретено оборудования, единиц">
 					<GA name=" ">
-					<A id="PURCHASEDEQUIPMENT2" name="9" caption="приобретено оборудования, единиц (гр. 9)" labelwidth="260" type="number" len="8.0" nulls="true" readonly="true" formula="@PURCHASEDEQUIPMENT + @PURCHASEDEQUIPMENT_FROMTIK" local="true"/>
+					<A id="PURCHASEDEQUIPMENT2" name="9" caption="приобретено оборудования, единиц (гр. 9)" labelwidth="260" type="number" len="8" nulls="true" readonly="true" formula="@PURCHASEDEQUIPMENT + @PURCHASEDEQUIPMENT_FROMTIK" local="true"/>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL7GA7" name="итого расходов, рублей" caption="итого расходов, рублей">
@@ -1826,16 +1898,16 @@
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIPMENT;TOTAL"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P8">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P8" name="Виды расходов">
 				<GA name=" ">
@@ -1859,7 +1931,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="QUANT" name="3" caption="Количество (штук) (гр. 3)" labelwidth="220"  type="number" len="8.0" nulls="true" local="true"/>
+				<A id="QUANT" name="3" caption="Количество (штук) (гр. 3)" labelwidth="220"  type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>				
@@ -1926,16 +1998,16 @@
 				</GA>
 				</GA>				
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P9">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P9" name="Виды расходов">
 				<GA name=" ">
@@ -1968,7 +2040,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="QUANTITY" name="4" caption="Количество (гр. 4)" labelwidth="220" type="int" nulls="true" local="true"/>
+				<A id="QUANTITY" name="4" caption="Количество (гр. 4)" labelwidth="220" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>					
@@ -1977,7 +2049,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="AVEEXP" name="5" caption="Расходы в среднем на 1 единицу, руб. (гр. 5)" labelwidth="270" type="int" nulls="true" readonly="true" formula="@TOTAL / @QUANTITY" local="true"/>
+				<A id="AVEEXP" name="5" caption="Расходы в среднем на 1 единицу, руб. (гр. 5)" labelwidth="270" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL / @QUANTITY" local="true"/>
 				</GA>
 				</GA>
 				</GA>					
@@ -1986,7 +2058,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">
-				<A id="TOTAL" name="6" caption="Сумма расходов, всего, рублей (гр. 6)" labelwidth="220" type="int" nulls="false" readonly="true" formula="@TOTAL2 + @SUM_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" local="true"/>
+				<A id="TOTAL" name="6" caption="Сумма расходов, всего, рублей (гр. 6)" labelwidth="220" type="number" len="8.2" nulls="false" readonly="true" formula="@TOTAL2 + @SUM_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" local="true"/>
 				</GA>
 				</GA>
 				</GA>					
@@ -1995,33 +2067,33 @@
 				<GA id="IKSPRIL9GA8" name="избирательной комисси субъекта Российской Федерации" caption="избирательной комисси субъекта Российской Федерации">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL2" name="7" caption="всего (гр. 7)" labelwidth="220" type="int" nulls="true" readonly="true" formula="@EXPENIKSRF + @EXPENTIK + @EXPENUIK" local="true"/>
+						<A id="TOTAL2" name="7" caption="всего (гр. 7)" labelwidth="220" type="number" len="8.2" nulls="true" readonly="true" formula="@EXPENIKSRF + @EXPENTIK + @EXPENUIK" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL9GA9" name="из них расходы" caption="из них расходы">
 						<GA name="ИКСРФ">
-							<A id="EXPENIKSRF" name="8" caption="избирательной комиссии субъекта Российской Федерации (гр. 8)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENIKSRF" name="8" caption="избирательной комиссии субъекта Российской Федерации (гр. 8)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="за ТИК">
-							<A id="EXPENTIK" name="9" caption="за территориальные избирательные комиссии (гр. 9)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENTIK" name="9" caption="за территориальные избирательные комиссии (гр. 9)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="EXPENUIK" name="10" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENUIK" name="10" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL9GA10" name="территориальных избирательных комиссий" caption="территориальных избирательных комиссий">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="SUM_FROMTIK" name="11" caption="всего (гр. 11)" labelwidth="320" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+						<A id="SUM_FROMTIK" name="11" caption="всего (гр. 11)" labelwidth="320" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL9GA11" name="из них" caption="из них">
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="12" caption="территориальных избирательных комиссий (гр. 12)" labelwidth="320" type="int" nulls="false" readonly="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="12" caption="территориальных избирательных комиссий (гр. 12)" labelwidth="320" type="number" len="8.2" nulls="false" readonly="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="13" caption="за участковые избирательные комиссии (гр. 13)" labelwidth="320" type="int" nulls="false" readonly="true" local="true"/>
+							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="13" caption="за участковые избирательные комиссии (гр. 13)" labelwidth="320" type="number" len="8.2" nulls="false" readonly="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
@@ -2030,21 +2102,21 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" name="14" caption="участковых избирательных комиссий (гр. 14)" labelwidth="410" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" name="14" caption="участковых избирательных комиссий (гр. 14)" labelwidth="410" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>				
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;MEASUREUNIT;QUANTITY;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL10" name="Прил. 10">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P10">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P10" name="Виды расходов">
 				<GA name=" ">
@@ -2068,7 +2140,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="QUANT" name="3" caption="Количество (гр. 3)" labelwidth="220" type="int" nulls="true" local="true"/>
+				<A id="QUANT" name="3" caption="Количество (гр. 3)" labelwidth="220" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>				
@@ -2077,7 +2149,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр. 4)" labelwidth="220" type="int" nulls="false" visible="true" readonly="true" formula="@TOTAL2 + @SUM_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" local="true"/>
+				<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр. 4)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@TOTAL2 + @SUM_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" local="true"/>
 				</GA>
 				</GA>
 				</GA>				
@@ -2086,33 +2158,33 @@
 				<GA id="IKSPRIL10GA7" name="избирательных комиссий субъектов Российской Федерации" caption="избирательных комиссий субъектов Российской Федерации">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL2" name="5" caption="всего (гр. 5)" labelwidth="220" type="int" nulls="true" readonly="true" formula="@EXPENIKSRF + @EXPENTIK + @EXPENUIK" local="true"/>
+						<A id="TOTAL2" name="5" caption="всего (гр. 5)" labelwidth="220" type="number" len="8.2" nulls="true" readonly="true" formula="@EXPENIKSRF + @EXPENTIK + @EXPENUIK" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL10GA8" name="из них расходы" caption="из них расходы">
 						<GA name="ИКСРФ">
-							<A id="EXPENIKSRF" name="6" caption="избирательной комиссии субъекта Российской Федерации (гр. 6)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENIKSRF" name="6" caption="избирательной комиссии субъекта Российской Федерации (гр. 6)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="за ТИК">
-							<A id="EXPENTIK" name="7" caption="за территориальные избирательные комиссии (гр. 7)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENTIK" name="7" caption="за территориальные избирательные комиссии (гр. 7)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="EXPENUIK" name="8" caption="за участковые избирательные комиссии (гр. 8)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENUIK" name="8" caption="за участковые избирательные комиссии (гр. 8)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL10GA9" name="территориальных избирательных комиссий" caption="территориальных избирательных комиссий">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="SUM_FROMTIK" name="9" caption="всего (гр. 9)" labelwidth="320" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+						<A id="SUM_FROMTIK" name="9" caption="всего (гр. 9)" labelwidth="320" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL10GA10" name="из них" caption="из них">
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="10" caption="территориальных избирательных комиссий (гр. 10)" labelwidth="320" type="int" nulls="false" readonly="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="10" caption="территориальных избирательных комиссий (гр. 10)" labelwidth="320" type="number" len="8.2" nulls="false" readonly="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="11" caption="за участковые избирательные комиссии (гр. 11)" labelwidth="320" type="int" nulls="false" readonly="true" local="true"/>
+							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="11" caption="за участковые избирательные комиссии (гр. 11)" labelwidth="320" type="number" len="8.2" nulls="false" readonly="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
@@ -2121,21 +2193,21 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" name="12" caption="участковых избирательных комиссий (гр. 12)" labelwidth="410" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" name="12" caption="участковых избирательных комиссий (гр. 12)" labelwidth="410" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 				</GA>
 				</GA>
 				</GA>				
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL11" name="Прил. 11">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P11">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P11" name="Виды расходов">
 				<GA name=" ">
@@ -2159,32 +2231,32 @@
 				<GA name="численность граждан привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">					
-					<A id="NUMOFCIVILUIK_FROMTIK" name="3" caption="численность граждан привлекавшихся к работе, человек (гр. 3)" labelwidth="220" type="int" nulls="true" readonly="true" local="true"/>
+					<A id="NUMOFCIVILUIK_FROMTIK" name="3" caption="численность граждан привлекавшихся к работе, человек (гр. 3)" labelwidth="220" type="number" len="8" nulls="true" readonly="true" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 				<GA id="IKSPRIL11GA5" name="расходы по гражданско-правовым договорам, рублей">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL_FROMTIK" name="4" caption="всего (гр. 4)" labelwidth="220" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+						<A id="TOTAL_FROMTIK" name="4" caption="всего (гр. 4)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL11GA6" name="из них расходы" caption="из них расходы">
 						<GA name="ИКСРФ">
-							<A id="IKSRFREFERENDUMCOMMISSION_1" name="5" caption="избирательной комиссии субъекта Российской Федерации (гр. 5)" labelwidth="380" type="int" nulls="true" local="true"/>
+							<A id="IKSRFREFERENDUMCOMMISSION_1" name="5" caption="избирательной комиссии субъекта Российской Федерации (гр. 5)" labelwidth="380" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="6" caption="территориальных избирательных комиссий (гр. 6)" labelwidth="380" type="int" nulls="true" readonly="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="6" caption="территориальных избирательных комиссий (гр. 6)" labelwidth="380" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
 						</GA>
 						<GA name="УИК">
-							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
 				<GA name="в среднем на 1-го человека, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="AVEPERPERSON_FROMUIKANDTIK" name="8" caption="в среднем на 1-го человека, рублей (гр. 8)" labelwidth="220" type="int" nulls="true" readonly="true" local="true"/>
+					<A id="AVEPERPERSON_FROMUIKANDTIK" name="8" caption="в среднем на 1-го человека, рублей (гр. 8)" labelwidth="220" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
 					</GA>
 					</GA>					
 				</GA>	
@@ -2193,27 +2265,27 @@
 				<GA name="численность граждан, привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="NUMOFCIVIL_FROMTIK" name="9" caption="численность граждан, привлекавшихся к работе, человек (гр. 9)" labelwidth="400" type="int" nulls="true" readonly="true" local="true"/>
+					<A id="NUMOFCIVIL_FROMTIK" name="9" caption="численность граждан, привлекавшихся к работе, человек (гр. 9)" labelwidth="400" type="number" len="8" nulls="true" readonly="true" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 				<GA id="IKSPRIL11GA8" name="расходы по гражданско-правовым договорам, рублей" caption="расходы по гражданско-правовым договорам, рублей">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="SUM_FROMTIK" name="10" caption="всего (гр. 10)" labelwidth="390" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+						<A id="SUM_FROMTIK" name="10" caption="всего (гр. 10)" labelwidth="390" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL11GA9" name="из них расходы" caption="из них расходы">
 						<GA name="ИКСРФ">
-							<A id="IKSRFREFERENDUMCOMMISSION_2" name="11" caption="избирательной комиссии субъекта Российской Федерации (гр. 11)" labelwidth="380" type="int" nulls="true" local="true"/>
+							<A id="IKSRFREFERENDUMCOMMISSION_2" name="11" caption="избирательной комиссии субъекта Российской Федерации (гр. 11)" labelwidth="380" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION_FROMTIK2" name="12" caption="территориальных избирательных комиссий (гр. 12)" labelwidth="380" type="int" nulls="true" readonly="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION_FROMTIK2" name="12" caption="территориальных избирательных комиссий (гр. 12)" labelwidth="380" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 					<GA name="в среднем на 1-го человека, рублей">
 						<GA name=" ">
-						<A id="AVEPERPERSON_FROMTIK" name="13" caption="в среднем на 1-го человека, рублей (гр. 13)" labelwidth="390" type="int" nulls="true" readonly="true" local="true"/>
+						<A id="AVEPERPERSON_FROMTIK" name="13" caption="в среднем на 1-го человека, рублей (гр. 13)" labelwidth="390" type="number" len="8.2" nulls="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
@@ -2222,21 +2294,21 @@
 				<GA name="численность граждан, привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="NUMOFCIVIL" name="14" caption="численность граждан, привлекавшихся к работе, человек (гр. 14)" labelwidth="220" type="int" nulls="true" local="true"/>
+					<A id="NUMOFCIVIL" name="14" caption="численность граждан, привлекавшихся к работе, человек (гр. 14)" labelwidth="220" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 				<GA name="расходы по гражданско-правовым договорам и на вознаграждение работникам КРС, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="CIVLAWEXPENSES" name="15" caption="расходы по гражданско-правовым договорам и на вознаграждение работникам КРС, рублей (гр. 15)" labelwidth="220" type="int" nulls="true" local="true"/>
+					<A id="CIVLAWEXPENSES" name="15" caption="расходы по гражданско-правовым договорам и на вознаграждение работникам КРС, рублей (гр. 15)" labelwidth="220" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 				<GA name="в среднем на 1-го человека, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="AVEPERPERSON" name="16" caption="в среднем на 1-го человека, рублей" labelwidth="220" type="int" nulls="true" readonly="true" formula="@CIVLAWEXPENSES / @NUMOFCIVIL" local="true"/>
+					<A id="AVEPERPERSON" name="16" caption="в среднем на 1-го человека, рублей" labelwidth="220" type="number" len="8.2" nulls="true" readonly="true" formula="@CIVLAWEXPENSES / @NUMOFCIVIL" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
@@ -2245,35 +2317,35 @@
 				<GA name="численность граждан привлекавшихся к работе, человек">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="NUMOFCIVIL2" name="17" caption="численность граждан привлекавшихся к работе, человек (гр. 17)" labelwidth="400" type="int" nulls="true" readonly="true" formula="@NUMOFCIVILUIK_FROMUIKANDTIK + @NUMOFCIVIL_FROMTIK + @NUMOFCIVIL" local="true"/>
+					<A id="NUMOFCIVIL2" name="17" caption="численность граждан привлекавшихся к работе, человек (гр. 17)" labelwidth="400" type="number" len="8" nulls="true" readonly="true" formula="@NUMOFCIVILUIK_FROMUIKANDTIK + @NUMOFCIVIL_FROMTIK + @NUMOFCIVIL" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 				<GA name="расходы по гражданско-правовым договорам, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="CIVLAWEXPENSES2" name="18" caption="расходы по гражданско-правовым договорам, рублей (гр. 18)" labelwidth="400" type="int" nulls="true" readonly="true" formula="@TOTAL_FROMUIKANDTIK + @SUM_FROMTIK + @CIVLAWEXPENSES" local="true"/>
+					<A id="CIVLAWEXPENSES2" name="18" caption="расходы по гражданско-правовым договорам, рублей (гр. 18)" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL_FROMUIKANDTIK + @SUM_FROMTIK + @CIVLAWEXPENSES" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 				<GA name="в среднем на 1-го человека, рублей">
 					<GA name=" ">
 					<GA name=" ">						
-					<A id="AVEPERPERSON2" name="19" caption="в среднем на 1-го человека, рублей (гр. 19)" labelwidth="400" type="int" nulls="true" readonly="true" formula="@CIVLAWEXPENSES2 / @NUMOFCIVIL2" local="true"/>
+					<A id="AVEPERPERSON2" name="19" caption="в среднем на 1-го человека, рублей (гр. 19)" labelwidth="400" type="number" len="8.2" nulls="true" readonly="true" formula="@CIVLAWEXPENSES2 / @NUMOFCIVIL2" local="true"/>
 					</GA>
 					</GA>					
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFCIVIL;CIVLAWEXPENSES"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL12" name="Прил. 12">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P12">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P12" name="Виды расходов">
 				<GA name=" ">
@@ -2297,27 +2369,27 @@
 			</GA>
 			<GA id="IKSPRIL12GA5" name="Тираж печатной информационной продукции для избирателей">
 				<GA name=" ">
-				<A id="CIRCULATIONPRINTED" name="5" caption="Тираж печатной информационной продукции для избирателей (гр. 5)" labelwidth="420" type="int" nulls="true" local="true"/>
+				<A id="CIRCULATIONPRINTED" name="5" caption="Тираж печатной информационной продукции для избирателей (гр. 5)" labelwidth="420" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL12GA6" name="Стоимость изготовления информационной продукции для избирателей" caption="Стоимость изготовления информационной продукции для избирателей">
 				<GA name="всего, рублей">
-					<A id="TOTAL" name="6" caption="всего, рублей" labelwidth="140" type="int" nulls="true" local="true"/>
+					<A id="TOTAL" name="6" caption="всего, рублей" labelwidth="140" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 				<GA name="1 экз., рублей">
-					<A id="ONECOPY" name="7" caption="1 экз., рублей" labelwidth="140" type="int" nulls="true" readonly="true" formula="@TOTAL / @CIRCULATIONPRINTED" local="true"/>
+					<A id="ONECOPY" name="7" caption="1 экз., рублей" labelwidth="140" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL / @CIRCULATIONPRINTED" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TYPEPAPPER;FORMATPRINTED;CIRCULATIONPRINTED;TOTAL"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL13" name="Прил. 13">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P13">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P13" name="Виды расходов">
 				<GA name=" ">
@@ -2346,67 +2418,67 @@
 					</GA>
 					<GA name="Количество">
 						<GA name=" ">
-						<A id="QUANT" name="5" caption="Количество (гр. 5)" labelwidth="260" type="int" nulls="true" local="true"/>
+						<A id="QUANT" name="5" caption="Количество (гр. 5)" labelwidth="260" type="number" len="8" nulls="true" local="true"/>
 						</GA>
 					</GA>
 					<GA name="стоимость всего">
 						<GA name=" ">
-						<A id="TOTAL" name="6" caption="всего (гр. 6)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="TOTAL" name="6" caption="всего (гр. 6)" labelwidth="250" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 					</GA>
 					<GA name="стоимость 1-ой единицы продукции">
 						<GA name=" ">
-						<A id="UNITOFOUTPUT" name="7" caption="1-ой единицы продукции (гр. 7)" labelwidth="250" type="int" nulls="true" readonly="true" formula="@TOTAL / @QUANT" local="true"/>
+						<A id="UNITOFOUTPUT" name="7" caption="1-ой единицы продукции (гр. 7)" labelwidth="250" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL / @QUANT" local="true"/>
 						</GA>
 					</GA>
 			</GA>
 			<GA id="IKSPRIL13GA7" name="Размещение наружной информационной продукции" caption="Размещение наружной информационной продукции">
 				<GA name="Количество наружной продукции">
 					<GA name=" ">
-					<A id="QUANT2" name="8" caption="Количество наружной продукции (гр. 8)" labelwidth="260" type="int" nulls="true" local="true"/>
+					<A id="QUANT2" name="8" caption="Количество наружной продукции (гр. 8)" labelwidth="260" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL13GA8" name="стоимость размещения продукции, рублей" caption="стоимость размещения продукции, рублей">
 					<GA name="всего">
-						<A id="TOTAL2" name="9" caption="всего (гр. 9)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="TOTAL2" name="9" caption="всего (гр. 9)" labelwidth="250" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 					<GA name="1-ой единицы продукции">
-						<A id="UNITOFOUTPUT2" name="10" caption="1-ой единицы продукции (гр. 10)" labelwidth="250" type="int" nulls="true" readonly="true" formula="@TOTAL2 / @QUANT2" local="true"/>
+						<A id="UNITOFOUTPUT2" name="10" caption="1-ой единицы продукции (гр. 10)" labelwidth="250" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL2 / @QUANT2" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL13GA9" name="Монтаж (демонтаж) наружной продукции" caption="Монтаж (демонтаж) наружной продукции">
 				<GA name="Количество">
 					<GA name=" ">
-					<A id="QUANT3" name="11" caption="Количество наружной продукции, подлежащей монтажу (демонтажу) (гр. 11)" labelwidth="460" type="int" nulls="true" local="true"/>
+					<A id="QUANT3" name="11" caption="Количество наружной продукции, подлежащей монтажу (демонтажу) (гр. 11)" labelwidth="460" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL13GA10" name="стоимость" caption="стоимость размещения продукции, рублей">
 					<GA name="всего">
-						<A id="TOTAL3" name="12" caption="всего (гр. 12)" labelwidth="250" type="int" nulls="true" local="true"/>
+						<A id="TOTAL3" name="12" caption="всего (гр. 12)" labelwidth="250" type="number" len="8.2" nulls="true" local="true"/>
 					</GA>
 					<GA name="стоимость 1-ой единицы продукции">
-						<A id="UNITOFOUTPUT3" name="13" caption="1-ой единицы продукции (гр. 13)" labelwidth="250" type="int" nulls="true" readonly="true" formula="@TOTAL3 / @QUANT3" local="true"/>
+						<A id="UNITOFOUTPUT3" name="13" caption="1-ой единицы продукции (гр. 13)" labelwidth="250" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL3 / @QUANT3" local="true"/>
 					</GA>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL13GA11" name="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="TOTALINPUT" name="14" caption="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей" labelwidth="700" type="int" nulls="true" readonly="true" formula="@TOTAL + @TOTAL2 + @TOTAL3" local="true"/>
+				<A id="TOTALINPUT" name="14" caption="Общие затраты на изготовление и размещение, монтаж (демонтаж) наружной информационной продукции, рублей" labelwidth="700" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL + @TOTAL2 + @TOTAL3" local="true"/>
 				</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATSANDSIZES;MATERIALS;QUANT;TOTAL;QUANT2;TOTAL2;QUANT3;TOTAL3"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL14" name="Прил. 14">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P13">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P13" name="Виды расходов">
 				<GA name=" ">
@@ -2420,40 +2492,40 @@
 			</GA>
 			<GA id="IKSPRIL14GA4" name="Стоимость изоготовления продукции, рублей">
 				<GA name=" ">
-				<A id="COSTOFMANUFACT" name="3" caption="Стоимость изоготовления продукции, рублей (гр. 3)" labelwidth="330" type="int" nulls="true" local="true"/>
+				<A id="COSTOFMANUFACT" name="3" caption="Стоимость изоготовления продукции, рублей (гр. 3)" labelwidth="330" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL14GA5" name="Тиражирование" caption="Тиражирование">
 				<GA name="количество продукции">
-					<A id="QUANT" name="4" caption="количество продукции (гр. 4)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="QUANT" name="4" caption="количество продукции (гр. 4)" labelwidth="320" type="number" len="8" nulls="true" local="true"/>
 				</GA>
 				<GA name="Стоимость тиражирования, рублей">
-					<A id="COSTREPLICATION" name="5" caption="Стоимость тиражирования, рублей (гр. 5)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="COSTREPLICATION" name="5" caption="Стоимость тиражирования, рублей (гр. 5)" labelwidth="320" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL14GA6" name="Размещение продукции" caption="Размещение продукции">
 				<GA name="место размещения">
-					<A id="PLACEMENTS" name="6" caption="место размещения (гр. 6)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="PLACEMENTS" name="6" caption="место размещения (гр. 6)" labelwidth="320" type="string" nulls="true" local="true"/>
 				</GA>
 				<GA name="Стоимость размещения продукции, рублей">
-					<A id="COSTPLACEMENTS" name="7" caption="Стоимость размещения продукции, рублей (гр. 7)" labelwidth="320" type="int" nulls="true" local="true"/>
+					<A id="COSTPLACEMENTS" name="7" caption="Стоимость размещения продукции, рублей (гр. 7)" labelwidth="320" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL14GA7" name="Общая стоимость продукции, рублей">
 				<GA name=" ">
-				<A id="TOTALCOSTPRODUCTION" name="8" caption="Общая стоимость продукции, рублей (гр. 8)" labelwidth="330" type="int" nulls="true" readonly="true" formula="@COSTOFMANUFACT + @COSTREPLICATION + @COSTPLACEMENTS" local="true"/>
+				<A id="TOTALCOSTPRODUCTION" name="8" caption="Общая стоимость продукции, рублей (гр. 8)" labelwidth="330" type="number" len="8.2" nulls="true" readonly="true" formula="@COSTOFMANUFACT + @COSTREPLICATION + @COSTPLACEMENTS" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;COSTOFMANUFACT;QUANT;COSTREPLICATION;PLACEMENTS;COSTPLACEMENTS"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL15" name="Прил. 15">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P14">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P14" name="Виды расходов">
 				<GA name=" ">
@@ -2477,7 +2549,7 @@
 				<GA name=" ">
 				<GA name=" ">
 				<GA name=" ">				
-				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр. 3)" labelwidth="200" type="int" visible="true" readonly="true" formula="@TOTAL2 + @TOTAL2_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" local="true"/>
+				<A id="TOTAL" name="3" caption="Сумма расходов, всего, рублей (гр. 3)" labelwidth="200" type="number" len="8.2" visible="true" readonly="true" formula="@TOTAL2 + @TOTAL2_FROMTIK + @UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" local="true"/>
 				</GA>
 				</GA>
 				</GA>				
@@ -2486,68 +2558,68 @@
 				<GA id="IKSPRIL15GA6" name="избирательных комиссий субъектов Российской Федерации" caption="избирательных комиссий субъектов Российской Федерации">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL2" name="4" caption="всего (гр. 4)" labelwidth="200" type="int" visible="true" readonly="true" formula="@EXPENIKSRF + @EXPENTIK + @EXPENUIK" local="true"/>
+						<A id="TOTAL2" name="4" caption="всего (гр. 4)" labelwidth="200" type="number" len="8.2" visible="true" readonly="true" formula="@EXPENIKSRF + @EXPENTIK + @EXPENUIK" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL15GA7" name="из них расходы" caption="из них расходы">
 						<GA name="ИКСРФ">
-							<A id="EXPENIKSRF" name="5" caption="избирательной комиссии субъекта Российской Федерации (гр. 5)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENIKSRF" name="5" caption="избирательной комиссии субъекта Российской Федерации (гр. 5)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="за ТИК">
-							<A id="EXPENTIK" name="6" caption="за территориальные избирательные комиссии (гр. 6)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENTIK" name="6" caption="за территориальные избирательные комиссии (гр. 6)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="EXPENUIK" name="7" caption="за участковые избирательные комиссии (комиссии референдума) (гр. 7)" labelwidth="500" type="int" nulls="true" local="true"/>
+							<A id="EXPENUIK" name="7" caption="за участковые избирательные комиссии (комиссии референдума) (гр. 7)" labelwidth="500" type="number" len="8.2" nulls="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL15GA8" name="территориальных избирательных комиссий" caption="территориальных избирательных комиссий">
 					<GA name="всего">
 						<GA name=" ">
-						<A id="TOTAL2_FROMTIK" name="8" caption="всего (гр. 8)" labelwidth="210" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+						<A id="TOTAL2_FROMTIK" name="8" caption="всего (гр. 8)" labelwidth="210" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 						</GA>
 					</GA>
 					<GA id="IKSPRIL15GA9" name="из них расходы" caption="из них расходы">
 						<GA name="ТИК">
-							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="9" caption="территориальной избирательной комиссии (гр. 9)" labelwidth="300" type="int" nulls="false" visible="true" local="true"/>
+							<A id="TIKREFERENDUMCOMMISSION_FROMTIK" name="9" caption="территориальной избирательной комиссии (гр. 9)" labelwidth="300" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 						</GA>
 						<GA name="за УИК">
-							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="10" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="300" type="int" nulls="false" visible="true" local="true"/>
+							<A id="UIKREFERENDUMCOMMISSION_FROMTIK" name="10" caption="за участковые избирательные комиссии (гр. 10)" labelwidth="300" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 						</GA>
 					</GA>
 				</GA>
 				<GA id="IKSPRIL15GA10" name="УИК" caption="участковых избирательных комиссий">
 					<GA name=" ">
 					<GA name=" ">					
-					<A id="UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" name="11" caption="участковых избирательных комиссий (гр. 11)" labelwidth="265" type="int" nulls="false" visible="true" readonly="true" local="true"/>
+					<A id="UIKREFERENDUMCOMMISSION_FROMUIKANDTIK" name="11" caption="участковых избирательных комиссий (гр. 11)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" readonly="true" local="true"/>
 					</GA>
 					</GA>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL15A_HEADER" name="Прил. 15а (шапка)">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
-			<GA name="Код формы">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+			<GA name="Редакция формы">
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<A id="MEASURESOFSHAPEID" name="Виды расходов" caption="Виды расходов (гр. 1)" labelwidth="200"/>
 			<A id="CODE" name="Код строки" caption="Код строки (гр. 2)" labelwidth="200" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			<A id="TOTAL" name="Данные" caption="Данные" labelwidth="200" type="string" nulls="true" local="true" width="50"/>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="100"  width="50" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;PER1KOIB;NOTE"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL15A" name="Прил. 15а">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P15A">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA>
 				<A id="MEASURESOFSHAPEID" name="Виды расходов" caption="Виды расходов" labelwidth="220"/>
@@ -2562,27 +2634,27 @@
 			</GA>
 			<GA id="IKSPRIL15AGA3" name="Сумма расходов, руб." caption="Сумма расходов, руб.">
 				<GA name="всего">
-					<A id="TOTAL" name="2" caption="всего (гр. 2)" labelwidth="200" type="int" nulls="true" local="true"/>
+					<A id="TOTAL" name="2" caption="всего (гр. 2)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 				<GA name="в расчёте на 1-н КОИБ (КЭГ)">
-					<A id="PER1KOIB" name="3" caption="в расчёте на 1-н КОИБ (КЭГ) (гр. 3)" labelwidth="200" type="int" nulls="true" local="true"/>
+					<A id="PER1KOIB" name="3" caption="в расчёте на 1-н КОИБ (КЭГ) (гр. 3)" labelwidth="200" type="string" nulls="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL15AGA4" name="Примечание">
 				<GA name=" ">
-				<A id="NOTE" name="4" caption="Примечание (гр. 4)" labelwidth="200" type="text" nulls="true" local="true"/>
+				<A id="NOTE" name="4" caption="Примечание (гр. 4)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;PER1KOIB;NOTE"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL16" name="Прил. 16">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P16">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P16" name="Виды выборов">
 				<GA name=" ">
@@ -2596,40 +2668,40 @@
 			</GA>
 			<GA id="IKSPRIL16GA4" name="Сумма предусмотренная в бюджете субъекта Российской Федерации на выборы, руб.">
 				<GA name=" ">
-				<A id="STIPULATEDAMOUNT" name="3" caption="Сумма предусмотренная в бюджете субъекта Российской Федерации на выборы, руб. (гр. 3)" labelwidth="550" type="int" nulls="false" visible="true" local="true"/>
+				<A id="STIPULATEDAMOUNT" name="3" caption="Сумма предусмотренная в бюджете субъекта Российской Федерации на выборы, руб. (гр. 3)" labelwidth="550" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL16GA5" name="Фактически выделено на выборы из буджета субъекта Российской Федерации, руб">
 				<GA name=" ">
-				<A id="FACTAMOUNT" name="4" caption="Фактически выделено на выборы из буджета субъекта Российской Федерации, руб (гр. 4)" labelwidth="550" type="int" nulls="false" visible="true" local="true"/>
+				<A id="FACTAMOUNT" name="4" caption="Фактически выделено на выборы из буджета субъекта Российской Федерации, руб (гр. 4)" labelwidth="550" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL16GA6" name="Израсходованно на выборы, руб." caption="Израсходованно на выборы, руб.">
 				<GA name="всего">
-					<A id="TOTAL" name="5" caption="всего (гр. 5)" labelwidth="210" type="int" nulls="false" visible="true" local="true"/>
+					<A id="TOTAL" name="5" caption="всего (гр. 5)" labelwidth="210" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 				</GA>
 				<GA name="в том числе по УИК">
-					<A id="UIK" name="6" caption="в том числе по участковым избирательным комиссиям (гр. 6)" labelwidth="360" type="int" nulls="false" visible="true" local="true"/>
+					<A id="UIK" name="6" caption="в том числе по участковым избирательным комиссиям (гр. 6)" labelwidth="360" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 				</GA>
 			</GA>
 			<GA id="IKSPRIL16GA7" name="В том чилсе компенсации и дополнительная оплата труда (вознаграждение)" caption="В том чилсе компенсации и дополнительная оплата труда (вознаграждение)">
 				<GA name="всего">
-					<A id="TOTAL2" name="7" caption="всего (гр. 7)" labelwidth="210" type="int" nulls="false" visible="true" local="true"/>
+					<A id="TOTAL2" name="7" caption="всего (гр. 7)" labelwidth="210" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 				</GA>
 				<GA name="в том числе по УИК">
-					<A id="UIK2" name="8" caption="в том числе по участковым избирательным комиссиям (гр. 8)" labelwidth="360" type="int" nulls="false" visible="true" local="true"/>
+					<A id="UIK2" name="8" caption="в том числе по участковым избирательным комиссиям (гр. 8)" labelwidth="360" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 				</GA>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;STIPULATEDAMOUNT;FACTAMOUNT;TOTAL;UIK;TOTAL2;UIK2"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="IKSRFPRIL17" name="Прил. 17">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<GA id="IKSSTARTGA1P17">
-				<A id="WORDINGOFTHEFORMSID" name="Код формы" caption="Код формы" labelwidth="200" visible="false"/>
+				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
 			<GA id="IKSSTARTGA2P17" name="Виды выборов">
 				<A id="MEASURESOFSHAPEID" name="1" caption="Виды выборов (гр. 1)" labelwidth="220"/>
@@ -2638,20 +2710,20 @@
 				<A id="CODE" name="2" caption="Код строки (гр. 2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
 			<GA id="IKSPRIL17GA4" name="Количество приобретенного оборудования, единиц">
-				<A id="PURCHASEDEQUIP" name="3" caption="Количество приобретенного оборудования, единиц (гр. 3)" labelwidth="350" type="int" nulls="false" visible="true" local="true"/>
+				<A id="PURCHASEDEQUIP" name="3" caption="Количество приобретенного оборудования, единиц (гр. 3)" labelwidth="350" type="number" nulls="false" visible="true" local="true"/>
 			</GA>
 			<GA id="IKSPRIL17GA5" name="Цена 1-ой единицы, рублей">
-				<A id="PRICEUNIT" name="4" caption="Цена 1-ой единицы, рублей (гр. 4)" labelwidth="220" type="int" nulls="false" visible="true" local="true"/>
+				<A id="PRICEUNIT" name="4" caption="Цена 1-ой единицы, рублей (гр. 4)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" local="true"/>
 			</GA>
 			<GA id="IKSPRIL17GA6" name="Сумма всего">
-				<A id="TOTAL" name="5" caption="Сумма всего (гр. 5)" labelwidth="220" type="int" nulls="false" visible="true" readonly="true" formula="@PURCHASEDEQUIP * @PRICEUNIT" local="true"/>
+				<A id="TOTAL" name="5" caption="Сумма всего (гр. 5)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" readonly="true" formula="@PURCHASEDEQUIP * @PRICEUNIT" local="true"/>
 			</GA>
-			<A id="REVISIONDATE" name="Дата формы" caption="Дата формы" labelwidth="600" type="date" virtual="true" formula="select REVISIONDATE from WORDINGOFTHEFORMS where ID = @WORDINGOFTHEFORMSID"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.COMPLETIONIKSRF from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIP;PRICEUNIT"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="AUDITREPORTSIKSRF" name="Протоколы проверок">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
 			<A id="WORDINGOFTHEFORMSID" name="Форма отчёта" caption="Форма отчёта" labelwidth="150" nulls="false"/>
@@ -2662,13 +2734,20 @@
 				<AI id="3" name="Нет ошибок и предупреждений"/>
 			</A>
 		</TABLE>
+		
 		<TABLE id="TESTRESULTIKSRF" name="Результаты проверок">
 			<A id="AUDITREPORTSIKSRFID" parentkey="cascade"/>
-			<A id="MEASURESOFSHAPEID" name="Проверка показателя" caption="Проверка показателя" labelwidth="150" nulls="false"/>
+			<A id="WORDINGOFTHEFORMSID" visible="false" readonly="true" formula="select WORDINGOFTHEFORMSID from AUDITREPORTSIKSRF where id=@AUDITREPORTSIKSRFID"/>
+			<A id="MEASURESOFSHAPEID" name="Показатель" caption="Показатель" labelwidth="160" type="ref" pid="WORDINGOFTHEFORMSID" table="MEASURESOFSHAPE" ret="NAME" nulls="false"/>
 			<A id="CALCFORMULA" name="Формула расчета" caption="Формула расчета" labelwidth="150" type="text" nulls="false" local="true"/>
+			<A id="TYPE_ERR"/>
 			<A id="TEXTRESULTS" name="Результат проверки" caption="Результат проверки" labelwidth="150" type="text" nulls="false" local="true"/>
 		</TABLE>
+		
 	</TABLES>
+	
+	
+	
 	<ACTIONS name="Действия">
 		<ACTION id="FillListOfIndincators" name="Сформировать перечень показателей отчетности" type="procedure" procedure="p_action_list_of_indicators"/>
 		<ACTION id="SpecReportsRecountingSumm" name="Пересчитать суммы показателей" type="procedure" procedure="p_action_specreports_recount_summ"/>
@@ -2680,6 +2759,11 @@
 		</ACTION>
 		<ACTION id="CheckReport" name="Проверить отчет" type="procedure" procedure=""/>
 		<ACTION id="GenerateSummaryReport" name="Сформировать сводный отчет" type="procedure" procedure=""/>
+		<ACTION id="GenerateReport" name="Сформировать отчет из БУ" type="procedure" procedure=""/>
+		<ACTION id="RecalculateTheReport" name="Пересчитать отчет" type="procedure" procedure=""/>
+		<ACTION id="ReduceTheReportForLower-Level" name="Свести отчет за нижестоящие" type="procedure" procedure=""/>
+		<ACTION id="ReduceTheReportByTIK" name="Свести отчет по ТИК" type="procedure" procedure=""/>
+		<ACTION id="DisbandTheVault" name="Расформировать свод" type="procedure" procedure=""/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
