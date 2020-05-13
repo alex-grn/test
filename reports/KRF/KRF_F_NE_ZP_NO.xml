@@ -3338,17 +3338,16 @@
                                                      and fl.id = t.hid
                                                   group by t.numbestimate, t.code, t.typeestimate, fl.name) T
                                             left join 
-                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                              (select case when not f.typeexpid is null then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
                                                       ec.levelelcampaign
-                                                 from REGISTER r 
+                                                 from FOLDERS fol, TYPEEXP tp, REGISTER r 
                                             left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
-                                            left join TYPEEXP tp on tp.id = f.typeexpid
                                             left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
                                             left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
                                             left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
-                                            where r.id = ${id}::bigint
-                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign) s on s.numbestimate = t.numbestimate
+                                            where r.id = ${id}::bigint and fol.tablename='typeexp' and fol.name ilike '%Федер%' and tp.hid = fol.id and not tp.noactual_cost and (f.typeexpid = tp.id or f.typeexpid is null)
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign, f.typeexpid) s on s.numbestimate = t.numbestimate
                                            where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
@@ -3358,8 +3357,8 @@
                                                                          and e.id = r.electcommincampid
                                                                          and ik.id = e.electcommitteeid
                                                                          and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
-                                              and (s.levelelcampaign ilike 'region' and t.foldername ilike '%регион%' 
-                                                Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%федер%')
+                                              and (s.levelelcampaign ilike 'region' and t.foldername ilike '%Регион%' 
+                                                Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%Федер%')
                                             order by t.numbpp 
 								;
 						</script>
@@ -3370,7 +3369,7 @@
 				<queries>
                      <query name="estimatefloor" type="sql">
                         <script>
-							    select sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) as summ_all
+							   select case when (sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0))) is null then 0 else (sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0))) end as summ_all
                                             from REGISTER r,
                                                  FINANCEELCOM F,
                                                  TYPEEXP T,
@@ -3420,17 +3419,16 @@
                                                      and fl.id = t.hid
                                                   group by t.numbestimate, t.code, t.typeestimate, fl.name) T
                                             left join 
-                                              (select case when not tp.mestimate then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                              (select case when not f.typeexpid is null then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
                                                       ec.levelelcampaign
-                                                 from REGISTER r 
+                                                 from FOLDERS fol, TYPEEXP tp, REGISTER r 
                                             left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
-                                            left join TYPEEXP tp on tp.id = f.typeexpid
                                             left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
                                             left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
                                             left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
-                                            where r.id = ${id}::bigint
-                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign) s on s.numbestimate = t.numbestimate
+                                            where r.id = ${id}::bigint and fol.tablename='typeexp' and fol.name ilike '%Федер%' and tp.hid = fol.id and not tp.noactual_cost and (f.typeexpid = tp.id or f.typeexpid is null)
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign, f.typeexpid) s on s.numbestimate = t.numbestimate
                                            where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
@@ -3440,9 +3438,9 @@
                                                                          and e.id = r.electcommincampid
                                                                          and ik.id = e.electcommitteeid
                                                                          and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
-                                              and (s.levelelcampaign ilike 'region' and t.foldername ilike '%регион%' 
-                                                Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%федер%')
-                                            order by t.numbpp  
+                                              and (s.levelelcampaign ilike 'region' and t.foldername ilike '%Регион%' 
+                                                Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%Федер%')
+                                            order by t.numbpp 
 								;
 						</script>
                      </query>
@@ -3452,7 +3450,7 @@
 				<queries>
                      <query name="actual_expenses_floor" type="sql">
                         <script>
-							    select sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) as summ_all
+							    select case when (sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0))) is null then 0 else (sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0))) end as summ_all
                                             from REGISTER r,
                                                  FINANCEELCOM F,
                                                  TYPEEXP T,
