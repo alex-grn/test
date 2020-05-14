@@ -43,6 +43,7 @@
 					<MI name="Коды видов расходов бюджета" formlist="ExpType"/>
 				</MENU>
 				<MENU name="Классификация источников финансирования дефицитов бюджетов">
+					<MI name="КИФ Классификатор источников финансирования дефицитов бюджетов" formlist="Kif"/>
 					<MI name="Коды главных администраторов источников финансирования дефицита бюджета" formlist="DirRecip"/>
 					<MI name="Коды групп и подгрупп источников финансирования дефицита бюджета" formlist="Source_Group"/>
 					<MI name="Коды статей и подстатей источников финансирования дефицита бюджета" formlist="Source_Article"/>
@@ -144,6 +145,7 @@
 		<A id="BUDG_ELEMENT_ID" name="Элемент бюджета" caption="Элемент бюджета" labelwidth="150" type="ref" table="BUDG_ELEMENT" ret="CODE" form="BudgElement"/>
 		<A id="INCOM_SUB_VID_ID" name="Группа подвида доходов" caption="Группа подвида доходов" labelwidth="150" type="ref" table="INCOM_SUB_VID" ret="CODE" form="IncomSubVid"/>
 		<A id="KBR_ID" name="КРБ" caption="Классификатор расходов бюджетов" labelwidth="400" type="ref" table="KBR" ret="CODE" form="Kbr"/>
+		<A id="KIF_ID" name="КИФ" caption="Классификатор источников финансирования дефицитов бюджетов" labelwidth="500" type="ref" table="KIF" ret="CODE" form="Kif"/>
 		<COMMENT name="Ссылки на Общероссийские классификаторы"/>
 		<A id="OKFS_ID" name="ОКФС" caption="Общероссийский классификатор форм собственности (ОКФС)" labelwidth="500" type="ref" table="OKFS" ret="CODE" form="OKFS" nulls="true"/>
 		<A id="OKOPF_ID" name="ОКОПФ" caption="Общероссийский классификатор организационно-правовых форм (ОКОПФ)" labelwidth="500" type="ref" table="OKOPF" ret="CODE" form="OKOPF" nulls="true"/>
@@ -360,17 +362,32 @@
 			<TI id="BKD_ACTIVE_IND" index="ACTIVE"/>
 		</TABLE>
 		<TABLE id="KBR" name="КРБ Классификатор расходов бюджетов">
-			<GA name="Коды классификации расходов бюджетов" caption="Коды классификации расходов бюджетов">
+			<GA caption="Коды классификации расходов бюджетов">
 				<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500" visible="form"/>
 				<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500" visible="form"/>
 				<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500" visible="form"/>
 				<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500" visible="form"/>
-				<A id="CODE" name="Код КРБ" caption="Код классификации расходов бюджетов" labelwidth="300" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from FUN_CLASS v where v.id = @FUN_CLASSID),'0000')||COALESCE((select  v.CODE from PURP_ARTICLE v where v.id = @PURP_ARTICLEID),'0000000000')||COALESCE((select  v.CODE from EXP_TYPE v where v.id = @EXP_TYPEID),'000')" value="00000000000000000000"/>
 			</GA>
-			<A id="NAME" labelwidth="100" formula="COALESCE(NULLIF(@NAME,''),(select  v.NAME from FUN_CLASS v where v.id = @FUN_CLASSID)||'. '||(select v.NAME from PURP_ARTICLE v where v.id = @PURP_ARTICLEID)||'. '||(select v.NAME from EXP_TYPE v where v.id = @EXP_TYPEID))"/>
+			<A id="CODE" name="Код КРБ" caption="Код классификации расходов бюджетов" labelwidth="450" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from FUN_CLASS v where v.id = @FUN_CLASSID),'0000')||COALESCE((select  v.CODE from PURP_ARTICLE v where v.id = @PURP_ARTICLEID),'0000000000')||COALESCE((select  v.CODE from EXP_TYPE v where v.id = @EXP_TYPEID),'000')" value="00000000000000000000"/>
+			<A id="NAME" labelwidth="100"/>
 			<GA id="DictionaryParam"/>
 			<TI id="KBR_UK" unique="CODE,BEGIN_DATE"/>
 			<TI id="KBR_ACTIVE_IND" index="ACTIVE"/>
+		</TABLE>
+		<TABLE id="KIF" name="КИФ Классификатор источников финансирования дефицитов бюджетов">
+			<GA caption="Коды источников финансирования дефицитов бюджетов">
+				<A id="DIR_RECIPID" name="Код главного администратора источника финансирования дефицита бюджета" caption="Код главных администраторов источников финансирования дефицита бюджета" labelwidth="500" visible="form"/>
+				<A id="SOURCE_GROUPID" name="Код группы и подгруппы источника финансирования дефицита бюджета" caption="Код группы и подгруппы источника финансирования дефицита бюджета" labelwidth="500" type="ref" table="SOURCE_GROUP" ret="CODE" form="Source_Group" visible="form" local="true"/>
+				<A id="SOURCE_ARTICLEID" name="Код статьи и подстатьи источника финансирования дефицита бюджета" caption="Код статьи и подстатьи источника финансирования дефицита бюджета" labelwidth="500" type="ref" table="SOURCE_ARTICLE" ret="CODE" form="Source_Article" visible="form" local="true"/>
+				<A id="BUDG_ELEMENT_ID" name="Код элемента источника финансирования дефицита бюджета" caption="Код элемента источника финансирования дефицита бюджета" labelwidth="500" type="ref" table="BUDG_ELEMENT" ret="CODE" form="BudgElement" visible="form"/>
+				<A id="SOURCE_SUB_VIDID" name="Код статьи и подстатьи источника финансирования дефицита бюджета" caption="Код статьи и подстатьи источника финансирования дефицита бюджета" labelwidth="500" type="ref" table="SOURCE_SUB_VID" ret="CODE" form="Source_Sub_Vid" visible="form" local="true"/>
+				<A id="ECON_CLASS_ID" name="Код аналитической группы писточников финансирования дефицита бюджета" caption="Код аналитической группы писточников финансирования дефицита бюджета" labelwidth="500" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass" visible="form"/>
+			</GA>
+			<A id="CODE" name="Код КИФ" caption="Код классификации источников финансирования дефицитов бюджетов" labelwidth="450" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from SOURCE_GROUP v where v.id = @SOURCE_GROUPID),'0000')||COALESCE((select  v.CODE from SOURCE_ARTICLE v where v.id = @SOURCE_ARTICLEID),'0000')||COALESCE((select  v.CODE from BUDG_ELEMENT v where v.id = @BUDG_ELEMENT_ID),'00')||COALESCE((select  v.CODE from SOURCE_SUB_VID v where v.id = @SOURCE_SUB_VIDID),'0000')||COALESCE((select  v.CODE from ECON_CLASS v where v.id = @ECON_CLASS_ID),'000')" value="00000000000000000000"/>
+			<A id="NAME" labelwidth="100" formula="COALESCE(NULLIF(@NAME,''),(select  v.NAME from SOURCE_GROUP v where v.id = @SOURCE_GROUPID)||'. '||(select v.NAME from SOURCE_ARTICLE v where v.id = @SOURCE_ARTICLEID)||'. '||(select v.NAME from BUDG_ELEMENT v where v.id = @BUDG_ELEMENT_ID))"/>
+			<GA id="DictionaryParam"/>
+			<TI id="KIF_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="KIF_ACTIVE_IND" index="ACTIVE"/>
 		</TABLE>
 		<TABLE id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" hid="CODE">
 			<GA id="Dictionary"/>
@@ -469,10 +486,11 @@
 					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" nulls="true" visible="form" formula="NULLIF(@CODETOFK,'')" local="true"/>
 				</TAB>
 				<TAB name="Банковское учреждение">
-					<COMMENT name="Только для банка"/>
+					<COMMENT name="Только для банка и казначейства"/>
 					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" nulls="true" visible="form" formula="NULLIF(@BIC,'')" local="true"/>
-					<A id="ACC" name="Счет" caption="Счет" labelwidth="500" type="string" len="20" nulls="true" visible="form" local="true"/>
+					<A id="ACC" name="Корреспондентский счет" caption="Корреспондентский счет" labelwidth="500" type="string" len="20" nulls="true" visible="form" local="true"/>
 					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" nulls="true" visible="form" local="true"/>
+					<A id="BS_RCP" name="Расчетный счет ТОФК в банке" caption="Расчетный счет ТОФК в банке" labelwidth="500" type="string" len="34" nulls="true" visible="form" local="true"/>
 				</TAB>
 				<TAB name="Контактная информация">
 					<A id="PHONES" name="Номера телефонов" caption="Номера телефонов" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
@@ -767,8 +785,8 @@
 				<TAB name="Банковское учреждение">
 					<COMMENT name="Только для банка"/>
 					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" visible="form" formula="NULLIF(@BIC,'')" local="true"/>
-					<A id="ACC" name="Счет" caption="Счет" labelwidth="500" type="string" len="20" visible="form" local="true"/>
-					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" visible="form" local="true"/>
+					<A id="ACC" name="Корреспондентский счет" caption="Корреспондентский счет" labelwidth="500" type="string" len="20" nulls="true" visible="form" local="true"/>
+					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" nulls="true" visible="form" local="true"/>
 				</TAB>
 				<TAB name="Контактная информация">
 					<A id="PHONES" name="Номера телефонов" caption="Номера телефонов" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
@@ -825,6 +843,14 @@
 					<A id="BUDGETS_ID" nulls="true" visible="form"/>
 					<COMMENT name="Только для казначейства"/>
 					<A id="CODETOFK" name="Код ТОФК" caption="Код ТОФК" labelwidth="500" type="string" len="4" nulls="true" visible="form" formula="NULLIF(@CODETOFK,'')" local="true"/>
+				</TAB>
+				<TAB name="Банковское учреждение">
+					<COMMENT name="Только для банка и казначейства"/>
+					<A id="BIC" name="БИК" caption="БИК" labelwidth="500" type="string" len="9" nulls="true" visible="form" formula="NULLIF(@BIC,'')" local="true"/>
+					<A id="ACC" name="Корреспондентский счет" caption="Корреспондентский счет" labelwidth="500" type="string" len="20" nulls="true" visible="form" local="true"/>
+					<A id="SWIFT" name="SWIFT" caption="SWIFT" labelwidth="500" type="string" nulls="true" visible="form" local="true"/>
+					<COMMENT name="Только для казначейства"/>
+					<A id="BS_RCP" name="Расчетный счет ТОФК в банке" caption="Расчетный счет ТОФК в банке" labelwidth="500" type="string" len="34" nulls="true" visible="form" local="true"/>
 				</TAB>
 				<TAB name="Контактная информация">
 					<A id="PHONES" name="Номера телефонов" caption="Номера телефонов" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
@@ -971,9 +997,14 @@
 		<TABLE id="AGENT_ACC" name="Лицевые счета">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE((select CODE from AGENT where id = @AGENT_ID), (select  CODE from PERSON where id = @PERSON_ID))||' ('||(select  NAME from BANK_ACC_TYPES where id = @BANK_ACC_TYPES_ID)||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
-			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade"/>
+			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade">
+				<AI id="*" name="любое значение" readonly="PERSON_ID"/>
+			</A>
+			<A id="PERSON_ID" name="Физическое лицо" caption="Физическое лицо, владелец счета" labelwidth="500" parentkey="cascade" type="ref" table="PERSON" ret="CODE" form="Person">
+				<AI id="*" name="любое значение" readonly="AGENT_ID"/>
+			</A>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия" labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="AGENT_ACC_UK" unique="BANK_ACC"/>
@@ -982,7 +1013,7 @@
 		<TABLE id="AGENT1_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="(select CODE from AGENT where id = @AGENT_ID)||' ('||(select  NAME from BANK_ACC_TYPES where id = @BANK_ACC_TYPES_ID)||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT1"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -991,7 +1022,7 @@
 		<TABLE id="AGENT2_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE((select CODE from AGENT where id = @AGENT_ID), (select  CODE from PERSON where id = @PERSON_ID))||' ('||(select  NAME from BANK_ACC_TYPES where id = @BANK_ACC_TYPES_ID)||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT2"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -1000,7 +1031,7 @@
 		<TABLE id="AGENT4_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE((select CODE from AGENT where id = @AGENT_ID), (select  CODE from PERSON where id = @PERSON_ID))||' ('||(select  NAME from BANK_ACC_TYPES where id = @BANK_ACC_TYPES_ID)||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT4"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
@@ -1009,9 +1040,18 @@
 		<TABLE id="AGENT5_ACC" name="Лицевые счета" tablename="AGENT_ACC">
 			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
 			<A id="BANK_ACC_TYPES_ID"/>
-			<A id="NAME" formula="COALESCE(NULLIF(@NAME,''), (select  v.NAME from AGENT v where v.id = @AGENT_ID)||' ('||(select  v.NAME from BANK_ACC_TYPES v where v.id = @BANK_ACC_TYPES_ID))||')'"/>
+			<A id="NAME" formula="COALESCE((select CODE from AGENT where id = @AGENT_ID), (select  CODE from PERSON where id = @PERSON_ID))||' ('||(select  NAME from BANK_ACC_TYPES where id = @BANK_ACC_TYPES_ID)||')'"/>
 			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
 			<A id="AGENT_ID" name="Юридическое лицо" caption="Юридическое лицо, владелец счета" parentkey="cascade" table="AGENT5"/>
+			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
+			<GA id="DictionaryParam"/>
+		</TABLE>
+		<TABLE id="PERSON_ACC" name="Лицевые счета" tablename="AGENT_ACC">
+			<A id="BANK_ACC" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" nulls="false"/>
+			<A id="BANK_ACC_TYPES_ID"/>
+			<A id="NAME" formula="(select  CODE from PERSON where id = @PERSON_ID)||' ('||(select  NAME from BANK_ACC_TYPES where id = @BANK_ACC_TYPES_ID)||')'"/>
+			<A id="AGENT345_ID" caption="Финансовая организация, в которой открыт счет"/>
+			<A id="PERSON_ID" name="Физическое лицо" caption="Физическое лицо, владелец счета" labelwidth="500" parentkey="cascade" type="ref" table="PERSON" ret="CODE" form="Person"/>
 			<A id="AGENT2_ID" name="Учреждение" caption="Учреждение, принимающее бюджетные полномочия " labelwidth="500" type="ref" table="AGENT2" ret="CODE" form="Agent2" local="true"/>
 			<GA id="DictionaryParam"/>
 		</TABLE>
@@ -1029,8 +1069,8 @@
 			<TABS>
 				<TAB name="Основная информация">
 					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="200" type="string" local="true"/>
-					<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="200" type="string" local="true"/>
-					<A id="MIDDLENAME" name="Отчество" caption="Отчество" labelwidth="200" type="string" local="true"/>
+					<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="200" type="string" formula="NULLIF(@FIRSTNAME,'')" local="true"/>
+					<A id="MIDDLENAME" name="Отчество" caption="Отчество" labelwidth="200" type="string" formula="NULLIF(@MIDDLENAME,'')" local="true"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" readonly="true" formula="@SURNAME||COALESCE(' '||Left(@FIRSTNAME,1)||'.','')||COALESCE(' '||Left(@MIDDLENAME,1)||'.','')"/>
 					<A id="SEX" name="Пол" caption="Пол" labelwidth="500" type="list">
 						<AI id="1" name="мужской"/>
@@ -1272,6 +1312,9 @@
 		<FORM id="Kbr" name="Классификатор расходов бюджетов">
 			<GRID id="Kbr" name="Классификатор расходов бюджетов" table="KBR"/>
 		</FORM>
+		<FORM id="Kif" name="Классификатор источников финансирования дефицитов бюджетов">
+			<GRID id="Kif" name="Классификатор источников финансирования дефицитов бюджетов" table="KIF"/>
+		</FORM>
 		<FORM id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности">
 			<GRID id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" table="OKFS"/>
 		</FORM>
@@ -1423,7 +1466,14 @@
 		</FORM>
 		<FORM id="Person" name="Физические лица">
 			<GRID id="Person" name="Физические лица" table="PERSON"/>
-			<GRID id="gPersonAddr" name="Адреса" table="PERSON_ADDR"/>
+			<TABS>
+				<TAB name="Адреса">
+					<GRID id="gPersonAddr" name="Адреса" table="PERSON_ADDR"/>
+				</TAB>
+				<TAB name="Лицевые счета">
+					<GRID id="Person_acc" name="Лицевые счета" table="PERSON_ACC"/>
+				</TAB>
+			</TABS>
 		</FORM>
 		<FORM id="Depart" name="Структурные подразделения">
 			<GRID id="Depart" name="Структурные подразделения" table="DEPART"/>
