@@ -14,6 +14,7 @@
 			<MENU name="Взаимодействие с федеральным казначейством">
 				<MI name="Казначейские уведомления" formlist="Ufk_Notif"/>
 				<MI name="Расходные расписания" formlist="Expshd"/>
+				<MI name="Заявки на кассовый расход" formlist="Zr_doc"/>
 			</MENU>
 			<MENU name="Внутренние документы">
 				<MI name="Детализация бюджетных данных" formlist="Detail"/>
@@ -173,7 +174,7 @@
 						<A id="NAME_TOFK" name="Полное наименование" caption="Наименование" labelwidth="100" width="70" type="string" visible="form" local="true"/>
 					</GA>
 					<A id="DATE_VKU" name="Дата введения в действие" caption="Дата введения в действие казначейского уведомления" labelwidth="600" type="date" formula="null" local="true"/>
-					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="SECRET_KU" name="Признак секретности" caption="Признак секретности казначейского уведомления" labelwidth="400" type="list" visible="form" value="Не секретно" local="true">
 						<AI id="Не секретно" name="Не секретно"/>
@@ -268,7 +269,7 @@
 						<A id="DIR_RECIPID" name="ГРБС" caption="Ссылка на справочник" labelwidth="200" width="70" visible="form"/>
 					</GA>
 					<A id="DATE_UTV_RR" name="Дата введения в действие" caption="Дата введения в действие расходного расписания" labelwidth="600" type="date" local="true"/>
-					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="SECRET_KU" name="Признак секретности" caption="Признак секретности расходного расписания" labelwidth="400" type="list" visible="form" value="Не секретно" local="true">
 						<AI id="Не секретно" name="Не секретно"/>
@@ -376,10 +377,210 @@
 			</A>
 			<TI id="EXPSHD_POF_ID_IND" index="EXPSHDID"/>
 		</TABLE>
+		<TABLE id="ZR_DOC" name="Заявки на кассовый расход">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="DOCLINKS_IN"/>
+					<A id="DOCLINKS_OUT">
+						<AI id="*" name="Любая связь" readonly="true"/>
+					</A>
+					<A id="NOM_ZR" name="Номер" caption="Заявка на кассовый расход N" labelwidth="250" width="70" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(nom_zr,80,' ')), '[^0-9]', '', 'g')::int+1,1) from @TABLENAME where cid=0 and year_u = @YEAR_U" button="true" local="true"/>
+					<A id="DATE_ZR" name="Дата" caption=" от " labelwidth="25" width="30" type="date" nulls="false" formula="now()" local="true"/>
+					<A id="TYPE" name="Тип заявки" caption="Тип заявки" labelwidth="100" type="list" nulls="false" visible="true" value="1" local="true">
+						<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)" readonly="INN_UBP;KPP_UBP"/>
+						<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)"/>
+					</A>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="200" type="list" visible="form" formula="select LEVEL from OFFBUDGETKINDS where id = (select OFFBUDGETKINDS_ID from BUDGETS where id = @BUDGETS_ID)" value="1" local="true">
+						<AI id="1" name="федеральный бюджет"/>
+						<AI id="2" name="бюджет субъекта РФ"/>
+						<AI id="3" name="местный бюджет"/>
+						<AI id="4" name="бюджет ГВБФ"/>
+						<AI id="5" name="бюджет ТГВБФ"/>
+						<AI id="6" name="средства ЮЛ"/>
+					</A>
+					<A id="NAME_BUD" name="Наименование бюджета" caption="Наименование бюджета" labelwidth="200" type="string" visible="form" formula="select NAME from BUDGETS where id = @BUDGETS_ID" local="true"/>
+					<A id="NAME_FO" name="Наименование финансового органа" caption="Наименование финансового органа" labelwidth="250" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT5_ID from BUDGETS where id = @BUDGETS_ID)" local="true"/>
+					<GA caption="Информация о клиенте">
+						<A id="AGENT_ACC_ID" name="Лицевой счет клиента" caption="Лицевой счет клиента" labelwidth="500" type="ref" table="AGENT_ACC" ret="NAME" form="Agent_Acc" local="true"/>
+						<A id="NAME_UBP_PAY" name="Наименование клиента" caption="Наименование клиента" labelwidth="200" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="KOD_UBP_PAY" name="Код клиента" caption="Код клиента" labelwidth="100" width="35" type="string" len="5" format="WWWWW" visible="form" formula="right((select CODESR from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)), 5)" local="true"/>
+						<A id="LS_UBP_PAY" name="Номер лицевого счета клиента" caption="Номер лицевого счета клиента" labelwidth="250" width="65" type="string" len="11" format="WWWWWWWWWWW" visible="form" formula="select BANK_ACC from AGENT_ACC where id = @AGENT_ACC_ID" local="true"/>
+						<GA caption="!">
+							<A id="EXPLANATION_VIRT" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="@TYPE" local="true">
+								<AI id="1" name="ИНН и КПП не заполняются для полной формы ЗКР"/>
+								<AI id="2" name="Поля  заполняются в случае необходимости указания в платежном поручении ИНН и КПП, отличных от  указанных в Заявлении на открытие (переоформление) л/с"/>
+							</A>
+						</GA>
+						<A id="INN_UBP" name="ИНН клиента" caption="ИНН клиента" labelwidth="100" width="50" type="string" len="10" visible="form" formula="select INN from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="KPP_UBP" name="КПП клиента" caption="КПП клиента" labelwidth="100" width="50" type="string" len="9" visible="form" formula="select KPP from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="GLAVA_GRS" name="Глава по БК" caption="Глава по БК" labelwidth="100" width="15" type="string" len="3" visible="form" formula="select CODE from DIR_RECIP where id = (select DIR_RECIPID from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID))" local="true"/>
+						<A id="NAME_UBP_GRS" name="Наименование ГРБС (ГАИФДБ)" caption="Наименование ГРБС (ГАИФДБ)" labelwidth="200" width="85" type="string" visible="form" formula="select NAME from DIR_RECIP where id = (select DIR_RECIPID from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID))" local="true"/>
+						<A id="KOD_TOFK" name="Код органа ФК" caption="Код органа ФК" labelwidth="100" width="15" type="string" len="4" visible="form" formula="select CODETOFK from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="NAME_TOFK" name="Наименование органа ФК" caption="Наименование органа ФК" labelwidth="200" width="85" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+					</GA>
+					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
+					<A id="NAME_UBP_PAYDATE_ISP" name="Предельная дата исполнения" caption="Предельная дата исполнения" labelwidth="500" width="100" type="date" formula="@DATE_ZR+10" local="true"/>
+					<GA caption="Сведения о принятом бюджетном обязательстве">
+						<A id="NAME_UBP_PAYGUID_SV" name="Идентификатор документа" caption="Идентификатор документа" labelwidth="200" type="string" visible="form" local="true"/>
+						<A id="NAME_UBP_PAYNOM_BO" name="Номер обязательства" caption="Номер обязательства" labelwidth="200" type="string" len="16" visible="form" local="true"/>
+					</GA>
+					<A id="NAME_UBP_PAYKOD_ISP" name="Код приоритета исполнения" caption="Код приоритета исполнения" labelwidth="200" width="10" type="string" len="1" visible="form" local="true"/>
+					<A id="NAME_UBP_PAYPR_ISP" name="Приоритет исполнения" caption="Приоритет исполнения" labelwidth="150" width="90" type="string" len="250" visible="form" local="true"/>
+					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
+						<AI id="0" name="Черновик" actionlist="MakeEntryZR"/>
+						<AI id="1" name="Отработано" actionlist="DeleteEntryZR" readonly="true"/>
+					</A>
+				</TAB>
+				<TAB name="Реквизиты документа">
+					<A id="SUM_V" name="Сумма" caption="Сумма документа в валюте выплаты" labelwidth="300" type="number" len="18.2" local="true"/>
+					<A id="KOD_V" name="Код валюты по ОКВ" caption="Код валюты по ОКВ" labelwidth="150" width="30" type="string" len="3" visible="form" value="643" local="true"/>
+					<A id="SUM_DOC" name="Сумма документа" caption="Сумма документа" labelwidth="150" width="70" type="number" len="18.2" visible="form" formula="" local="true"/>
+					<A id="TYPE_AP" name="Признак авансового платежа" caption="Признак авансового платежа" labelwidth="450" width="100" type="list" visible="form" value="0" local="true">
+						<AI id="0" name="платеж не является авансовым"/>
+						<AI id="1" name="платеж является авансовым"/>
+					</A>
+					<A id="SUM_V_NDS" name="Сумма НДС в валюте заявки" caption="Сумма НДС в валюте заявки" labelwidth="300" width="100" type="number" len="18.2" visible="form" formula="" local="true"/>
+					<A id="ORDER_PL" name="Очередность платежа" caption="Очередность платежа" labelwidth="150" width="50" type="string" len="1" visible="form" local="true"/>
+					<A id="VID_PL" name="Вид платежа" caption="Вид платежа" labelwidth="150" width="50" type="list" visible="form" value="0" local="true">
+						<AI id="0" name="пусто"/>
+						<AI id="1" name="почтой"/>
+						<AI id="2" name="телеграфом"/>
+						<AI id="3" name="электронно"/>
+						<AI id="4" name="срочно"/>
+					</A>
+					<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="150" width="100" type="text" len="210" visible="form" local="true"/>
+				</TAB>
+				<TAB name="Реквизиты контрагента">
+					<A id="AGENT_ACCTO_ID" name="Лицевой счет контрагента" caption="Лицевой счет контрагента" labelwidth="500" type="ref" table="AGENT_ACC" ret="NAME" form="Agent_Acc" local="true"/>
+					<A id="NAME_RCP" name="Наименование / ФИО контрагента" caption="Наименование / ФИО контрагента" labelwidth="220" width="100" type="string" len="160" visible="form" formula="select NAME from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+					<A id="INN_RCP" name="ИНН контрагента" caption="ИНН контрагента" labelwidth="220" width="50" type="string" len="12" visible="form" formula="select INN from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+					<A id="KPP_RCP" name="КПП контрагента" caption="КПП контрагента" labelwidth="220" width="50" type="string" len="9" visible="form" formula="select KPP from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+					<A id="LS_UBP_RCP" name="Номер лицевого счета контрагента" caption="Номер лицевого счета контрагента" labelwidth="220" type="string" len="11" visible="form" formula="select BANK_ACC from AGENT_ACC where id = @AGENT_ACCTO_ID" local="true"/>
+					<A id="BS_RCP" name="Банковский счет контрагента" caption="Банковский счет контрагента" labelwidth="220" type="string" len="34" visible="form" formula="select BS_RCP from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+					<A id="NAME_BIC_RCP" name="Наименование банка контрагента" caption="Наименование банка контрагента" labelwidth="220" type="string" len="160" visible="form" formula="select NAME_BIC_RCP from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+					<A id="BIC_RCP" name="БИК банка контрагента" caption="БИК банка контрагента" labelwidth="220" type="string" len="9" visible="form" formula="select BIC_RCP from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+					<A id="KS_BIC_RCP" name="Корсчет банка контрагента" caption="Корсчет банка контрагента" labelwidth="220" type="string" len="34" visible="form" formula="select KS_BIC_RCP from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACCTO_ID)" local="true"/>
+				</TAB>
+				<TAB name="Реквизиты налоговых платежей">
+					<A id="PAYSTATUS" name="Статус налогоплательщика" caption="Статус налогоплательщика" labelwidth="300" width="100" type="string" len="2" visible="form" local="true"/>
+					<A id="BAN_EDIT_VIRT" name="Разрешение редактирования полей" caption="Разрешение редактирования полей" type="boolean" visible="form" readonly="true" virtual="true" formula="@PAYSTATUS is not null" local="true">
+						<AI id="false" name="поле Статус налогоплательщика пустое" readonly="BKD_ID;KDOH;OKATO;OSN_PL;NAL_PER;NOM_DOK;DATE_DOK;TYPE_PL"/>
+					</A>
+					<A id="BKD_ID" name="КДБ" caption="Классификатор доходов бюджетов" labelwidth="400" width="100" type="ref" table="BKD" ret="CODE" form="Bkd" visible="form" local="true"/>
+					<A id="KDOH" name="Код бюджетной классификации" caption="Код бюджетной классификации" labelwidth="400" width="100" type="string" len="20" visible="form" formula="" local="true"/>
+					<A id="OKATO" name="Код ОКАТО" caption="Код ОКАТО" labelwidth="100" width="50" type="string" len="11" visible="form" formula="" local="true"/>
+					<A id="OSN_PL" name="Показатель основания платежа" caption="Показатель основания платежа" labelwidth="200" width="50" type="string" len="2" visible="form" formula="" local="true"/>
+					<A id="NAL_PER" name="Показатель налогового периода / кода таможенного органа" caption="Показатель налогового периода / кода таможенного органа" labelwidth="500" width="100" type="string" len="10" visible="form" formula="" local="true"/>
+					<A id="NOM_DOK" name="Показатель номера документа" caption="Показатель номера документа" labelwidth="200" width="40" type="string" len="15" visible="form" formula="" local="true"/>
+					<A id="DATE_DOK" name="Показатель даты документа" caption="Показатель даты документа" labelwidth="200" width="40" type="string" len="20" visible="form" formula="" local="true"/>
+					<A id="TYPE_PL" name="Тип платежа" caption="Тип платежа" labelwidth="100" width="20" type="string" len="2" visible="form" formula="" local="true"/>
+				</TAB>
+				<TAB name="Ответственные исполнители">
+					<GA caption="Руководитель (уполномоченное им лицо)">
+						<A id="PERSON_RUK_ID" name="Руководитель" caption="Руководитель" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="Person" visible="form" local="true"/>
+						<A id="DOL_RUK_UBP" name="Должность руководителя" caption="Должность" labelwidth="300" type="string" visible="form" formula="select POST from PERSON where id = @PERSON_RUK_ID" local="true"/>
+						<A id="NAME_RUK_UBP" name="ФИО руководителя" caption="ФИО" labelwidth="300" type="string" visible="form" formula="select SURNAME||COALESCE(' '||FIRSTNAME,'')||COALESCE(' '||MIDDLENAME,'') from PERSON where id = @PERSON_RUK_ID" local="true"/>
+					</GA>
+					<GA caption="Главный бухгалтер (уполномоченное руководителем лицо)">
+						<A id="PERSON_BUH_ID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="Person" visible="form" local="true"/>
+						<A id="DOL_BUH_UBP" name="Должность главного бухгалтера" caption="Должность" labelwidth="300" type="string" visible="form" formula="select POST from PERSON where id = @PERSON_BUH_ID" local="true"/>
+						<A id="NAME_BUH_UBP" name="ФИО главного бухгалтера" caption="ФИО" labelwidth="300" type="string" visible="form" formula="select SURNAME||COALESCE(' '||FIRSTNAME,'')||COALESCE(' '||MIDDLENAME,'') from PERSON where id = @PERSON_BUH_ID" local="true"/>
+					</GA>
+					<A id="DATE_POD_UBP" name="Дата подписания заявки" caption="Дата подписания заявки" labelwidth="550" type="date" visible="form" local="true"/>
+					<GA caption="Отметка ОрФК о постановке на учет">
+						<A id="NOM_ZR_FK" name="Номер заявки" caption="Номер заявки" labelwidth="300" type="string" len="15" visible="form" local="true"/>
+						<A id="DATE_FK" name="Дата постановки на учет" caption="Дата постановки на учет" labelwidth="550" type="date" visible="form" local="true"/>
+						<A id="DOL_ISP_FK" name="Должность ответственного исполнителя" caption="Должность ответственного исполнителя" labelwidth="300" type="string" len="100" visible="form" local="true"/>
+						<A id="NAME_ISP_FK" name="ФИО ответственного исполнителя" caption="ФИО ответственного исполнителя" labelwidth="300" type="string" len="50" visible="form" local="true"/>
+						<A id="TEL_ISP_FK" name="Телефон ответственного исполнителя" caption="Телефон ответственного исполнителя" labelwidth="300" type="string" len="50" visible="form" local="true"/>
+					</GA>
+				</TAB>
+				<TI id="ZR_DOC_UK" name="ЗКР с таким номер от этой даты уже существует" unique="NOM_ZR, DATE_ZR"/>
+			</TABS>
+		</TABLE>
+		<TABLE id="ZROSN_DOC" name="Реквизиты документов-оснований">
+			<A id="ZR_DOCID" name="ЗКР" caption="ЗКР" parentkey="cascade" type="ref" table="ZR_DOC" local="true"/>
+			<A id="DOCLINKS_IN"/>
+			<A id="TYPE_VIRT" name="Тип заявки" caption="Тип заявки" labelwidth="100" type="list" visible="false" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
+				<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)"/>
+				<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)"/>
+			</A>
+			<A id="OSN_PLAT" name="Признак основания платежа" caption="Признак основания платежа" labelwidth="350" width="100" type="list" visible="form" local="true">
+				<AI id="1" name="основание платежа"/>
+				<AI id="2" name="документ-основание"/>
+			</A>
+			<A id="VID_OSN" name="Вид документа-основания" caption="Вид документа-основания" labelwidth="350" width="100" type="list" len="45" visible="true" local="true">
+				<AI id="акт выполненных работ" name="акт выполненных работ"/>
+				<AI id="государственный контракт" name="государственный контракт"/>
+				<AI id="муниципальный контракт" name="муниципальный контракт"/>
+				<AI id="договор" name="договор"/>
+				<AI id="счет" name="счет"/>
+				<AI id="накладная" name="накладная"/>
+				<AI id="другое" name="другое"/>
+			</A>
+			<A id="NOM_OSN" name="Номер документа-основания" caption="Номер документа-основания" labelwidth="180" width="60" type="string" len="50" local="true"/>
+			<A id="DATE_OSN" name="Дата документа-основания" caption="Дата документа-основания" labelwidth="180" width="40" type="date" local="true"/>
+			<A id="OSN" name="Предмет документа-основания" caption="Предмет документа-основания" labelwidth="180" type="text" len="512" visible="form" local="true"/>
+		</TABLE>
+		<TABLE id="ZRST_DOC" name="Строки заявки на кассовый расход по бюджетной классификации">
+			<A id="ZR_DOCID" name="ЗКР" caption="ЗКР" parentkey="cascade" type="ref" table="ZR_DOC" local="true"/>
+			<A id="TYPE_VIRT" name="Тип заявки" caption="Тип заявки" labelwidth="100" type="list" visible="false" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
+				<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)"/>
+				<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)"/>
+			</A>
+			<A id="KOD_IST_KBK" name="Источник средств" caption="Источник средств" labelwidth="200" width="100" type="list" visible="form" value="1" local="true">
+				<AI id="1" name="средства бюджета"/>
+				<AI id="2" name="средства от приносящей доход деятельности"/>
+				<AI id="3" name="средства дополнительного бюджетного финансирования"/>
+				<AI id="4" name="средства для финансирования мероприятий по оперативно-розыскной деятельности"/>
+				<AI id="5" name="средства, поступающие во временное распоряжение казенных учреждений"/>
+				<AI id="6" name="средства юридических лиц"/>
+			</A>
+			<GA id="KBK_PAY" caption="Бюджетная классификация плательщика">
+				<A id="TYPE_KBK_PAY" name="Тип КБК плательщика" caption="Тип КБК" labelwidth="200" width="100" type="list" visible="form" value="10" local="true">
+					<AI id="10" name="расходы" readonly="BKD_PAY_ID;KIF_PAY_ID"/>
+					<AI id="20" name="доходы" readonly="KBR_PAY_ID;KIF_PAY_ID"/>
+					<AI id="31" name="ИВФДБ" readonly="KBR_PAY_ID;BKD_PAY_ID"/>
+					<AI id="32" name="ИВнФДБ" readonly="KBR_PAY_ID;BKD_PAY_ID"/>
+				</A>
+				<GA caption="Выбор из справочника">
+					<A id="KBR_PAY_ID" name="КРБ" caption="Классификатор расходов бюджетов" labelwidth="500" type="ref" table="KBR" ret="CODE" form="Kbr" visible="form"/>
+					<A id="BKD_PAY_ID" name="КДБ" caption="Классификатор доходов бюджетов" labelwidth="500" type="ref" table="BKD" ret="CODE" form="Bkd" visible="form"/>
+					<A id="KIF_PAY_ID" name="КИФ" caption="Классификатор источников финансирования дефицитов бюджетов" labelwidth="500" type="ref" table="KIF" ret="CODE" form="Kif" visible="form"/>
+					<A id="ECON_CLASS_PAY_ID" name="КОСГУ" caption="Классификатор операций сектора государственного управления" labelwidth="500" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass" visible="form"/>
+				</GA>
+				<A id="KBK_PAY" name="Код по БК плательщика" caption="Код по БК плательщика" labelwidth="200" width="100" type="string" len="20" visible="true" formula=" COALESCE((select CODE from KBR where id = @KBR_PAY_ID), (select  CODE from BKD where id = @BKD_PAY_ID),(select  CODE from KIF where id = @KIF_PAY_ID), '00000000000000000'||(select  CODE from ECON_CLASS where id = @ECON_CLASS_PAY_ID))      " local="true"/>
+			</GA>
+			<GA id="KBK_RCP" caption="Бюджетная классификация получателя">
+				<A id="TYPE_KBK_RCP" name="Тип КБК получателя" caption="Тип КБК" labelwidth="200" width="100" type="list" visible="form" value="10" local="true">
+					<AI id="10" name="расходы" readonly="BKD_RCP_ID;KIF_RCP_ID"/>
+					<AI id="20" name="доходы" readonly="KBR_RCP_ID;KIF_RCP_ID"/>
+					<AI id="31" name="ИВФДБ" readonly="KBR_RCP_ID;BKD_RCP_ID"/>
+					<AI id="32" name="ИВнФДБ" readonly="KBR_RCP_ID;BKD_RCP_ID"/>
+				</A>
+				<GA caption="Выбор из справочника">
+					<A id="KBR_RCP_ID" name="КРБ" caption="Классификатор расходов бюджетов" labelwidth="500" type="ref" table="KBR" ret="CODE" form="Kbr" visible="form"/>
+					<A id="BKD_RCP_ID" name="КДБ" caption="Классификатор доходов бюджетов" labelwidth="500" type="ref" table="BKD" ret="CODE" form="Bkd" visible="form"/>
+					<A id="KIF_RCP_ID" name="КИФ" caption="Классификатор источников финансирования дефицитов бюджетов" labelwidth="500" type="ref" table="KIF" ret="CODE" form="Kif" visible="form"/>
+					<A id="ECON_CLASS_RCP_ID" name="КОСГУ" caption="Классификатор операций сектора государственного управления" labelwidth="500" type="ref" table="ECON_CLASS" ret="CODE" form="EconClass" visible="form"/>
+				</GA>
+				<A id="KBK_RCP" name="Код по БК получателя" caption="Код по БК получателя" labelwidth="200" width="100" type="string" len="20" visible="true" formula=" COALESCE((select CODE from KBR where id = @KBR_RCP_ID), (select  CODE from BKD where id = @BKD_RCP_ID),(select  CODE from KIF where id = @KIF_RCP_ID), '00000000000000000'||(select  CODE from ECON_CLASS where id = @ECON_CLASS_RCP_ID))           " local="true"/>
+			</GA>
+			<A id="SUBSIDIES_PAY_ID" name="Код цели субсидии/субвенции плательщика" caption="Выбор кода цели субсидии/субвенции плательщика" labelwidth="350" width="65" type="ref" table="SUBSIDIES" ret="CODE" form="Subsidies" visible="form" local="true"/>
+			<A id="ADD_KLASS_PAY" name="Код цели плательщика" caption="Код цели" labelwidth="70" width="35" type="string" len="20" visible="true" formula="select CODE from SUBSIDIES where id = @SUBSIDIES_PAY_ID" local="true"/>
+			<A id="SUBSIDIES_RCP_ID" name="Код цели субсидии/субвенции получателя" caption="Выбор кода цели субсидии/субвенции получателя" labelwidth="350" width="65" type="ref" table="SUBSIDIES" ret="CODE" form="Subsidies" visible="form" local="true"/>
+			<A id="ADD_KLASS_RCP" name="Код цели получателя" caption="Код цели" labelwidth="70" width="35" type="string" len="20" visible="true" formula="select CODE from SUBSIDIES where id = @SUBSIDIES_RCP_ID" local="true"/>
+			<A id="SUM_V_KBK" name="Сумма" caption="Сумма в валюте заявки" labelwidth="150" width="50" type="number" len="18.2" local="true"/>
+			<A id="SUM_R_KBK" name="Сумма в рублях" caption="Сумма в рублях" labelwidth="150" width="50" type="number" len="18.2" visible="form" local="true"/>
+			<A id="PURPOSE_KBK" name="Назначение платежа" caption="Назначение платежа" labelwidth="150" type="text" len="210" visible="form" local="true"/>
+			<A id="NOTE_KBK" name="Примечание" caption="Примечание" labelwidth="150" type="text" len="254" visible="form" local="true"/>
+		</TABLE>
 		<TABLE id="EXEC_BUD" name="Исполнение бюджета">
 			<TABS>
 				<TAB name="Бюджет">
-					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="NOTE" name="Примечание" caption="Примечание"/>
 				</TAB>
@@ -750,7 +951,7 @@
 						<A id="RECORD_TYPESID" name="Тип" caption="Тип" labelwidth="50" width="80" nulls="false"/>
 						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					</GA>
-					<A id="BUDGETS_ID" labelwidth="300" width="60" nulls="false" visible="form"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" nulls="false" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="KBR_ID" labelwidth="350"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
@@ -767,8 +968,8 @@
 						</GA>
 					</GA>
 					<A id="SUM" name="Сумма" caption="Сумма операции" labelwidth="550" type="number" len="18.2" local="true"/>
-					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" local="true"/>
-					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" local="true"/>
+					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
+					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="grid" local="true"/>
 				</TAB>
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
@@ -801,7 +1002,7 @@
 						<A id="RECORD_TYPESID" name="Тип" caption="Тип" labelwidth="50" width="80" parentkey="nocascade" type="ref" table="JURNALEXP_RECORD_TYPES_KBR" ret="RECORD_TYPESID_ret" local="true"/>
 						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					</GA>
-					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="KBR_ID" labelwidth="350"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
@@ -846,7 +1047,7 @@
 						<A id="RECORD_TYPESID" name="Тип" caption="Тип" labelwidth="50" width="80" parentkey="nocascade" type="ref" table="JURNALEXP_RECORD_TYPES_DETAIL" ret="RECORD_TYPESID_ret" local="true"/>
 						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					</GA>
-					<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 					<A id="KBR_ID" labelwidth="350"/>
 					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
@@ -1065,7 +1266,7 @@
 				<AI id="1" name="первый год планового периода" readonly="SUM_TO_RES_POF"/>
 				<AI id="2" name="второй год планового периода" readonly="SUM_TO_RES_POF"/>
 			</A>
-			<A id="EXEC_BUDID" name="Год" caption="Год" labelwidth="50" width="20" type="ref" table="EXEC_BUD" ret="YEAR_U" visible="true" readonly="true" formula="select ID from EXEC_BUD where BUDGETS_ID = (select BUDGETS_ID from DISTRIBDATA where ID = @DISTRIBDATAID) and YEAR_U = ((select YEAR_U from DISTRIBDATA where ID = @DISTRIBDATAID)::numeric+@PLANNING_PERIOD::numeric)" local="true"/>
+			<A id="EXEC_BUDID" name="Год" caption="Год" labelwidth="50" width="20" type="ref" table="EXEC_BUD" ret="YEAR_U" visible="true" readonly="true" formula="select ID from EXEC_BUD where BUDGETS_ID = (select BUDGETS_ID from DISTRIBDATA where ID = @DISTRIBDATAID) and YEAR_U = ((select YEAR_U from DISTRIBDATA where ID = @DISTRIBDATAID)::numeric+COALESCE(@PLANNING_PERIOD::numeric,0))" local="true"/>
 			<A id="EXEC_BUD_KBRID" name="Код расходов бюджета" caption="Код расходов бюджета" labelwidth="200" width="80" pid="EXEC_BUDID" visible="form"/>
 			<A id="EXEC_BUD_DETAILID" name="Код" caption="Детализированный код" labelwidth="150" pid="EXEC_BUD_KBRID" nulls="false"/>
 			<GA caption="Подразделения, курирующие расходы">
@@ -1119,7 +1320,7 @@
 					<A id="DOCDATEP" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
 				</GA>
 			</GA>
-			<A id="BUDGETS_ID" labelwidth="300" width="60" nulls="false" visible="form"/>
+			<A id="BUDGETS_ID" labelwidth="100" width="60" nulls="false" visible="form"/>
 			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
 			<A id="NOTE" name="Примечание" caption="Примечание"/>
 			<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
@@ -1164,13 +1365,20 @@
 		<ACTION id="DeleteEntryKU" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryku"/>
 		<ACTION id="MakeEntryRR" name="Отработать" type="procedure" procedure="p_action_fin_makeentryrr"/>
 		<ACTION id="DeleteEntryRR" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryrr"/>
+		<ACTION id="MakeEntryZR" name="Отработать" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
+		<COMMENT name="заменить на p_action_fin_deleteentrycon"/>
+		<ACTION id="DeleteEntryZR" name="Снять отработку" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="0"/>
+		</ACTION>
 		<ACTION id="MakeEntryDD" name="Отработать" type="procedure" procedure="p_action_fin_makeentrydd"/>
 		<ACTION id="DeleteEntryDD" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentrydd"/>
 		<ACTION id="MakeEntryDET" name="Отработать" type="procedure" procedure="p_action_fin_makeentrydet"/>
 		<ACTION id="DeleteEntryDET" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentrydet"/>
 		<ACTION id="MakeEntryNEED" name="Отработать" type="procedure" procedure="p_action_fin_makeentryneed"/>
 		<ACTION id="DeleteEntryNEED" name="Снять отработку" type="procedure" procedure="p_action_fin_deleteentryneed"/>
-		<ACTION id="CalculateEXEC_BUD" name="Рассчитать показатели" schedule_start="420" schedule_period="30" type="procedure" procedure="p_action_exec_bud_calculate"/>
+		<ACTION id="CalculateEXEC_BUD" name="Рассчитать показатели" schedule_period="30" schedule_start="420" type="procedure" procedure="p_action_exec_bud_calculate"/>
 		<ACTION id="ClearEXEC_BUD" name="Очистить показатели" type="procedure" procedure="p_action_exec_bud_clear_indicators"/>
 		<ACTION id="To_form_RR" name="Сформировать расходные расписания" type="procedure" procedure="p_action_distribdata_form_rr">
 			<FORM name="Параметры">
@@ -1218,6 +1426,17 @@
 				</TAB>
 				<TAB name="Предельные объемы">
 					<GRID id="Expshd_Pof" name="Расходные расписания: Предельные объемы" table="EXPSHD_POF"/>
+				</TAB>
+			</TABS>
+		</FORM>
+		<FORM id="Zr_doc" name="Заявки на кассовый расход">
+			<GRID id="Zr_doc" name="Заявки на кассовый расход" table="ZR_DOC" actionlist="MakeEntryZR;DeleteEntryZR"/>
+			<TABS>
+				<TAB name="Реквизиты документов-оснований">
+					<GRID id="Zrosn_doc" name="Заявки на кассовый расход: Реквизиты документов-оснований" table="ZROSN_DOC"/>
+				</TAB>
+				<TAB name="Строки заявки на кассовый расход по бюджетной классификации">
+					<GRID id="Zrst_doc" name="Строки заявки на кассовый расход по бюджетной классификации" table="ZRST_DOC"/>
 				</TAB>
 			</TABS>
 		</FORM>
