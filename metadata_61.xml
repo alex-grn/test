@@ -1045,11 +1045,15 @@
 			<A id="NUMBPP" readonly="true" virtual="true" formula="select t.NUMBPP from TYPEEXP t where t.id = @TYPEEXPID"/>
 			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula="select t.NUMBESTIMATE from TYPEEXP t where t.id = @TYPEEXPID"/>
 			<A id="TYPEEXPID" labelwidth="200"/>
-			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="true" formula="select f.LEVELESTIMATE from FINANCEELCOM f where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID"/>
+			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="false" formula=""/>
 			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select case when k.levelelcommittee ilike 'district' then round(COALESCE(f.SUMFINUIK,0)+COALESCE(f.SUMFINTIKCEN,0),2) when k.levelelcommittee ilike 'territory' or k.levelelcommittee ilike 'circuit' then round(COALESCE(f.SUMFINTIK,0)+COALESCE((select case when t.numbestimate ilike '%апу%' then f.SUMFINTIKCEN else 0 end),0),2) end from FINANCEELCOM f, ELECTCOMMINCAMP e, ELECTCOMMITTEE k, TYPEEXP t where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID and e.ID = f.ELECTCOMMINCAMPID and k.ID = e.ELECTCOMMITTEEID and t.ID = f.TYPEEXPID" local="true"/>
 			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
-			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)-@SUMCOSTS" local="true"/>
+			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
+			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
+			<!-- <A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/> -->
+			<!-- <A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)-@SUMCOSTS" local="true"/> -->
+		
+			
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID"/>
 		</TABLE>
 		<TABLE id="FINANCEELCOM" name="Сведения о финансовом обеспечении ИК">
@@ -1059,7 +1063,6 @@
 			<A id="DOCDATE" name="Дата распределения" caption="Дата распределения" labelwidth="450" type="date" nulls="false" local="true"/>
 			<A id="TYPEALLOCATION" name="Тип распределения" caption="Тип распределения" labelwidth="200"/>
 			<A id="TYPEEXPID" labelwidth="200"/>
-			<A id="LEVELESTIMATE" labelwidth="200"/>
 			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" local="true"/>
 			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
@@ -1067,7 +1070,7 @@
 				<AI id="territory///" readonly="SUMFINUIK"/>
 				<AI id="circuit///" readonly="SUMFINUIK"/>
 				<AI id="district/1/salary/" readonly="SUMFINTIK;SUMFINUIK"/>
-				<AI id="district/1//" readonly="SUMFINTIK;SUMFINUIK"/>
+				<AI id="district/1//" readonly="SUMFINTIK;SUMFINTIKCEN;SUMFINUIK"/>
 				<AI id="district/2/salary/" readonly="SUMFINTIK;SUMFINTIKCEN"/>
 				<AI id="district/2//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
 				<AI id="district/3//" readonly="SUMFINTIK;SUMFINTIKCEN"/>
@@ -1156,7 +1159,7 @@
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200" parentkey="cascade"/>
 			<TI unique="CODE,DOCTYPEID"/>
 		</TABLE>
-		<TABLE id="TYPICALOPERSVIRT" name="Типовые операции" tablename="TYPICALOPERS" query="select t.* from TYPICALOPERS t where t.DOCTYPEID = (select d.id from doctypes d where d.code ilike '%Акт%выполнения%работ%оказания%услуг%')">
+		<TABLE id="TYPICALOPERSVIRT" name="Типовые операции" tablename="TYPICALOPERS" query="">
 			<A id="CODE" name="Код типовой операции" caption="Код типовой операции" labelwidth="200" type="string" len="100" nulls="false" local="true"/>
 			<A id="NAME" name="Наименование типовой операции" caption="Наименование типовой операции" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" labelwidth="200"/>
@@ -1261,7 +1264,7 @@
 					<A id="DOCLINKS_IN"/>
 					<A id="DOCLINKS_OUT"/>
 					<A id="CODE" name="Код" type="string" visible="true" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@id" local="true"/>
-					<TI unique="CONTRACTSID, NUMBPP"/>
+					<TI unique="CONTRACTSDOCSID, NUMBPP"/>
 				</TAB>
 				<TAB name="Авансовые платежи">
 					<A id="SUPEXPENSE" name="Договор с авансовыми платежами" caption="Договор с авансовыми платежами" type="boolean" nulls="false" local="true"/>
@@ -1331,7 +1334,7 @@
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from PERSON_CONTRACTSDOCS c, PERSONS_stages s where c.id = s.PERSON_CONTRACTSDOCSID and s.id=@id" local="true"/>
-			<TI unique="PERSONS_CONTRACTSID, NUMBPP"/>
+			<TI unique="PERSON_CONTRACTSDOCSID, NUMBPP"/>
 		</TABLE>
 		<TABLE id="PAYACCOUNTS" name="Расчетный (лицевой счет) в банке">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
@@ -1491,15 +1494,11 @@
 				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
 			<GA name="Договор о материальной ответственности" caption="Договор о материальной ответственности">
-				<A id="NUMBER" name="Номер" caption="Номер" labelwidth="70" width="40" type="string"/>
+				<A id="NUMBER" name="Номер" caption="Номер" labelwidth="70" width="40"  type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(NUMBER::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from LIABILITY where ELECTCAMPAIGNID = @ELECTCAMPAIGNID AND ELECTCOMMITTEEID=@ELECTCOMMITTEEID" local="true"/>
 				<A id="DATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date"/>
 			</GA>
-			<GA name="Кем выдан договор" caption="Кем выдана">
-				<A id="WHOISSUEDID" name="Кем выдан договор" type="ref" pid="ELECTCOMMITTEEID" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
-			</GA>
-			<GA name="Кому выдан договор" caption="Кому выдана">
-				<A id="RECEIVEDID" name="Кому выдан договор" type="ref" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
-			</GA>
+			<A id="WHOISSUEDID" name="Кем заключен договор" caption="Кем заключен договор" type="ref" pid="ELECTCOMMITTEEID" table="COMMITTEEMAN" ret="CODE" nulls="false" local="true"/>
+			<A id="RECEIVEDID" name="С кем заключен договор" caption="С кем заключен договор" type="ref" table="PERSON" ret="CODE" nulls="false" local="true"/>
 			<TI id="LIABILITYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DATE and DATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="PROXY" name="Доверенности">
