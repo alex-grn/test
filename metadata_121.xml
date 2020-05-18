@@ -388,11 +388,11 @@
 					<A id="DATE_ZR" name="Дата" caption=" от " labelwidth="25" width="30" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="TYPE" name="Тип заявки" caption="Тип заявки" labelwidth="100" type="list" nulls="false" visible="true" value="1" local="true">
 						<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)" readonly="INN_UBP;KPP_UBP"/>
-						<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)"/>
+						<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)" readonly="NAME_UBP_GRS;NAME_FO;NAME_UBP_PAYKOD_ISP;NAME_UBP_PAYPR_ISP;SUM_DOC;SUM_V_NDS;DOL_RUK_UBP;DOL_BUH_UBP"/>
 					</A>
 					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
-					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="200" type="list" visible="form" formula="select LEVEL from OFFBUDGETKINDS where id = (select OFFBUDGETKINDS_ID from BUDGETS where id = @BUDGETS_ID)" value="1" local="true">
+					<A id="BUDG_LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="200" type="list" nulls="false" visible="form" formula="select LEVEL from OFFBUDGETKINDS where id = (select OFFBUDGETKINDS_ID from BUDGETS where id = @BUDGETS_ID)" value="1" local="true">
 						<AI id="1" name="федеральный бюджет"/>
 						<AI id="2" name="бюджет субъекта РФ"/>
 						<AI id="3" name="местный бюджет"/>
@@ -401,12 +401,18 @@
 						<AI id="6" name="средства ЮЛ"/>
 					</A>
 					<A id="NAME_BUD" name="Наименование бюджета" caption="Наименование бюджета" labelwidth="200" type="string" visible="form" formula="select NAME from BUDGETS where id = @BUDGETS_ID" local="true"/>
+					<GA caption="!">
+						<A id="EXPLANATION_VIRT2" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="@TYPE" local="true">
+							<AI id="1" name="Наименование ФО поле  обязательное для заполнения УБП"/>
+							<AI id="2" name="Поле Наименование ФО не  заполняются для сокращенной формы ЗКР"/>
+						</A>
+					</GA>
 					<A id="NAME_FO" name="Наименование финансового органа" caption="Наименование финансового органа" labelwidth="250" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT5_ID from BUDGETS where id = @BUDGETS_ID)" local="true"/>
 					<GA caption="Информация о клиенте">
 						<A id="AGENT_ACC_ID" name="Лицевой счет клиента" caption="Лицевой счет клиента" labelwidth="500" type="ref" table="AGENT_ACC" ret="NAME" form="Agent_Acc" local="true"/>
-						<A id="NAME_UBP_PAY" name="Наименование клиента" caption="Наименование клиента" labelwidth="200" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="NAME_UBP_PAY" name="Наименование клиента" caption="Наименование клиента" labelwidth="200" type="string" nulls="false" visible="form" formula="select NAME from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
 						<A id="KOD_UBP_PAY" name="Код клиента" caption="Код клиента" labelwidth="100" width="35" type="string" len="5" format="WWWWW" visible="form" formula="right((select CODESR from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)), 5)" local="true"/>
-						<A id="LS_UBP_PAY" name="Номер лицевого счета клиента" caption="Номер лицевого счета клиента" labelwidth="250" width="65" type="string" len="11" format="WWWWWWWWWWW" visible="form" formula="select BANK_ACC from AGENT_ACC where id = @AGENT_ACC_ID" local="true"/>
+						<A id="LS_UBP_PAY" name="Номер лицевого счета клиента" caption="Номер лицевого счета клиента" labelwidth="250" width="65" type="string" len="11" format="WWWWWWWWWWW" nulls="false" visible="form" formula="select BANK_ACC from AGENT_ACC where id = @AGENT_ACC_ID" local="true"/>
 						<GA caption="!">
 							<A id="EXPLANATION_VIRT" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="@TYPE" local="true">
 								<AI id="1" name="ИНН и КПП не заполняются для полной формы ЗКР"/>
@@ -416,15 +422,31 @@
 						<A id="INN_UBP" name="ИНН клиента" caption="ИНН клиента" labelwidth="100" width="50" type="string" len="10" visible="form" formula="select INN from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
 						<A id="KPP_UBP" name="КПП клиента" caption="КПП клиента" labelwidth="100" width="50" type="string" len="9" visible="form" formula="select KPP from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
 						<A id="GLAVA_GRS" name="Глава по БК" caption="Глава по БК" labelwidth="100" width="15" type="string" len="3" visible="form" formula="select CODE from DIR_RECIP where id = (select DIR_RECIPID from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID))" local="true"/>
+						<GA caption="!">
+							<A id="EXPLANATION_VIRT1" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="@TYPE" local="true">
+								<AI id="1" name="Наименование ГРБС может не заполняются для полной формы ЗКР только клиентами, обслуживаемыми в ЗК"/>
+								<AI id="2" name="Поля Наименование ГРБС не  заполняются для сокращенной формы ЗКР"/>
+							</A>
+						</GA>
 						<A id="NAME_UBP_GRS" name="Наименование ГРБС (ГАИФДБ)" caption="Наименование ГРБС (ГАИФДБ)" labelwidth="200" width="85" type="string" visible="form" formula="select NAME from DIR_RECIP where id = (select DIR_RECIPID from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID))" local="true"/>
-						<A id="KOD_TOFK" name="Код органа ФК" caption="Код органа ФК" labelwidth="100" width="15" type="string" len="4" visible="form" formula="select CODETOFK from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
-						<A id="NAME_TOFK" name="Наименование органа ФК" caption="Наименование органа ФК" labelwidth="200" width="85" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="KOD_TOFK" name="Код органа ФК" caption="Код органа ФК" labelwidth="100" width="15" type="string" len="4" nulls="false" visible="form" formula="select CODETOFK from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="NAME_TOFK" name="Наименование органа ФК" caption="Наименование органа ФК" labelwidth="200" width="85" type="string" nulls="false" visible="form" formula="select NAME from AGENT where id = (select AGENT345_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
 					</GA>
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
 					<A id="NAME_UBP_PAYDATE_ISP" name="Предельная дата исполнения" caption="Предельная дата исполнения" labelwidth="500" width="100" type="date" formula="@DATE_ZR+10" local="true"/>
 					<GA caption="Сведения о принятом бюджетном обязательстве">
-						<A id="NAME_UBP_PAYGUID_SV" name="Идентификатор документа" caption="Идентификатор документа" labelwidth="200" type="string" visible="form" local="true"/>
-						<A id="NAME_UBP_PAYNOM_BO" name="Номер обязательства" caption="Номер обязательства" labelwidth="200" type="string" len="16" visible="form" local="true"/>
+						<A id="NAME_UBP_PAYGUID_SV" name="Идентификатор документа" caption="Идентификатор документа" labelwidth="200" type="string" visible="form" local="true">
+							<AI id="*" name="любое значение" readonly="NAME_UBP_PAYNOM_BO"/>
+						</A>
+						<A id="NAME_UBP_PAYNOM_BO" name="Номер обязательства" caption="Номер обязательства" labelwidth="200" type="string" len="16" visible="form" local="true">
+							<AI id="*" name="любое значение" readonly="NAME_UBP_PAYGUID_SV"/>
+						</A>
+					</GA>
+					<GA caption="!">
+						<A id="EXPLANATION_VIRT3" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="@TYPE" local="true">
+							<AI id="1" name="Приоритет может заполняться при наличии соответствующих полномочий"/>
+							<AI id="2" name="Приоритет не  заполняются для сокращенной формы ЗКР"/>
+						</A>
 					</GA>
 					<A id="NAME_UBP_PAYKOD_ISP" name="Код приоритета исполнения" caption="Код приоритета исполнения" labelwidth="200" width="10" type="string" len="1" visible="form" local="true"/>
 					<A id="NAME_UBP_PAYPR_ISP" name="Приоритет исполнения" caption="Приоритет исполнения" labelwidth="150" width="90" type="string" len="250" visible="form" local="true"/>
@@ -434,10 +456,16 @@
 					</A>
 				</TAB>
 				<TAB name="Реквизиты документа">
-					<A id="SUM_V" name="Сумма" caption="Сумма документа в валюте выплаты" labelwidth="300" type="number" len="18.2" local="true"/>
-					<A id="KOD_V" name="Код валюты по ОКВ" caption="Код валюты по ОКВ" labelwidth="150" width="30" type="string" len="3" visible="form" value="643" local="true"/>
-					<A id="SUM_DOC" name="Сумма документа" caption="Сумма документа" labelwidth="150" width="70" type="number" len="18.2" visible="form" formula="" local="true"/>
-					<A id="TYPE_AP" name="Признак авансового платежа" caption="Признак авансового платежа" labelwidth="450" width="100" type="list" visible="form" value="0" local="true">
+					<GA caption="!">
+						<A id="EXPLANATION_VIRT4" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="@TYPE" local="true">
+							<AI id="1" name="Сумма в рублях заполняется для валютных ЗКР, кода валюты 643 заполняется 0 "/>
+							<AI id="2" name="Для сокращенной формы ЗКР код валюты только 643, сумма в рублях и сумма НДС не заполняется"/>
+						</A>
+					</GA>
+					<A id="SUM_V" name="Сумма" caption="Сумма документа в валюте выплаты" labelwidth="300" type="number" len="18.2" nulls="false" formula="select sum(SUM_V_KBK) from ZRST_DOC where ZR_DOCID=@ID" button="true" local="true"/>
+					<A id="KOD_V" name="Код валюты по ОКВ" caption="Код валюты по ОКВ" labelwidth="150" width="30" type="string" len="3" nulls="false" visible="form" value="643" local="true"/>
+					<A id="SUM_DOC" name="Сумма выплаты в рублях" caption="Сумма выплаты в рублях" labelwidth="150" width="70" type="number" len="18.2" visible="form" formula="select sum(SUM_R_KBK) from ZRST_DOC where ZR_DOCID=@ID" button="true" value="0" local="true"/>
+					<A id="TYPE_AP" name="Признак авансового платежа" caption="Признак авансового платежа" labelwidth="450" width="100" type="list" nulls="false" visible="form" value="0" local="true">
 						<AI id="0" name="платеж не является авансовым"/>
 						<AI id="1" name="платеж является авансовым"/>
 					</A>
@@ -504,14 +532,20 @@
 			<A id="ZR_DOCID" name="ЗКР" caption="ЗКР" parentkey="cascade" type="ref" table="ZR_DOC" local="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="TYPE_VIRT" name="Тип заявки" caption="Тип заявки" labelwidth="100" type="list" visible="false" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
-				<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)"/>
+				<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)" readonly="OSN_PLAT"/>
 				<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)"/>
 			</A>
+			<GA caption="!">
+				<A id="EXPLANATION_VIRT" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
+					<AI id="1" name="Для полной формы ЗКР поле Признак основания платежа не заполняется"/>
+					<AI id="2" name="Для сокращенной формы ЗКР поле Признак основания платежа  обязательное для заполнения"/>
+				</A>
+			</GA>
 			<A id="OSN_PLAT" name="Признак основания платежа" caption="Признак основания платежа" labelwidth="350" width="100" type="list" visible="form" local="true">
 				<AI id="1" name="основание платежа"/>
 				<AI id="2" name="документ-основание"/>
 			</A>
-			<A id="VID_OSN" name="Вид документа-основания" caption="Вид документа-основания" labelwidth="350" width="100" type="list" len="45" visible="true" local="true">
+			<A id="VID_OSN" name="Вид документа-основания" caption="Вид документа-основания" labelwidth="350" width="100" type="list" len="45" nulls="false" visible="true" local="true">
 				<AI id="акт выполненных работ" name="акт выполненных работ"/>
 				<AI id="государственный контракт" name="государственный контракт"/>
 				<AI id="муниципальный контракт" name="муниципальный контракт"/>
@@ -520,7 +554,7 @@
 				<AI id="накладная" name="накладная"/>
 				<AI id="другое" name="другое"/>
 			</A>
-			<A id="NOM_OSN" name="Номер документа-основания" caption="Номер документа-основания" labelwidth="180" width="60" type="string" len="50" local="true"/>
+			<A id="NOM_OSN" name="Номер документа-основания" caption="Номер документа-основания" labelwidth="180" width="60" type="string" len="50" nulls="false" local="true"/>
 			<A id="DATE_OSN" name="Дата документа-основания" caption="Дата документа-основания" labelwidth="180" width="40" type="date" local="true"/>
 			<A id="OSN" name="Предмет документа-основания" caption="Предмет документа-основания" labelwidth="180" type="text" len="512" visible="form" local="true"/>
 		</TABLE>
@@ -528,9 +562,15 @@
 			<A id="ZR_DOCID" name="ЗКР" caption="ЗКР" parentkey="cascade" type="ref" table="ZR_DOC" local="true"/>
 			<A id="TYPE_VIRT" name="Тип заявки" caption="Тип заявки" labelwidth="100" type="list" visible="false" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
 				<AI id="1" name="Заявка на кассовый расход (код формы по КФД 0531801)"/>
-				<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)"/>
+				<AI id="2" name="Заявка на кассовый расход (сокращенная) (код формы по КФД 0531851)" readonly="SUM_R_KBK;TYPE_KBK_RCP;KBK_RCP;ADD_KLASS_RCP;PURPOSE_KBK;NOTE_KBK"/>
 			</A>
-			<A id="KOD_IST_KBK" name="Источник средств" caption="Источник средств" labelwidth="200" width="100" type="list" visible="form" value="1" local="true">
+			<GA caption="!">
+				<A id="EXPLANATION_VIRT" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
+					<AI id="1" name="Для полной формы ЗКР разрешено указывать любое количество КБК"/>
+					<AI id="2" name="Для сокращенной формы ЗКР допустимо указывать только один КБК"/>
+				</A>
+			</GA>
+			<A id="KOD_IST_KBK" name="Источник средств" caption="Источник средств" labelwidth="200" width="100" type="list" nulls="false" visible="form" value="1" local="true">
 				<AI id="1" name="средства бюджета"/>
 				<AI id="2" name="средства от приносящей доход деятельности"/>
 				<AI id="3" name="средства дополнительного бюджетного финансирования"/>
@@ -553,6 +593,12 @@
 				</GA>
 				<A id="KBK_PAY" name="Код по БК плательщика" caption="Код по БК плательщика" labelwidth="200" width="100" type="string" len="20" visible="true" formula=" COALESCE((select CODE from KBR where id = @KBR_PAY_ID), (select  CODE from BKD where id = @BKD_PAY_ID),(select  CODE from KIF where id = @KIF_PAY_ID), '00000000000000000'||(select  CODE from ECON_CLASS where id = @ECON_CLASS_PAY_ID))      " local="true"/>
 			</GA>
+			<GA caption="!">
+				<A id="EXPLANATION_VIRT1" name="Пояснение" caption="Пояснение" labelwidth="100" type="list" visible="form" virtual="true" formula="select TYPE from ZR_DOC where id = @ZR_DOCID" local="true">
+					<AI id="1" name="Назначение платежа заполняется, если оно меняется в зависимости от КБК РФ или сумм, указанных в Заявке на кассовый расход. В примечание указывается код цели субсидии/субвенции из ФБ,  и иная информация, необходимая для исполнения бюджета"/>
+					<AI id="2" name="Для сокращенной формы ЗКР не указывается КБК получателя, назначение платежа и примечание"/>
+				</A>
+			</GA>
 			<GA id="KBK_RCP" caption="Бюджетная классификация получателя">
 				<A id="TYPE_KBK_RCP" name="Тип КБК получателя" caption="Тип КБК" labelwidth="200" width="100" type="list" visible="form" value="10" local="true">
 					<AI id="10" name="расходы" readonly="BKD_RCP_ID;KIF_RCP_ID"/>
@@ -572,7 +618,7 @@
 			<A id="ADD_KLASS_PAY" name="Код цели плательщика" caption="Код цели" labelwidth="70" width="35" type="string" len="20" visible="true" formula="select CODE from SUBSIDIES where id = @SUBSIDIES_PAY_ID" local="true"/>
 			<A id="SUBSIDIES_RCP_ID" name="Код цели субсидии/субвенции получателя" caption="Выбор кода цели субсидии/субвенции получателя" labelwidth="350" width="65" type="ref" table="SUBSIDIES" ret="CODE" form="Subsidies" visible="form" local="true"/>
 			<A id="ADD_KLASS_RCP" name="Код цели получателя" caption="Код цели" labelwidth="70" width="35" type="string" len="20" visible="true" formula="select CODE from SUBSIDIES where id = @SUBSIDIES_RCP_ID" local="true"/>
-			<A id="SUM_V_KBK" name="Сумма" caption="Сумма в валюте заявки" labelwidth="150" width="50" type="number" len="18.2" local="true"/>
+			<A id="SUM_V_KBK" name="Сумма" caption="Сумма в валюте заявки" labelwidth="150" width="50" type="number" len="18.2" nulls="false" value="0" local="true"/>
 			<A id="SUM_R_KBK" name="Сумма в рублях" caption="Сумма в рублях" labelwidth="150" width="50" type="number" len="18.2" visible="form" local="true"/>
 			<A id="PURPOSE_KBK" name="Назначение платежа" caption="Назначение платежа" labelwidth="150" type="text" len="210" visible="form" local="true"/>
 			<A id="NOTE_KBK" name="Примечание" caption="Примечание" labelwidth="150" type="text" len="254" visible="form" local="true"/>
@@ -931,12 +977,12 @@
 			<TI id="RECORD_TYPES_UK_CODE" unique="CODE"/>
 			<TI id="RECORD_TYPES_UK_TYPE" unique="RECORD_TYPE"/>
 		</TABLE>
-		<TABLE id="JURNALEXP_RECORD_TYPES_KBR" name="Типы операций" virtual="true" query="select RECORD_TYPESID ID, null HID, min(LID) LID, 0 as CID, min(UID) UID, min(TIM) TIM, EXEC_BUD_KBRID, RECORD_TYPESID, sum(SUM) SUM                                                                                    from JURNALEXP group by  EXEC_BUD_KBRID, RECORD_TYPESID">
+		<TABLE id="JURNALEXP_RECORD_TYPES_KBR" name="Типы операций" tablename="JURNALEXP" virtual="true" query="select RECORD_TYPESID ID, null HID, min(LID) LID, min(LID_ret) LID_ret, 0 as CID, min(UID) UID, min(UID_ret) UID_ret, min(TIM) TIM, EXEC_BUD_KBRID, EXEC_BUD_KBRID_ret, RECORD_TYPESID, RECORD_TYPESID_ret, sum(SUM) SUM from @TABLENAME group by  EXEC_BUD_KBRID, EXEC_BUD_KBRID_ret, RECORD_TYPESID, RECORD_TYPESID_ret">
 			<A id="EXEC_BUD_KBRID" parentkey="nocascade"/>
 			<A id="RECORD_TYPESID" name="Тип операции"/>
 			<A id="SUM" name="Сумма" caption="Сумма" labelwidth="550" type="number" len="18.2" local="true"/>
 		</TABLE>
-		<TABLE id="JURNALEXP_RECORD_TYPES_DETAIL" name="Типы операций" virtual="true" query="select RECORD_TYPESID ID, null HID, min(LID) LID, 0 as CID, min(UID) UID, min(TIM) TIM, EXEC_BUD_DETAILID, RECORD_TYPESID, sum(SUM) SUM                                                                                    from JURNALEXP group by  EXEC_BUD_DETAILID, RECORD_TYPESID">
+		<TABLE id="JURNALEXP_RECORD_TYPES_DETAIL" name="Типы операций" tablename="JURNALEXP" virtual="true" query="select RECORD_TYPESID ID, null HID, min(LID) LID, min(LID_ret) LID_ret, 0 as CID, min(UID) UID, min(UID_ret) UID_ret, min(TIM) TIM, EXEC_BUD_DETAILID, EXEC_BUD_DETAILID_ret, RECORD_TYPESID, RECORD_TYPESID_ret, sum(SUM) SUM from @TABLENAME group by  EXEC_BUD_DETAILID, EXEC_BUD_DETAILID_ret, RECORD_TYPESID, RECORD_TYPESID_ret">
 			<A id="EXEC_BUD_DETAILID" parentkey="nocascade"/>
 			<A id="RECORD_TYPESID" name="Тип операции"/>
 			<A id="SUM" name="Сумма" caption="Сумма" labelwidth="550" type="number" len="18.2" local="true"/>
@@ -1432,11 +1478,11 @@
 		<FORM id="Zr_doc" name="Заявки на кассовый расход">
 			<GRID id="Zr_doc" name="Заявки на кассовый расход" table="ZR_DOC" actionlist="MakeEntryZR;DeleteEntryZR"/>
 			<TABS>
-				<TAB name="Реквизиты документов-оснований">
-					<GRID id="Zrosn_doc" name="Заявки на кассовый расход: Реквизиты документов-оснований" table="ZROSN_DOC"/>
-				</TAB>
 				<TAB name="Строки заявки на кассовый расход по бюджетной классификации">
 					<GRID id="Zrst_doc" name="Строки заявки на кассовый расход по бюджетной классификации" table="ZRST_DOC"/>
+				</TAB>
+				<TAB name="Реквизиты документов-оснований">
+					<GRID id="Zrosn_doc" name="Заявки на кассовый расход: Реквизиты документов-оснований" table="ZROSN_DOC"/>
 				</TAB>
 			</TABS>
 		</FORM>
