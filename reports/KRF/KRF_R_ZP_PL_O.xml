@@ -3406,7 +3406,7 @@
 				<queries>
                      <query name="actual_expenses_spec" type="sql">
                         <script>
-							    select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
+					    select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
                                             from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
                                                          t.print_name as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
                                                     from TYPEEXP T,
@@ -3418,16 +3418,15 @@
                                                      and fl.id = t.hid
                                                   group by t.numbestimate, t.print_name, t.typeestimate, fl.name) T
                                             left join 
-                                              (select case when (not f.typeexpid is null and tp.TYPEESTIMATE='П') then sum(COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
+                                              (select case when (not fin.typeexpid is null and tp.TYPEESTIMATE='П') then sum(COALESCE(fin.sumfintikcen,0)+COALESCE(fin.sumfinuik,0)) else null end as summ, rr.idgasregionsrf, tp.numbestimate,
                                                       ec.levelelcampaign
-                                                 from FOLDERS fol, TYPEEXP tp, REGISTER r 
-                                            left join FINANCEELCOM f on f.electcommincampid = r.electcommincampid
+                                                 from FOLDERS fol, TYPEEXP tp left join financeelcom fin on fin.typeexpid = tp.id, REGISTER r 
                                             left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
                                             left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
                                             left join REGIONSRF rr on rr.id = ik.regionsrfid
                                             left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
-                                            where r.id = ${id}::bigint and fol.tablename='typeexp' and fol.name ilike '%Регион%' and tp.hid = fol.id and not tp.noactual_cost and (f.typeexpid = tp.id or f.typeexpid is null)
-                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign, f.typeexpid, tp.TYPEESTIMATE) s on s.numbestimate = t.numbestimate
+                                            where r.id = ${id}::bigint and fol.tablename='typeexp' and fol.name ilike '%Регион%' and tp.hid = fol.id and not tp.noactual_cost and (fin.typeexpid = tp.id or fin.typeexpid is null)
+                                            group by tp.numbestimate, rr.idgasregionsrf, tp.mestimate, ec.levelelcampaign, fin.typeexpid, tp.TYPEESTIMATE) s on s.numbestimate = t.numbestimate
                                            where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                                          from register r,
                                                                               ELECTCOMMINCAMP e,
