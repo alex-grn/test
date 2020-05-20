@@ -15,6 +15,7 @@
 				<MI name="Распоряжения на перечисления межбюджетных трансфертов" formlist="Distrib_mbt"/>
 				<MI name="Расходные расписания" formlist="Expshd_MBT"/>
 				<MI name="Уведомления по расчетам между бюджетами" formlist="NotifMBT"/>
+				<MI name="Заявки на кассовый расход" formlist="Zr_doc"/>
 				<MI name="Основания для межбюджетных трансфертов" formlist="Mbt_contract"/>
 			</MENU>
 			<MENU name="Учет">
@@ -138,6 +139,7 @@
 					<A id="KBR_VIRT" name="КРБ" caption="Бюджетная классификация расходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from KBR where id =(select KBR_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
 					<A id="BKD_VIRT" name="КДБ" caption="Бюджетная классификация доходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from BKD where id =(select BKD_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
 					<A id="ACODES_VIRT" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from ACODES where id =(select ACODES_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет ПБС распорядителя для доведения МБП" labelwidth="500" type="ref" table="AGENT_ACC" ret="NAME" form="Agent_Acc"/>
 					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 					<GA caption="Суммы">
 						<A id="CONTRACT_SUM" name="Сумма" caption="К распределению" labelwidth="120" width="37" type="number" len="18.2" local="true"/>
@@ -146,8 +148,10 @@
 					</GA>
 					<A id="SIGNDATE" name="Дата утверждения" caption="Дата утверждения" labelwidth="150" width="50" type="date" local="true"/>
 					<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" width="50" type="list" visible="true" readonly="true" value="0" local="true">
-						<AI id="0" name="Черновик" actionlist="MakeEntryCON"/>
-						<AI id="1" name="Отработан" actionlist="DeleteEntryCON;To_form_DIS;Disband_DIS" readonly="true"/>
+						<AI id="0" name="Черновик" actionlist="MakeEntryDIS"/>
+						<AI id="1" name="Отработан" actionlist="DeleteEntryDIS;To_form_DIS_RR" readonly="true"/>
+						<AI id="2" name="Сформировано РР" actionlist="Disband_DIS_RR;To_form_DIS_ZR" readonly="true"/>
+						<AI id="3" name="Сформированы ЗКР" actionlist="Disband_DIS_ZR" readonly="true"/>
 					</A>
 					<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
 						<AI id="Jurnalexp" name="Журнал операций по исполнению расходной части бюджета" readonly="true"/>
@@ -266,6 +270,46 @@
 			</FORM>
 		</ACTION>
 		<ACTION id="Disband_NOTIF" name="Расформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
+		<ACTION id="MakeEntryDIS" name="Отработать" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
+		<ACTION id="DeleteEntryDIS" name="Снять отработку" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="0"/>
+		</ACTION>
+		<ACTION id="To_form_DIS_RR_STATUS" name="Сменить статус" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="2"/>
+		</ACTION>
+		<ACTION id="To_form_DIS_RR_PROC" name="Сформировать расходные расписания" type="procedure" procedure="">
+			<FORM name="Параметры">
+				<A id="DDATE_FORM_RR" name="Дата формирования расходного расписания" caption="Дата формирования расходного расписания" labelwidth="200" width="20" type="date" nulls="false" formula="now()" local="true"/>
+				<A id="DDATE_UTV_RR" name="Дата введения в действие расходного расписания" caption="Дата введения в действие расходного расписания" labelwidth="200" width="20" type="date" nulls="false" formula="now()" local="true"/>
+				<A id="RPERSONID" name="Руководитель (уполномоченное лицо)" caption="Руководитель (уполномоченное лицо)" labelwidth="500" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="OPERSONID" name="Ответственный исполнитель" caption="Ответственный исполнитель" labelwidth="500" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
+				<A id="STEL_ISP" name="Телефон" caption="Телефон" type="string" format="+7(DDD)DDD-DD-DD" nulls="true" local="true"/>
+				<A id="DDATA_POD_RR" name="Дата подписания руководителем (уполномоченным лицом)" caption="Дата подписания руководителем (уполномоченным лицом)" labelwidth="200" width="20" type="date" nulls="false" formula="now()" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="To_form_DIS_RR" name="Сформировать расходные расписания" type="script" actionlist="To_form_DIS_RR_PROC;To_form_DIS_RR_STATUS"/>
+		<ACTION id="Disband_DIS_RR_STATUS" name="Сменить статус" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="1"/>
+		</ACTION>
+		<ACTION id="Disband_DIS_RR_PROC" name="Расформировать расходные расписания" type="procedure" procedure=""/>
+		<ACTION id="Disband_DIS_RR" name="Расформировать расходные расписания" type="script" actionlist="Disband_DIS_RR_PROC;Disband_DIS_RR_STATUS"/>
+		<ACTION id="To_form_DIS_ZR_STATUS" name="Сменить статус" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="3"/>
+		</ACTION>
+		<ACTION id="To_form_DIS_ZR_PROC" name="Сформировать ЗКР" type="procedure" procedure="">
+			<FORM name="Параметры">
+				<A id="DATE_ZR" name="Дата документа" caption="Дата документа" labelwidth="400" type="date" nulls="false" formula="now()" local="true"/>
+				<A id="NAME_UBP_PAYDATE_ISP" name="Предельная дата исполнения" caption="Предельная дата исполнения" labelwidth="400" type="date" formula="now() + interval '10 day'" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="To_form_DIS_ZR" name="Сформировать ЗКР" type="script" actionlist="To_form_DIS_ZR_PROC;To_form_DIS_ZR_STATUS"/>
+		<ACTION id="Disband_DIS_ZR_STATUS" name="Сменить статус" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="2"/>
+		</ACTION>
+		<ACTION id="Disband_DIS_ZR_PROC" name="Расформировать ЗКР" type="procedure" procedure=""/>
+		<ACTION id="Disband_DIS_ZR" name="Расформировать ЗКР" type="script" actionlist="Disband_DIS_ZR_PROC;Disband_DIS_ZR_STATUS"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -299,7 +343,7 @@
 			<GRID id="Mbt_contact_rec" name="Получатели межбюджетных трансфертов" table="MBT_CONTACT_REC"/>
 		</FORM>
 		<FORM id="Distrib_mbt" name="Распоряжения на перечисления межбюджетных трансфертов">
-			<GRID id="Distrib_mbt" name="Распоряжения на перечисления межбюджетных трансфертов" table="DISTRIB_MBT"/>
+			<GRID id="Distrib_mbt" name="Распоряжения на перечисления межбюджетных трансфертов" table="DISTRIB_MBT" actionlist="MakeEntryDIS;DeleteEntryDIS;To_form_DIS_RR;Disband_DIS_RR;To_form_DIS_ZR;Disband_DIS_ZR"/>
 			<GRID id="Distrib_mbt_rec" name="Суммы распоряжения по получателям" table="DISTRIB_MBT_REC"/>
 		</FORM>
 		<FORM id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов">
