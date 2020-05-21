@@ -1268,9 +1268,9 @@
 						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false" readonly="true"/>
 					</GA>
 					<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" virtual="true" visible="false" formula="select CONTRTYPE from CONTRACTSDOCS c where c.id=@CONTRACTSDOCSID" local="true">
-						<AI id="product" name="Поставка товара" actionlist="setLID;StagesFormPP;StagesFormINV"/>
-						<AI id="service" name="Оказание услуг" actionlist="setLID;StagesFormPP;StagesActsWorkServ"/>
-						<AI id="worksexec" name="Выполнение работ" actionlist="setLID;StagesFormPP;StagesActsWorkServ"/>
+						<AI id="product" name="Поставка товара" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesFormINV;StagesFormINVDel"/>
+						<AI id="service" name="Оказание услуг" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
+						<AI id="worksexec" name="Выполнение работ" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
 					</A>
 					<A id="DOCLINKS_IN"/>
 					<A id="DOCLINKS_OUT"/>
@@ -2534,6 +2534,7 @@
 				<A id="ECONCLASSKTID"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="SheetdetailsFormPPDel" name="Расформировать платежное поручение" type="procedure" procedure="p_action_sheetdetails_form_pp_del"/>
 		<ACTION id="SheetdetailsFormRKO" name="Сформировать расходный кассовый ордер" type="procedure" procedure="p_action_sheetdetails_form_rko">
 			<FORM name="Параметры">
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
@@ -2541,6 +2542,7 @@
 				<A id="ECONCLASSKTID"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="SheetdetailsFormRKODel" name="Расформировать расходный кассовый ордер" type="procedure" procedure="P_ACTION_SHEETDETAILS_FORM_RKO_DEL"/>
 		<ACTION id="Exception" name="Проверка на ошибки" type="procedure" procedure="p_action_exception"/>
 		<ACTION id="ExceptionPP" name="Сформировать платежное поручение" type="script" actionlist="Exception;SheetdetailsFormPP"/>
 		<ACTION id="ExceptionRKO" name="Сформировать расходный кассовый ордер" type="script" actionlist="Exception;SheetdetailsFormRKO"/>
@@ -2549,11 +2551,13 @@
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesFormPPDel" name="Расформировать платежное поручение" type="procedure" procedure="p_action_stages_form_pp_del"/>
 		<ACTION id="StagesFormRKO" name="Сформировать расходный кассовый ордер" type="procedure" procedure="p_action_stages_form_rko">
 			<FORM name="Параметры">
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesFormRKODel" name="Расформировать расходный кассовый ордер" type="procedure" procedure="p_action_stages_form_rko_del"/>
 		<ACTION id="StagesFormINV" name="Сформировать товарную накладную" type="procedure" procedure="p_action_stages_create_inv">
 			<FORM name="Параметры">
 				<A id="DOCTYPEID" nulls="false" readonly="false" value="29"/>
@@ -2566,6 +2570,7 @@
 				<A id="TYPICALOPERSID" pid="DOCTYPEID"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesFormINVDel" name="Расформировать товарную накладную" type="procedure" procedure="p_action_stages_inv_del"/>
 		<ACTION id="StagesPersFormPP" name="Сформировать платежное поручение" type="procedure" procedure="p_action_stages_pers_form_pp">
 			<FORM name="Параметры">
 				<A id="DOCTYPEID" nulls="false" readonly="false" value="16"/>
@@ -2574,6 +2579,7 @@
 				<A id="TYPICALOPERSID" pid="DOCTYPEID"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesPersFormPPDel" name="Расформировать платежное поручение" type="procedure" procedure="p_action_stages_pers_form_pp_del"/>
 		<ACTION id="StagesActsWorkServ" name="Сформировать акт" type="procedure" procedure="p_action_stages_acts_work_serv">
 			<FORM name="Параметры">
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="200" width="20" type="string" nulls="false" local="true"/>
@@ -2581,6 +2587,7 @@
 				<A id="TYPICALOPERSID" name="Типовая операция" caption="Типовая операция" labelwidth="200" type="ref" table="TYPICALOPERSVIRT" ret="CODE" form="TypicalOpersFRMVIRT" nulls="false" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesActsWorkServDel" name="Расформировать акт" type="procedure" procedure="p_action_stages_acts_work_serv_del"/>
 		<ACTION id="StatusINPUTKRF1" name="Смена статуса" type="procedure" procedure="p_action_status">
 			<P id="values" value="1"/>
 		</ACTION>
@@ -3047,7 +3054,7 @@
 			</GRID>
 			<GRID id="SheetdetailsGR" name="Состав" table="SHEETDETAILS">
 				<MENU>
-					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables;ExceptionPP;ExceptionRKO"/>
+					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables;ExceptionPP;SheetdetailsFormPPDel;ExceptionRKO;SheetdetailsFormRKODel"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -3149,7 +3156,7 @@
 						</TAB>
 						<TAB name="Спецификация контракта">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CONTRACTSDOCS f where f.id = @CONTRACTSDOCSID" local="true"/>
-							<GRID id="StagesGR" name="Спецификация контракта" table="STAGES" actionlist="StagesFormPP;StagesActsWorkServ;StagesFormINV"/>
+							<GRID id="StagesGR" name="Спецификация контракта" table="STAGES" actionlist="StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel;StagesFormINV;StagesFormINVDel"/>
 						</TAB>
 					</TABS>
 				</TAB>
@@ -3160,7 +3167,7 @@
 						</TAB>
 						<TAB name="Спецификация договора">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Договор № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PERSON_CONTRACTSDOCS f  where f.id = @PERSON_CONTRACTSDOCSID" local="true"/>
-							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesActsWorkServ;StagesPersFormPP"/>
+							<GRID id="PersonsStagesGR" name="Состав работ/услуг" table="PERSONS_STAGES" actionlist="StagesFormRKO;StagesFormRKODel;StagesActsWorkServ;StagesActsWorkServDel;StagesPersFormPP;StagesPersFormPPDel"/>
 						</TAB>
 					</TABS>
 				</TAB>
