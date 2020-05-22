@@ -6,8 +6,10 @@ RETURNS text AS
 $body$
  declare
   NID                      BIGINT = ID;											--ID последней записи таблицы "–еестры получателей"
-  NUSERID                  BIGINT = UID;										--идентификаци€ Ѕорна
+  NUSERID                  BIGINT = UID;
+  NLEVEL                   integer[ ];										--идентификаци€ Ѕорна
   NLID                     BIGINT;  											--”ровень доступа									
+  NZAP                     INT;
   BENEFITSPACKETS_ID       BIGINT;												--ID последней записи таблицы "ѕакеты реестров"
   FILE_XML                 XML;
   FILE_TEXT                TEXT;
@@ -20,8 +22,6 @@ $body$
   OLDBENEFITID             BIGINT;
   BENEFITID                BIGINT;
   NRN                      BIGINT;
-  NTYPE                    BIGINT;
-  NPACK                    BIGINT;
   TRETURN                  TEXT;
   ERR_TABLE                TEXT;
   ERR_STATE                TEXT;
@@ -30,12 +30,24 @@ $body$
   FL					   BIGINT = 0;											-- 1-ошибка, но грузим, 2-ошибка не грузим
   SERRORS				   TEXT='';												--ѕеременна€ дл€ накоплени€ ошибок при загрузке реестра
   SMESSAGE_ERR			   TEXT='';												--—ообщение об ошибке
-  temp text; --переменна€ дл€ отладки
+  SERR_TABLENAME           TEXT;
+  SDETAIL_ERR              TEXT;
+  SINSTIGATOR              TEXT;
+  SSQL_STATE               TEXT;
+  SDOCTYPE                 TEXT;
+  temp                     text; --переменна€ дл€ отладки
   REMARK_ID				   BIGINT;
   buff					   numeric[];
 begin
+
   --получаем ID последней строки пакета реестра
-  select P.ID into BENEFITSPACKETS_ID from BENEFICIARIESREGISTERS B, BENEFITSPACKETS P where P.ID = B.BENEFITSPACKETSID and B.ID = NID group by P.ID;
+  select P.ID into BENEFITSPACKETS_ID from BENEFICIARIESREGISTERS B, BENEFITSPACKETS P where P.ID = B.BENEFITSPACKETSID and B.ID = NID;
+  if BENEFITSPACKETS_ID is null then
+    TRETURN := '–еестр не определен!';
+    delete from BENEFICIARIESREGISTERS S where S.ID = NID;
+    return TRETURN;
+  end if;
+  
   if (select count(S.ID)
         from SENDERS S, USERS U
        where U.ID = NUSERID
@@ -95,7 +107,7 @@ begin
       return TRETURN;
   end;
   sql = 'CREATE TEMPORARY TABLE file_imp (
-               stable       text,
+               stable       character varying,
                  sort       bigserial,
                  nzap       integer,
                  level      integer,
@@ -116,9 +128,21 @@ begin
                  ) 
                  WITH (oids = false) ON COMMIT DROP;';
   execute sql;
-   -- DELETE FROM FILE_IMP;
+
+  sql = 'CREATE INDEX ir_file_imp_fd ON file_imp USING btree (stable, level);';
+  execute sql;
+
+--  sql = 'CREATE UNIQUE INDEX ir_file_imp_fd2 ON file_imp USING btree (nzap,sort);';
+--  execute sql;
+
    begin
-   perform p_reestr_parse_xml(file_xml, NID);
+   NLEVEL[1]:=0;
+   NLEVEL[2]:=0;
+   NLEVEL[3]:=0;
+   NLEVEL[4]:=0;
+   NLEVEL[5]:=0;
+   NLEVEL[6]:=0;
+   NLEVEL := p_reestr_parse_xml(file_xml, NID, NLEVEL);
    exception when others then
    GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
       						 err_table = TABLE_NAME,
@@ -126,6 +150,9 @@ begin
     delete from BENEFICIARIESREGISTERS s where s.id = NID; 
     return tRETURN;
     end;
+
+perform p_system_exception(1,'parse xml end '||nlevel[1]||' '||nlevel[2]||' '||nlevel[3]||' '||nlevel[4]||' '||nlevel[5]||' '||nlevel[6]);          
+    
     --проверка на ошибки внутри процедуры p_reestr_parse_xml
 FOR REC in (select S.COL1 from FILE_IMP S where s.stable = 'ERRORS')
 loop
@@ -145,48 +172,35 @@ FL:=0;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
-   if SNODE = 'benefit07'
-  then
+   if SNODE = 'benefit07' then
     --select max(s.id) into benefitID from benefit07 s;
-    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
-    loop
-      insert into BENEFIT07 (HID, UID, LID) values (null, NUSERID, NLID) returning benefit07 into BENEFITID;
-      for DR in (select X.ID as XID, REG.ID as REGID, LOWER(SE.NAME) || SE.CODE || X.REPYEAR || LPAD(X.REPMONTH, 2, '0') as COD
-                   from BENEFITSPACKETS X, BENEFICIARIESREGISTERS REG, SUBJECTSDIR SE
-                  where REG.BENEFITSPACKETSID = X.ID
-                    and SE.ID = X.SUBJECTSDIRID
-                    and REG.ID = NID)
+    --for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
+    --loop
+      NZAP := -1; 
+      for DOW in (select * from FILE_IMP F order by F.NZAP, F.SORT)
       loop
-        update BENEFIT07 S
-           set BENEFITSPACKETSID = DR.XID,
-               BENEFITSTYPEDIRID = DR.REGID
-         where S.ID = BENEFITID;
-      end loop;
-       
-      select S1.ID, S.BENEFITSTYPENAMEDIRID
-        into NPACK, NTYPE
-        from BENEFICIARIESREGISTERS S, BENEFITSPACKETS S1
-       where S1.ID = S.BENEFITSPACKETSID
-         and S.ID = NRN;
-      for DOW in (select * from FILE_IMP F where F.NZAP = REC.NZAP order by F.NZAP, F.SORT)
-      loop
-        if dow.col1 = ''  then dow.col1  := null;end if;
-        if dow.col2 = ''  then dow.col2  := null;end if;
-        if dow.col3 = ''  then dow.col3  := null;end if;
-        if dow.col4 = ''  then dow.col4  := null;end if;
-        if dow.col5 = ''  then dow.col5  := null;end if;
-        if dow.col6 = ''  then dow.col6  := null;end if;
-        if dow.col7 = ''  then dow.col7  := null;end if;
-        if dow.col8 = ''  then dow.col8  := null;end if;
-        if dow.col9 = ''  then dow.col9  := null;end if;
-        if dow.col10 = '' then dow.col10 := null;end if;
-        if dow.col11 = '' then dow.col11 := null;end if;
-        if dow.col12 = '' then dow.col12 := null;end if;
-        if dow.col13 = '' then dow.col13 := null;end if;
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT07 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT07.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
         if DOW.STABLE = 'BENEFITSRECIPIENTS'
         then
           --проверка 
           begin
+            select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
             temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка
             select S.ID
               into STRICT BENEFITSRECIPIENTS_ID
@@ -225,32 +239,46 @@ FL:=0;
                 returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
 /*исключени€*/     exception when others then
                         		  GET STACKED DIAGNOSTICS  
-/*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
+   /*копим ошибки*/               SMESSAGE_ERR = MESSAGE_TEXT,
+                                  SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                  SERR_TABLENAME = TABLE_NAME,
+                                  SSQL_STATE = RETURNED_SQLSTATE; 
+                                  FL:=2; 
+                                  IF SSQL_STATE = '23505' THEN
+                                    BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                    SELECT 'в базе данных ‘»ќ ребенка: '||
+                                           COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                           COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                      into SINSTIGATOR
+                                      FROM BENEFITCHILD B
+                                     WHERE B.ID = BENEFITCHILD_ID;
+                                  END IF;
+                                  SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                    end;
               --
-            when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+            when too_many_rows then 
+                GET STACKED DIAGNOSTICS 
+                SMESSAGE_ERR = MESSAGE_TEXT;
+                FL:=2; 
+                select string_agg(' ‘»ќ ребенка: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                  COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                  COALESCE(s.docbirthchildserial,'')||' '||COALESCE(s.docbirthchildnumber,''),';')
+                  into SINSTIGATOR 
+                  from BENEFITCHILD s,
+                       CERTIFICATEBIRTHDIR p
+                 where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                   and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                   and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                   and trim(COALESCE(s.docbirthchildnumber,'')) = trim(COALESCE(dow.col7,''))
+                   and trim(COALESCE(s.docbirthchildserial,'')) = trim(COALESCE(dow.col6,''))
+                   and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
+                   and p.id = s.docbirthchildtypeid;
+                   select p.name into SDOCTYPE from CERTIFICATEBIRTHDIR p where p.id = DOW.col5::bigint;
+                   SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование ребенка получател€ пособи€:'||temp||'. ¬ базе данных: '||SINSTIGATOR||'. ¬ документе: ‘»ќ ребенка: '
+                          ||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' '||SDOCTYPE||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
+                      
           end;
-          update BENEFIT07 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
-          /*for dr in(
-          select s.benefitspacketsid,s.benefitstypedirid,s.benefitsrecipientsid
-            from benefit07 s
-          where s.id = benefitID )
-          loop
-          OLDbenefitID:=benefitID;
-            begin                               --тут проверка на дубл€ж если нужно
-            select x.id 
-              into benefitID
-              from benefit07 x
-             where x.benefitspacketsid = dr.benefitspacketsid
-               and x.benefitsrecipientsid = dr.benefitsrecipientsid;
-            exception when no_data_found then null;
-            end;
-            if OLDbenefitID <> benefitID then
-              delete from benefit07 x where x.id = OLDbenefitID;
-            end if;
-          end loop;*/
+          --update BENEFIT07 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFITCHILD'
         then
           begin
@@ -282,12 +310,43 @@ FL:=0;
                 (NUSERID, NLID, BENEFITSRECIPIENTS_ID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL4 ::date, DOW.COL5 ::BIGINT, DOW.COL6, DOW.COL7, DOW.COL8 ::date, 1);
               exception when others then  
                          GET STACKED DIAGNOSTICS  
-   /*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
+   /*копим ошибки*/      SMESSAGE_ERR = MESSAGE_TEXT,
+                         SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                         SERR_TABLENAME = TABLE_NAME,
+                         SSQL_STATE = RETURNED_SQLSTATE; 
+                         FL:=2; 
+                         IF SSQL_STATE = '23505' THEN
+                           BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                           SELECT 'в базе данных ‘»ќ ребенка: '||
+                                  COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                  COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                             into SINSTIGATOR
+                             FROM BENEFITCHILD B
+                            WHERE B.ID = BENEFITCHILD_ID;
+                         END IF;
+                         SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                        end;
               select max(F.ID) into OLDBENEFITID from BENEFITCHILD F;
             when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+                     GET STACKED DIAGNOSTICS 
+                     SMESSAGE_ERR = MESSAGE_TEXT;
+                     FL:=2; 
+                     select string_agg(' ‘»ќ ребенка: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                       COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                       COALESCE(s.docbirthchildserial,'')||' '||COALESCE(s.docbirthchildnumber,''),';')
+                       into SINSTIGATOR 
+                       from BENEFITCHILD s,
+                            CERTIFICATEBIRTHDIR p
+                      where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                        and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                        and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                        and trim(COALESCE(s.docbirthchildnumber,'')) = trim(COALESCE(dow.col7,''))
+                        and trim(COALESCE(s.docbirthchildserial,'')) = trim(COALESCE(dow.col6,''))
+                        and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
+                        and p.id = s.docbirthchildtypeid;
+                        select p.name into SDOCTYPE from CERTIFICATEBIRTHDIR p where p.id = DOW.col5::bigint;
+                        SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование ребенка получател€ пособи€:'||temp||'. ¬ базе данных: '||SINSTIGATOR||'. ¬ документе: ‘»ќ ребенка: '
+                               ||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' '||SDOCTYPE||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
           end;
           --
           begin
@@ -347,12 +406,13 @@ FL:=0;
           begin
           --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if (dow.col4::numeric is null or dow.col4::numeric = 0)
+                     	 and (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col10::numeric != 0 and dow.col10::numeric is not null 
-                           or dow.col13::numeric != 0 and dow.col13::numeric is not null then
-                        	--ищем записи по получателю, были ли выплаты ранее
+                           or dow.col13::numeric != 0 and dow.col13::numeric is not null) then
+                      	    --ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit07payment s,
                                    benefit07 t,
                                    child07 c
@@ -360,9 +420,10 @@ FL:=0;
                                and t.id = s.benefit07id
                                and c.id = s.child07id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID limit 1) = 1 THEN null;
+                             ELSE  
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!';
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
                         end if; 
                      --
@@ -403,9 +464,9 @@ FL:=0;
              DOW.COL12 ::date,
              DOW.COL13 ::numeric,
              OLDBENEFITID) returning benefit07id,SUBSISTENCECHILD,SURCHARGESUM,REFUNDSUM,HOLDSUM into buff[0],buff[1],buff[2],buff[3],buff[4];
-             if (select count(*) from BENEFIT07PAYMENT s where benefit07id = buff[0] and SUBSISTENCECHILD = buff[1] and SURCHARGESUM = buff[2] and REFUNDSUM = buff[3] and HOLDSUM = buff[4]) then
+             /*if (select count(*) from BENEFIT07PAYMENT s where benefit07id = buff[0] and SUBSISTENCECHILD = buff[1] and SURCHARGESUM = buff[2] and REFUNDSUM = buff[3] and HOLDSUM = buff[4]) then
              	
-             end if;
+             end if;*/
         exception when others then
                         			GET STACKED DIAGNOSTICS  
    /*копим ошибки*/                 SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' тег: <payment>';
@@ -431,54 +492,48 @@ FL:=0;
            where S.ID = BENEFITID;
         end if;
       end loop;
-    end loop;
+    --end loop;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
-     elsif sNODE = 'benefit01' then
-     for rec in (select S.NZAP from file_imp s group by s.NZAP) 
-   loop  insert into benefit01(hid,uid,lid) VALUES(null,nUSERID,nLID) returning benefit01.id into benefitID;
-   for dr in (select x.id as xid,reg.id as regid,lower(se.name)||se.code||x.repyear||lpad(x.repmonth,2,'0') as cod
-                 	     from benefitspackets x,  
-                      		  BENEFICIARIESREGISTERS reg,
-                      		  SUBJECTSDIR se  
-               		    where reg.benefitspacketsid = x.id
-                    	  and se.id  = x.subjectsdirid
-                  	      and reg.id = NID )
-                  		 loop
-                          update benefit01 s set benefitspacketsid = dr.xid,benefitstypedirid = dr.regid where s.id = benefitID;
-                     end loop; 
-   
-    for dow in (select * 
-    			  from file_imp f WHERE F.nzap = rec.nzap
-                  order by f.nzap,f.sort
-                )
-                loop
-                   if dow.col1 = ''  then dow.col1  := null;end if;
-                   if dow.col2 = ''  then dow.col2  := null;end if;
-                   if dow.col3 = ''  then dow.col3  := null;end if;
-                   if dow.col4 = ''  then dow.col4  := null;end if;
-                   if dow.col5 = ''  then dow.col5  := null;end if;
-                   if dow.col6 = ''  then dow.col6  := null;end if;
-                   if dow.col7 = ''  then dow.col7  := null;end if;
-                   if dow.col8 = ''  then dow.col8  := null;end if;
-                   if dow.col9 = ''  then dow.col9  := null;end if;
-                   if dow.col10 = '' then dow.col10 := null;end if;
-                   if dow.col11 = '' then dow.col11 := null;end if;
-                   if dow.col12 = '' then dow.col12 := null;end if;
-                   if dow.col13 = '' then dow.col13 := null;end if;
+   elsif sNODE = 'benefit01' then
+   --for rec in (select S.NZAP from file_imp s group by s.NZAP) 
+   --loop  
+    NZAP = -1;
+    for dow in (select * from file_imp f order by f.nzap,f.sort)
+    loop
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT01 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT01.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+          perform p_system_exception(1,'nzap = '||NZAP);          
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
                 	if dow.stable = 'BENEFITSRECIPIENTS' then
                       --проверка 
                       BEGIN 
-                      temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка
+                      select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
+                      temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' '||SDOCTYPE||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка
                       select s.id
                         into STRICT BENEFITSRECIPIENTS_ID
                         from BENEFITSRECIPIENTS s
                        where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
                          and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
                          and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
-                         and trim(s.persondocumentnumber) = trim(dow.col11)
-                         and trim(s.persondocumentseries) = trim(dow.col10);
+                         and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                         and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''));
+--          perform p_system_exception(1,'nzap = '||NZAP||' finded BENEFITSRECIPIENTS');          
                       exception when no_data_found then 
                         if dow.flag = 1 then /*return*/SERRORS := SERRORS||CHR(13)||'ƒанные по получателю пособи€ (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, удостовер€ющего личность, не подтверждены). –еестр загружен с ошибкой.'; fl:=1; end if;                      
                         --
@@ -487,47 +542,118 @@ FL:=0;
                       	  VALUES(nUSERID,nLID,dow.col1,dow.col2,dow.col3,dow.col7,dow.col8,dow.col5::date,dow.col4::bigint,dow.col6,dow.col9::bigint,dow.col10,dow.col11,dow.col12::date) returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
    /*исключени€*/      	exception when others then
                         			GET STACKED DIAGNOSTICS  
-   /*копим ошибки*/                 SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
-                        end;
+   /*копим ошибки*/                 SMESSAGE_ERR = MESSAGE_TEXT,
+                                    SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                    SERR_TABLENAME = TABLE_NAME,
+                                    SSQL_STATE = RETURNED_SQLSTATE; 
+                                    FL:=2; 
+                                    IF SSQL_STATE = '23505' THEN
+                                       BENEFITSRECIPIENTS_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                       SELECT 'в базе данных ‘»ќ: '||
+                                              COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                              COALESCE(b.persondocumentseries,'')||' '||COALESCE(b.persondocumentnumber,'')
+                                         into SINSTIGATOR
+                                         FROM BENEFITSRECIPIENTS B
+                                        WHERE B.ID = BENEFITSRECIPIENTS_ID;
+                                    END IF;
+                                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@Ќе соответствие данных: '||SINSTIGATOR||', в документе ';--||temp;
+                           end;
                         --
-                        		when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                               when too_many_rows then 
+                                    GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/                 SMESSAGE_ERR = MESSAGE_TEXT;
+                                    FL:=2;
+                                    select string_agg(' ‘»ќ: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                                        COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                                        COALESCE(s.persondocumentseries,'')||' '||COALESCE(s.persondocumentnumber,''),';')
+                                      into SINSTIGATOR
+                                      from BENEFITSRECIPIENTS s,
+                                           PERSONDOCUMENTDIR p
+                                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                                       and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                                       and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''))
+                                       and p.id = s.persondocumenttypeid;
+--          perform p_system_exception(1,'nzap = '||NZAP||' finded BENEFITSRECIPIENTS errors');          
+                                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование получател€ пособи€: ¬ базе данных '||SINSTIGATOR||'. ¬ документе:'||temp;     
                       end;
                         update benefit01 s set benefitsrecipientsid = BENEFITSRECIPIENTS_ID where s.id = benefitID;
                     elsif dow.stable = 'BENEFITCHILD' then
                       begin
-                     if dow.col7 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
-          			 if dow.col6 is null then fl:=2;SERRORS := SERRORS||CHR(13)|| temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+                     if dow.col7 is null or dow.col7 = '' then fl:=2;SERRORS := SERRORS||CHR(13)||'не все сведени€ документа@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет номера документа ребенка!'; end if;
+          			 if dow.col6 is null or dow.col6 = '' then fl:=2;SERRORS := SERRORS||CHR(13)||'не все сведени€ документа@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' нет серии документа ребенка!'; end if;
+--          perform p_system_exception(1,'nzap = '||NZAP||' beg find BENEFITCHILD');          
           		     select s.id
                        into STRICT OLDbenefitID 
                        from BENEFITCHILD s
                       where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
-                         and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
-                         and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
-                        and trim(s.docbirthchildnumber) = trim(dow.col7) 
-                        and trim(s.docbirthchildserial) = trim(dow.col6)
+                        and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                        and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                        and (trim(COALESCE(s.docbirthchildnumber,'')) = trim(COALESCE(dow.col7,''))) 
+                        and (trim(COALESCE(s.docbirthchildserial,'')) = trim(COALESCE(dow.col6,'')))
                         and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID;
+--          perform p_system_exception(1,'nzap = '||NZAP||' finded BENEFITCHILD');          
                       exception when no_data_found then
                         if dow.flag = 1 then /*return*/SERRORS := SERRORS||CHR(13)||'ƒанные по ребенку (указываетс€ ‘амили€ »м€ ќтчество (при наличии), сери€ и номер документа, подтверждающего факт рождени€, дата рождени€ не подтверждены). –еестр загружен с ошибкой.'; fl:=1; end if;
                       --
                        begin
-                        if dow.col9 is null then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. ќтсутствует тег childNumber!'; end if;
+                        if dow.col9 is null or dow.col9 = '' then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. ќтсутствует тег childNumber!'; end if;
                         if dow.col9::integer <=0 then FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||'. ќчередность рождени€ ребенка не может быть <=0 или пустой!'; end if;
                         insert into BENEFITCHILD(uid,lid,benefitsrecipientsid,lastname,firstname,patronymic,benefitchilddatebirth,docbirthchildtypeid,docbirthchildserial,docbirthchildnumber,docbirthchilddate,benefitchildumber)
                         values(nUSERID,nLID,BENEFITSRECIPIENTS_ID,dow.col1,dow.col2,dow.col3,dow.col4::date,dow.col5::bigint,dow.col6,dow.col7,dow.col8::date,dow.col9::integer) RETURNING BENEFITCHILD.ID INTO BENEFITCHILD_ID; select max(f.id) into OLDbenefitID from BENEFITCHILD f;
                        exception when others then  
-                         GET STACKED DIAGNOSTICS  
-   /*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
+                                     GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT,
+                                     SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                     SERR_TABLENAME = TABLE_NAME,
+                                     SSQL_STATE = RETURNED_SQLSTATE; 
+                                     FL:=2; 
+--          perform p_system_exception(1,'nzap = '||NZAP||' find BENEFITCHILD too_many_rows');          
+                                     IF SSQL_STATE = '23505' THEN
+                                       BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                       SELECT 'в базе данных ‘»ќ ребенка: '||
+                                              COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                              COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                         into SINSTIGATOR
+                                         FROM BENEFITCHILD B
+                                        WHERE B.ID = BENEFITCHILD_ID;
+                                     END IF;
+                                     SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                        end;		
                       --  
-                               when too_many_rows then raise using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! '||dow.col1||' '||dow.col2||' '||dow.col3;
+                               when too_many_rows then 
+                                    GET STACKED DIAGNOSTICS 
+                                    SMESSAGE_ERR = MESSAGE_TEXT;
+                                    FL:=2; 
+--          perform p_system_exception(1,'nzap = '||NZAP||' find BENEFITCHILD too_many_rows');          
+                                    select string_agg(' ‘»ќ ребенка: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                                      COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                                      COALESCE(s.docbirthchildserial,'')||' '||COALESCE(s.docbirthchildnumber,''),';')
+                                      into SINSTIGATOR 
+                                      from BENEFITCHILD s,
+                                           CERTIFICATEBIRTHDIR p
+                                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                                       and trim(COALESCE(s.docbirthchildnumber,'')) = trim(COALESCE(dow.col7,''))
+                                       and trim(COALESCE(s.docbirthchildserial,'')) = trim(COALESCE(dow.col6,''))
+                                       and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
+                                       and p.id = s.docbirthchildtypeid;
+                                       select p.name into SDOCTYPE from CERTIFICATEBIRTHDIR p where p.id = DOW.col5::bigint;
+--          perform p_system_exception(1,'nzap = '||NZAP||' finded BENEFITCHILD errors');          
+                                       SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование ребенка получател€ пособи€:'||temp||'. ¬ базе данных: '||SINSTIGATOR||'. ¬ документе: ‘»ќ ребенка: '
+                                              ||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' '||SDOCTYPE||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
                       end;
                       --
-                      begin
+                      if FL!=2 then 
+                       begin
                         insert into child(uid,lid,benefit01id,benefitchildid) values(nUSERID,nLID,benefitID,OLDbenefitID); select max(f.id) into OLDbenefitID from child f;
-                     exception when others then
+                       exception when others then
                         			GET STACKED DIAGNOSTICS  
    /*копим ошибки*/                 SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS :=  SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
-   					 end;
+   					   end;
+                      end if;
                       --
                     elsif dow.stable = 'BENEFIT01BASIS' then
                      begin
@@ -549,12 +675,13 @@ FL:=0;
                      begin 
                      --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if (dow.col4::numeric is null or dow.col4::numeric = 0) and 
+                     	   (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
-                           or dow.col11::numeric != 0 and dow.col11::numeric is not null then
+                           or dow.col11::numeric != 0 and dow.col11::numeric is not null) then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit01payment s,
                                    benefit01 t,
                                    child c
@@ -562,10 +689,12 @@ FL:=0;
                                and t.id = s.benefit01id
                                and c.id = s.child01id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID limit 1) = 1 THEN null;
+                             ELSE    
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!';
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
+--          perform p_system_exception(1,'nzap = '||NZAP||' finded PAYS');          
                         end if; 
                      --
                       if (dow.col4::numeric = 0 or dow.col4 is null) and (dow.col7::numeric = 0 or dow.col7 is null) and (dow.col9::numeric = 0 or dow.col9 is null)and (dow.col11::numeric = 0 or dow.col11 is null) THEN raise using message = '¬се теги с суммами пустые!'; end if;
@@ -581,44 +710,39 @@ FL:=0;
                      update benefit01 s set remarkid = REMARK_ID where s.id = benefitID;
                     end if;
                 end loop;
-               end loop;
+--               end loop;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
      elsif sNODE = 'benefit02' then
-    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
-    loop
-      insert into BENEFIT02 (HID, UID, LID) values (null, NUSERID, NLID) RETURNING BENEFIT02.ID INTO BENEFITID;
-      for DR in (select X.ID as XID, REG.ID as REGID, LOWER(SE.NAME) || SE.CODE || X.REPYEAR || LPAD(X.REPMONTH, 2, '0') as COD
-                   from BENEFITSPACKETS X, BENEFICIARIESREGISTERS REG, SUBJECTSDIR SE
-                  where REG.BENEFITSPACKETSID = X.ID
-                    and SE.ID = X.SUBJECTSDIRID
-                    and REG.ID = NID)
-      loop
-        update BENEFIT02 S
-           set BENEFITSPACKETSID = DR.XID,
-               BENEFITSTYPEDIRID = DR.REGID
-         where S.ID = BENEFITID;
-      end loop;
+--    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
+--    loop
+--      insert into BENEFIT02 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT02.ID into BENEFITID;
       
-      for DOW in (select * from FILE_IMP F where F.NZAP = REC.NZAP order by F.NZAP, F.SORT)
+      NZAP = -1;
+      for DOW in (select * from FILE_IMP F order by F.NZAP, F.SORT)
       loop
-       if dow.col1 = ''  then dow.col1  := null;end if;
-       if dow.col2 = ''  then dow.col2  := null;end if;
-       if dow.col3 = ''  then dow.col3  := null;end if;
-       if dow.col4 = ''  then dow.col4  := null;end if;
-       if dow.col5 = ''  then dow.col5  := null;end if;
-       if dow.col6 = ''  then dow.col6  := null;end if;
-       if dow.col7 = ''  then dow.col7  := null;end if;
-       if dow.col8 = ''  then dow.col8  := null;end if;
-       if dow.col9 = ''  then dow.col9  := null;end if;
-       if dow.col10 = '' then dow.col10 := null;end if;
-       if dow.col11 = '' then dow.col11 := null;end if;
-       if dow.col12 = '' then dow.col12 := null;end if;
-       if dow.col13 = '' then dow.col13 := null;end if;
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT02 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT02.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
         if DOW.STABLE = 'BENEFITSRECIPIENTS'
         then
           --проверка 
+          select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
           temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка
           begin
             select S.ID
@@ -639,31 +763,46 @@ FL:=0;
               --
               begin
                insert into BENEFITSRECIPIENTS
-                (UID,
-                 LID,
-                 LASTNAME,
-                 FIRSTNAME,
-                 PATRONYMIC,
-                 CITIZENSHIP,
-                 SNILS,
-                 RECIPIENTSDATEBIRTH,
-                 RECIPIENTSCATEGORIESDIRID,
-                 RECIPIENTADDRESS,
-                 PERSONDOCUMENTTYPEID,
-                 PERSONDOCUMENTSERIES,
-                 PERSONDOCUMENTNUMBER,
-                 PERSONDOCUMENTDATE)
+                (UID,LID,LASTNAME,FIRSTNAME,PATRONYMIC,CITIZENSHIP,SNILS,RECIPIENTSDATEBIRTH,RECIPIENTSCATEGORIESDIRID,RECIPIENTADDRESS,PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER,PERSONDOCUMENTDATE)
                values
                 (NUSERID, NLID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL7, DOW.COL8, DOW.COL5 ::date, DOW.COL4 ::BIGINT, DOW.COL6, DOW.COL9 ::BIGINT, DOW.COL10, DOW.COL11, DOW.COL12 ::date)
                 returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
 /*исключени€*/     exception when others then
                         		  GET STACKED DIAGNOSTICS  
-/*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
+   /*копим ошибки*/               SMESSAGE_ERR = MESSAGE_TEXT,
+                                  SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                  SERR_TABLENAME = TABLE_NAME,
+                                  SSQL_STATE = RETURNED_SQLSTATE; 
+                                  FL:=2; 
+                                  IF SSQL_STATE = '23505' THEN
+                                     BENEFITSRECIPIENTS_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                     SELECT 'в базе данных ‘»ќ: '||
+                                            COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                            COALESCE(b.persondocumentseries,'')||' '||COALESCE(b.persondocumentnumber,'')
+                                       into SINSTIGATOR
+                                       FROM BENEFITSRECIPIENTS B
+                                      WHERE B.ID = BENEFITSRECIPIENTS_ID;
+                                  END IF;
+                                  SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@Ќе соответствие данных: '||SINSTIGATOR||', в документе ';
                    end;
               --
-            when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+            when too_many_rows then 
+                    GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/ SMESSAGE_ERR = MESSAGE_TEXT;
+                    FL:=2;
+                    select string_agg(' ‘»ќ: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                        COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                        COALESCE(s.persondocumentseries,'')||' '||COALESCE(s.persondocumentnumber,''),';')
+                      into SINSTIGATOR
+                      from BENEFITSRECIPIENTS s,
+                           PERSONDOCUMENTDIR p
+                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                       and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                       and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''))
+                       and p.id = s.persondocumenttypeid;
+                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование получател€ пособи€: ¬ базе данных '||SINSTIGATOR||'. ¬ документе:'||temp;
           end;
           update BENEFIT02 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFIT01BASIS'
@@ -690,19 +829,21 @@ FL:=0;
          begin
          --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if (dow.col4::numeric is null or dow.col4::numeric = 0)
+                     	   and (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
-                           or dow.col11::numeric != 0 and dow.col11::numeric is not null then
+                           or dow.col11::numeric != 0 and dow.col11::numeric is not null) then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit02payment s,
                                    benefit02 t
                              where s.paysum is not null
                                and t.id = s.benefit02id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID limit 1) = 1 THEN null;
+                             ELSE   
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!';
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
                         end if; 
                      --
@@ -735,47 +876,40 @@ FL:=0;
                      update benefit02 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
-    end loop;
+--    end loop;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ               
      elsif SNODE = 'benefit03'
   then
-    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
-    loop
-      insert into BENEFIT03 (HID, UID, LID) values (null, NUSERID, NLID);
-      select max(S.ID) into BENEFITID from BENEFIT03 S;
-      for DR in (select X.ID as XID, REG.ID as REGID, LOWER(SE.NAME) || SE.CODE || X.REPYEAR || LPAD(X.REPMONTH, 2, '0') as COD
-                   from BENEFITSPACKETS X, BENEFICIARIESREGISTERS REG, SUBJECTSDIR SE
-                  where REG.BENEFITSPACKETSID = X.ID
-                    and SE.ID = X.SUBJECTSDIRID
-                    and REG.ID = NID)
+--    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
+--    loop
+--      insert into BENEFIT03 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT03.ID into BENEFITID;
+
+      NZAP = -1;
+      for DOW in (select * from FILE_IMP F order by F.NZAP, F.SORT)
       loop
-        update BENEFIT03 S
-           set BENEFITSPACKETSID = DR.XID,
-               BENEFITSTYPEDIRID = DR.REGID
-         where S.ID = BENEFITID;
-      end loop;
-       
-     
-      for DOW in (select * from FILE_IMP F where F.NZAP = REC.NZAP order by F.NZAP, F.SORT)
-      loop
-        if dow.col1 = ''  then dow.col1  := null;end if;
-        if dow.col2 = ''  then dow.col2  := null;end if;
-        if dow.col3 = ''  then dow.col3  := null;end if;
-        if dow.col4 = ''  then dow.col4  := null;end if;
-        if dow.col5 = ''  then dow.col5  := null;end if;
-        if dow.col6 = ''  then dow.col6  := null;end if;
-        if dow.col7 = ''  then dow.col7  := null;end if;
-        if dow.col8 = ''  then dow.col8  := null;end if;
-        if dow.col9 = ''  then dow.col9  := null;end if;
-        if dow.col10 = '' then dow.col10 := null;end if;
-        if dow.col11 = '' then dow.col11 := null;end if;
-        if dow.col12 = '' then dow.col12 := null;end if;
-        if dow.col13 = '' then dow.col13 := null;end if;
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT03 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT03.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
         if DOW.STABLE = 'BENEFITSRECIPIENTS'
         then
           --проверка
+          select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
           temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка 
           begin
             select S.ID
@@ -796,31 +930,46 @@ FL:=0;
               --
               begin
                insert into BENEFITSRECIPIENTS
-                (UID,
-                 LID,
-                 LASTNAME,
-                 FIRSTNAME,
-                 PATRONYMIC,
-                 CITIZENSHIP,
-                 SNILS,
-                 RECIPIENTSDATEBIRTH,
-                 RECIPIENTSCATEGORIESDIRID,
-                 RECIPIENTADDRESS,
-                 PERSONDOCUMENTTYPEID,
-                 PERSONDOCUMENTSERIES,
-                 PERSONDOCUMENTNUMBER,
-                 PERSONDOCUMENTDATE)
+                (UID,LID,LASTNAME,FIRSTNAME,PATRONYMIC,CITIZENSHIP,SNILS,RECIPIENTSDATEBIRTH,RECIPIENTSCATEGORIESDIRID,RECIPIENTADDRESS,PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER,PERSONDOCUMENTDATE)
                values
                 (NUSERID, NLID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL7, DOW.COL8, DOW.COL5 ::date, DOW.COL4 ::BIGINT, DOW.COL6, DOW.COL9 ::BIGINT, DOW.COL10, DOW.COL11, DOW.COL12 ::date)
                 returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
 /*исключени€*/     exception when others then
                         		  GET STACKED DIAGNOSTICS  
-/*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
+   /*копим ошибки*/               SMESSAGE_ERR = MESSAGE_TEXT,
+                                  SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                  SERR_TABLENAME = TABLE_NAME,
+                                  SSQL_STATE = RETURNED_SQLSTATE; 
+                                  FL:=2; 
+                                  IF SSQL_STATE = '23505' THEN
+                                    BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                    SELECT 'в базе данных ‘»ќ ребенка: '||
+                                           COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                           COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                      into SINSTIGATOR
+                                      FROM BENEFITCHILD B
+                                     WHERE B.ID = BENEFITCHILD_ID;
+                                  END IF;
+                                  SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                    end;
               --
-            when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+           when too_many_rows then 
+                    GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/ SMESSAGE_ERR = MESSAGE_TEXT;
+                    FL:=2;
+                    select string_agg(' ‘»ќ: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                        COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                        COALESCE(s.persondocumentseries,'')||' '||COALESCE(s.persondocumentnumber,''),';')
+                      into SINSTIGATOR
+                      from BENEFITSRECIPIENTS s,
+                           PERSONDOCUMENTDIR p
+                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                       and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                       and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''))
+                       and p.id = s.persondocumenttypeid;
+                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование получател€ пособи€: ¬ базе данных '||SINSTIGATOR||'. ¬ документе:'||temp;      
           end;
           update BENEFIT03 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFIT01BASIS'
@@ -841,25 +990,27 @@ FL:=0;
          exception when others then
                         			GET STACKED DIAGNOSTICS  
    /*копим ошибки*/                 SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' тег: <payments>';
-                     end;
+         end;
         elsif DOW.STABLE = 'BENEFIT01PAYMENT'
         then
          begin
          --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if (dow.col4::numeric is null or dow.col4::numeric = 0) and
+                     	    (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
-                           or dow.col11::numeric != 0 and dow.col11::numeric is not null then
+                           or dow.col11::numeric != 0 and dow.col11::numeric is not null) then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit03payment s,
                                    benefit03 t
                              where s.paysum is not null
                                and t.id = s.benefit03id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID limit 1) = 1 THEN null;
+                             ELSE  
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!';
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
                         end if; 
                      --
@@ -880,46 +1031,40 @@ FL:=0;
                      update benefit03 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
-    end loop;  
+--    end loop;  
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ       
      elsif SNODE = 'benefit04'
   then
-    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
-    loop
-      insert into BENEFIT04 (HID, UID, LID) values (null, NUSERID, NLID);
-      select max(S.ID) into BENEFITID from BENEFIT04 S;
-      for DR in (select X.ID as XID, REG.ID as REGID, LOWER(SE.NAME) || SE.CODE || X.REPYEAR || LPAD(X.REPMONTH, 2, '0') as COD
-                   from BENEFITSPACKETS X, BENEFICIARIESREGISTERS REG, SUBJECTSDIR SE
-                  where REG.BENEFITSPACKETSID = X.ID
-                    and SE.ID = X.SUBJECTSDIRID
-                    and REG.ID = NID)
-      loop
-        update BENEFIT04 S
-           set BENEFITSPACKETSID = DR.XID,
-               BENEFITSTYPEDIRID = DR.REGID
-         where S.ID = BENEFITID;
-      end loop;
+--    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
+--    loop
+--      insert into BENEFIT04 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT04.ID into BENEFITID;
        
-      for DOW in (select * from FILE_IMP F where F.NZAP = REC.NZAP order by F.NZAP, F.SORT)
+      NZAP = -1;
+      for DOW in (select * from FILE_IMP F order by F.NZAP, F.SORT)
       loop
-        if dow.col1 = ''  then dow.col1  := null;end if;
-        if dow.col2 = ''  then dow.col2  := null;end if;
-        if dow.col3 = ''  then dow.col3  := null;end if;
-        if dow.col4 = ''  then dow.col4  := null;end if;
-        if dow.col5 = ''  then dow.col5  := null;end if;
-        if dow.col6 = ''  then dow.col6  := null;end if;
-        if dow.col7 = ''  then dow.col7  := null;end if;
-        if dow.col8 = ''  then dow.col8  := null;end if;
-        if dow.col9 = ''  then dow.col9  := null;end if;
-        if dow.col10 = '' then dow.col10 := null;end if;
-        if dow.col11 = '' then dow.col11 := null;end if;
-        if dow.col12 = '' then dow.col12 := null;end if;
-        if dow.col13 = '' then dow.col13 := null;end if;
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT04 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT04.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
         if DOW.STABLE = 'BENEFITSRECIPIENTS'
         then
           --проверка
+          select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
           temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка 
           begin
             select S.ID
@@ -940,31 +1085,46 @@ FL:=0;
               --
               begin
                 insert into BENEFITSRECIPIENTS
-                  (UID,
-                   LID,
-                   LASTNAME,
-                   FIRSTNAME,
-                   PATRONYMIC,
-                   CITIZENSHIP,
-                   SNILS,
-                   RECIPIENTSDATEBIRTH,
-                   RECIPIENTSCATEGORIESDIRID,
-                   RECIPIENTADDRESS,
-                   PERSONDOCUMENTTYPEID,
-                   PERSONDOCUMENTSERIES,
-                   PERSONDOCUMENTNUMBER,
-                   PERSONDOCUMENTDATE)
+                  (UID,LID,LASTNAME,FIRSTNAME,PATRONYMIC,CITIZENSHIP,SNILS,RECIPIENTSDATEBIRTH,RECIPIENTSCATEGORIESDIRID,RECIPIENTADDRESS,PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER,PERSONDOCUMENTDATE)
                 values
                   (NUSERID, NLID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL7, DOW.COL8, DOW.COL5 ::date, DOW.COL4 ::BIGINT, DOW.COL6, DOW.COL9 ::BIGINT, DOW.COL10, DOW.COL11, DOW.COL12 ::date)
                   returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
 /*исключени€*/     exception when others then
                         		  GET STACKED DIAGNOSTICS  
-/*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
+   /*копим ошибки*/               SMESSAGE_ERR = MESSAGE_TEXT,
+                                  SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                  SERR_TABLENAME = TABLE_NAME,
+                                  SSQL_STATE = RETURNED_SQLSTATE; 
+                                  FL:=2; 
+                                  IF SSQL_STATE = '23505' THEN
+                                    BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                    SELECT 'в базе данных ‘»ќ ребенка: '||
+                                           COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                           COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                      into SINSTIGATOR
+                                      FROM BENEFITCHILD B
+                                     WHERE B.ID = BENEFITCHILD_ID;
+                                  END IF;
+                                  SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                    end;
               --
-            when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+           when too_many_rows then 
+                    GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/ SMESSAGE_ERR = MESSAGE_TEXT;
+                    FL:=2;
+                    select string_agg(' ‘»ќ: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                        COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                        COALESCE(s.persondocumentseries,'')||' '||COALESCE(s.persondocumentnumber,''),';')
+                      into SINSTIGATOR
+                      from BENEFITSRECIPIENTS s,
+                           PERSONDOCUMENTDIR p
+                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                       and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                       and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''))
+                       and p.id = s.persondocumenttypeid;
+                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование получател€ пособи€: ¬ базе данных '||SINSTIGATOR||'. ¬ документе:'||temp;       
           end;
           update BENEFIT04 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFITCHILD'
@@ -998,14 +1158,45 @@ FL:=0;
                values
                 (NUSERID, NLID, BENEFITSRECIPIENTS_ID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL4 ::date, DOW.COL5 ::BIGINT, DOW.COL6, DOW.COL7, DOW.COL8 ::date, DOW.COL9 ::integer);
               exception when others then  
-                         GET STACKED DIAGNOSTICS  
-   /*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
+                            GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/         SMESSAGE_ERR = MESSAGE_TEXT,
+                            SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                            SERR_TABLENAME = TABLE_NAME,
+                            SSQL_STATE = RETURNED_SQLSTATE; 
+                            FL:=2; 
+                            IF SSQL_STATE = '23505' THEN
+                              BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                              SELECT 'в базе данных ‘»ќ ребенка: '||
+                                     COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                     COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                into SINSTIGATOR
+                                FROM BENEFITCHILD B
+                               WHERE B.ID = BENEFITCHILD_ID;
+                            END IF;
+                            SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                        end;
               --
               select max(F.ID) into OLDBENEFITID from BENEFITCHILD F;
             when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+                    GET STACKED DIAGNOSTICS 
+                    SMESSAGE_ERR = MESSAGE_TEXT;
+                    FL:=2; 
+                    select string_agg(' ‘»ќ ребенка: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                      COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                      COALESCE(s.docbirthchildserial,'')||' '||COALESCE(s.docbirthchildnumber,''),';')
+                      into SINSTIGATOR 
+                      from BENEFITCHILD s,
+                           CERTIFICATEBIRTHDIR p
+                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                       and trim(COALESCE(s.docbirthchildnumber,'')) = trim(COALESCE(dow.col7,''))
+                       and trim(COALESCE(s.docbirthchildserial,'')) = trim(COALESCE(dow.col6,''))
+                       and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
+                       and p.id = s.docbirthchildtypeid;
+                       select p.name into SDOCTYPE from CERTIFICATEBIRTHDIR p where p.id = DOW.col5::bigint;
+                       SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование ребенка получател€ пособи€:'||temp||'. ¬ базе данных: '||SINSTIGATOR||'. ¬ документе: ‘»ќ ребенка: '
+                              ||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' '||SDOCTYPE||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
           end;
           --
           begin
@@ -1037,12 +1228,13 @@ FL:=0;
          begin
          --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if (dow.col4::numeric is null or dow.col4::numeric = 0) and 
+                     	   (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
-                           or dow.col11::numeric != 0 and dow.col11::numeric is not null then
+                           or dow.col11::numeric != 0 and dow.col11::numeric is not null) then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit04payment s,
                                    benefit04 t,
                                    child04 c
@@ -1050,9 +1242,10 @@ FL:=0;
                                and t.id = s.benefit04id
                                and c.id = s.child04id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID limit 1) = 1 THEN null;
+                               
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!';
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
                         end if; 
                      --
@@ -1085,46 +1278,40 @@ FL:=0;
                      update benefit04 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
-    end loop;  
+--    end loop;  
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ       
      elsif SNODE = 'benefit05'
   then
-    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
-    loop
-      insert into BENEFIT05 (HID, UID, LID) values (null, NUSERID, NLID);
-      select max(S.ID) into BENEFITID from BENEFIT05 S;
-      for DR in (select X.ID as XID, REG.ID as REGID, LOWER(SE.NAME) || SE.CODE || X.REPYEAR || LPAD(X.REPMONTH, 2, '0') as COD
-                   from BENEFITSPACKETS X, BENEFICIARIESREGISTERS REG, SUBJECTSDIR SE
-                  where REG.BENEFITSPACKETSID = X.ID
-                    and SE.ID = X.SUBJECTSDIRID
-                    and REG.ID = NID)
+--    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
+--    loop
+--      insert into BENEFIT05 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT05.ID into BENEFITID;
+
+      NZAP = -1;
+      for DOW in (select * from FILE_IMP F order by F.NZAP, F.SORT)
       loop
-        update BENEFIT05 S
-           set BENEFITSPACKETSID = DR.XID,
-               BENEFITSTYPEDIRID = DR.REGID
-         where S.ID = BENEFITID;
-      end loop;
-       
-      for DOW in (select * from FILE_IMP F where F.NZAP = REC.NZAP order by F.NZAP, F.SORT)
-      loop
-        if dow.col1 = ''  then dow.col1  := null;end if;
-        if dow.col2 = ''  then dow.col2  := null;end if;
-        if dow.col3 = ''  then dow.col3  := null;end if;
-        if dow.col4 = ''  then dow.col4  := null;end if;
-        if dow.col5 = ''  then dow.col5  := null;end if;
-        if dow.col6 = ''  then dow.col6  := null;end if;
-        if dow.col7 = ''  then dow.col7  := null;end if;
-        if dow.col8 = ''  then dow.col8  := null;end if;
-        if dow.col9 = ''  then dow.col9  := null;end if;
-        if dow.col10 = '' then dow.col10 := null;end if;
-        if dow.col11 = '' then dow.col11 := null;end if;
-        if dow.col12 = '' then dow.col12 := null;end if;
-        if dow.col13 = '' then dow.col13 := null;end if;
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT05 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT05.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
         if DOW.STABLE = 'BENEFITSRECIPIENTS'
         then
           --проверка
+          select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
           temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка 
           begin
             select S.ID
@@ -1145,31 +1332,46 @@ FL:=0;
               --
               begin
                insert into BENEFITSRECIPIENTS
-                (UID,
-                 LID,
-                 LASTNAME,
-                 FIRSTNAME,
-                 PATRONYMIC,
-                 CITIZENSHIP,
-                 SNILS,
-                 RECIPIENTSDATEBIRTH,
-                 RECIPIENTSCATEGORIESDIRID,
-                 RECIPIENTADDRESS,
-                 PERSONDOCUMENTTYPEID,
-                 PERSONDOCUMENTSERIES,
-                 PERSONDOCUMENTNUMBER,
-                 PERSONDOCUMENTDATE)
+                (UID,LID,LASTNAME,FIRSTNAME,PATRONYMIC,CITIZENSHIP,SNILS,RECIPIENTSDATEBIRTH,RECIPIENTSCATEGORIESDIRID,RECIPIENTADDRESS,PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER,PERSONDOCUMENTDATE)
                values
                 (NUSERID, NLID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL7, DOW.COL8, DOW.COL5 ::date, DOW.COL4 ::BIGINT, DOW.COL6, DOW.COL9 ::BIGINT, DOW.COL10, DOW.COL11, DOW.COL12 ::date)
                 returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
 /*исключени€*/     exception when others then
                         		  GET STACKED DIAGNOSTICS  
-/*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
+   /*копим ошибки*/               SMESSAGE_ERR = MESSAGE_TEXT,
+                                  SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                  SERR_TABLENAME = TABLE_NAME,
+                                  SSQL_STATE = RETURNED_SQLSTATE; 
+                                  FL:=2; 
+                                  IF SSQL_STATE = '23505' THEN
+                                    BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                    SELECT 'в базе данных ‘»ќ ребенка: '||
+                                           COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                           COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                      into SINSTIGATOR
+                                      FROM BENEFITCHILD B
+                                     WHERE B.ID = BENEFITCHILD_ID;
+                                  END IF;
+                                  SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                    end;
               --
-            when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+            when too_many_rows then 
+                    GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/ SMESSAGE_ERR = MESSAGE_TEXT;
+                    FL:=2;
+                    select string_agg(' ‘»ќ: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                        COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                        COALESCE(s.persondocumentseries,'')||' '||COALESCE(s.persondocumentnumber,''),';')
+                      into SINSTIGATOR
+                      from BENEFITSRECIPIENTS s,
+                           PERSONDOCUMENTDIR p
+                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                       and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                       and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''))
+                       and p.id = s.persondocumenttypeid;
+                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование получател€ пособи€: ¬ базе данных '||SINSTIGATOR||'. ¬ документе:'||temp;     
           end;
           update BENEFIT05 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFITCHILD'
@@ -1202,13 +1404,44 @@ FL:=0;
                 (NUSERID, NLID, BENEFITSRECIPIENTS_ID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL4 ::date, DOW.COL5 ::BIGINT, DOW.COL6, DOW.COL7, DOW.COL8 ::date, DOW.COL9 ::integer);
               exception when others then  
                          GET STACKED DIAGNOSTICS  
-   /*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||' ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
+   /*копим ошибки*/      SMESSAGE_ERR = MESSAGE_TEXT,
+                         SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                         SERR_TABLENAME = TABLE_NAME,
+                         SSQL_STATE = RETURNED_SQLSTATE; 
+                         FL:=2; 
+                         IF SSQL_STATE = '23505' THEN
+                           BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                           SELECT 'в базе данных ‘»ќ ребенка: '||
+                                  COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                  COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                             into SINSTIGATOR
+                             FROM BENEFITCHILD B
+                            WHERE B.ID = BENEFITCHILD_ID;
+                         END IF;
+                         SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
               end;
               --
               select max(F.ID) into OLDBENEFITID from BENEFITCHILD F;
             when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+                   GET STACKED DIAGNOSTICS 
+                   SMESSAGE_ERR = MESSAGE_TEXT;
+                   FL:=2; 
+                   select string_agg(' ‘»ќ ребенка: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                     COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                     COALESCE(s.docbirthchildserial,'')||' '||COALESCE(s.docbirthchildnumber,''),';')
+                     into SINSTIGATOR 
+                     from BENEFITCHILD s,
+                          CERTIFICATEBIRTHDIR p
+                    where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                      and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                      and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                      and trim(COALESCE(s.docbirthchildnumber,'')) = trim(COALESCE(dow.col7,''))
+                      and trim(COALESCE(s.docbirthchildserial,'')) = trim(COALESCE(dow.col6,''))
+                      and s.benefitsrecipientsid = BENEFITSRECIPIENTS_ID
+                      and p.id = s.docbirthchildtypeid;
+                      select p.name into SDOCTYPE from CERTIFICATEBIRTHDIR p where p.id = DOW.col5::bigint;
+                      SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование ребенка получател€ пособи€:'||temp||'. ¬ базе данных: '||SINSTIGATOR||'. ¬ документе: ‘»ќ ребенка: '
+                             ||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' '||SDOCTYPE||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'');
           end;
           --
           begin
@@ -1243,12 +1476,13 @@ FL:=0;
          begin
          --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if(dow.col4::numeric is null or dow.col4::numeric = 0) and 
+                     	   (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
-                           or dow.col11::numeric != 0 and dow.col11::numeric is not null then
+                           or dow.col11::numeric != 0 and dow.col11::numeric is not null) then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit05payment s,
                                    benefit05 t,
                                    child05 c
@@ -1256,9 +1490,10 @@ FL:=0;
                                and t.id = s.benefit05id
                                and c.id = s.child05id
                                and c.benefitchildid = BENEFITCHILD_ID
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 1 THEN null;
+                             ELSE  
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!';
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
                         end if; 
                      --
@@ -1291,46 +1526,40 @@ FL:=0;
                      update benefit05 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
-    end loop;
+--    end loop;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ       
      elsif SNODE = 'benefit06'
   then
-    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
-    loop
-      insert into BENEFIT06 (HID, UID, LID) values (null, NUSERID, NLID);
-      select max(S.ID) into BENEFITID from BENEFIT06 S;
-      for DR in (select X.ID as XID, REG.ID as REGID, LOWER(SE.NAME) || SE.CODE || X.REPYEAR || LPAD(X.REPMONTH, 2, '0') as COD
-                   from BENEFITSPACKETS X, BENEFICIARIESREGISTERS REG, SUBJECTSDIR SE
-                  where REG.BENEFITSPACKETSID = X.ID
-                    and SE.ID = X.SUBJECTSDIRID
-                    and REG.ID = NID)
-      loop
-        update BENEFIT06 S
-           set BENEFITSPACKETSID = DR.XID,
-               BENEFITSTYPEDIRID = DR.REGID
-         where S.ID = BENEFITID;
-      end loop;
+--    for REC in (select S.NZAP from FILE_IMP S group by S.NZAP)
+--    loop
+--      insert into BENEFIT06 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT06.ID into BENEFITID;
      
-      for DOW in (select * from FILE_IMP F where F.NZAP = REC.NZAP order by F.NZAP, F.SORT)
+      NZAP = -1;
+      for DOW in (select * from FILE_IMP F order by F.NZAP, F.SORT)
       loop
-        if dow.col1 = ''  then dow.col1  := null;end if;
-        if dow.col2 = ''  then dow.col2  := null;end if;
-        if dow.col3 = ''  then dow.col3  := null;end if;
-        if dow.col4 = ''  then dow.col4  := null;end if;
-        if dow.col5 = ''  then dow.col5  := null;end if;
-        if dow.col6 = ''  then dow.col6  := null;end if;
-        if dow.col7 = ''  then dow.col7  := null;end if;
-        if dow.col8 = ''  then dow.col8  := null;end if;
-        if dow.col9 = ''  then dow.col9  := null;end if;
-        if dow.col10 = '' then dow.col10 := null;end if;
-        if dow.col11 = '' then dow.col11 := null;end if;
-        if dow.col12 = '' then dow.col12 := null;end if;
-        if dow.col13 = '' then dow.col13 := null;end if;
+        if NZAP <> DOW.NZAP then
+          insert into BENEFIT06 (HID, UID, LID, BENEFITSTYPEDIRID, BENEFITSPACKETSID) values (null, NUSERID, NLID, NID, BENEFITSPACKETS_ID) returning BENEFIT06.ID into BENEFITID;
+          NZAP = DOW.NZAP;
+        end if;
+        dow.col1:= nullif(dow.col1,'');
+        dow.col2:= nullif(dow.col2,'');
+        dow.col3:= nullif(dow.col3,'');
+        dow.col4:= nullif(dow.col4,'');
+        dow.col5:= nullif(dow.col5,'');
+        dow.col6:= nullif(dow.col6,'');
+        dow.col7:= nullif(dow.col7,'');
+        dow.col8:= nullif(dow.col8,'');
+        dow.col9:= nullif(dow.col9,'');
+        dow.col10:= nullif(dow.col10,'');
+        dow.col11:= nullif(dow.col11,'');
+        dow.col12:= nullif(dow.col12,'');
+        dow.col13:= nullif(dow.col13,'');
         if DOW.STABLE = 'BENEFITSRECIPIENTS'
         then
           --проверка
+          select p.name into SDOCTYPE from PERSONDOCUMENTDIR p where p.id = DOW.col9::bigint;
           temp := ' ‘»ќ: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col10::text,'')||' '||COALESCE(dow.col11::text,''); --берем данные на случай если возникнет ошибка 
           begin
             select S.ID
@@ -1351,31 +1580,46 @@ FL:=0;
               --
               begin
                insert into BENEFITSRECIPIENTS
-                (UID,
-                 LID,
-                 LASTNAME,
-                 FIRSTNAME,
-                 PATRONYMIC,
-                 CITIZENSHIP,
-                 SNILS,
-                 RECIPIENTSDATEBIRTH,
-                 RECIPIENTSCATEGORIESDIRID,
-                 RECIPIENTADDRESS,
-                 PERSONDOCUMENTTYPEID,
-                 PERSONDOCUMENTSERIES,
-                 PERSONDOCUMENTNUMBER,
-                 PERSONDOCUMENTDATE)
+                (UID,LID,LASTNAME,FIRSTNAME,PATRONYMIC,CITIZENSHIP,SNILS,RECIPIENTSDATEBIRTH,RECIPIENTSCATEGORIESDIRID,RECIPIENTADDRESS,PERSONDOCUMENTTYPEID,PERSONDOCUMENTSERIES,PERSONDOCUMENTNUMBER,PERSONDOCUMENTDATE)
                values
                 (NUSERID, NLID, DOW.COL1, DOW.COL2, DOW.COL3, DOW.COL7, DOW.COL8, DOW.COL5 ::date, DOW.COL4 ::BIGINT, DOW.COL6, DOW.COL9 ::BIGINT, DOW.COL10, DOW.COL11, DOW.COL12 ::date)
                 returning BENEFITSRECIPIENTS.ID into BENEFITSRECIPIENTS_ID;
 /*исключени€*/     exception when others then
                         		  GET STACKED DIAGNOSTICS  
-/*копим ошибки*/                  SMESSAGE_ERR = MESSAGE_TEXT; FL:=2; SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp;
+   /*копим ошибки*/               SMESSAGE_ERR = MESSAGE_TEXT,
+                                  SDETAIL_ERR = PG_EXCEPTION_DETAIL,
+                                  SERR_TABLENAME = TABLE_NAME,
+                                  SSQL_STATE = RETURNED_SQLSTATE; 
+                                  FL:=2; 
+                                  IF SSQL_STATE = '23505' THEN
+                                    BENEFITCHILD_ID:=p_tools_get_id_source_of_conflict(SERR_TABLENAME,SDETAIL_ERR);
+                                    SELECT 'в базе данных ‘»ќ ребенка: '||
+                                           COALESCE(b.lastname,'')||' '||COALESCE(b.firstname,'')||' '||COALESCE(b.patronymic,'')||' сери€ и номер документа: '||
+                                           COALESCE(b.docbirthchildserial,'')||' '||COALESCE(b.docbirthchildnumber,'')||' очередность рождени€ - '||COALESCE(b.benefitchildumber::text,'')
+                                      into SINSTIGATOR
+                                      FROM BENEFITCHILD B
+                                     WHERE B.ID = BENEFITCHILD_ID;
+                                  END IF;
+                                  SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@'||temp||'. Ќе соответствие данных: '||SINSTIGATOR||', в документе ‘»ќ ребенка: '||COALESCE(dow.col1,'')||' '||COALESCE(dow.col2,'')||' '||COALESCE(dow.col3,'')||' сери€ и номер документа: '||COALESCE(dow.col6::text,'')||' '||COALESCE(dow.col7::text,'')||' очередность рождени€ - '||COALESCE(dow.col9,'');
                    end;
               --
-            when TOO_MANY_ROWS then
-              raise
-                using MESSAGE = 'Ќайдены дубликаты критическа€ ошибка! ' || DOW.COL1 || ' ' || DOW.COL2 || ' ' || DOW.COL3;
+           when too_many_rows then 
+                    GET STACKED DIAGNOSTICS  
+   /*копим ошибки*/ SMESSAGE_ERR = MESSAGE_TEXT;
+                    FL:=2;
+                    select string_agg(' ‘»ќ: '||COALESCE(s.lastname,'')||' '||COALESCE(s.firstname,'')||' '||
+                                        COALESCE(s.patronymic,'')||' '||COALESCE(p.name,'')||' сери€ и номер документа: '||
+                                        COALESCE(s.persondocumentseries,'')||' '||COALESCE(s.persondocumentnumber,''),';')
+                      into SINSTIGATOR
+                      from BENEFITSRECIPIENTS s,
+                           PERSONDOCUMENTDIR p
+                     where trim(lower(COALESCE(s.lastname,''))) = lower(COALESCE(dow.col1,''))
+                       and trim(lower(COALESCE(s.firstname,''))) = lower(COALESCE(dow.col2,''))
+                       and trim(lower(COALESCE(s.patronymic,''))) = lower(COALESCE(dow.col3,''))
+                       and trim(s.persondocumentnumber) = trim(COALESCE(dow.col11,''))
+                       and trim(s.persondocumentseries) = trim(COALESCE(dow.col10,''))
+                       and p.id = s.persondocumenttypeid;
+                    SERRORS := SERRORS||CHR(13)||SMESSAGE_ERR||'@ƒублирование получател€ пособи€: ¬ базе данных '||SINSTIGATOR||'. ¬ документе:'||temp;       
           end;
           update BENEFIT06 S set BENEFITSRECIPIENTSID = BENEFITSRECIPIENTS_ID where S.ID = BENEFITID;
         elsif DOW.STABLE = 'BENEFIT01BASIS'
@@ -1415,19 +1659,21 @@ FL:=0;
          begin
          --проверка по суммам
                        --смотрим есть ли значени€ в возврате, доплате, удержании
-                     	if dow.col7::numeric != 0 and dow.col7::numeric is not null 
+                     	if (dow.col4::numeric is null or dow.col4::numeric = 0) and 
+                     	    (dow.col7::numeric != 0 and dow.col7::numeric is not null 
                            or dow.col9::numeric != 0 and dow.col9::numeric is not null 
-                           or dow.col11::numeric != 0 and dow.col11::numeric is not null then
+                           or dow.col11::numeric != 0 and dow.col11::numeric is not null) then
                         	--ищем записи по получателю, были ли выплаты ранее
                             IF (
-                            select COUNT(*)
+                            select 1
                               from benefit06payment s,
                                    benefit06 t
                              where s.paysum is not null
                                and t.id = s.benefit06id
-                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 0 and (dow.col4::numeric is null or dow.col4::numeric = 0) THEN 
+                               and t.benefitsrecipientsid = BENEFITSRECIPIENTS_ID) = 1 THEN null;
+                             ELSE  
                                 SERRORS := SERRORS||CHR(13)||'ѕо '||temp||' выплат не обнаружено. –еестр загружен с предупреждением!'; --статус предупреждение
-                                FL:=1;
+                                if fl!=2 then FL:=1; end if;
                              END IF;
                         end if; 
                      --
@@ -1448,24 +1694,21 @@ FL:=0;
                      update benefit06 s set remarkid = REMARK_ID where s.id = benefitID;
         end if;
       end loop;
-    end loop;
+--    end loop;
 --ЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎЎ             
    end if; 
-   if fl = 1 then
-   		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '03' where S.ID = NID;  
-        return 'Ќайдены не критические ошибки при загрузке. –еестр загружен с предупреждением!';     
-   elsif fl = 2 then
-   		update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '02' where S.ID = NID;
-        update BENEFITSPACKETS S set STATUSPACK  = '03' where S.ID = BENEFITSPACKETS_ID; --статус ошибка в пакетах реестра
-        execute 'delete from '||SNODE||' t where t.benefitstypedirid = '||nID;
-        --perform p_action_clear_records(1);
-        return 'Ќайдены критические ошибки при загрузке. –еестр не загружен!';
-   end if;    
-        
+  perform p_system_exception(1,'end status fl='||fl);          
+
+   -- откатываем транзакцию
+   if fl = 2 then
+     raise using message = 'Ќайдены не критические ошибки при загрузке. –еестр загружен с предупреждением!';
+   end if;  
+
    exception when others then 
-      GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
-      							err_table = TABLE_NAME,
-      							tRETURN   = MESSAGE_TEXT;
+    GET STACKED DIAGNOSTICS   err_state = RETURNED_SQLSTATE,
+         				err_table = TABLE_NAME,
+      					tRETURN   = MESSAGE_TEXT;
+    if fl <> 2 then      							
       if ERR_STATE = '23505'
       then
         for DOW in (select M.NAME
@@ -1476,13 +1719,26 @@ FL:=0;
           TRETURN = 'ќшибка: ƒублирование записи в таблице "' || COALESCE(DOW.NAME, ERR_TABLE) || '"';
         end loop;
       end if;
+      
       update BENEFICIARIESREGISTERS S
          set WRONGLOADING = TRETURN,
              STATUS       = '02'
        where S.ID = NID;
        update BENEFITSPACKETS S set STATUSPACK  = '03' where S.ID = BENEFITSPACKETS_ID; --статус ошибка в пакетах реестра
-     --insert into WRONGLOADING( benefitspacketsid,wrong,benefitstypenamedirid) values( nPACK,tRETURN,nType);
+       return TRETURN;
+    end if;   
    end;
+
+   if fl = 1 then
+        update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '03' where S.ID = NID;  
+        return 'Ќайдены не критические ошибки при загрузке. –еестр загружен с предупреждением!';     
+   elsif fl = 2 then
+        update BENEFICIARIESREGISTERS S set WRONGLOADING = SERRORS, STATUS = '02' where S.ID = NID;
+        update BENEFITSPACKETS S set STATUSPACK  = '03' where S.ID = BENEFITSPACKETS_ID; --статус ошибка в пакетах реестра
+        return 'Ќайдены критические ошибки при загрузке. –еестр не загружен!';
+   end if;    
+perform p_system_exception(1,'end');          
+
   
    return tRETURN;
  end;

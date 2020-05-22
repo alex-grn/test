@@ -1,11 +1,12 @@
 CREATE OR REPLACE FUNCTION public.p_reestr_parse_xml (
   file_xml xml,
   id bigint,
+  inout nlevel integer [],
   pos integer = 1,
   fio text = ''::text,
   fio_r text = ''::text
 )
-RETURNS void AS
+RETURNS integer [] AS
 $body$
 declare
   SNODE    TEXT;
@@ -17,7 +18,6 @@ declare
   NID      BIGINT := ID;
   FL       integer := 0;
   TBUF     TEXT [ ];
-  NLEVEL   integer [ ];
   NPOS     integer;
   FLAG     integer := 0;
   sERRORS  TEXT := '';
@@ -235,13 +235,14 @@ begin
         end if; 
      end if;
    end loop;
-    select count(*) into npos from file_imp s  where s.stable = 'BENEFITSRECIPIENTS';  nlevel[1]:=npos;  --тут ищем количество записей чтоб корректно обновлять таблицу
-    select count(*) into npos from file_imp s  where s.stable = 'BENEFITCHILD';	       nlevel[2]:=npos;
-    select count(*) into npos from file_imp s  where s.stable = 'FAMILYMEMBERS';       nlevel[3]:=npos;
-    select count(*) into npos from file_imp s  where s.stable = 'BENEFIT07PURPOSE';    nlevel[4]:=npos;
-    select count(*) into npos from file_imp s  where s.stable = 'BENEFIT07PAYMENT';    nlevel[5]:=npos;
-    select count(*) into npos from file_imp s  where s.stable = 'REMARK'; 			   nlevel[6]:=npos;
-    select count(*) into npos from file_imp s  where s.stable = 'BENEFITSRECIPIENTS';
+    npos := NLEVEL[1];
+    --select count(*) into npos from file_imp s  where s.stable = 'BENEFITSRECIPIENTS'::character varying;  nlevel[1]:=npos;  --тут ищем количество записей чтоб корректно обновлять таблицу
+    --select count(*) into npos from file_imp s  where s.stable = 'BENEFITCHILD'::character varying;	       nlevel[2]:=npos;
+    --select count(*) into npos from file_imp s  where s.stable = 'FAMILYMEMBERS'::character varying;       nlevel[3]:=npos;
+    --select count(*) into npos from file_imp s  where s.stable = 'BENEFIT07PURPOSE'::character varying;    nlevel[4]:=npos;
+    --select count(*) into npos from file_imp s  where s.stable = 'BENEFIT07PAYMENT'::character varying;    nlevel[5]:=npos;
+    --select count(*) into npos from file_imp s  where s.stable = 'REMARK'::character varying; 			   nlevel[6]:=npos;
+    --select count(*) into npos from file_imp s  where s.stable = 'BENEFITSRECIPIENTS'::character varying;
     
    -- insert into file_imp(TABLE,col1,col2,col3,col4)
   /*   if lower(snode) = 'header'          then 
@@ -296,55 +297,64 @@ begin
   		insert into file_imp(stable,col4,col5,col6,col7,col8,col9,col10,col11,col12)
         values('BENEFIT07PAYMENT',tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8],tBUF[9],tBUF[10],tBUF[11],tBUF[12])
         on conflict (stable) do update set col4 = tBUF[4],col5 = tBUF[5],col6 = tBUF[6],col7 = tBUF[7],col8 = tBUF[8],col9 = tBUF[9],col10 = tBUF[10],col11 = tBUF[11],col12 = tBUF[12];*/
-  end if;*/
+  --end if;*/
      if lower(snode) = 'header'          then 
      	null;
   elsif lower(snode) = 'benefitreceiver' then 
+                nlevel[1] = nlevel[1]+1;
   		insert into file_imp(sTABLE,nzap,LEVEL,col1,col2,col3,col4,col5,col6,col7,col8) 
-        values('BENEFITSRECIPIENTS',npos+1,nlevel[1]+1,tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8]);
+        values('BENEFITSRECIPIENTS',npos+1,nlevel[1],tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8]);
   elsif lower(snode) = 'persondocument' or lower(snode) = 'receivercredential'  then 
-        update file_imp s set col9 = tBUF[9],col10 = tBUF[10],col11 = tBUF[11],col12 = tBUF[12] where s.stable = 'BENEFITSRECIPIENTS' and s.level = nlevel[1];
+        update file_imp s set col9 = tBUF[9],col10 = tBUF[10],col11 = tBUF[11],col12 = tBUF[12] where s.stable = 'BENEFITSRECIPIENTS'::character varying and s.level = nlevel[1];
   elsif lower(snode) = 'child' 		     then   
+                nlevel[2] = nlevel[2]+1;
   		insert into file_imp(stable,nzap,LEVEL,col1,col2,col3,col4,col9)
-        values('BENEFITCHILD',npos,nlevel[2]+1,tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[9]);
+        values('BENEFITCHILD',npos,nlevel[2],tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[9]);
   elsif lower(snode) = 'childdocument' or lower(snode) = 'certificateofbirth' then
-        update file_imp s set col5 = tBUF[5],col6 = tBUF[6],col7 = tBUF[7],col8 = tBUF[8] where s.stable = 'BENEFITCHILD' and s.level = nlevel[2];
+        update file_imp s set col5 = tBUF[5],col6 = tBUF[6],col7 = tBUF[7],col8 = tBUF[8] where s.stable = 'BENEFITCHILD'::character varying and s.level = nlevel[2];
   elsif lower(snode) = 'familymembers'   then 
+                nlevel[3] = nlevel[3]+1;
   		insert into file_imp(stable,nzap,LEVEL,col1,col2,col3,col4,col5,col6,col7)
-        values('FAMILYMEMBERS',npos,nlevel[3]+1,tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7]);    
+        values('FAMILYMEMBERS',npos,nlevel[3],tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7]);    
   elsif lower(snode) = 'purpose'         then 
+                nlevel[4] = nlevel[4]+1;
   		insert into file_imp(stable,nzap,LEVEL,col1,col2,col3)
-        VALUES('BENEFIT07PURPOSE',npos,nlevel[4]+1,tBUF[1],tBUF[2],tBUF[3]);
+        VALUES('BENEFIT07PURPOSE',npos,nlevel[4],tBUF[1],tBUF[2],tBUF[3]);
   elsif lower(snode) = 'payment' 	     then 
+                nlevel[5] = nlevel[5]+1;
   		insert into file_imp(stable,nzap,LEVEL,col1)
-  		VALUES('BENEFIT07PAYMENT',npos,nlevel[5]+1,tBUF[1]);
+  		VALUES('BENEFIT07PAYMENT',npos,nlevel[5],tBUF[1]);
   elsif lower(snode) = 'pay' 	     then 
-        update file_imp s set col2 = tBUF[2],col3 = tBUF[3],col4 = tBUF[4] where s.stable = 'BENEFIT07PAYMENT' and s.level = nlevel[5];
+        update file_imp s set col2 = tBUF[2],col3 = tBUF[3],col4 = tBUF[4] where s.stable = 'BENEFIT07PAYMENT'::character varying and s.level = nlevel[5];
   elsif lower(snode) = 'surcharge' 	     then 
-        update file_imp s set col5 = tBUF[5],col6 = tBUF[6],col7 = tBUF[7] where s.stable = 'BENEFIT07PAYMENT' and s.level = nlevel[5];
+        update file_imp s set col5 = tBUF[5],col6 = tBUF[6],col7 = tBUF[7] where s.stable = 'BENEFIT07PAYMENT'::character varying and s.level = nlevel[5];
         if tBUF[5] is not null or tBUF[6] is not null or tBUF[7] is not null THEN
-        update file_imp s set flag = 1 where s.stable = 'BENEFITSRECIPIENTS' or s.stable = 'BENEFITCHILD'; end if; 
+        update file_imp s set flag = 1 where s.stable = 'BENEFITSRECIPIENTS'::character varying or s.stable = 'BENEFITCHILD'::character varying; end if; 
   elsif lower(snode) = 'refund' 	     then 
-        update file_imp s set col8 = tBUF[8],col9 = tBUF[9],col10 = tBUF[10] where s.stable = 'BENEFIT07PAYMENT' and s.level = nlevel[5];
+        update file_imp s set col8 = tBUF[8],col9 = tBUF[9],col10 = tBUF[10] where s.stable = 'BENEFIT07PAYMENT'::character varying and s.level = nlevel[5];
         if tBUF[8] is not null or tBUF[9] is not null or tBUF[10] is not null THEN
-        update file_imp s set flag = 1 where s.stable = 'BENEFITSRECIPIENTS' or s.stable = 'BENEFITCHILD'; end if; 
+        update file_imp s set flag = 1 where s.stable = 'BENEFITSRECIPIENTS'::character varying or s.stable = 'BENEFITCHILD'::character varying; end if; 
   elsif lower(snode) = 'holddate' 	     then 
-        update file_imp s set col11 = tBUF[11],col12 = tBUF[12],col13 = tBUF[13] where s.stable = 'BENEFIT07PAYMENT' and s.level = nlevel[5];
+        update file_imp s set col11 = tBUF[11],col12 = tBUF[12],col13 = tBUF[13] where s.stable = 'BENEFIT07PAYMENT'::character varying and s.level = nlevel[5];
         if tBUF[11] is not null or tBUF[12] is not null or tBUF[13] is not null THEN
-        update file_imp s set flag = 1 where s.stable = 'BENEFITSRECIPIENTS' or s.stable = 'BENEFITCHILD'; end if; 
+        update file_imp s set flag = 1 where s.stable = 'BENEFITSRECIPIENTS'::character varying or s.stable = 'BENEFITCHILD'::character varying; end if; 
   elsif lower(snode) = 'comment' 	     then 
+                nlevel[6] = nlevel[6] + 1;
   		insert into file_imp(stable,nzap,LEVEL,col1)
   		VALUES('REMARK',npos,nlevel[6],tBUF[1]);
   --benefit01 or benefit02
   elsif lower(snode) = 'benefitassignment' 	     then 
+                nlevel[3] := nlevel[3] + 1;
   		insert into file_imp(stable,nzap,LEVEL,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13)
-  		VALUES('BENEFIT01BASIS',npos,nlevel[3]+1,tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8],tBUF[9],tBUF[10],tBUF[11],tBUF[12],tBUF[13]);
+  		VALUES('BENEFIT01BASIS',npos,nlevel[3],tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8],tBUF[9],tBUF[10],tBUF[11],tBUF[12],tBUF[13]);
   elsif lower(snode) = 'payments' 	     then 
+                nlevel[4] := nlevel[4] + 1;
   		insert into file_imp(stable,nzap,LEVEL,col1,col2)
-  		VALUES('BENEFIT01PURPOSE',npos,nlevel[4]+1,tBUF[1],tBUF[2]);
+  		VALUES('BENEFIT01PURPOSE',npos,nlevel[4],tBUF[1],tBUF[2]);
   elsif lower(snode) = 'periodpayments' 	     then 
+            nlevel[5] := nlevel[5] + 1;
   	    insert into file_imp(stable,nzap,LEVEL,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11)
-  		VALUES('BENEFIT01PAYMENT',npos,nlevel[5]+1,tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8],tBUF[9],tBUF[10],tBUF[11]);   
+  		VALUES('BENEFIT01PAYMENT',npos,nlevel[5],tBUF[1],tBUF[2],tBUF[3],tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8],tBUF[9],tBUF[10],tBUF[11]);   
   /*elsif lower(snode) = 'paymentperiod'   then
   		insert into file_imp(stable,col4,col5,col6,col7,col8,col9,col10,col11,col12)
         values('BENEFIT07PAYMENT',tBUF[4],tBUF[5],tBUF[6],tBUF[7],tBUF[8],tBUF[9],tBUF[10],tBUF[11],tBUF[12])
@@ -366,7 +376,7 @@ begin
        from unnest(xpath('/'||snode||'/*', file_xml)) with ordinality as c(node,i) 
       order by i
    loop
-     perform p_reestr_parse_xml(child.node, nid, child.i,sFIO,sFIO_R);
+     NLEVEL := p_reestr_parse_xml(child.node, nid, NLEVEL, child.i,sFIO,sFIO_R);
    end loop;  
    --exception when others then raise using message = tBUF[1]||' '||tBUF[2]||' '||tBUF[3]||' '||tBUF[4]||' '||tBUF[5]||' '||tBUF[6]||' '||tBUF[7]||' '||tBUF[8]||' '||tBUF[9]||' '||tBUF[10]||' '||tBUF[11]||' '||tBUF[12]||' '||tBUF[13];  
  end;
@@ -377,5 +387,5 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
 
-ALTER FUNCTION public.p_reestr_parse_xml (file_xml xml, id bigint, pos integer, fio text, fio_r text)
+ALTER FUNCTION public.p_reestr_parse_xml (file_xml xml, id bigint, inout nlevel integer [], pos integer, fio text, fio_r text)
   OWNER TO magicbox;
