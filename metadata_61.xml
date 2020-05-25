@@ -308,7 +308,8 @@
 		</A>
 		<A id="REPORTCASHBOOKSID" name="Отчет кассира" caption="Отчет кассира" type="ref" table="REPORTCASHBOOKS" ret="DOCDATE" nulls="false"/>
 		<A id="CASHPAYMENTHEADERID" name="РКО" caption="РКО" type="ref" table="CASHPAYMENT_HEADER" ret="DOCNUMBVIRT" nulls="false"/>
-		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="CODE" nulls="false"/>
+		<A id="PROXYID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXY" ret="ID" nulls="false"/>
+		<A id="PROXYDOCSID" name="Доверенность" caption="Доверенность" labelwidth="200" type="ref" table="PROXYDOCS" ret="CODE" nulls="false"/>
 		<A id="INPUTKRFID" name="Входящий файл" caption="Входящий файл" type="ref" table="INPUTKRF" ret="NUMBPP" nulls="false"/>
 		<A id="CASHDOCSID" name="Касса" caption="Касса" type="ref" table="CASHDOCS" ret="ID" nulls="false"/>
 		<A id="EXPENSEREPORTSID" name="Авансовые отчеты избирательной кампании" caption="Авансовые отчеты избирательной кампании" type="ref" table="EXPENSE_REPORTS" ret="ID" nulls="false"/>
@@ -688,7 +689,10 @@
 				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
 			</GA>
 			<A id="IDGASCOMMITTEEMAN" name="Идентификатор члена комиссии в ГАС Выборы" caption="Идентификатор члена комиссии в ГАС Выборы" type="string" nulls="false" visible="false" local="true"/>
-			<TI unique="ELECTCOMMITTEEID,PERSONID, POSTSID, POSTBEGINDATE"/>
+			<A id="PERSONID_COUNTVIRT" name="Проверка на задвоение физлиц" caption="Проверка на задвоение физлиц" virtual="true" type="number" formula="select count(PERSONID) from committeeman where postenddate >=now() and PERSONID=@PERSONID and ELECTCOMMITTEEID=@ELECTCOMMITTEEID" nulls="false" visible="true" local="true"/>
+			<A id="PERSONID_COUNT" name="Проверка на задвоение физлиц" caption="Проверка на задвоение физлиц" type="number" formula="select count(PERSONID) from committeeman where postenddate >=now() and PERSONID=@PERSONID and ELECTCOMMITTEEID=@ELECTCOMMITTEEID" nulls="false" visible="true" local="true"/>
+			<TI id="COMMITTEEMAN_CHECK" name="Одно физ.лицо не может занимать две доложности в одной комиссии" check="1 = PERSONID_COUNT  or PERSONID_COUNT is null"/>
+			<TI unique="ELECTCOMMITTEEID, PERSONID, POSTSID, POSTENDDATE"/>
 		</TABLE>
 		<TABLE id="COMMITTEEMANVIRT" name="Члены избирательных комиссий" virtual="true" query="select c.* from COMMITTEEMAN c, POSTS P where c.postsid = p.id and (p.levelelcommittee = 'territory' or p.levelelcommittee = 'circuit')">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -1242,7 +1246,7 @@
 					<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
 					<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
 			</GA>
-			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Контракт №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c where c.id = @ID" local="true"/>
+			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Контракт №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c where c.id = @ID" local="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI id="CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
@@ -1521,15 +1525,26 @@
 			<A id="RECEIVEDID" labelwidth="200" name="С кем заключен договор" caption="С кем заключен договор" type="ref" table="PERSON" ret="CODE" nulls="false" local="true"/>
 			<TI id="LIABILITYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DATE and DATE >= BEGINDATETIK"/>
 		</TABLE>
-		<TABLE id="PROXY" name="Доверенности">
+		<TABLE id="PROXY" name="Доверенности Избирательной кампании">
 			<GA name="Избирательная кампания" caption="Избирательная кампания">
 				<A id="ELECTCAMPAIGNID" labelwidth="200" nulls="false"/>
 				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
-				<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
-				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
+		</TABLE>
+		<TABLE id="PROXY_CONTRACTS" name="Контракты по доверенностям" virtual="true" query="select c.ID ID, null HID, max(c.LID) LID, 0 CID, max(c.UID) UID, max(c.TIM) TIM, (select p.id from proxy p where p.ELECTCAMPAIGNID = cs.ELECTCAMPAIGNID and p.JURPERSONSID = cs.JURPERSONSID) PROXYID, ('Контракт №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy')) CONTRACTSNAME, a.name AGENT  from CONTRACTSDOCS c left join contracts cs on cs.id = c.contractsid left join agent a on a.id = c.AGENTID where c.contrtype='product' group by ELECTCAMPAIGNID, JURPERSONSID, c.ID, a.name">
+			<A id="PROXYID" parentkey="nocascade" readonly="true"/>
+			<A id="CONTRACTSNAME" type="string" name="Контракт" caption="Контракт" labelwidth="150" nulls="false" visible="true" readonly="true"/>
+			<A id="AGENT" type="string" name="Исполнитель" caption="Исполнитель" labelwidth="150" nulls="false" visible="true" readonly="true"/>
+			<A id="CONTRACTSSUMM" name="Сумма" caption="Сумма" type="number" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSDOCSID = @ID"/>
+		</TABLE>
+		<TABLE id="PROXYDOCS" name="Доверенности">
+			<A id="PROXYID" parentkey="cascade"/>
+			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PROXY p where e.id = p.ELECTCAMPAIGNID and p.id=@PROXYID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PROXY p where e.id = p.ELECTCAMPAIGNID and p.id=@PROXYID" local="true"/>
+			<A id="ELECTCAMPAIGNID" labelwidth="200" type="ref" visible="false" readonly="true" virtual="true" formula="select p.ELECTCAMPAIGNID from PROXY p where p.id=@PROXYID" local="true"/>
+			<A id="CODE" labelwidth="200" type="string" visible="false" readonly="true" virtual="true" formula="select 'Доверенность №'||p.DOCNUMB||' от '||to_char(p.DOCDATE,'dd.mm.yyyy') from PROXYDOCS p where p.id=@ID" local="true"/>
 			<GA name="Доверенность" caption="Доверенность">
 				<A id="DOCTYPEID" labelwidth="100" readonly="true" value="22"/>
 				<A id="DOCNUMB" labelwidth="100"/>
@@ -1538,8 +1553,8 @@
 				<A id="PERSONID" caption="ФИО МОЛ" labelwidth="100" nulls="false" visible="true"/>
 			</GA>
 			<GA name="Контракт" caption="Контракт">
-				<A id="CONTRACTSDOCSID" name="Контракт" caption="Контракт" pid="ELECTCAMPAIGNID"/>
-				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
+				<A id="CONTRACTSDOCSID" name="Контракт" caption="Контракт" type="ref" table="PROXY_CONTRACTS" pid="PROXYID" ret="CONTRACTSNAME"/>
+				<A id="CONTRACTDATE" name="Дата контракта" caption="Дата контракта" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from CONTRACTSDOCS t where t.id = @CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
 				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from CONTRACTSDOCS t, AGENT a where t.id = @CONTRACTSDOCSID and a.id=t.agentid"/>
 			</GA>
@@ -1551,10 +1566,10 @@
 			<TI id="PROXYDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
 		<TABLE id="GOODS" name="Товары">
-			<A id="PROXYID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYID = @PROXYID and cid=0" local="true"/>
-			<A id="CONTRACTSDOCSID" labelwidth="120" width="40" visible="false" readonly="true" virtual="true" formula="select t.CONTRACTSDOCSID from PROXY t where t.id = @PROXYID"/>
-			<GA name="Спецификация договора" caption="Спецификация договора">
+			<A id="PROXYDOCSID" parentkey="cascade"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="50" width="20" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from GOODS where PROXYDOCSID = @PROXYDOCSID and cid=0" local="true"/>
+			<A id="CONTRACTSDOCSID" labelwidth="120" width="40" visible="false" readonly="true" virtual="true" formula="select d.CONTRACTSDOCSID from PROXYDOCS d where d.id = @PROXYDOCSID"/>
+			<GA name="Спецификация контракта" caption="Спецификация контракта">
 				<A id="STAGESID" name="Спецификация" type="ref" pid="CONTRACTSDOCSID" table="STAGES" ret="CODE" nulls="false" local="true"/>
 				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="125" width="60" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
 				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="120" width="25" type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@STAGESID"/>
@@ -1658,6 +1673,7 @@
 				<A id="PERSONID" labelwidth="120" nulls="true"/>
 			</GA>
 			<GA name="Основание" caption="Основание">
+				<A id="STATEMENTHEADERID" labelwidth="120" nulls="true"/>
 				<A id="BASIS" name="Основание" caption="Основание" labelwidth="120" type="string"/>
 				<A id="ATTACHMENT" name="Приложение" caption="Приложение" labelwidth="120" type="string"/>
 				<A id="PURPOSE" name="Целевое назначение" caption="Целевое назначение" labelwidth="120" type="string"/>
@@ -1788,7 +1804,7 @@
 			<A id="NUMBPP" name="Номер по порядку" caption="Номер по порядку" labelwidth="600" type="number" len="2" nulls="false" readonly="false" local="true"/>
 			<A id="DOCNUMB" name="Номер документа" caption="Номер документа" labelwidth="600" type="number" len="4" nulls="false" readonly="false" local="true"/>
 			<A id="PERSONID" name="Физическое лицо" caption="Физическое лицо" labelwidth="300" nulls="true"/>
-			<A id="PRSINFO" name="От кого получено или кому выдано" caption="От кого получено или кому выдано" labelwidth="300" type="string" readonly="true" formula="select case when @PERSONID is null then 'Выдача денег из кассы подотчетным лицам' when COALESCE(@INCOMECASH,0) > 0 then (select COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'') from person p where p.id = @PERSONID) when COALESCE(@EXPENDCASH,0) > 0 then (select COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') from person p where p.id = @PERSONID)  end " local="true"/>
+			<A id="PRSINFO" name="От кого получено или кому выдано" caption="От кого получено или кому выдано"  virtual="true" labelwidth="300" type="string" readonly="true" formula="select case when @PERSONID is null then 'Выдача денег из кассы подотчетным лицам' when COALESCE(@INCOMECASH,0) > 0 then (select COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'') from person p where p.id = @PERSONID) when COALESCE(@EXPENDCASH,0) > 0 then (select COALESCE(p.datsurname,'')||' '||COALESCE(p.datfirstname,'')||' '||COALESCE(p.datmiddlename,'') from person p where p.id = @PERSONID)  end " local="true"/>
 			<A id="DICACCSID" name="Номер корреспондирующего счета" caption="Номер корреспондирующего счета" labelwidth="600"/>
 			<A id="INCOMECASH" name="Приход" caption="Приход" labelwidth="50" width="50" type="number" len="8.2" nulls="false" local="true"/>
 			<A id="EXPENDCASH" name="Расход" caption="Расход" labelwidth="50" width="50" type="number" len="8.2" nulls="false" local="true"/>
@@ -1826,7 +1842,7 @@
 				<A id="OVERSPENDING" name="Перерасход" caption="Перерасход" labelwidth="80" width="50" type="number" len="8.2" nulls="true" readonly="false"/>
 			</GA>
 			<A id="KRFCODE" name="Код загрузки" caption="Код загрузки" type="string" nulls="true" visible="false" readonly="true" local="true"/>
-			<A id="CODE" name="Код" caption="Код" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select 'Авансовый отчет №'||DOCNUMB||' от '||to_char(DOCDATE, 'DD.MM.YYYY' ) from EXPENSE_DOCS where id=@id" local="true"/>
+			<A id="CODE" name="Код" caption="Код" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select 'Авансовый отчет №'||DOCNUMB||' от '||to_char(DOCDATE, 'DD.MM.YYYY' ) from EXPENSE_DOCS where id=@ID" local="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI unique="EXPENSEREPORTSID, DOCNUMB"/>
@@ -3231,8 +3247,15 @@
 			<GRID id="LiabilityGR" name="Договоры о материальной ответственности" table="LIABILITY" reportlist="LiabilityAgreement"/>
 		</FORM>
 		<FORM id="ProxyFRM" name="Доверенности">
-			<GRID id="ProxyGR" name="Доверенности" table="PROXY" reportlist="PROXYREP"/>
-			<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
+			<GRID id="ProxyGR" name="Доверенности избирательных кампаний" table="PROXY" actionlist="setLID"/>
+			<TABS>
+				<TAB name="Доверенность">
+					<GRID id="ProxyDocsGR" name="Доверенность" table="PROXYDOCS" reportlist="PROXYREP"/>
+				</TAB>
+				<TAB name="Спецификация">
+					<GRID id="GoodsGR" name="Спецификация" table="GOODS"/>
+				</TAB>
+			</TABS>	
 		</FORM>
 		<FORM id="INPUTKRFFRM" name="Загрузка данных из комплектов расчетных форм">
 			<GRID id="INPUTKRFGR" name="Загрузка данных из комплектов расчетных форм" table="INPUTKRF" actionlist="uploadFileInINPUTKRF;loadFilelinks;AutoRunConvINPUTKRF;CheckErrorsKRF"/>

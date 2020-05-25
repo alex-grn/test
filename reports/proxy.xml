@@ -27,17 +27,18 @@
 										'Договор № '||COALESCE(c.DOCNUMB,'')||' от '||COALESCE(d2s(c.DOCDATE),'')||', '||
 										COALESCE(p.DOCNAME,'')||' №:'||COALESCE(p.DOCNUMBER,'')||' от '||
 										COALESCE(d2s(p.DOCNAMEDATE),'') as mat_cen
-									from proxy p
+									from proxy pr, proxydocs p
 									left join person k on k.id = p.personid
 									left join CONTRACTSDOCS c on c.id = p.CONTRACTSDOCSID
 									left join agent a on a.id = c.agentid
-									left join jurpersons j on j.id = p.jurpersonsid
-									left join electcommittee i on i.id = j.electcommitteeid
+									left join persdocs d on d.personid = k.id, 
+									jurpersons j left join electcommittee i on i.id = j.electcommitteeid
 									left join elcmtacc ecc on ecc.electcommitteeid = j.electcommitteeid
 									left join agentbanks b on b.id = ecc.agentbanksid
 									left join agent x on x.id = b.agentid
-									left join persdocs d on d.personid = k.id
-									where p.id = ${id}::integer
+									where pr.id = p.proxyid 
+									and j.id = pr.jurpersonsid
+									and p.id = ${id}::integer
    							   ;
 						</script>
                      </query>
@@ -55,7 +56,7 @@
 								left join stages s on s.id = g.STAGESID
 								left join DICNOMNS d on d.id = s.dicnomnsid
 								left join DICMUNTS m on m.id = d.dicmuntsid
-								where g.proxyid = ${id}::integer
+								where g.proxydocsid = ${id}::integer
 								order by g.numbpp
    							   ;
 						</script>
