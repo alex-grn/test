@@ -245,7 +245,7 @@
 		<A id="DNAMEEC" name="Дательный падеж" caption="Дательный падеж" type="string" nulls="true"/>
 		<A id="TNAMEEC" name="Творительный падеж" caption="Творительный падеж" type="string" nulls="true"/>
 		<A id="COUNTVTR" name="Число избирателей" caption="Число избирателей" type="string" nulls="true"/>
-		<A id="MESTIMATE" name="Признак исключения из сметы" caption="Признак исключения из сметы" type="boolean" nulls="false"/>
+		<A id="MESTIMATE" name="Признак исключения из сметы УИК" caption="Признак исключения из сметы УИК" type="boolean" nulls="false"/>
 		<A id="LEVELESTIMATE" name="Включение в смету" caption="Включение в смету" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
 			<AI id="terdist" name="Смета ТИК за нижестоящие УИК"/>
@@ -1019,11 +1019,14 @@
 			<A id="NUMBPP" name="Номер по порядку" caption="Номер по порядку" labelwidth="650" type="number" len="3" nulls="false" local="true"/>
 			<A id="NUMBESTIMATE"/>
 			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
-			<A id="PRINT_NAME" name="Направление расходов для печати" caption="Направление расходов для печат" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
+			<A id="PRINT_NAME" name="Направление расходов для печати" caption="Направление расходов для печати" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="REGIONSRFID" labelwidth="200"/>
+			<GA id="DISTRICTPRM" name="Параметры учета в расходах УИК" caption="Параметры учета в расходах УИК">
+				<A id="MESTIMATE"  name="Признак исключения из сметы УИК" caption="Признак исключения из сметы УИК"/>
+				<A id="NOACTUAL_COST" name="Признак исключения из фактических расходов УИК" caption="Признак исключения из фактических расходов УИК" type="boolean" nulls="false" local="true"/>
+				<A id="PERSON_CONTRACT" name="Расходы по договорам ГПХ УИК" caption="Расходы по договорам ГПХ УИК" type="boolean" nulls="false" local="true"/>
+			</GA>
 			<A id="TYPEEXPENSES" labelwidth="200"/>
-			<A id="MESTIMATE"/>
-			<A id="NOACTUAL_COST" name="Признак исключения из фактических расходов" caption="Признак исключения из фактических расходов" type="boolean" nulls="false"/>
 			<A id="TYPEESTIMATE" name="Тип показателя" caption="Тип показателя" labelwidth="200" type="list" nulls="false" local="true">
 				<AI id="П" name="Прочие направления расходов"/>
 				<AI id="К" name="Компенсация члену комиссии, работающему с освобождением от основной работы"/>
@@ -1376,7 +1379,7 @@
 					<GA name="Документ" caption="Документ">
 						<A id="STATUS" name="Статус" caption="Статус" width="30" type="list" value="0" local="true">
 							<AI id="0" name="В работе"/>
-							<AI id="1" name="На исполнении" actionlist="PaydocsToTransactionlog" readonly="true"/>
+							<AI id="1" name="На исполнении" actionlist="PaydocsToTransactionlog" readonly="false"/>
 							<AI id="2" name="Исполнен" actionlist="PaydocsToTransactionlogRollback" readonly="true"/>
 						</A>
 						<A id="PAYDATE" name="Дата оплаты по выписке из лицевого счета" caption="Дата оплаты по выписке из лицевого счета" labelwidth="250" width="70" type="date" local="true"/>
@@ -1451,7 +1454,7 @@
 			<A id="DOCLINKS_OUT"/>
 			<TI unique="PAYDOCSID, NUMBPP"/>
 		</TABLE>
-		<TABLE id="RECEIPTSDOCS" name="Кассовые поступления">
+		<TABLE id="RECEIPTSDOCS" name="Поступление на счет">
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PAYACCOUNTS c where e.id = c.ELECTCAMPAIGNID and c.id=@PAYACCOUNTSID" local="true"/>
 			<TABS>
@@ -1492,7 +1495,7 @@
 			<TI id="RECEIPTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 			<TI id="AGREC_CHECK" name="Одновлеренное заполнение Юридического лица и Физического лица недопустимо!" check="AGENTID is null or PERSONID is null"/>
 		</TABLE>
-		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Кассовые поступления)">
+		<TABLE id="RECEIPTSDOCSCONS" name="Расшифровка платежа (Поступление на счет)">
 			<A id="RECEIPTSDOCSID" parentkey="cascade"/>
 			<A id="DOCTYPEID" visible="false" readonly="true" virtual="true" formula="select r.DOCTYPEID from RECEIPTSDOCS r where r.id = @RECEIPTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="70" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from RECEIPTSDOCSCONS where RECEIPTSDOCSID = @RECEIPTSDOCSID" local="true"/>
@@ -1708,7 +1711,7 @@
 		</TABLE>
 		<TABLE id="STATEMENT" name="Ведомость на выдачу денег из кассы подотчетным лицам. Расшифровка ">
 			<A id="STATEMENTHEADERID" parentkey="cascade"/>
-			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" nulls="false" visible="false" readonly="true" formula="select t.DOCTYPEID from STATEMENT_HEADER t where t.ID = @STATEMENTHEADERID" local="true"/>
+			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" nulls="false" visible="true" readonly="true" formula="select t.DOCTYPEID from STATEMENT_HEADER t where t.ID = @STATEMENTHEADERID" local="true"/>
 			<GA name="Выдано" caption="Выдано">
 				<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="80" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STATEMENT where STATEMENTHEADERID = @STATEMENTHEADERID and cid=0" local="true"/>
 				<A id="SUMMPAY" name="Выдано" caption="Выдано" labelwidth="60" width="50" nulls="false"/>
@@ -2119,7 +2122,7 @@
 						<AI id="*" name="" readonly="true"/>
 					</A>
 				</TAB>
-				<TAB name="Зачет аванса">
+				<!-- <TAB name="Зачет аванса">
 					<A id="SUPEXPENSE" name="Зачет аванса" caption="Зачет аванса" type="boolean" nulls="false" local="true"/>
 					<A id="SETOFFPREPAYMENT" name="Сумма для зачета аванса" caption="Сумма для зачета аванса" labelwidth="400" type="number" len="8.2" nulls="true" local="true"/>
 					<GA id="TYPICALOPERATION" name="Типовая операция" caption="Типовая операция">
@@ -2128,7 +2131,7 @@
 						<A id="TYPEEXPID" labelwidth="150" width="100" nulls="true"/>
 						<A id="TYPICALOPERSID" labelwidth="150" width="100"/>
 					</GA>
-				</TAB>
+				</TAB> -->
 			</TABS>
 			<TI id="OTHER_INVENTORY_DOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
@@ -2390,8 +2393,8 @@
 				</A>
 			</GA>
 			<GA name="Основание для списания" caption="Основание для списания">
-				<A id="DOCNUMBBASIS" name="Номер приказа (распоряжения)" caption="Номер приказа (распоряжения)" labelwidth="400" type="string" nulls="false" local="true"/>
-				<A id="DOCDATEBASIS" name="Дата приказа (распоряжения)" caption="Дата приказа (распоряжения)" labelwidth="400" type="date" nulls="true" local="true"/>
+				<!-- <A id="DOCNUMBBASIS" name="Номер приказа (распоряжения)" caption="Номер приказа (распоряжения)" labelwidth="400" type="string" nulls="false" local="true"/> -->
+				<!-- <A id="DOCDATEBASIS" name="Дата приказа (распоряжения)" caption="Дата приказа (распоряжения)" labelwidth="400" type="date" nulls="true" local="true"/> -->
 				<A id="REASON" name="Причина списания" caption="Причина списания" labelwidth="200" type="text" nulls="false" local="true"/>
 				<A id="OPINION" name="Заключение комиссии" caption="Заключение комиссии" labelwidth="200" type="text" nulls="false" local="true"/>
 			</GA>
@@ -3198,7 +3201,7 @@
 			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="PayaccountsFRM" name="Расчетно-платежные документы">
-			<GRID id="PayaccountsGR" name="Расчетные (лицевые) счета в банке" table="PAYACCOUNTS" actionlist="setLID"/>
+			<GRID id="PayaccountsGR" name="Журналы движения средств на лицевых счетах в банке" table="PAYACCOUNTS" actionlist="setLID"/>
 			<TABS>
 				<TAB name="Платежные поручения">
 					<TABS>
@@ -3211,9 +3214,9 @@
 						</TAB>
 					</TABS>
 				</TAB>
-				<TAB name="Кассовые поступления">
+				<TAB name="Поступление на счет">
 					<TABS>
-						<TAB name="Кассовые поступления">
+						<TAB name="Поступление на счет">
 							<GRID id="ReceiptsDocsGR" name="Документ" table="RECEIPTSDOCS" actionlist="ReceiptsdocsToTransactionlog;ReceiptsdocsToTransactionlogRollback"/>
 						</TAB>
 						<TAB name="Расшифровка платежа">
@@ -3236,7 +3239,7 @@
 			<GRID id="ERRORKRFGR" name="Ошибки комплектов расчетных форм" table="ERRORKRF" readonly="true"/>
 		</FORM>
 		<FORM id="CashFRM" name="Касса избирательной комиссии">
-			<GRID id="CashGR" name="Касса избирательной комиссии" table="CASHDOCS" actionlist="CreateReportCashbooks" reportlist="CashBook"/>
+			<GRID id="CashGR" name="Открытые кассы избирательных комиссий в избирательных кампаниях" table="CASHDOCS" actionlist="CreateReportCashbooks" reportlist="CashBook"/>
 			<TABS>
 				<TAB name="Приходные кассовые ордера">
 					<TABS>
@@ -3295,7 +3298,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Expense_ReportsFRM" name="Авансовые отчеты избирательной кампании">
-			<GRID id="Expense_ReportsGR" name="Авансовые отчеты избирательной кампании" table="EXPENSE_REPORTS" actionlist="ImportExpenceReport"/>
+			<GRID id="Expense_ReportsGR" name="Журналы авансовых отчетов избирательных комиссий в избирательных кампаниях" table="EXPENSE_REPORTS" actionlist="ImportExpenceReport"/>
 			<TABS>
 				<TAB name="Авансовые отчеты">
 					<GRID id="EXPENSE_DOCSGR" name="Документы аванса" table="EXPENSE_DOCS" reportlist="ExpenseReport" actionlist="ExpenseDocsToTransactionlog;ExpenseDocsTransactionlogRollback"/>
@@ -3317,7 +3320,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="ActsWorkServiceFRM" name="Акты выполненных работ и услуг">
-			<GRID id="ActsWorkServiceGR" name="Акты выполненных работ и услуг избирательных кампаний" table="ACTS"/>
+			<GRID id="ActsWorkServiceGR" name="Журналы актов выполненных работ и услуг избирательных комиссий в избирательных кампаниях" table="ACTS"/>
 			<TABS>
 				<TAB name="Акты выполненных работ и услуг юридических лиц">
 					<TABS>
@@ -3344,7 +3347,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="InventoryFRM" name="Поступление МЗ">
-			<GRID id="InventoryGR" name="Поступление МЗ избирательных кампаний" table="INVENTORY"/>
+			<GRID id="InventoryGR" name="Журналы поступлений МЗ избирательных комиссий в избирательных кампаниях" table="INVENTORY"/>
 			<TABS>
 				<TAB name="Товарные накладные">
 					<TABS>
@@ -3387,8 +3390,8 @@
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="WRITEOFFFRM" name="Выбытие и перемещение ИЗ в избирательной кампании">
-			<GRID id="WRITEOFFGR" name="Списание МЗ избирательной кампании" table="WRITEOFF"/>
+		<FORM id="WRITEOFFFRM" name="Выбытие и перемещение МЗ в избирательной кампании">
+			<GRID id="WRITEOFFGR" name="Журналы выбытия и перемещения МЗ в избирательных кампаниях" table="WRITEOFF"/>
 			<TABS>
 				<TAB name="Ведомости выдачи МЗ">
 					<TABS>
