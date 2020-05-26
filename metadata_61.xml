@@ -689,8 +689,6 @@
 				<A id="PERSONACCID" name="Реквизит" caption="Реквизит" labelwidth="70" width="50" nulls="true"/>
 			</GA>
 			<A id="IDGASCOMMITTEEMAN" name="Идентификатор члена комиссии в ГАС Выборы" caption="Идентификатор члена комиссии в ГАС Выборы" type="string" nulls="false" visible="false" local="true"/>
-			<A id="PERSONID_COUNTVIRT" name="Проверка на задвоение физлиц" caption="Проверка на задвоение физлиц" virtual="true" type="number" formula="select count(PERSONID) from committeeman where postenddate >=now() and PERSONID=@PERSONID and ELECTCOMMITTEEID=@ELECTCOMMITTEEID" nulls="false" visible="true" local="true"/>
-			<A id="PERSONID_COUNT" name="Проверка на задвоение физлиц" caption="Проверка на задвоение физлиц" type="number" formula="select count(PERSONID) from committeeman where postenddate >=now() and PERSONID=@PERSONID and ELECTCOMMITTEEID=@ELECTCOMMITTEEID" nulls="false" visible="true" local="true"/>
 			<TI id="COMMITTEEMAN_CHECK" name="Одно физ.лицо не может занимать две доложности в одной комиссии" check="1 = PERSONID_COUNT  or PERSONID_COUNT is null"/>
 			<TI unique="ELECTCOMMITTEEID, PERSONID, POSTSID, POSTENDDATE"/>
 		</TABLE>
@@ -1533,10 +1531,11 @@
 				<A id="JURPERSONSID"/>
 			</GA>
 		</TABLE>
-		<TABLE id="PROXY_CONTRACTS" name="Контракты по доверенностям" virtual="true" query="select c.ID ID, null HID, max(c.LID) LID, 0 CID, max(c.UID) UID, max(c.TIM) TIM, (select p.id from proxy p where p.ELECTCAMPAIGNID = cs.ELECTCAMPAIGNID and p.JURPERSONSID = cs.JURPERSONSID) PROXYID, ('Контракт №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy')) CONTRACTSNAME, a.name AGENT  from CONTRACTSDOCS c left join contracts cs on cs.id = c.contractsid left join agent a on a.id = c.AGENTID where c.contrtype='product' group by ELECTCAMPAIGNID, JURPERSONSID, c.ID, a.name">
+		<TABLE id="PROXY_CONTRACTS" name="Контракты по доверенностям" virtual="true" query="select c.ID ID, null HID, max(c.LID) LID, 0 CID, max(c.UID) UID, max(c.TIM) TIM, (select p.id from proxy p where p.ELECTCAMPAIGNID = cs.ELECTCAMPAIGNID and p.JURPERSONSID = cs.JURPERSONSID) PROXYID, ('Контракт №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy')) CONTRACTSNAME, a.name AGENT, c.subject SUBJECT from CONTRACTSDOCS c left join contracts cs on cs.id = c.contractsid left join agent a on a.id = c.AGENTID where c.contrtype='product' group by ELECTCAMPAIGNID, JURPERSONSID, c.ID, a.name">
 			<A id="PROXYID" parentkey="nocascade" readonly="true"/>
 			<A id="CONTRACTSNAME" type="string" name="Контракт" caption="Контракт" labelwidth="150" nulls="false" visible="true" readonly="true"/>
 			<A id="AGENT" type="string" name="Исполнитель" caption="Исполнитель" labelwidth="150" nulls="false" visible="true" readonly="true"/>
+			<A id="SUBJECT" type="string" name="Предмет договора" caption="Предмет договора" labelwidth="150" nulls="false" visible="true" readonly="true"/>
 			<A id="CONTRACTSSUMM" name="Сумма" caption="Сумма" type="number" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSDOCSID = @ID"/>
 		</TABLE>
 		<TABLE id="PROXYDOCS" name="Доверенности">
