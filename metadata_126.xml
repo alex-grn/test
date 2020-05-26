@@ -187,8 +187,8 @@
 				<A id="OLDSPENT_SUM_VIRT" name="Сумма поступлений дебиторской задолженности прошлых лет" caption="Сумма поступлений дебиторской задолженности прошлых лет" labelwidth="550" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select sum(OLDSPENT_SUM) from MBT_REPORT_REC where MBT_REPORTID=@ID" local="true"/>
 			</GA>
 			<A id="STATUS" name="Статус" caption="Статус" labelwidth="100" width="50" type="list" visible="true" readonly="true" value="0" local="true">
-				<AI id="0" name="Черновик" actionlist="MakeEntryREP"/>
-				<AI id="1" name="Отработан" actionlist="DeleteEntryREP;To_form_NOTIF;Disband_NOTIF" readonly="true"/>
+				<AI id="0" name="Черновик" actionlist="MakeEntryREP;LoadConvert121Mbt_report"/>
+				<AI id="1" name="Отработан" actionlist="DeleteEntryREP;To_form_REP_NOTIFMBT;Disband_REP_NOTIFMBT;LoadConvert121Mbt_report" readonly="true"/>
 			</A>
 			<A id="DOCLINKS_OUT">
 				<AI id="*" name="Любая связь" readonly="true"/>
@@ -257,19 +257,6 @@
 		<ACTION id="DeleteEntryREP" name="Снять отработку" type="procedure" procedure="p_action_set_status">
 			<P id="val" value="0"/>
 		</ACTION>
-		<ACTION id="To_form_NOTIF" name="Сформировать уведомления по расчетам между бюджетами" type="procedure" procedure="">
-			<FORM>
-				<A id="TRANSFERT_TYPE" name="Тип уведомления" caption="Тип уведомления" labelwidth="150" type="list" nulls="true">
-					<AI id="REST_PMBT" name="неиспользованный остаток подлежит возврату"/>
-					<AI id="KR_PMBT" name="зачтено расходов (уменьшений), подтвержденных документами"/>
-				</A>
-				<A id="NOTIFDATE" name="Дата уведомления" caption="Дата уведомления" labelwidth="500" type="date" nulls="true"/>
-				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="100" type="text" local="true"/>
-				<A id="PERSON_ID" name="Руководитель" caption="Руководитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
-				<A id="PERSON1_ID" name="Исполнитель" caption="Исполнитель" labelwidth="100" width="50" type="ref" table="PERSON" ret="CODE" form="Person" local="true"/>
-			</FORM>
-		</ACTION>
-		<ACTION id="Disband_NOTIF" name="Расформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
 		<ACTION id="MakeEntryDIS" name="Отработать" type="procedure" procedure="p_action_set_status">
 			<P id="val" value="1"/>
 		</ACTION>
@@ -310,6 +297,22 @@
 		</ACTION>
 		<ACTION id="Disband_DIS_ZR_PROC" name="Расформировать ЗКР" type="procedure" procedure=""/>
 		<ACTION id="Disband_DIS_ZR" name="Расформировать ЗКР" type="script" actionlist="Disband_DIS_ZR_PROC;Disband_DIS_ZR_STATUS"/>
+		<ACTION id="To_form_REP_NOTIFMBT" name="Сформировать уведомления по расчетам между бюджетами" type="procedure" procedure="">
+			<FORM>
+				<A id="OWNERID" name="Принадлежность " caption="Принадлежность " labelwidth="150" nulls="true"/>
+				<A id="TRANSFERT_TYPE" name="Тип уведомления" caption="Тип уведомления" labelwidth="150" type="list" nulls="true">
+					<AI id="REST_PMBT" name="неиспользованный остаток подлежит возврату"/>
+					<AI id="KR_PMBT" name="зачтено расходов (уменьшений), подтвержденных документами"/>
+					<AI id="IN_DZ_PMBT" name="восстановлено остатков прошлых лет"/>
+				</A>
+				<A id="NOTIFDATE" name="Дата уведомления" caption="Дата уведомления" labelwidth="500" type="date" nulls="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="Disband_REP_NOTIFMBT" name="Расформировать уведомления по расчетам между бюджетами" type="procedure" procedure=""/>
+		<ACTION id="LoadConvert121Mbt_report" name="Загрузка отчетов СРФ из Excel" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Загрузка отчетов СРФ из Excel"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -347,7 +350,7 @@
 			<GRID id="Distrib_mbt_rec" name="Суммы распоряжения по получателям" table="DISTRIB_MBT_REC"/>
 		</FORM>
 		<FORM id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов">
-			<GRID id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов" table="MBT_REPORT" actionlist="MakeEntryREP;DeleteEntryREP;To_form_NOTIF;Disband_NOTIF"/>
+			<GRID id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов" table="MBT_REPORT" actionlist="MakeEntryREP;LoadConvert121Mbt_report;DeleteEntryREP;To_form_REP_NOTIFMBT;Disband_REP_NOTIFMBT"/>
 			<GRID id="Mbt_report_rec" name="Расшифровка по МБТ" table="MBT_REPORT_REC"/>
 		</FORM>
 	</FORMS>
