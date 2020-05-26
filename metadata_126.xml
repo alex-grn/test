@@ -19,8 +19,9 @@
 				<MI name="Основания для межбюджетных трансфертов" formlist="Mbt_contract"/>
 			</MENU>
 			<MENU name="Учет">
-				<MI name="Отчеты получателей межбюджетных трансфертов" formlist="Mbt_report"/>
+				<MI name="Движение межбюджетных трансфертов" formlist="Mbt_move"/>
 				<MI name="Журнал операций по исполнению бюджета" formlist="Jurnalexp"/>
+				<MI name="Отчеты получателей межбюджетных трансфертов" formlist="Mbt_report"/>
 			</MENU>
 			<MENU name="Справочники">
 				<MI name="Перечень межбюджетных трансфертов" formlist="Mbt_list"/>
@@ -210,6 +211,63 @@
 			</GA>
 			<TI id="MBT_REPORT_REC_UK" name="Запись по этому получателю МБТ и коду МБТ уже существует" unique="MBT_REPORTID, MBT_RECIPID, MBT_LISTID"/>
 		</TABLE>
+		<TABLE id="MBT_MOVE" name="Движение межбюджетных трансфертов">
+			<A id="BUDGETS_ID" labelwidth="100" width="60"/>
+			<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
+			<A id="NOTE" name="Примечание" caption="Примечание"/>
+			<TI id="MBT_MOVE_UK" name="Запись по этому бюджету в этом финансовом году уже существует" unique="BUDGETS_ID,YEAR_U"/>
+		</TABLE>
+		<TABLE id="MBT_MOVE_REC" name="Движение МБТ: расшифровка">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="MBT_MOVEID" name="Движение МБТ" caption="Движение МБТ" parentkey="cascade" type="ref" table="MBT_MOVE" local="true"/>
+					<A id="MBT_LISTID" name="Код МБТ" labelwidth="200"/>
+					<A id="KBR_VIRT" name="КРБ" caption="Бюджетная классификация расходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from KBR where id =(select KBR_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+					<A id="BKD_VIRT" name="КДБ" caption="Бюджетная классификация доходов" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from BKD where id =(select BKD_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+					<A id="ACODES_VIRT" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="300" type="string" readonly="true" virtual="true" formula="select CODE from ACODES where id =(select ACODES_ID from MBT_LIST where id =@MBT_LISTID)" local="true"/>
+					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+				</TAB>
+				<TAB name="Суммы">
+					<A id="SUM_01" name="Утвержденный объем финансирования" caption="Утвержденный объем финансирования" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_02" name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_03" name="Остаток средств на начало года" caption="Остаток средств на начало года" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_04" name="Поступило за отчетный период средств в доход бюджетов" caption="Поступило за отчетный период средств в доход бюджетов" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_05" name="Кассовый расход" caption="Кассовый расход" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_06" name="Поступление дебиторской задолженности прошлых лет" caption="Поступление дебиторской задолженности прошлых лет" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_07" name="Перечислено дебиторской задолженности прошлых лет в доход федерального бюджета" caption="Перечислено дебиторской задолженности прошлых лет в доход федерального бюджета" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_08" name="Возвращено остатков прошлых лет в доход федерального бюджета" caption="Возвращено остатков прошлых лет в доход федерального бюджета" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_09" name="Восстановлено кассовых выплат текущего года" caption="Восстановлено кассовых выплат текущего года" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_10" name="Перечислено за счет восстановления кассы текущего года в объеме потребности" caption="Перечислено за счет восстановления кассы текущего года в объеме потребности" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_11" name="Остаток на конец отчетного периода" caption="Остаток на конец отчетного периода" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_12" name="Остаток лимитов бюджетных обязательств" caption="Остаток лимитов бюджетных обязательств" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+				</TAB>
+			</TABS>
+			<TI id="MBT_MOVE_REC_UK" name="Запись по этому МБТ уже существует" unique="MBT_MOVEID,MBT_LISTID"/>
+		</TABLE>
+		<TABLE id="MBT_MOVE_REC_REC" name="Движение МБТ: расшифровка по получателям">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="MBT_MOVE_RECID" name="Движение МБТ расшифровка" caption="Движение МБТ расшифровка" parentkey="cascade" type="ref" table="MBT_MOVE_REC" local="true"/>
+					<A id="MBT_RECIPID" name="Получатель МБТ" caption="Получатель трансферта" labelwidth="200"/>
+					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
+				</TAB>
+				<TAB name="Суммы">
+					<A id="SUM_01" name="Утвержденный объем финансирования" caption="Утвержденный объем финансирования" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_02" name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_03" name="Остаток средств на начало года" caption="Остаток средств на начало года" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_04" name="Поступило за отчетный период средств в доход бюджетов" caption="Поступило за отчетный период средств в доход бюджетов" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_05" name="Кассовый расход" caption="Кассовый расход" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_06" name="Поступление дебиторской задолженности прошлых лет" caption="Поступление дебиторской задолженности прошлых лет" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_07" name="Перечислено дебиторской задолженности прошлых лет в доход федерального бюджета" caption="Перечислено дебиторской задолженности прошлых лет в доход федерального бюджета" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_08" name="Возвращено остатков прошлых лет в доход федерального бюджета" caption="Возвращено остатков прошлых лет в доход федерального бюджета" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_09" name="Восстановлено кассовых выплат текущего года" caption="Восстановлено кассовых выплат текущего года" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_10" name="Перечислено за счет восстановления кассы текущего года в объеме потребности" caption="Перечислено за счет восстановления кассы текущего года в объеме потребности" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_11" name="Остаток на конец отчетного периода" caption="Остаток на конец отчетного периода" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_12" name="Остаток лимитов бюджетных обязательств" caption="Остаток лимитов бюджетных обязательств" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+				</TAB>
+			</TABS>
+			<TI id="MBT_MOVE_REC_RECIP_UK" name="Запись по этому получателю МБТ уже существует" unique="MBT_MOVE_RECID,MBT_RECIPID"/>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="To_form_notice" name="Сформировать уведомления по расчетам между бюджетами" type="procedure" procedure="">
@@ -352,6 +410,11 @@
 		<FORM id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов">
 			<GRID id="Mbt_report" name="Отчеты получателей межбюджетных трансфертов" table="MBT_REPORT" actionlist="MakeEntryREP;LoadConvert121Mbt_report;DeleteEntryREP;To_form_REP_NOTIFMBT;Disband_REP_NOTIFMBT"/>
 			<GRID id="Mbt_report_rec" name="Расшифровка по МБТ" table="MBT_REPORT_REC"/>
+		</FORM>
+		<FORM id="Mbt_move" name="Движение межбюджетных трансфертов">
+			<GRID id="Mbt_move" name="Движение межбюджетных трансфертов" table="MBT_MOVE"/>
+			<GRID id="Mbt_move_rec" name="Движение МБТ: расшифровка" table="MBT_MOVE_REC"/>
+			<GRID id="Mbt_move_rec_rec" name="Движение МБТ: расшифровка по получателям" table="MBT_MOVE_REC_REC"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
