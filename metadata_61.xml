@@ -246,7 +246,7 @@
 		<A id="TNAMEEC" name="Творительный падеж" caption="Творительный падеж" type="string" nulls="true"/>
 		<A id="COUNTVTR" name="Число избирателей" caption="Число избирателей" type="string" nulls="true"/>
 		<A id="MESTIMATE" name="Признак исключения из сметы УИК" caption="Признак исключения из сметы УИК" type="boolean" nulls="false"/>
-		<A id="LEVELESTIMATE" name="Включение в смету" caption="Включение в смету" labelwidth="400" type="list" nulls="true">
+		<A id="LEVELESTIMATE" name="Уровень сметы" caption="Уровень сметы" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
 			<AI id="terdist" name="Смета ТИК за нижестоящие УИК"/>
 			<AI id="district" name="Смета УИК"/>
@@ -1244,8 +1244,8 @@
 				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSDOCSID = @ID"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-					<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
-					<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
+					<A id="SUMMPAY" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
+					<A id="SUMMEXEC" labelwidth="200" width="40"  readonly="true" virtual="true" formula=""/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Контракт №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c where c.id = @ID" local="true"/>
 			<A id="DOCLINKS_IN"/>
@@ -1256,11 +1256,11 @@
 			<TABS>
 				<TAB name="Этап договора">
 					<A id="CONTRACTSDOCSID" parentkey="cascade"/>
-					<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
-					<A id="LEVELESTIMATE" labelwidth="120" width="50"/>
+					<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600"  type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
 					<A id="BUDGCLASSID" labelwidth="150" width="50"/>
 					<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
 					<A id="TYPEEXPID"/>
+					<A id="LEVELESTIMATE" labelwidth="200"/>
 					<GA name="Период действия" caption="Период действия">
 						<A id="BEGINDATE" caption="Дата начала действия" labelwidth="200" width="40" nulls="false"/>
 						<A id="ENDDATE" caption="Дата окончания действия" labelwidth="200" width="40" nulls="false"/>
@@ -1273,9 +1273,9 @@
 						<A id="SUMM" labelwidth="600" nulls="false"/>
 					</GA>
 					<GA name="Исполнение" caption="Исполнение">
-						<A id="SUMMPAY" readonly="true" virtual="true" formula=""/>
-						<A id="SUMMEXEC" readonly="true" virtual="true" formula=""/>
-						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false" readonly="true"/>
+						<A id="SUMMPAY" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
+						<A id="SUMMEXEC" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
+						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 					</GA>
 					<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" virtual="true" visible="false" formula="select CONTRTYPE from CONTRACTSDOCS c where c.id=@CONTRACTSDOCSID" local="true">
 						<AI id="product" name="Поставка товара" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesFormINV;StagesFormINVDel"/>
@@ -1284,7 +1284,7 @@
 					</A>
 					<A id="DOCLINKS_IN"/>
 					<A id="DOCLINKS_OUT"/>
-					<A id="CODE" name="Код" type="string" visible="true" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@ID" local="true"/>
+					<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@ID" local="true"/>
 					<TI unique="CONTRACTSDOCSID, NUMBPP"/>
 				</TAB>
 				<TAB name="Авансовые платежи">
@@ -1327,8 +1327,8 @@
 				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERSONS_STAGES t where t.PERSON_CONTRACTSDOCSID = @ID"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" width="50" readonly="true" virtual="true" formula=""/>
-				<A id="SUMMEXEC" width="50" readonly="true" virtual="true" formula=""/>
+				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
+				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -1337,11 +1337,11 @@
 		</TABLE>
 		<TABLE id="PERSONS_STAGES" name="Спецификация договора с физ.лицами">
 			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="150" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
-			<A id="LEVELESTIMATE" labelwidth="120" width="50"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
 			<A id="BUDGCLASSID" labelwidth="150" width="50"/>
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
 			<A id="TYPEEXPID" labelwidth="150"/>
+			<A id="LEVELESTIMATE" labelwidth="150" />
 			<GA name="Период действия" caption="Период действия">
 				<A id="BEGINDATE" caption="Дата начала действия" labelwidth="150" width="40" nulls="false"/>
 				<A id="ENDDATE" caption="Дата окончания действия" labelwidth="150" width="40" nulls="false"/>
@@ -1354,9 +1354,9 @@
 				<A id="SUMM" labelwidth="150" width="50" nulls="false"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" width="50" readonly="true" virtual="true" formula=""/>
-				<A id="SUMMEXEC" width="50" readonly="true" virtual="true" formula=""/>
-				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте" labelwidth="200" width="100" type="boolean" nulls="false" readonly="true"/>
+				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
+				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
+				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
