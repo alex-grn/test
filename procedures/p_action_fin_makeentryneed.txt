@@ -1,0 +1,81 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_makeentryneed (
+  idlist text,
+  uid bigint
+)
+RETURNS void AS
+$body$
+/*Отработка детализаций*/
+declare
+  nUID  BIGINT:=UID;
+  nLID  BIGINT:=P_SYSTEM_GEN_LID('JURNALEXP',nUID);
+  RC    RECORD;
+  JURNALEXPID bigint;
+  nTYPEID     bigint;
+  nDET        bigint;
+begin
+   select r.ID
+     into nTYPEID
+     from RECORD_TYPES r
+    where r.RECORD_TYPE ilike 'NEED';
+   FOR RC IN (
+      select F.ID,
+              F.BUDGETS_ID,
+              F.DOCNUMB,
+              F.DOCDATE,
+              F.NOTE,
+              F.YEAR_U,
+              d.KBR_ID,
+              d.agent_acc_id,
+              COALESCE(d.sum_need_1y,0) as sum_need_1y,
+              COALESCE(d.sum_need_2y,0) as sum_need_2y,
+              COALESCE(d.sum_need_3y,0) as sum_need_3y,
+              d.econ_class_id,
+              d.subsidies_id,
+              d.capobjects_id,
+              d.event_id,
+              d.acodes_id,
+              d.depart5_id,
+              d.id as NEEDS_KBRID
+         from NEEDS f,
+              NEEDS_KBR d
+        where f.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+          and d.NEEDSID = f.ID
+   )
+   LOOP
+     
+     if RC.SUM_NEED_1Y != 0 then 
+       insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,
+                             AGENT_ACC_ID,ECON_CLASS_ID,SUBSIDIES_ID,CAPOBJECTS_ID,EVENT_ID,ACODES_ID,DEPART5_ID)
+       values(nUID,nLID,nTYPEID,RC.DOCDATE,RC.BUDGETS_ID,RC.YEAR_U,RC.KBR_ID,'Потребности',RC.DOCNUMB,RC.DOCDATE,RC.SUM_NEED_1Y,RC.NOTE,
+              RC.AGENT_ACC_ID,RC.ECON_CLASS_ID,RC.SUBSIDIES_ID,RC.CAPOBJECTS_ID,RC.EVENT_ID,RC.ACODES_ID,RC.DEPART5_ID)
+       returning JURNALEXP.ID into JURNALEXPID;
+       PERFORM P_SYSTEM_DOCLINKS_ADD('NEEDS_KBR',RC.NEEDS_KBRID,'JURNALEXP',JURNALEXPID);
+     end if;
+     if RC.SUM_NEED_2Y != 0 then 
+       insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,
+                             AGENT_ACC_ID,ECON_CLASS_ID,SUBSIDIES_ID,CAPOBJECTS_ID,EVENT_ID,ACODES_ID,DEPART5_ID)
+       values(nUID,nLID,nTYPEID,RC.DOCDATE,RC.BUDGETS_ID,RC.YEAR_U+1,RC.KBR_ID,'Потребности',RC.DOCNUMB,RC.DOCDATE,RC.SUM_NEED_2Y,RC.NOTE,
+              RC.AGENT_ACC_ID,RC.ECON_CLASS_ID,RC.SUBSIDIES_ID,RC.CAPOBJECTS_ID,RC.EVENT_ID,RC.ACODES_ID,RC.DEPART5_ID)
+       returning JURNALEXP.ID into JURNALEXPID;
+       PERFORM P_SYSTEM_DOCLINKS_ADD('NEEDS_KBR',RC.NEEDS_KBRID,'JURNALEXP',JURNALEXPID);
+     end if;
+     if RC.SUM_NEED_3Y != 0 then 
+       insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,
+                             AGENT_ACC_ID,ECON_CLASS_ID,SUBSIDIES_ID,CAPOBJECTS_ID,EVENT_ID,ACODES_ID,DEPART5_ID)
+       values(nUID,nLID,nTYPEID,RC.DOCDATE,RC.BUDGETS_ID,RC.YEAR_U+2,RC.KBR_ID,'Потребности',RC.DOCNUMB,RC.DOCDATE,RC.SUM_NEED_3Y,RC.NOTE,
+              RC.AGENT_ACC_ID,RC.ECON_CLASS_ID,RC.SUBSIDIES_ID,RC.CAPOBJECTS_ID,RC.EVENT_ID,RC.ACODES_ID,RC.DEPART5_ID)
+       returning JURNALEXP.ID into JURNALEXPID;
+       PERFORM P_SYSTEM_DOCLINKS_ADD('NEEDS_KBR',RC.NEEDS_KBRID,'JURNALEXP',JURNALEXPID);
+     end if;
+   END LOOP;
+   PERFORM p_action_set_status('NEEDS',RC.ID::text,'1');
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_fin_makeentryneed (idlist text, uid bigint)
+  OWNER TO magicbox;
