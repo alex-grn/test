@@ -246,6 +246,7 @@
 		<A id="TNAMEEC" name="Творительный падеж" caption="Творительный падеж" type="string" nulls="true"/>
 		<A id="COUNTVTR" name="Число избирателей" caption="Число избирателей" type="string" nulls="true"/>
 		<A id="MESTIMATE" name="Признак исключения из сметы УИК" caption="Признак исключения из сметы УИК" type="boolean" nulls="false"/>
+		<A id="MESTIMATETIK"  name="Признак исключения из сметы ТИК" caption="Признак исключения из сметы ТИК" type="boolean" nulls="false"/>
 		<A id="LEVELESTIMATE" name="Уровень сметы" caption="Уровень сметы" labelwidth="400" type="list" nulls="true">
 			<AI id="territory" name="Смета ТИК"/>
 			<AI id="terdist" name="Смета ТИК за нижестоящие УИК"/>
@@ -822,6 +823,11 @@
 			</GA>
 			<A id="COUNTVTR" labelwidth="350" nulls="true"/>
 			<A id="MSREGISTERVIRT" name="Количество расчетных документов" caption="Количество расчетных документов" labelwidth="350" type="number" len="1" nulls="true" readonly="true" virtual="true" formula="select count(r.id) from ELECTCOMMINCAMP sp, REGISTER r where sp.id = @ID and r.ELECTCOMMINCAMPid = sp.id" local="true"/>
+			<A id="REPORTCELL" name="Отчеты по уровню комиссии" caption="Отчеты по уровню комиссии" type="string" visible="false" virtual="true" formula="1">
+				<AI id="district" reportlist="EstimateUIK"/>
+				<AI id="territory"  reportlist="EstimateTIK;EstimateTIK_UIK"/>
+				<AI id="circuit"  reportlist="EstimateTIK;EstimateTIK_UIK"/>				
+			</A>
 			<TI unique="ELECTCAMPAIGNID,ELECTCOMMITTEEID"/>
 		</TABLE>
 		<TABLE id="REGISTER" name="Расчетные документы">
@@ -1026,6 +1032,9 @@
 			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="PRINT_NAME" name="Направление расходов для печати" caption="Направление расходов для печати" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="REGIONSRFID" labelwidth="200"/>
+			<GA id="TERRITORYPRM" name="Параметры учета в расходах УИК" caption="Параметры учета в расходах УИК">
+				<A id="MESTIMATETIK"  name="Признак исключения из сметы ТИК" caption="Признак исключения из сметы ТИК"/>
+			</GA>
 			<GA id="DISTRICTPRM" name="Параметры учета в расходах УИК" caption="Параметры учета в расходах УИК">
 				<A id="MESTIMATE"  name="Признак исключения из сметы УИК" caption="Признак исключения из сметы УИК"/>
 				<A id="NOACTUAL_COST" name="Признак исключения из фактических расходов УИК" caption="Признак исключения из фактических расходов УИК" type="boolean" nulls="false" local="true"/>
@@ -1092,9 +1101,9 @@
 				<AI id="district/3/salary/10" readonly="SUMFINTIK;SUMFINUIK;SUMFINTIKCEN"/>
 			</A>
 			<A id="ACTIONCELL" name="Действия по уровню комиссии" caption="Действия по уровню комиссии" type="string" visible="false" virtual="true" formula="select e.LEVELELCOMMITTEE from ELECTCOMMITTEE e, ELECTCOMMINCAMP c where c.ELECTCOMMITTEEID = e.ID and c.ID = @ELECTCOMMINCAMPID">
-				<AI id="district" actionlist="FinanceelcomRecountUpDigit"/>
-				<AI id="territory" actionlist="FinanceelcomRecountFProv"/>
-				<AI id="circuit" actionlist="FinanceelcomRecountFProv"/>				
+				<AI id="district" actionlist="FinanceelcomRecountUpDigit" />
+				<AI id="territory" actionlist="FinanceelcomRecountFProv" />
+				<AI id="circuit" actionlist="FinanceelcomRecountFProv" />				
 			</A>
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID, DOCDATE"/>
 		</TABLE>
@@ -2823,6 +2832,40 @@
 			</FORM>
 		</REPORT>
 		<REPORT id="CashAd" name="Объявление на взнос наличными" procedure="" template="cash_ad.xls"/>
+		<REPORT id="EstimateUIK" name="Смета УИК" procedure="МАЦ-4184" template=""/>
+		<REPORT id="EstimateTIK" name="Смета ТИК" procedure="МАЦ-4184" template=""/>
+		<REPORT id="EstimateTIK_UIK" name="Смета ТИК за нижестоящие УИК" procedure="МАЦ-4184" template=""/>
+		<REPORT id="Report0504833" name="Бухгалтерская справка 0504833" procedure="МАЦ-4327" template="">
+			<FORM name="Параметры">
+				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="BPERSONID" name="Исполнитель (расшифровка подписи)" caption="Исполнитель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="BKPOSTSID" name="Ответственный исполнитель (должность)" caption="Ответственный исполнитель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="BKPERSONID" name="Ответ.исполнитель (расшифровка подписи)" caption="Ответ.исполнитель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="Report0504210" name="Ведомость выдачи материальных ценностей на нужды учреждения 0504210" procedure="МАЦ-4328" template="">
+			<FORM name="Параметры">
+				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="BPERSONID" name="Исполнитель (расшифровка подписи)" caption="Исполнитель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="RUPERSONID" name="Руководитель учреждения" caption="Руководитель учреждения" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+			</FORM>
+		</REPORT>
+		<REPORT id="Report0504230" name="Акт о списании материальных запасов 0504230" procedure="МАЦ-4330" template="">
+			<FORM name="Параметры">
+				<A id="CHAIRMAN_POSTSID" name="Председатель (должность)" caption="Председатель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="CHAIRMAN" name="Председатель (расшифровка подписи)" caption="Председатель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="1_POSTSID" name="Член комиссии 1 (должность)" caption="Член комиссии 1 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="1_COMMISSION" name="Член комиссии 1 (расшифровка подписи)" caption="Член комиссии 1 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="2_POSTSID" name="Член комиссии 2 (должность)" caption="Член комиссии 2 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="2_COMMISSION" name="Член комиссии 2 (расшифровка подписи)" caption="Член комиссии 2 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="3_POSTSID" name="Член комиссии 3 (должность)" caption="Член комиссии 3 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="3_COMMISSION" name="Член комиссии 3 (расшифровка подписи)" caption="Член комиссии 3 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="4_POSTSID" name="Член комиссии 4 (должность)" caption="Член комиссии 4 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="4_COMMISSION" name="Член комиссии 4 (расшифровка подписи)" caption="Член комиссии 4 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+			</FORM>
+		</REPORT>
 		<REPORT id="IntMoveGoogs" name="Накладные на внутреннее перемещение МЗ" procedure="p_report_intmovegoods" template="intmoveGoogs.xlsx" type = "report_excel">
 			<FORM name="Параметры">
 				<GA id="SubmDoc" name="Сдал" caption="Сдал">
@@ -3149,7 +3192,7 @@
 					<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<GRID id="ElectСommInCampGR1" name="Избирательные комиссии, участвующие в избирательной кампании" table="ELECTCOMMINCAMP" readonly="true">
 						<MENU>
-							<MI actionlist="FormFinanceelcom;ConfigTables"/>
+							<MI actionlist="FormFinanceelcom;ConfigTables" reportlist="EstimateUIK;EstimateTIK;EstimateTIK_UIK"/>  
 						</MENU>
 					</GRID>
 				</TAB>
@@ -3435,7 +3478,7 @@
 				<TAB name="Ведомости выдачи МЗ">
 					<TABS>
 						<TAB name="Ведомости выдачи МЗ">
-							<GRID id="WRITEOFF_STATEMENT_HEADERGR" name="Документы" table="WRITEOFF_STATEMENT_HEADER" actionlist="WriteoffToTransactionlog;WriteoffToTransactionlogRollback"/>
+							<GRID id="WRITEOFF_STATEMENT_HEADERGR" name="Документы" table="WRITEOFF_STATEMENT_HEADER" actionlist="WriteoffToTransactionlog;WriteoffToTransactionlogRollback"   reportlist="Report0504210"/>
 						</TAB>
 						<TAB name="Спецификация ведомости выдачи МЗ">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_STATEMENT_HEADER f, DOCTYPES d where f.id = @WRITEOFF_STATEMENT_HEADERID and f.doctypeid = d.id" local="true"/>
@@ -3457,7 +3500,7 @@
 				<TAB name="Акты о списании МЗ">
 					<TABS>
 						<TAB name="Акты о списания МЗ">
-							<GRID id="WRITEOFF_ACTS_HEADERGR" name="Документы" table="WRITEOFF_ACTS_HEADER" actionlist="WriteoffActsToTransactionlog;WriteoffActsToTransactionlogRollback"/>
+							<GRID id="WRITEOFF_ACTS_HEADERGR" name="Документы" table="WRITEOFF_ACTS_HEADER" actionlist="WriteoffActsToTransactionlog;WriteoffActsToTransactionlogRollback" reportlist="Report0504230"/>
 						</TAB>
 						<TAB name="Спецификация акта о списании МЗ">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from WRITEOFF_ACTS_HEADER f, DOCTYPES d where f.id = @WRITEOFF_ACTS_HEADERID and f.doctypeid = d.id" local="true"/>
@@ -3477,7 +3520,7 @@
 			<GRID id="TRANSACTIONLOGGR" name="Журналы операций избирательных кампаний" table="TRANSACTIONLOG"/>
 			<TABS>
 				<TAB name="Журнал операций">
-					<GRID id="TRANSACTIONLOGDocsGR" name="Журнал операций" table="TRANSACTIONLOG_DOCS"/>
+					<GRID id="TRANSACTIONLOGDocsGR" name="Журнал операций" table="TRANSACTIONLOG_DOCS"   reportlist="Report0504833"/>
 				</TAB>
 				<TAB name="Проводка хозяственной операции">
 					<GRID id="TRANSACTIONLOGStagesGR" name="Проводка хозяственной операции" table="TRANSACTIONLOG_STAGES"/>
