@@ -19,7 +19,7 @@
 			<A id="WORDINGOFTHEFORMSID" parentkey="cascade"/>
 			<A id="NAME" name="Наименование показателя" caption="Наименование показателя" labelwidth="150" type="text" nulls="false" local="true"/>
 			<A id="CODE" name="Код строки формы" caption="Код строки формы" labelwidth="600" type="string" nulls="false" local="true"/>
-			<A id="MARKTEXT" name="При сведении отчета добавлять строки по показателю" caption="При сведении отчета добавлять строки по показателю" width="600" type="boolean" local="true"/>
+			<A id="MARKTEXT" name="Не сводить показатель" caption="Не сводить показатель" width="600" type="boolean" local="true"/>
 			<GA id="CONTROLOFFILLING" name="Контроль заполнения показателя" caption="Контроль заполнения показателя">
 				<A id="COMPLETIONUIK" name="УИК" caption="УИК" width="15" type="boolean" local="true"/>
 				<A id="COMPLETIONTIK" name="ТИК" caption="ТИК" width="15" type="boolean" local="true"/>
@@ -214,13 +214,16 @@ where (t.sJSON->>'name')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6
 		<ACTION id="InclusionStatus" name="Включить в свод" type="procedure" procedure="p_action_set_status">
 			<P id="val" value="1"/>
 		</ACTION>
+		<ACTION id="ExclusionStatus" name="Не включать в свод" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="0"/>
+		</ACTION>
 		<ACTION id="InclusionReportUIK" name="Подобрать отчеты УИК для включения в свод ТИК за нижестоящие" type="procedure" procedure="p_action_create_repinc_by_tik"/>
 		<ACTION id="InclusionReportTIK" name="Подобрать отчеты ТИК для включения в свод ИКСРФ за нижестоящие" type="procedure" procedure="p_action_create_repinc_by_iksrf"/>
 		<ACTION id="ConsolidationUIK" name="Сформировать свод ТИК за нижестоящие УИК" type="procedure" procedure="">
 			<FORM name="Формирование сводного отчета ТИК за нижестоящие УИК">
 				<GRID name="Предоставленная отчетность УИК" table="REPORT_INCLUSION" readonly="true">
 					<MENU>
-						<MI actionlist="View;InclusionStatus;"/>
+						<MI actionlist="View;InclusionStatus;ExclusionStatus"/>
 					</MENU>
 				</GRID>
 			</FORM>
@@ -229,7 +232,7 @@ where (t.sJSON->>'name')::text ilike ANY(ARRAY['%1%','%2%','%3%','%4%','%5%','%6
 			<FORM name="Формирование сводного отчета ИКСРФ за нижестоящие ТИК">
 				<GRID name="Предоставленная отчетность ТИК" table="REPORT_INCLUSION" readonly="true">
 					<MENU>
-						<MI actionlist="View;InclusionStatus;"/>
+						<MI actionlist="View;InclusionStatus;ExclusionStatus"/>
 					</MENU>
 				</GRID>
 			</FORM>
