@@ -1,4 +1,4 @@
-﻿<SYSTEM id="121" name="Управление бюджетными данными">
+<SYSTEM id="121" name="Управление бюджетными данными">
 	<MODULES id="Modules" name="Модули">
 		<MODULE id="UBD" name="Управление бюджетными данными" menu="UBD"/>
 	</MODULES>
@@ -1196,10 +1196,10 @@
 						<A id="RECORD_TYPESID" name="Тип" caption="Тип" labelwidth="50" width="80" nulls="false"/>
 						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					</GA>
-					<A id="BUDGETS_ID" labelwidth="100" width="60" nulls="false" visible="form"/>
-					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
-					<A id="KBR_ID" labelwidth="350"/>
-					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350"/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" nulls="false" visible="form" formula=""/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" visible="form" formula="" local="true"/>
+					<A id="KBR_ID" labelwidth="350" formula=""/>
+					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350" formula=""/>
 					<GA caption="Документы">
 						<GA caption="Документ, подтверждающий проведение операции">
 							<A id="DOCTYPE" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
@@ -1213,8 +1213,6 @@
 						</GA>
 					</GA>
 					<A id="SUM" name="Сумма" caption="Сумма операции" labelwidth="550" type="number" len="18.2" local="true"/>
-					<A id="EXEC_BUD_KBRID" name="Исполнение бюджета КБК" caption="Исполнение бюджета КБК" labelwidth="500" type="ref" table="EXEC_BUD_KBR" ret="KBR_ID_ret" visible="false" local="true"/>
-					<A id="EXEC_BUD_DETAILID" name="Исполнение бюджета: Детализация" caption="Исполнение бюджета: Детализация" labelwidth="500" type="ref" table="EXEC_BUD_DETAIL" ret="CODE" visible="grid" local="true"/>
 					<A id="MBT_MOVE_REC_RECID" name="Ссылка на раздел Движение МБТ" parentkey="nocascade" type="ref" table="MBT_MOVE_REC_REC" visible="false" local="true"/>
 				</TAB>
 				<TAB name="Детальная информация">
@@ -1226,7 +1224,7 @@
 					<A id="SUBSIDIES_ID"/>
 					<A id="CAPOBJECTS_ID"/>
 					<A id="EVENT_ID"/>
-					<A id="ACODES_ID"/>
+					<A id="ACODES_ID" formula=""/>
 					<A id="DEPART5_ID"/>
 					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 				</TAB>
@@ -1408,7 +1406,6 @@
 			</A>
 			<TI id="DISTRIBDATA_UK" name="Документ с таким номером уже существует" unique="YEAR_U, DOCNUMB"/>
 		</TABLE>
-		<COMMENT name="Заполнить формулы по расчету остатков"/>
 		<TABLE id="DISTRIBDATA_KBR" name="Распределение бюджетных данных: статьи">
 			<A id="DISTRIBDATAID" name="Распределение бюджетных данных" caption="Распределение бюджетных данных" labelwidth="300" parentkey="cascade" type="ref" table="DISTRIBDATA" ret="DOCNUMB" form="Distribdata"/>
 			<A id="PLANNING_PERIOD" name="Плановый период" caption="Плановый период" labelwidth="500" type="list" visible="form" value="0" local="true">
@@ -1429,7 +1426,6 @@
 			<A id="EVENT_VIRT" name="Мероприятие" caption="Мероприятие" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from EVENTS where id = (select EVENT_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 			<A id="ACODES_VIRT" name="Аналитический код" caption="Аналитический код" labelwidth="200" width="50" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from ACODES where id = (select ACODES_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
 			<A id="DEPART5_VIRT" name="Код департамента Минфина" caption="Структурное подразделение органа, исполняющего бюджет" labelwidth="500" type="string" visible="form" readonly="true" virtual="true" formula="select CODE from DEPART5 where id = (select DEPART5_ID from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID)"/>
-			<COMMENT name="Заполнить формулы по расчету остатков"/>
 			<GA caption="Остатки">
 				<A id="SUM_REST_LBO_VIRT" name="Остаток ЛБО" caption="ЛБО" labelwidth="50" width="50" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select ((SUM_SEP_LBO+SUM_COR_LBO)-(SUM_OUTIN_LBO+SUM_OUT03_LBO+SUM_OUT14_LBO)) from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID" local="true"/>
 				<A id="SUM_REST_BA_VIRT" name="Остаток БА" caption="Ассигнований" labelwidth="100" width="50" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select ((SUM_SEP_BA+SUM_COR_BA)-(SUM_OUTIN_BA+SUM_OUT03_BA+SUM_OUT14_BA)) from EXEC_BUD_DETAIL where id = @EXEC_BUD_DETAILID" local="true"/>
@@ -1639,6 +1635,7 @@
 					<A id="BKD_VIRT" name="КДБ" caption="Бюджетная классификация доходов" labelwidth="250" width="50" type="string" readonly="true" virtual="true" formula="select CODE from BKD where id =(select BKD_ID from MBT_LIST where id =(select MBT_LISTID from MBT_MOVE_REC where id = @MBT_MOVE_RECID))" local="true"/>
 					<A id="ACODES_VIRT" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="250" type="string" readonly="true" virtual="true" formula="select CODE from ACODES where id =(select ACODES_ID from MBT_LIST where id =(select MBT_LISTID from MBT_MOVE_REC where id = @MBT_MOVE_RECID))" local="true"/>
 					<GRID id="Mbt_move_rec_rec" name="Движение МБТ: расшифровка по получателям" table="MBT_MOVE_REC_REC"/>
+					<GRID id="Jurnalexp_mbt" name="Журнал операций по движению межбюджетных трансфертов" table="JURNALEXP_MBT"/>
 				</TAB>
 			</TABS>
 		</FORM>
