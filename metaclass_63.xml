@@ -14,6 +14,7 @@
 		<A id="LISTOFCHECKSID" name="Перечень проверок и пересчетов" caption="Перечень проверок и пересчетов" type="ref" table="LISTOFCHECKS" ret="NAME" form="ListOfChecks" nulls="true"/>
 		<A id="RECALCULATIONSID" name="Пересчеты" caption="Пересчеты" type="ref" table="RECALCULATIONS" ret="NAME" form="Recalculations" nulls="true"/>
 		<A id="AUDITREPORTID" name="Проверки" caption="Проверки" type="ref" table="AUDITREPORT" ret="ID" form="AuditReport" nulls="true"/>
+		<A id="ACCOUNTABILITYUIKIDVIRT" name="Отчеты УИК" caption="Отчеты УИК" type="ref" table="ACCOUNTABILITYUIKVIRT" ret="CODE" form="AccountabilityUikVirt" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -22,6 +23,7 @@
 		<TABLE id="ACCOUNTABILITYUIK" name="Отчетность УИК">
 			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/>
 			<A id="ELECTCAMPAIGNID" labelwidth="200"/>
+			<A id="POSTSID" labelwidth="300" nulls="false"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="200" type="date" nulls="false" local="true"/>
 			<A id="ELECTCOMMITTEEID" labelwidth="200"/>
@@ -62,6 +64,50 @@
 				</A>
 			</GA>
 		</TABLE>
+		<!-- <TABLE id="ACCOUNTABILITYUIKVIRT" name="Отчетность УИК" virtual="true" query="select c.* from ACCOUNTABILITYUIK c, ELECTCOMMITTEE P where c.electcommitteeid = p.id and (p.levelelcommittee = 'district')"> -->
+			<!-- <A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/> -->
+			<!-- <A id="ELECTCAMPAIGNID" labelwidth="200"/> -->
+			<!-- <A id="POSTSID" labelwidth="300" nulls="false"/> -->
+			<!-- <A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/> -->
+			<!-- <A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="200" type="date" nulls="false" local="true"/> -->
+			<!-- <A id="ELECTCOMMITTEE" labelwidth="200"/> -->
+			<!-- <GA id="UIKSTATUSMODEL" name="Статусная модель" caption="Статусная модель"> -->
+				<!-- <A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" visible="true" value="1" local="true"> -->
+					<!-- <AI id="1" name="Новый / Новый / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK"/> -->
+					<!-- <AI id="2" name="В работе / Загружен / Нет / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;ImportReportUIK"/> -->
+					<!-- <AI id="3" name="В работе / Расчитан / Нет / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;ImportReportUIK"/> -->
+					<!-- <AI id="4" name="В работе / Расчитан / Без ошибок / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;SubmitReport;ImportReportUIK"/> -->
+					<!-- <AI id="5" name="Представлен / Расчитан / Без ошибок / Отправлен" actionlist="CheckReport;ImportReportUIK" readonly="true"/> -->
+					<!-- <AI id="6" name="В своде / Расчитан / Без ошибок / Отправлен" actionlist="CheckReport;ImportReportUIK" readonly="true"/> -->
+					<!-- <AI id="7" name="В работе / Не расчитан / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;SpecReportsRecountingSumm"/> -->
+					<!-- <AI id="8" name="В работе / Расчитан / Ошибки / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/> -->
+					<!-- <AI id="9" name="Отклонен / Отклонен / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/> -->
+				<!-- </A> -->
+				<!-- <A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when @STATUS = '1' then '1' when @STATUS = '5' then '3' when @STATUS = '6' then '4' when @STATUS = '9' then '5' else '2' end" value="1" local="true"> -->
+					<!-- <AI id="1" name="Новый"/> -->
+					<!-- <AI id="2" name="В работе"/> -->
+					<!-- <AI id="3" name="Представлен"/> -->
+					<!-- <AI id="4" name="В своде"/> -->
+					<!-- <AI id="5" name="Отклонён"/> -->
+				<!-- </A> -->
+				<!-- <A id="TESTED" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when @STATUS = '1' then '1' when @STATUS = '2' then '2' when @STATUS = '7' then '4' when @STATUS = '9' then '5' else '3' end" value="1" local="true"> -->
+					<!-- <AI id="1" name="Новый"/> -->
+					<!-- <AI id="2" name="Загружен"/> -->
+					<!-- <AI id="3" name="Расчитан"/> -->
+					<!-- <AI id="4" name="Не расчитан"/> -->
+					<!-- <AI id="5" name="Отклонён"/> -->
+				<!-- </A> -->
+				<!-- <A id="CHECKED" name="Проверка" caption="Проверка" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when @STATUS = '8' then '3' when (@STATUS = '4') or (@STATUS = '5') or (@STATUS = '6') then '2' else '1' end" value="1" local="true"> -->
+					<!-- <AI id="1" name="Нет"/> -->
+					<!-- <AI id="2" name="Без ошибок"/> -->
+					<!-- <AI id="3" name="Ошибки"/> -->
+				<!-- </A> -->
+				<!-- <A id="SUBMITTED" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when (@STATUS = '5') or (@STATUS = '6') then '2' else '1' end" value="1" local="true"> -->
+					<!-- <AI id="1" name="Не отправлен"/> -->
+					<!-- <AI id="2" name="Отправлен"/> -->
+				<!-- </A> -->
+			<!-- </GA> -->
+		<!-- </TABLE> -->
 		<TABLE id="ACCOUNTABILITYUIKS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1S1">
@@ -210,11 +256,17 @@
 			<GA id="UIKSTARTGA3P11" name="Код строки">
 				<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
 			</GA>
+			<GA name="Численность граждан привлекавшихся к работе, человек">
+				<A id="NUMOFCIVILUIK" name="3" caption="Численность граждан привлекавшихся к работе, человек (гр. 3)" labelwidth="220" type="number" len="8" nulls="true" readonly="true" local="true"/>
+			</GA>	
 			<GA id="UIKPRIL11GA4" name="Всего">
 				<A id="TOTAL" name="4" caption="Сумма расходов, всего, рублей (гр.4)" labelwidth="220" type="number" len="8.2" nulls="false" visible="true" formula="@UIKREFERENDUMCOMMISSION" local="true"/>
 			</GA>
 			<GA id="UIKPRIL11GA5" name="Участковых избирательных комиссий">
 				<A id="UIKREFERENDUMCOMMISSION" name="7" caption="Участковых избирательных комиссий (гр. 7)" labelwidth="265" type="number" len="8.2" nulls="false" visible="true" local="true"/>
+			</GA>
+			<GA name="в среднем на 1-го человека, рублей">
+				<A id="AVEPERPERSON" name="8" caption="в среднем на 1-го человека, рублей (гр. 8)" labelwidth="220" type="number" len="8.2" nulls="true" readonly="true" formula="@TOTAL / @NUMOFCIVILUIK" local="true"/>
 			</GA>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select s.completionuik from MEASURESOFSHAPE s where s.id = @MEASURESOFSHAPEID">
 				<AI id="true"/>
@@ -347,6 +399,7 @@
 					<AI id="2" name="Отправлен"/>
 				</A>
 			</GA>
+			<TI unique="ELECTCAMPAIGNID,ELECTCOMMITTEEID,TYPEDOC"/>
 		</TABLE>
 		<TABLE id="ACCOUNTABILITYTIKS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -879,6 +932,20 @@
 				<GA name=" ">
 					<GA name=" ">
 						<A id="CODE" name="2" caption="Код строки (гр.2)" labelwidth="220" type="string" nulls="false" virtual="true" formula="select CODE from MEASURESOFSHAPE where ID = @MEASURESOFSHAPEID" local="true"/>
+					</GA>
+				</GA>
+			</GA>
+			<GA id="TIKPRIL9GA4" name="Единица измерения (штук, метров, листов и т.д.)">
+				<GA name=" ">
+					<GA name=" ">
+						<A id="MEASUREUNIT" name="3" caption="Единица измерения (штук, метров, листов и т.д.) (гр. 3)" labelwidth="350" type="string" nulls="true" local="true"/>
+					</GA>
+				</GA>
+			</GA>
+			<GA id="TIKPRIL9GA5" name="Количество">
+				<GA name=" ">
+					<GA name=" ">
+						<A id="QUANTITY" name="4" caption="Количество (гр. 4)" labelwidth="220" type="number" len="8" nulls="true" local="true"/>
 					</GA>
 				</GA>
 			</GA>
@@ -1447,7 +1514,7 @@
 				<AI id="15/2" actionlist="DisbandUIKResult"/>
 				<AI id="1/3" actionlist="FillListOfIndincators;ImportReportIKSRF;ConsolidationIKSRFFullReport"/>
 				<AI id="10/3" actionlist="CheckReport;DisbandUIKResult"/>
-				<AI id="11/3" actionlist="SubmitReport;CheckReport;DisbandUIKResult"/>
+				<AI id="11/3" actionlist="SubmitReportFull;CheckReport;DisbandUIKResult"/>
 				<AI id="12/3" actionlist="CheckReport;RejectSummaryReport"/>
 				<AI id="14/3" actionlist="ConsolidationIKSRFFullReport"/>
 				<AI id="15/3" actionlist="DisbandUIKResult"/>
@@ -1508,6 +1575,7 @@
 					<AI id="2" name="Отправлен"/>
 				</A>
 			</GA>
+			<TI unique="ELECTCAMPAIGNID,ELECTCOMMITTEEID,TYPEDOC"/>
 		</TABLE>
 		<TABLE id="ACCOUNTABILITYIKSRFS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3241,21 +3309,21 @@
 				<TAB name="Состав отчетности">
 					<TABS>
 						<TAB name="Раздел 1. Исходные данные">
-							<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD" readonly="true">
+							<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
 									<MI actionlist="Update;View;SpecReportsRecountingSumm;ConfigTables"/>
 								</MENU>
 							</GRID>
 						</TAB>
 						<TAB name="Раздел 2. Фактические расходы">
-							<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE" readonly="true">
+							<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
 									<MI actionlist="Update;View;SpecReportsRecountingSumm;ConfigTables"/>
 								</MENU>
 							</GRID>
 						</TAB>
 						<TAB name="Прил. 11">
-							<GRID id="TIKPril11" name="Приложение 11" table="TIKPRIL11" actionlist="SpecReportsRecountingSumm">
+							<GRID id="UIKPril11" name="Приложение 11" table="UIKPRIL11" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
 									<MI actionlist="Update;View;SpecReportsRecountingSumm;ConfigTables"/>
 								</MENU>
@@ -3269,18 +3337,33 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		<FORM id="AccountabilityUikVirt" name="Отчетность УИК">
+			<GRID id="AccountabilityUikVirt" name="Отчетность УИК" table="ACCOUNTABILITYUIKVIRT"/>
+		</FORM>
 		<FORM id="AccountabilityTik" name="Отчетность ТИК">
 			<TABS>
 				<TAB name="Список предоставленной отчетности">
-					<GRID id="AccountabilityTik" name="Отчетность ТИК" table="ACCOUNTABILITYTIK" actionlist="FillListOfIndincators;ProvidingDataAccounting;SpecReportsRecountingSumm;CheckReport;ConsolidationUIKResult;ConsolidationTIKFullReport;DisbandUIKResult;SubmitReport;SubmitReportFull;ImportReportTIK;ToRejectAPreliminaryReport;RejectSummaryReport;ShowParts"/>
+					<GRID id="AccountabilityTik" name="Отчетность ТИК" table="ACCOUNTABILITYTIK" actionlist="FillListOfIndincators;ProvidingDataAccounting;SpecReportsRecountingSumm;CheckReport;ConsolidationUIKResult;ConsolidationTIKFullReport;DisbandUIKResult;SubmitReport;SubmitReportFull;ImportReportTIK;ToRejectAPreliminaryReport;RejectSummaryReport;ShowParts" readonly="true">
+						<MENU>
+							<MI actionlist="Insert;Update;View;Delete;ConfigTables"/>
+						</MENU>
+					</GRID>
 				</TAB>
 				<TAB name="Состав отчетности">
 					<TABS>
 						<TAB name="Раздел 1. Исходные данные">
-							<GRID id="TIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYTIKS1SD" actionlist="SpecReportsRecountingSumm;ShowParts"/>
+							<GRID id="TIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYTIKS1SD" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
+								<MENU>
+									<MI actionlist="Update;View;ConfigTables;SpecReportsRecountingSumm"/>
+								</MENU>
+							</GRID>
 						</TAB>
 						<TAB name="Раздел 2. Фактические расходы">
-							<GRID id="TIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYTIKS2AE" actionlist="SpecReportsRecountingSumm;ShowParts"/>
+							<GRID id="TIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYTIKS2AE" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
+								<MENU>
+									<MI actionlist="Update;View;ConfigTables;SpecReportsRecountingSumm"/>
+								</MENU>
+							</GRID>
 						</TAB>
 						<TAB name="Прил. 2">
 							<GRID id="TIKPril2" name="Приложение 2" table="TIKPRIL2" actionlist="SpecReportsRecountingSumm;ShowParts"/>
@@ -3342,10 +3425,17 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		<!-- <FORM id="" name=""> -->
+			<!-- <GRID id="" name="" table=""/> -->
+		<!-- </FORM> -->
 		<FORM id="AccountabilityIksrf" name="Отчетность ИКСРФ">
 			<TABS>
 				<TAB name="Список предоставленной отчетности">
-					<GRID id="AccountabilityIksrf" name="Отчетность ИКСРФ" table="ACCOUNTABILITYIKSRF" actionlist="FillListOfIndincators;SpecReportsRecountingSumm"/>
+					<GRID id="AccountabilityIksrf" name="Отчетность ИКСРФ" table="ACCOUNTABILITYIKSRF" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;SubmitReport;ToRejectAPreliminaryReport;ConsolidationTIKResult;DisbandUIKResult;ImportReportIKSRF;ConsolidationIKSRFFullReport;SubmitReportFull;RejectSummaryReport">
+						<MENU>
+							<MI actionlist="Insert;Update;View;Delete;ConfigTables"/>
+						</MENU>
+					</GRID>
 				</TAB>
 				<TAB name="Состав отчетности">
 					<TABS>
@@ -3424,5 +3514,8 @@
 				</TAB>
 			</TABS>
 		</FORM>
+		<!-- <FORM id="" name=""> -->
+			<!-- <GRID id="" name="" table=""/> -->
+		<!-- </FORM> -->
 	</FORMS>
 </SYSTEM>
