@@ -1133,13 +1133,7 @@
 			<A id="CODE" name="Номер журнала операций" caption="Номер журнала операций" labelwidth="650" type="string" len="10" nulls="false" local="true"/>
 			<A id="NAME" name="Наименование журнала операций" caption="Наименование журнала операций" labelwidth="200" type="string" len="400" nulls="false" local="true"/>
 			<A id="TYPEMEMORDER" labelwidth="200"/>
-			<A id="DETAIL" name="Детализация" caption="Детализация" labelwidth="400" type="list" nulls="false" local="true">
-				<AI id="0" name="Не задана"/>
-				<AI id="1" name="По физическим лицам"/>
-				<AI id="2" name="По юридическим и физическим лицам"/>
-				<AI id="3" name="По МОЛ"/>
-				
-			</A>
+			<A id="PRIORITY" name="Приоритет" caption="Приоритет" labelwidth="650" type="number" len="2" local="true"/>
 			<TI unique="CODE"/>
 		</TABLE>
 		<TABLE id="BUDGCLASS" name="Классификационные признаки счета">
@@ -1156,7 +1150,7 @@
 		<TABLE id="DICACCS" name="План счетов" hid="ACCNUMB">
 			<TABS>
 				<TAB name="Сведения о счете">
-					<A id="ACCNUMB" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" len="7" nulls="false" local="true"/>
+					<A id="ACCNUMB" name="Номер счета" caption="Номер счета" labelwidth="400" type="string" len="6" nulls="false" local="true"/>
 					<A id="ACCNAME" name="Наименование счета" caption="Наименование счета" labelwidth="200" type="string" len="400" nulls="false" local="true"/>
 					<A id="ACCTYPE" name="Тип счета" caption="Тип счета" labelwidth="400" type="list" nulls="false" local="true">
 						<AI id="2" name="материалы"/>
@@ -1168,7 +1162,6 @@
 						<AI id="1" name="балансовый"/>
 						<AI id="0" name="забалансовый"/>
 					</A>
-					<A id="MEMORDERID" labelwidth="400"/>
 				</TAB>
 				<TAB name="Вид КБК счетов и КОСГУ счетов">
 					<A id="BUDGCLASSTYPE"/>
@@ -1203,7 +1196,7 @@
 				<A id="ACCOUNTKTID" name="Счет" caption="Счет" labelwidth="100" width="50" nulls="true"/>
 				<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="100" width="50" nulls="true"/>
 			</GA>
-			<A id="MEMORDERID"  name="Обороты в главную книгу" caption="Обороты в главную книгу" />
+			<A id="MEMORDERID"/>
 			<A id="TYPETOS" name="Тип проводки" caption="Тип проводки" labelwidth="200" type="list" nulls="false">
 				<AI id="1" name="Баланс"/>
 				<AI id="0" name="Забаланс"/>
@@ -2217,7 +2210,7 @@
 		<TABLE id="TRANSACTIONLOG_DOCS" name="Журнал операций">
 			<A id="TRANSACTIONLOGID" parentkey="cascade"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@TRANSACTIONLOGID" local="true"/>
-			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@TRANSACTIONLOGID" local="true"/>
+			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, TRANSACTIONLOG c where e.id = c.ELECTCAMPAIGNID and c.id=@CTRANSACTIONLOGID" local="true"/>
 			<GA name="Операция" caption="Операция">
 				<A id="TRANSACTIONNUMB" name="Номер операции" caption="Номер" labelwidth="100" width="55" type="string" nulls="false" formula="select coalesce(regexp_replace(max(lpad(TRANSACTIONNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from TRANSACTIONLOG_DOCS where TRANSACTIONLOGID = @TRANSACTIONLOGID and cid=0"/>
 				<A id="TRANSACTIONDATE" name="Дата операции" caption="Дата" labelwidth="50" width="45" type="date" nulls="true"/>
@@ -2241,7 +2234,7 @@
 		</TABLE>
 		<TABLE id="TRANSACTIONLOG_STAGES" name="Проводки журнала операций">
 			<A id="TRANSACTIONLOG_DOCSID" parentkey="cascade"/>
-			<A id="MEMORDERID" name="Обороты в главную книгу" caption="Обороты в главную книгу"/>
+			<A id="MEMORDERID"/>
 			<GA name="Дебет" caption="Дебет">
 				<A id="DTFINSECURITY" name="КФО" caption="КФО" labelwidth="140" width="50" type="number" nulls="true" value="1"/>
 				<A id="LEVELESTIMATE" labelwidth="120" width="50"/>
@@ -2402,15 +2395,12 @@
 					<AI id="2" name="Проведен в учете" actionlist="WriteoffInvToTransactionlogRollback" readonly="true"/>
 				</A>
 			</GA>
-			<GA name="Сдал" caption="Сдал">
-				<A id="SPOSTSID" name="Должность" caption="Должность" labelwidth="120" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="false" local="true"/>	
+			<GA name="Отправитель" caption="Отправитель">
 				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
 			</GA>
-			<GA name="Принял" caption="Принял">
-				<A id="APOSTSID" name="Должность" caption="Должность" labelwidth="120" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="false" local="true"/>
+			<GA name="Получатель" caption="Получатель">
 				<A id="RECIPIENTRESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
 			</GA>
-			<A id="VALIDTEXT" name="Основание" caption="Основание" type="text" nulls="false" local="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI id="WRITEOFF_INVOICE_HEADERDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
@@ -2741,7 +2731,7 @@
 		</REPORT>
 		<REPORT id="TIK_ZP_VKTIK" name="Комплект расчетных форм ТИК" procedure="" template="7.xls"/>
 		<REPORT id="KRF_F_NE_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_ne_zp_no.xls"/>
-		<REPORT id="KRF_F_NE_ZP_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_ne_zp_o.xlsx"/>
+		<REPORT id="KRF_F_NE_ZP_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_ne_zp_o.xls"/>
 		<REPORT id="KRF_F_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_no.xls"/>
 		<REPORT id="KRF_F_ZP_PL_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_no.xls"/>
 		<REPORT id="KRF_F_ZP_PL_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_o.xls"/>
@@ -2862,25 +2852,6 @@
 				<A id="RUPERSONID" name="Руководитель учреждения" caption="Руководитель учреждения" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="Memorder" name="Журнал операций" procedure="МАЦ-4425" template="">
-			<FORM name="Параметры">
-				<A id="MEMORDERID" labelwidth="150"/>
-				<A id="BEGINDATE" labelwidth="150"  width="50"/>
-				<A id="ENDDATE" labelwidth="150"  width="50"/>
-				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" labelwidth="200"   type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-			</FORM>
-		</REPORT>
-		<REPORT id="General_ledger" name="Главная книга" procedure="МАЦ-4430" template="">
-			<FORM name="Параметры">
-				<A id="BEGINDATE" labelwidth="150"  width="50"/>
-				<A id="ENDDATE" labelwidth="150"  width="50"/>
-				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" labelwidth="200"   type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-			</FORM>
-		</REPORT>
 		<REPORT id="Report0504230" name="Акт о списании материальных запасов 0504230" procedure="МАЦ-4330" template="">
 			<FORM name="Параметры">
 				<A id="CHAIRMAN_POSTSID" name="Председатель (должность)" caption="Председатель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
@@ -2897,10 +2868,19 @@
 		</REPORT>
 		<REPORT id="IntMoveGoogs" name="Накладные на внутреннее перемещение МЗ" procedure="p_report_intmovegoods" template="intmoveGoogs.xlsx" type = "report_excel">
 			<FORM name="Параметры">
+				<GA id="SubmDoc" name="Сдал" caption="Сдал">
+				    <A id="SPOSTSID" name="Должность" caption="Должность" width="50" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="false" local="true"/>
+					<A id="SPERSONID" name="ФИО" caption="ФИО" width="50" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				</GA>
+				<GA id="AdopDoc" name="Принял" caption="Принял">
+				    <A id="APOSTSID" name="Должность" caption="Должность" width="50" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="false" local="true"/>
+					<A id="APERSONID" name="ФИО" caption="ФИО" width="50" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				</GA>
 				<GA id="ExecDoc" name="Исполнил" caption="Исполнил">
 				    <A id="EPOSTSID" name="Должность" caption="Должность" width="50" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="false" local="true"/>
 					<A id="EPERSONID" name="ФИО" caption="ФИО" width="50" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
 				</GA>
+				<A id="VALIDTEXT" name="Основание" caption="Основание" type="text" nulls="false" local="true"/>
 			</FORM>
 		</REPORT>
 	</REPORTS>
@@ -3237,7 +3217,7 @@
 			<GRID id="DicNomnsGR" name="Номенклатор" table="DICNOMNS" actionlist="setLID"/>
 		</FORM>
 		<FORM id="MEMOrderFRM" name="Журналы операций">
-			<GRID id="MEMOrderGR" name="Журналы операций" table="MEMORDER" actionlist="setLID" />
+			<GRID id="MEMOrderGR" name="Журналы операций" table="MEMORDER" actionlist="setLID"/>
 		</FORM>
 		<FORM id="BudgClassFRM" name="Классификационные признаки счета">
 			<GRID id="BudgClassGR" name="Классификационные признаки счета" table="BUDGCLASS" actionlist="setLID"/>
@@ -3537,7 +3517,7 @@
 			<GRID id="VIRT_LEFTOVERSGR" name="Остатки" table="VIRT_LEFTOVERS" readonly="true"/>
 		</FORM>
 		<FORM id="TRANSACTIONLOGFRM" name="Журнал операций">
-			<GRID id="TRANSACTIONLOGGR" name="Журналы операций избирательных кампаний" table="TRANSACTIONLOG" reportlist="Memorder;General_ledger"/>
+			<GRID id="TRANSACTIONLOGGR" name="Журналы операций избирательных кампаний" table="TRANSACTIONLOG"/>
 			<TABS>
 				<TAB name="Журнал операций">
 					<GRID id="TRANSACTIONLOGDocsGR" name="Журнал операций" table="TRANSACTIONLOG_DOCS"   reportlist="Report0504833"/>
