@@ -5,8 +5,6 @@
 	<GROUPS_MENU name="Группы меню">
 		<MENU id="NCI" name="Меню модуля Нормативно-справочная информация">
 			<MENU name="Файл">
-				<MI name="Загрузить конфигурацию" actionlist="ConfigLoad"/>
-				<MI name="Выгрузить конфигурацию" actionlist="ConfigExport"/>
 				<MI name="Параметры системы" formlist="Options"/>
 				<MI name="Загруженные файлы" formlist="Filelinks"/>
 				<MI name="Выйти" actionlist="Exit"/>
@@ -73,6 +71,9 @@
 				<COMMENT name="далее технические разделы, для отладки"/>
 				<COMMENT name="Финансовые организации (в которых открываются л/с) formlist=Agent345"/>
 				<COMMENT name="Юридические лица (все) formlist=Agent"/>
+			</MENU>
+			<MENU name="Материальные ценности">
+				<MI name="Справочник номенклатуры материальных ценностей" formlist="Dicnomns"/>
 			</MENU>
 			<MENU name="Прочие справочники">
 				<MI name="Физические лица" formlist="Person"/>
@@ -179,6 +180,7 @@
 		<A id="GEO_CITY_ID" name="Город" caption="Город" labelwidth="200" type="ref" table="GEO_CITY" ret="CODE" form="fGeoCity" nulls="true"/>
 		<A id="GEO_REGION_ID" name="Район города" caption="Район города" labelwidth="200" type="ref" table="GEO_REGION" ret="CODE" form="fGeoRegion" nulls="true"/>
 		<A id="GEO_SUB_REGION_ID" name="Населенный пункт" caption="Населенный пункт" labelwidth="200" type="ref" table="GEO_SUB_REGION" ret="CODE" form="fGeoSubRegion" nulls="true"/>
+		<A id="DICNOMNSID" name="Номенклатура" caption="Номенклатура" labelwidth="200" type="ref" table="DICNOMNS" ret="CODE" form="Dicnomns"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<COMMENT name="Реквизиты документов"/>
@@ -213,6 +215,8 @@
 		<GA id="DictionaryParam" caption="Период действия">
 			<A id="BEGIN_DATE" name="Дата начала действия" caption="Дата начала действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" formula="to_date('01.01.'||to_char(now(),'YYYY'),'dd.mm.yyyy')" local="true"/>
 			<A id="END_DATE" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" local="true"/>
+			<COMMENT name="formula select (cid=0) from @TABLENAME where id = @ID"/>
+			<A id="ACTIVE_VIRT" name="Актуальная запись" caption="Актуальная запись" labelwidth="220" type="boolean" visible="false" readonly="true" virtual="true" formula="" local="true"/>
 			<A id="METAID" name="Идентификатор записи в мастер системе" type="string" nulls="true" visible="false"/>
 		</GA>
 		<GA id="YEAR_BUDGET" caption="Годовой бюджет">
@@ -254,17 +258,17 @@
 		<TABLE id="DIR_RECIP" name="Главные распорядители и администраторы">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="DIR_RECIP_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="DIR_RECIP_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="ECON_CLASS" name="Коды операций сектора государственного управления" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="ECON_CLASS_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="ECON_CLASS_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="FUN_CLASS" name="Раздел, подраздел" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="FUN_CLASS_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="FUN_CLASS_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="PURP_ARTICLE" name="Целевые статьи" hid="CODE">
 			<A id="CODE" labelwidth="400"/>
@@ -275,12 +279,12 @@
 			<A id="CODEOM" name="Код основного мероприятия целевой программы" caption="Код основного мероприятия целевой программы" labelwidth="600" type="string" nulls="true" readonly="true" virtual="true" formula="substr(@CODE,4,2)" local="true"/>
 			<A id="CODENA" name="Код направления расходов" caption="Код направления расходов" labelwidth="600" type="string" nulls="true" readonly="true" virtual="true" formula="substr(@CODE,6,5)" local="true"/>
 			<GA id="DictionaryParam"/>
-			<TI id="PURP_ARTICLE_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="PURP_ARTICLE_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="EXP_TYPE" name="Виды расходов" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="EXP_TYPE_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="EXP_TYPE_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="INCOM_GROUP" name="Группы доходов">
 			<GA id="DictionaryBC"/>
@@ -305,7 +309,7 @@
 		<TABLE id="BUDG_ELEMENT" name="Элементы бюджета" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="BUDG_ELEMENT_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="BUDG_ELEMENT_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="INCOM_SUB_VID" name="Группы подвидов доходов">
 			<GA id="DictionaryBC"/>
@@ -315,17 +319,17 @@
 		<TABLE id="SOURCE_GROUP" name="Группы, подгруппы  источников" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="SOURCE_GROUP_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="SOURCE_GROUP_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="SOURCE_ARTICLE" name="Статьи, подстатьи  источников" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="SOURCE_ARTICLE_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="SOURCE_ARTICLE_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="SOURCE_SUB_VID" name="Подвиды источников" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="SOURCE_SUB_VID_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="SOURCE_SUB_VID_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="BKD" name="КДБ  Классификатор доходов бюджетов">
 			<GA id="BKD_CODE_GR" name="Коды классификации доходов бюджетов" caption="Коды классификации доходов бюджетов">
@@ -345,7 +349,7 @@
 			</GA>
 			<A id="NAME" labelwidth="100"/>
 			<GA id="DictionaryParam"/>
-			<TI id="BKD_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="BKD_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="KBR" name="КРБ Классификатор расходов бюджетов">
 			<GA caption="Коды классификации расходов бюджетов">
@@ -357,7 +361,7 @@
 			<A id="CODE" name="Код КРБ" caption="Код классификации расходов бюджетов" labelwidth="450" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from FUN_CLASS v where v.id = @FUN_CLASSID),'0000')||COALESCE((select  v.CODE from PURP_ARTICLE v where v.id = @PURP_ARTICLEID),'0000000000')||COALESCE((select  v.CODE from EXP_TYPE v where v.id = @EXP_TYPEID),'000')" value="00000000000000000000"/>
 			<A id="NAME" labelwidth="100"/>
 			<GA id="DictionaryParam"/>
-			<TI id="KBR_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="KBR_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="KIF" name="КИФ Классификатор источников финансирования дефицитов бюджетов">
 			<GA caption="Коды источников финансирования дефицитов бюджетов">
@@ -371,27 +375,27 @@
 			<A id="CODE" name="Код КИФ" caption="Код классификации источников финансирования дефицитов бюджетов" labelwidth="450" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from SOURCE_GROUP v where v.id = @SOURCE_GROUPID),'0000')||COALESCE((select  v.CODE from SOURCE_ARTICLE v where v.id = @SOURCE_ARTICLEID),'0000')||COALESCE((select  v.CODE from BUDG_ELEMENT v where v.id = @BUDG_ELEMENT_ID),'00')||COALESCE((select  v.CODE from SOURCE_SUB_VID v where v.id = @SOURCE_SUB_VIDID),'0000')||COALESCE((select  v.CODE from ECON_CLASS v where v.id = @ECON_CLASS_ID),'000')" value="00000000000000000000"/>
 			<A id="NAME" labelwidth="100" formula="COALESCE(NULLIF(@NAME,''),(select  v.NAME from SOURCE_GROUP v where v.id = @SOURCE_GROUPID)||'. '||(select v.NAME from SOURCE_ARTICLE v where v.id = @SOURCE_ARTICLEID)||'. '||(select v.NAME from BUDG_ELEMENT v where v.id = @BUDG_ELEMENT_ID))"/>
 			<GA id="DictionaryParam"/>
-			<TI id="KIF_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="KIF_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" hid="CODE">
 			<GA id="Dictionary"/>
 			<GA id="DictionaryParam"/>
-			<TI id="OKFS_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="OKFS_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" hid="CODE">
 			<GA id="Dictionary"/>
 			<GA id="DictionaryParam"/>
-			<TI id="OKOPF_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="OKOPF_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" hid="CODE">
 			<GA id="Dictionary"/>
 			<GA id="DictionaryParam"/>
-			<TI id="OKOGU_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="OKOGU_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="OKVED" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" hid="CODE">
 			<GA id="Dictionary"/>
 			<GA id="DictionaryParam"/>
-			<TI id="OKVED_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="OKVED_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="OKPDTR" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов">
 			<A id="NAME" name="Наименование" caption="Наименование должности" labelwidth="250" type="text" nulls="true"/>
@@ -401,7 +405,7 @@
 			<A id="OKPDTRK" name="Код категории" caption="Код категории" labelwidth="550" type="string" formula="NULLIF(@KPP,'')" local="true"/>
 			<A id="OKPDTROKZ" name="Код по ОКЗ" caption="Код по ОКЗ" labelwidth="550" type="string" formula="NULLIF(@KPP,'')" local="true"/>
 			<GA id="DictionaryParam"/>
-			<TI id="OKPDTR_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="OKPDTR_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="OFFBUDGETKINDS" name="Виды бюджетов и внебюджетных средств">
 			<A id="LEVEL" name="Уровень бюджета" caption="Уровень бюджета" labelwidth="650" type="int" nulls="false" value="1" local="true"/>
@@ -427,7 +431,7 @@
 			<A id="NAMEVIRT" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200" type="string" readonly="true" virtual="true" formula="select NAME from AGENT where id =@AGENT2_ID" local="true"/>
 			<A id="DESCRIPTIONVIRT" name="Полное наименование" caption="Полное наименование" labelwidth="200" type="string" readonly="true" virtual="true" formula="select DESCRIPTION from AGENT where id =@AGENT2_ID" local="true"/>
 			<A id="DIR_RECIP" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="600" type="string" nulls="true" formula="select CODE from DIR_RECIP where id =(select DIR_RECIPID from AGENT where id =@AGENT2_ID)" local="true"/>
-			<A id="AGENT2_ACCID" name="л/с" caption="Лицевой счет" labelwidth="150" width="60" type="ref" pid="AGENT2_ID" table="AGENT2_ACC" ret="NAME"/>
+			<A id="AGENT2_ACCID" name="л/с" caption="Лицевой счет" labelwidth="150" width="60" type="ref" pid="FEDERAL_DISTRICTID" table="AGENT2_ACC" ret="NAME"/>
 			<A id="BANK_ACCVIRT" name="Номер счета" caption="Номер счета" labelwidth="150" width="40" type="string" readonly="true" virtual="true" formula="select BANK_ACC from AGENT_ACC where id =@AGENT2_ACCID" local="true"/>
 			<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="select CODE from AGENT where id =@AGENT2_ID"/>
 			<GA id="SubjectRF" caption="Субьект РФ">
@@ -533,7 +537,7 @@
 					<A id="NOTE" visible="form"/>
 				</TAB>
 			</TABS>
-			<TI id="AGENT_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="AGENT_UK" unique="CODE"/>
 			<TI id="AGENT_INN_UK" name="Организация с таким ИНН и КПП уже существует" unique="INN,KPP"/>
 			<TI id="AGENT_CODESR_UK" name="Организация с таким кодом по Сводному реестру уже существует" unique="CODESR"/>
 			<TI id="AGENT_NRZ_UK" name="Организация с таким номером реестровой записи уже существует" unique="NRZ"/>
@@ -1110,7 +1114,7 @@
 					<A id="NOTE"/>
 				</TAB>
 			</TABS>
-			<TI id="PERSON_UK" name="Физическое лицо с таким кодом уже существует" unique="CODE,BEGIN_DATE"/>
+			<TI id="PERSON_UK" name="Физическое лицо с таким кодом уже существует" unique="CODE"/>
 			<TI id="PERSON_INN_UK" name="Физическое лицо с таким ИНН уже существует" unique="INN"/>
 			<TI id="PERSON_SNILS_UK" name="Физическое лицо с таким СНИЛС уже существует" unique="SNILS"/>
 		</TABLE>
@@ -1151,7 +1155,7 @@
 			<A id="PHONES" name="Телефон приемной" caption="Телефон приемной" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
 			<A id="EMAIL" name="E-mail приемной" caption="E-mail приемной" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
 			<GA id="DictionaryParam"/>
-			<TI id="DEPART_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="DEPART_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="DEPART5" name="Структурные подразделения органа, исполняющего бюджет" hid="CODE">
 			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200"/>
@@ -1161,7 +1165,7 @@
 			<A id="EMAIL" name="E-mail приемной" caption="E-mail приемной" labelwidth="200" type="string" nulls="true" visible="form" local="true"/>
 			<A id="AGENT5_ID"/>
 			<GA id="DictionaryParam"/>
-			<TI id="DEPART5_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="DEPART5_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="EVENTS" name="Мероприятия">
 			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="200"/>
@@ -1173,7 +1177,7 @@
 				<A id="CODE_CURATOR" name="Код куратора" caption="Код" labelwidth="100" width="30" type="string" local="true"/>
 			</GA>
 			<GA id="DictionaryParam"/>
-			<TI id="EVENTS_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="EVENTS_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="CAPOBJECTS" name="Объекты капитального строительства">
 			<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
@@ -1181,19 +1185,19 @@
 			<A id="CODE" name="Код объекта" caption="Код объекта" labelwidth="400"/>
 			<A id="FAIP" name="ФАИП" caption="Является объектом федеральной адресной инвестиционной программы (ФАИП)" labelwidth="200" type="boolean" local="true"/>
 			<GA id="DictionaryParam"/>
-			<TI id="CAPOBJECT_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="CAPOBJECT_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="SUBSIDIES" name="Перечень кодов целевых субсидий" hid="CODE">
 			<A id="CODE" name="Код" caption="Код цели (аналитический код)" labelwidth="500"/>
 			<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование"/>
 			<A id="NOTE" name="Полное наименование" caption="Полное наименование"/>
 			<GA id="DictionaryParam"/>
-			<TI id="SUBSIDIES_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="SUBSIDIES_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="ACODES" name="Аналитические коды" hid="CODE">
 			<GA id="DictionaryBC"/>
 			<GA id="DictionaryParam"/>
-			<TI id="ACODES_UK" unique="CODE,BEGIN_DATE"/>
+			<TI id="ACODES_UK" unique="CODE"/>
 		</TABLE>
 		<TABLE id="GEO_COUNTRY" name="Страна">
 			<GA id="DictionaryNote"/>
@@ -1267,6 +1271,25 @@
 			<TI id="GEO_SUB_REGION_CODE_IND" index="CODE"/>
 			<TI id="GEO_SUB_REGION_NAME_IND" index="NAME"/>
 		</TABLE>
+		<TABLE id="DICNOMNS" name="Справочник номенклатуры материальных ценностей">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="NAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200"/>
+					<A id="DESCRIPTION" name="Полное наименование" caption="Полное наименование" labelwidth="200"/>
+					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="200" nulls="false" formula="@NAME" button="true"/>
+					<A id="MN_NAME" name="Международное непатентованное наименование" caption="Международное непатентованное наименование" labelwidth="300" type="text"/>
+					<A id="ORIGINAL_NAME" name="Оригинальное наименование" caption="Оригинальное наименование" labelwidth="200" type="text"/>
+				</TAB>
+			</TABS>
+			<COMMENT name="Ссылка на Единицы измерения (UMEAS_STORAGE)"/>
+			<COMMENT name="NOMEN_TYPE Тип позиции"/>
+			<COMMENT name="AMORT_GROUP Амортизационная группа ( ссылка на инвентарные налоговые группы )"/>
+			<COMMENT name="Ссылка на Общероссийский классификатор продукции по видам экономической деятельности (OKPD)"/>
+			<COMMENT name="Ссылка на Общероссийский классификатор видов экономической деятельности, продукции и услуг (OKDP_RN)"/>
+			<COMMENT name="Ссылка на Общероссийский классификатор основных фондов (OKOF)"/>
+			<COMMENT name="BAR_CODE Штрих-код номенклатуры"/>
+			<TI id="DICNOMNS_UK" unique="CODE"/>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="HelpNciUser" name="Руководство Пользователя" type="link" href="help/nci_user" visible="window"/>
@@ -1277,52 +1300,52 @@
 			<GRID id="DocTypes" name="Типы документов" table="DOCTYPES"/>
 		</FORM>
 		<FORM id="DirRecip" name="Главные распорядители и администраторы">
-			<GRID id="DirRecip" name="Главные распорядители и администраторы" table="DIR_RECIP"/>
+			<GRID id="DirRecip" name="Главные распорядители и администраторы" table="DIR_RECIP" actionlist="Archive"/>
 		</FORM>
 		<FORM id="EconClass" name="Коды операций сектора государственного управления">
-			<GRID id="EconClass" name="Коды операций сектора государственного управления" table="ECON_CLASS"/>
+			<GRID id="EconClass" name="Коды операций сектора государственного управления" table="ECON_CLASS" actionlist="Archive"/>
 		</FORM>
 		<FORM id="FunClass" name="Раздел, подраздел">
-			<GRID id="FunClass" name="Раздел, подраздел" table="FUN_CLASS"/>
+			<GRID id="FunClass" name="Раздел, подраздел" table="FUN_CLASS" actionlist="Archive"/>
 		</FORM>
 		<FORM id="PurpArticle" name="Целевые статьи">
-			<GRID id="PurpArticle" name="Целевые статьи" table="PURP_ARTICLE"/>
+			<GRID id="PurpArticle" name="Целевые статьи" table="PURP_ARTICLE" actionlist="Archive"/>
 		</FORM>
 		<FORM id="ExpType" name="Виды расходов">
-			<GRID id="ExpType" name="Виды расходов" table="EXP_TYPE"/>
+			<GRID id="ExpType" name="Виды расходов" table="EXP_TYPE" actionlist="Archive"/>
 		</FORM>
 		<FORM id="IncomGroup" name="Группы доходов">
-			<GRID id="IncomGroup" name="Группы доходов" table="INCOM_GROUP"/>
+			<GRID id="IncomGroup" name="Группы доходов" table="INCOM_GROUP" actionlist="Archive"/>
 		</FORM>
 		<FORM id="IncomSubGroup" name="Подгруппы доходов">
-			<GRID id="IncomSubGroup" name="Подгруппы доходов" table="INCOM_SUB_GROUP"/>
+			<GRID id="IncomSubGroup" name="Подгруппы доходов" table="INCOM_SUB_GROUP" actionlist="Archive"/>
 		</FORM>
 		<FORM id="IncomArticle" name="Cтатьи доходов">
-			<GRID id="IncomArticle" name="Cтатьи доходов" table="INCOM_ARTICLE"/>
+			<GRID id="IncomArticle" name="Cтатьи доходов" table="INCOM_ARTICLE" actionlist="Archive"/>
 		</FORM>
 		<FORM id="IncomSubArticle" name="Подстатьи доходов">
-			<GRID id="IncomSubArticle" name="Подстатьи доходов" table="INCOM_SUB_ARTICLE"/>
+			<GRID id="IncomSubArticle" name="Подстатьи доходов" table="INCOM_SUB_ARTICLE" actionlist="Archive"/>
 		</FORM>
 		<FORM id="BudgElement" name="Элементы бюджета">
-			<GRID id="BudgElement" name="Элементы бюджета" table="BUDG_ELEMENT"/>
+			<GRID id="BudgElement" name="Элементы бюджета" table="BUDG_ELEMENT" actionlist="Archive"/>
 		</FORM>
 		<FORM id="IncomSubVid" name="Группы подвидов доходов">
-			<GRID id="IncomSubVid" name="Группы подвидов доходов" table="INCOM_SUB_VID"/>
+			<GRID id="IncomSubVid" name="Группы подвидов доходов" table="INCOM_SUB_VID" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Bkd" name="Классификатор доходов бюджетов">
-			<GRID id="Bkd" name="Классификатор доходов бюджетов" table="BKD"/>
+			<GRID id="Bkd" name="Классификатор доходов бюджетов" table="BKD" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Source_Group" name="Группы, подгруппы источников">
-			<GRID id="Source_Group" name="Группы, подгруппы источников" table="SOURCE_GROUP"/>
+			<GRID id="Source_Group" name="Группы, подгруппы источников" table="SOURCE_GROUP" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Source_Article" name="Статьи, подстатьи источников">
-			<GRID id="Source_Article" name="Статьи, подстатьи источников" table="SOURCE_ARTICLE"/>
+			<GRID id="Source_Article" name="Статьи, подстатьи источников" table="SOURCE_ARTICLE" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Source_Sub_Vid" name="Подвиды источников">
-			<GRID id="Source_Sub_Vid" name="Подвиды источников" table="SOURCE_SUB_VID"/>
+			<GRID id="Source_Sub_Vid" name="Подвиды источников" table="SOURCE_SUB_VID" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Kbr" name="Классификатор расходов бюджетов">
-			<GRID id="Kbr" name="Классификатор расходов бюджетов" table="KBR"/>
+			<GRID id="Kbr" name="Классификатор расходов бюджетов" table="KBR" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Kif" name="Классификатор источников финансирования дефицитов бюджетов">
 			<GRID id="Kif" name="Классификатор источников финансирования дефицитов бюджетов" table="KIF"/>
@@ -1331,28 +1354,28 @@
 			<GRID id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" table="OKFS"/>
 		</FORM>
 		<FORM id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм">
-			<GRID id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" table="OKOPF"/>
+			<GRID id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" table="OKOPF" actionlist="Archive"/>
 		</FORM>
 		<FORM id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления">
-			<GRID id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" table="OKOGU"/>
+			<GRID id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" table="OKOGU" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности">
-			<GRID id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" table="OKVED"/>
+			<GRID id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" table="OKVED" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов">
-			<GRID id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов" table="OKPDTR"/>
+			<GRID id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов" table="OKPDTR" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Budgets" name="Бюджеты">
-			<GRID id="Budgets" name="Бюджеты" table="BUDGETS"/>
+			<GRID id="Budgets" name="Бюджеты" table="BUDGETS" actionlist="Archive"/>
 		</FORM>
 		<FORM id="OffBudgetKinds" name="Виды бюджетов и внебюджетных средств">
 			<GRID id="OffBudgetKinds" name="Виды бюджетов и внебюджетных средств" table="OFFBUDGETKINDS"/>
 		</FORM>
 		<FORM id="Mbt_list" name="Перечень межбюджетных трансфертов">
-			<GRID id="Mbt_list" name="Перечень межбюджетных трансфертов" table="MBT_LIST"/>
+			<GRID id="Mbt_list" name="Перечень межбюджетных трансфертов" table="MBT_LIST" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Mbt_recip" name="Получатели межбюджетных трансфертов">
-			<GRID id="Mbt_recip" name="Получатели межбюджетных трансфертов" table="MBT_RECIP"/>
+			<GRID id="Mbt_recip" name="Получатели межбюджетных трансфертов" table="MBT_RECIP" actionlist="Archive"/>
 			<TABS>
 				<TAB name="Контактные данные">
 					<GRID id="Mbt_contact" name="Контактные данные" table="MBT_CONTACT"/>
@@ -1363,7 +1386,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Agent" name="Юридические лица">
-			<GRID id="Agent" name="Юридические лица" table="AGENT"/>
+			<GRID id="Agent" name="Юридические лица" table="AGENT" actionlist="Archive"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gAgentAddr" name="Адреса" table="AGENT_ADDR">
@@ -1382,7 +1405,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Agent1" name="Организации">
-			<GRID id="Agent1" name="Организации" table="AGENT1" readonly="false"/>
+			<GRID id="Agent1" name="Организации" table="AGENT1" actionlist="Archive" readonly="false"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gAgent1Addr" name="Адреса" table="AGENT1_ADDR">
@@ -1401,7 +1424,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Agent2" name="Получатели/распорядители бюджетных средств">
-			<GRID id="Agent2" name="Получатели/распорядители бюджетных средств" table="AGENT2" readonly="false"/>
+			<GRID id="Agent2" name="Получатели/распорядители бюджетных средств" table="AGENT2" actionlist="Archive" readonly="false"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gAgent2Addr" name="Адреса" table="AGENT2_ADDR">
@@ -1420,7 +1443,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Agent3" name="Банковские учреждения">
-			<GRID id="Agent3" name="Банковские учреждения" table="AGENT3" readonly="false"/>
+			<GRID id="Agent3" name="Банковские учреждения" table="AGENT3" actionlist="Archive" readonly="false"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gAgent3Addr" name="Адреса" table="AGENT3_ADDR">
@@ -1432,7 +1455,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Agent4" name="Казначейства">
-			<GRID id="Agent4" name="Казначейства" table="AGENT4" readonly="false"/>
+			<GRID id="Agent4" name="Казначейства" table="AGENT4" actionlist="Archive" readonly="false"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gAgent4Addr" name="Адреса" table="AGENT4_ADDR">
@@ -1451,7 +1474,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Agent5" name="Финансовые органы">
-			<GRID id="Agent5" name="Финансовые органы" table="AGENT5" readonly="false"/>
+			<GRID id="Agent5" name="Финансовые органы" table="AGENT5" actionlist="Archive" readonly="false"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gAgent5Addr" name="Адреса" table="AGENT5_ADDR">
@@ -1485,10 +1508,10 @@
 			<GRID id="Bank_Acc_Types" name="Типы счетов" table="BANK_ACC_TYPES"/>
 		</FORM>
 		<FORM id="Agent_Acc" name="Лицевые счета">
-			<GRID id="Agent_Acc" name="Лицевые/расчетные счета" table="AGENT_ACC"/>
+			<GRID id="Agent_Acc" name="Лицевые/расчетные счета" table="AGENT_ACC" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Person" name="Физические лица">
-			<GRID id="Person" name="Физические лица" table="PERSON"/>
+			<GRID id="Person" name="Физические лица" table="PERSON" actionlist="Archive"/>
 			<TABS>
 				<TAB name="Адреса">
 					<GRID id="gPersonAddr" name="Адреса" table="PERSON_ADDR"/>
@@ -1499,22 +1522,22 @@
 			</TABS>
 		</FORM>
 		<FORM id="Depart" name="Структурные подразделения">
-			<GRID id="Depart" name="Структурные подразделения" table="DEPART"/>
+			<GRID id="Depart" name="Структурные подразделения" table="DEPART" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Depart5" name="Структурные подразделения органа, исполняющего бюджет">
-			<GRID id="Depart5" name="Структурные подразделения органа, исполняющего бюджет" table="DEPART5"/>
+			<GRID id="Depart5" name="Структурные подразделения органа, исполняющего бюджет" table="DEPART5" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Events" name="Мероприятия">
-			<GRID id="Events" name="Мероприятия" table="EVENTS"/>
+			<GRID id="Events" name="Мероприятия" table="EVENTS" actionlist="Archive"/>
 		</FORM>
 		<FORM id="CapObjects" name="Объекты капитального строительства">
-			<GRID id="CapObjects" name="Объекты капитального строительства" table="CAPOBJECTS"/>
+			<GRID id="CapObjects" name="Объекты капитального строительства" table="CAPOBJECTS" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Subsidies" name="Перечень кодов целевых субсидий">
-			<GRID id="Subsidies" name="Перечень кодов целевых субсидий" table="SUBSIDIES"/>
+			<GRID id="Subsidies" name="Перечень кодов целевых субсидий" table="SUBSIDIES" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Acodes" name="Аналитические коды, используемые в целях санкционирования операций с целевыми расходами">
-			<GRID id="Acodes" name="Аналитические коды" table="ACODES"/>
+			<GRID id="Acodes" name="Аналитические коды" table="ACODES" actionlist="Archive"/>
 		</FORM>
 		<FORM id="fGeoCountry" name="Страна">
 			<GRID id="gGeoCountry" name="Страна" table="GEO_COUNTRY">
@@ -1561,6 +1584,9 @@
 					<MI actionlist="Insert;Update;Delete;MoveFolder;ConfigTables"/>
 				</MENU>
 			</GRID>
+		</FORM>
+		<FORM id="Dicnomns" name="Справочник номенклатуры материальных ценностей">
+			<GRID id="Dicnomns" name="Справочник номенклатуры материальных ценностей" table="DICNOMNS" actionlist="Archive"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
