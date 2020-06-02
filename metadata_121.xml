@@ -410,7 +410,7 @@
 					<A id="NAME_FO" name="Наименование финансового органа" caption="Наименование финансового органа" labelwidth="250" type="string" visible="form" formula="select NAME from AGENT where id = (select AGENT5_ID from BUDGETS where id = @BUDGETS_ID)" local="true"/>
 					<GA caption="Информация о клиенте">
 						<A id="AGENT_ACC_ID" name="Лицевой счет клиента" caption="Лицевой счет клиента" labelwidth="500" type="ref" table="AGENT_ACC" ret="NAME" form="Agent_Acc" local="true"/>
-						<A id="NAME_UBP_PAY" name="Наименование клиента" caption="Наименование клиента" labelwidth="200" type="string" nulls="false" visible="form" formula="select NAME from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="NAME_UBP_PAY" name="Наименование клиента" caption="Наименование клиента" labelwidth="200" type="string" nulls="false" visible="form" formula="select COALESCE((select a.NAME from AGENT a where a.ID=t.AGENT_ID), (select p.SURNAME||COALESCE(' '||p.FIRSTNAME,'')||COALESCE(' '||p.MIDDLENAME,'') from PERSON p where p.ID=t.PERSON_ID)) from AGENT_ACC t where t.id = @AGENT_ACC_ID" local="true"/>
 						<A id="KOD_UBP_PAY" name="Код клиента" caption="Код клиента" labelwidth="100" width="35" type="string" len="5" format="WWWWW" visible="form" formula="right((select CODESR from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)), 5)" local="true"/>
 						<A id="LS_UBP_PAY" name="Номер лицевого счета клиента" caption="Номер лицевого счета клиента" labelwidth="250" width="65" type="string" len="11" format="WWWWWWWWWWW" nulls="false" visible="form" formula="select BANK_ACC from AGENT_ACC where id = @AGENT_ACC_ID" local="true"/>
 						<GA caption="!">
@@ -419,7 +419,7 @@
 								<AI id="2" name="Поля  заполняются в случае необходимости указания в платежном поручении ИНН и КПП, отличных от  указанных в Заявлении на открытие (переоформление) л/с"/>
 							</A>
 						</GA>
-						<A id="INN_UBP" name="ИНН клиента" caption="ИНН клиента" labelwidth="100" width="50" type="string" len="10" visible="form" formula="select INN from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
+						<A id="INN_UBP" name="ИНН клиента" caption="ИНН клиента" labelwidth="100" width="50" type="string" len="10" visible="form" formula="select COALESCE((select a.INN from AGENT a where a.ID=t.AGENT_ID), (select p.INN from PERSON p where p.ID=t.PERSON_ID)) from AGENT_ACC t where t.id = @AGENT_ACC_ID" local="true"/>
 						<A id="KPP_UBP" name="КПП клиента" caption="КПП клиента" labelwidth="100" width="50" type="string" len="9" visible="form" formula="select KPP from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID)" local="true"/>
 						<A id="GLAVA_GRS" name="Глава по БК" caption="Глава по БК" labelwidth="100" width="15" type="string" len="3" visible="form" formula="select CODE from DIR_RECIP where id = (select DIR_RECIPID from AGENT where id = (select AGENT_ID from AGENT_ACC where id = @AGENT_ACC_ID))" local="true"/>
 						<GA caption="!">
