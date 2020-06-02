@@ -51,6 +51,8 @@
 										when ik.levelelcommittee = 'district' then (select kk.tnameec from ELECTCOMMITTEE kk where kk.idgasecom = ik.idgasparecom)
 										when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then ik.tnameec 
 									end as tv_tik,
+				    case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end as mfin,
+				    case e.levelelcampaign when 'central' then 'федеральные выборы' else 'региональные, муниципальные выборы' end as level_campaign,
 									r.code as code_doc,
 									r.code as id_doc,
                                     (select count(*)
@@ -70,6 +72,7 @@
 									inner join electcampaign e on e.id = r.electcampaignid		--Избирательные кампании
 									inner join regionsrf reg on reg.id = ik.regionsrfid		--Субъекты Российской Федерации
 									left join FEDELECCAMP f on f.id = e.fedeleccampid		--Федеральные избирательные кампании
+									left join MFIN m on m.ELECTCOMMITTEEID = ik.id		--Порядок финансирования
 									left join NORMSFEDEC fk on fk.fedeleccampid = f.id
 															and fk.namenorms = 'limitcomp'  --Предельный размер компенсации за полный месяц работы для региона
 															and fk.regionsrfid = reg.id	--Нормы оплаты труда при проведении федеральных выборов (для компенсации)
@@ -91,7 +94,7 @@
                                                             and f4.namenorms = 'reward'  --Размер дополнительной оплаты труда (вознаграждения) за один час работы в будние дни с 6.00 до 22.00
                                                             and f4.postsid = (select p.id from posts p where upper(p.postprint) = 'ZOTHERCM' and p.levelelcommittee = ik.levelelcommittee)
                                                             and f4.mcircuit = el.mcircuit
-								where r.id = ${id}::bigint
+								where e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null) and r.id = ${id}::bigint
 								;
 						</script>
                      </query>
