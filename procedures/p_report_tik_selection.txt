@@ -1,0 +1,63 @@
+CREATE OR REPLACE FUNCTION public.p_report_tik_selection (
+  idlist text,
+  regionsrfid bigint,
+  electcampaignid text
+)
+RETURNS void AS
+$body$
+declare
+  rec record; 
+  sp  record; 
+  idx numeric;
+  sELECTNAME text;
+  ssheet         constant text := 'Данные';
+  cell_camp_name constant text := 'camp_name';
+  cell_camp_id   constant text := 'camp_id';
+  
+  ssheet1        constant text := 'Наименования_ТИК';
+  line1          constant text := 'line';
+  cell_npp       constant text := 'npp';
+  cell_offname   constant text := 'offname';
+  cell_tik_id    constant text := 'tik_id';
+ 
+begin
+  perform p_excel_prepare();
+  perform p_excel_sheet_select(ssheet);
+  perform p_excel_cell_describe(cell_camp_name);
+  perform p_excel_cell_describe(cell_camp_id);
+  
+  select k.name into sELECTNAME from electcampaign e, electcommittee k where e.id = p_report_tik_selection.electcampaignid::bigint and k.id = e.electcommitteeid;
+  perform p_excel_cell_value_write(cell_camp_name, sELECTNAME);
+  perform p_excel_cell_value_write(cell_camp_id, p_report_tik_selection.electcampaignid);
+  
+  perform p_excel_sheet_select(ssheet1);
+  perform p_excel_line_describe(line1);
+  perform p_excel_line_cell_describe(line1, cell_npp);
+  perform p_excel_line_cell_describe(line1, cell_offname);
+  perform p_excel_line_cell_describe(line1, cell_tik_id);
+  for rec in
+    select row_number() OVER() as npp,
+           k.OFFICIALNAME,
+           k.ID
+      from ELECTCOMMITTEE k
+     where k.REGIONSRFID = p_report_tik_selection.REGIONSRFID
+       and k.POSTBEGINDATE <= CURRENT_DATE and (k.POSTENDDATE >= CURRENT_DATE or k.POSTENDDATE is NULL)
+       and k.LEVELELCOMMITTEE ~* 'territory'
+  loop
+     idx := p_excel_line_append(line1);
+     perform p_excel_cell_value_write(cell_npp,     0, idx, rec.NPP);
+     perform p_excel_cell_value_write(cell_offname, 0, idx, rec.OFFICIALNAME);
+     perform p_excel_cell_value_write(cell_tik_id,  0, idx, rec.ID);
+  end loop;
+  perform p_excel_line_delete(line1);
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_report_tik_selection (idlist text, regionsrfid bigint, electcampaignid text)
+  OWNER TO postgres;

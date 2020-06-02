@@ -3283,7 +3283,14 @@
 		</ACTION>
 		<ACTION id="CheckReport" name="Проверить отчет" type="procedure" procedure=""/>
 	</ACTIONS>
-	<REPORTS name="Отчеты"/>
+	<REPORTS name="Отчеты">
+		<REPORT id="RepSelectionTIK" name="Отчет по выборам ТИК" procedure="p_report_tik_selection" template="selection_tik_report.xlsx" type = "report_excel">
+			<FORM name="Параметры">
+				<A id="REGIONSRFID"/>
+				<A id="ELECTCAMPAIGNID" type="list" query="  select e.ID, e.CODE from ELECTCAMPAIGN e left join ELECTCOMMITTEE k on k.id = e.electcommitteeid and k.levelelcommittee ilike 'region' and k.regionsrfid = @REGIONSRFID where e.electdate >= CURRENT_DATE and (e.levelelcampaign ilike 'central' or k.id is not null)"/>
+			</FORM>
+		</REPORT>
+	</REPORTS>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="ReportingIndicators" name="Показатели отчётности">
 			<GRID id="WordingOfTheForms" name="Редакции форм" table="WORDINGOFTHEFORMS"/>
@@ -3343,7 +3350,7 @@
 		<FORM id="AccountabilityTik" name="Отчетность ТИК">
 			<TABS>
 				<TAB name="Список предоставленной отчетности">
-					<GRID id="AccountabilityTik" name="Отчетность ТИК" table="ACCOUNTABILITYTIK" actionlist="FillListOfIndincators;ProvidingDataAccounting;SpecReportsRecountingSumm;CheckReport;ConsolidationUIKResult;ConsolidationTIKFullReport;DisbandUIKResult;SubmitReport;SubmitReportFull;ImportReportTIK;ToRejectAPreliminaryReport;RejectSummaryReport;ShowParts" readonly="true">
+					<GRID id="AccountabilityTik" name="Отчетность ТИК" table="ACCOUNTABILITYTIK" actionlist="FillListOfIndincators;ProvidingDataAccounting;SpecReportsRecountingSumm;CheckReport;ConsolidationUIKResult;ConsolidationTIKFullReport;DisbandUIKResult;SubmitReport;SubmitReportFull;ImportReportTIK;ToRejectAPreliminaryReport;RejectSummaryReport;ShowParts" reportlist="RepSelectionTIK" readonly="true">
 						<MENU>
 							<MI actionlist="Insert;Update;View;Delete;ConfigTables"/>
 						</MENU>
