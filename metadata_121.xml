@@ -977,7 +977,7 @@
 					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 				</TAB>
 				<TAB name="Суммы">
-					<A id="SUM_01" name="Утвержденный объем финансирования" caption="Утвержденный объем финансирования" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
+					<A id="SUM_01" name="Утвержденный объем финансирования" caption="Утвержденный объем финансирования" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="select sum(SUM) from JURNALEXP where MBT_MOVE_REC_RECID=@ID and RECORD_TYPESID=(select ID from RECORD_TYPES where RECORD_TYPE = 'BO')" button="true" value="0" local="true"/>
 					<A id="SUM_02" name="Лимиты бюджетных обязательств" caption="Лимиты бюджетных обязательств" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
 					<A id="SUM_03" name="Остаток средств на начало года" caption="Остаток средств на начало года" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
 					<A id="SUM_04" name="Поступило за отчетный период средств в доход бюджетов" caption="Поступило за отчетный период средств в доход бюджетов" labelwidth="570" type="number" len="18.2" visible="true" readonly="true" virtual="true" formula="" value="0" local="true"/>
@@ -1193,20 +1193,20 @@
 						<AI id="*" name="Любая связь" readonly="true"/>
 					</A>
 					<GA caption="Операция">
-						<A id="RECORD_TYPESID" name="Тип" caption="Тип" labelwidth="50" width="80" nulls="false"/>
-						<A id="RECORD_DATE" name="Дата" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
+						<A id="RECORD_TYPESID" name="Тип операции" caption="Тип" labelwidth="50" width="80" nulls="false"/>
+						<A id="RECORD_DATE" name="Дата операции" caption="от" labelwidth="30" width="20" type="date" nulls="false" formula="now()" local="true"/>
 					</GA>
-					<A id="BUDGETS_ID" labelwidth="100" width="60" nulls="false" visible="form" formula=""/>
-					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" visible="form" formula="" local="true"/>
-					<A id="KBR_ID" labelwidth="350" formula=""/>
-					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350" formula=""/>
+					<A id="BUDGETS_ID" labelwidth="100" width="60" nulls="false" visible="form" readonly="true" formula="select BUDGETS_ID from MBT_MOVE where id = (select MBT_MOVEID from MBT_MOVE_REC where id = (select MBT_MOVE_RECID from MBT_MOVE_REC_REC where id = @MBT_MOVE_REC_RECID))" button="true"/>
+					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" visible="form" readonly="true" formula="select YEAR_U from MBT_MOVE where id = (select MBT_MOVEID from MBT_MOVE_REC where id = (select MBT_MOVE_RECID from MBT_MOVE_REC_REC where id = @MBT_MOVE_REC_RECID))" button="true" local="true"/>
+					<A id="KBR_ID" labelwidth="350" visible="form" readonly="true" formula="select KBR_ID from MBT_LIST where id = (select MBT_LISTID from MBT_MOVE_REC where id = (select MBT_MOVE_RECID from MBT_MOVE_REC_REC where id = @MBT_MOVE_REC_RECID))" button="true"/>
+					<A id="AGENT_ACC_ID" name="Лицевой счет" caption="Лицевой счет получателя бюджетных средств" labelwidth="350" visible="form" readonly="true" formula="select AGENT2_ACCID from MBT_RECIP where id = (select MBT_RECIPID from MBT_MOVE_REC_REC where id = @MBT_MOVE_REC_RECID)" button="true"/>
 					<GA caption="Документы">
-						<GA caption="Документ, подтверждающий проведение операции">
+						<GA name="Документ, подтверждающий проведение операции" caption="Документ, подтверждающий проведение операции">
 							<A id="DOCTYPE" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
 							<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
 							<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
 						</GA>
-						<GA caption="Документ получателя бюджетных средств или иное основание для проведения операции">
+						<GA name="Иное основание для проведения операции" caption="Документ получателя бюджетных средств или иное основание для проведения операции">
 							<A id="DOCTYPEP" name="Тип" caption="Тип" labelwidth="30" width="40" type="string" local="true"/>
 							<A id="DOCNUMBP" name="Номер" caption="Номер" labelwidth="45" width="40" type="string" local="true"/>
 							<A id="DOCDATEP" name="Дата" caption="Дата" labelwidth="45" width="20" type="date" local="true"/>
@@ -1217,15 +1217,15 @@
 				</TAB>
 				<TAB name="Детальная информация">
 					<GA caption="Подразделения, курирующие расходы">
-						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
-						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" local="true"/>
+						<A id="DEPART_ID" name="КАР" caption="Куратор расходов" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" visible="form" local="true"/>
+						<A id="DEPART_KOM_ID" name="КОМ" caption="Куратор основного мероприятия" labelwidth="400" type="ref" table="DEPART" ret="NAME" form="Depart" visible="form" local="true"/>
 					</GA>
-					<A id="ECON_CLASS_ID"/>
-					<A id="SUBSIDIES_ID"/>
-					<A id="CAPOBJECTS_ID"/>
-					<A id="EVENT_ID"/>
-					<A id="ACODES_ID" formula=""/>
-					<A id="DEPART5_ID"/>
+					<A id="ECON_CLASS_ID" visible="form"/>
+					<A id="SUBSIDIES_ID" visible="form"/>
+					<A id="CAPOBJECTS_ID" visible="form"/>
+					<A id="EVENT_ID" visible="form"/>
+					<A id="ACODES_ID" visible="form" readonly="true" formula="select ACODES_ID from MBT_LIST where id = (select MBT_LISTID from MBT_MOVE_REC where id = (select MBT_MOVE_RECID from MBT_MOVE_REC_REC where id = @MBT_MOVE_REC_RECID))" button="true"/>
+					<A id="DEPART5_ID" visible="form"/>
 					<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 				</TAB>
 			</TABS>
