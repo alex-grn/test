@@ -19,14 +19,46 @@
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
 		<COMMENT name="Справочники"/>
+		<TABLE id="ELECTCOMMITTEE_DISTRICT_VIRT" name="Участковые избирательные комиссии" tablename="ELECTCOMMITTEE" query="select t.* from ELECTCOMMITTEE t where t.LEVELELCOMMITTEE = 'district'">
+			<A id="CODE" labelwidth="300"/>
+			<A id="NAME" nulls="false"/>
+			<A id="REGIONSRFID" labelwidth="100"/>
+			<A id="LEVELELCOMMITTEE" labelwidth="300"/>
+			<A id="ELECDISTNUMB" labelwidth="300"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="ELECTCOMMITTEE_TERRITORY_VIRT" name="Участковые избирательные комиссии" tablename="ELECTCOMMITTEE" query="select t.* from ELECTCOMMITTEE t where t.LEVELELCOMMITTEE in ('territory','circuit')">
+			<A id="CODE" labelwidth="300"/>
+			<A id="NAME" nulls="false"/>
+			<A id="REGIONSRFID" labelwidth="100"/>
+			<A id="LEVELELCOMMITTEE" labelwidth="300"/>
+			<A id="ELECDISTNUMB" labelwidth="300"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
+			</GA>
+		</TABLE>
+		<TABLE id="ELECTCOMMITTEE_REGION_VIRT" name="Участковые избирательные комиссии" tablename="ELECTCOMMITTEE" query="select t.* from ELECTCOMMITTEE t where t.LEVELELCOMMITTEE = 'region'">
+			<A id="CODE" labelwidth="300"/>
+			<A id="NAME" nulls="false"/>
+			<A id="REGIONSRFID" labelwidth="100"/>
+			<A id="LEVELELCOMMITTEE" labelwidth="300"/>
+			<A id="ELECDISTNUMB" labelwidth="300"/>
+			<GA name="Период действия полномочий" caption="Период действия полномочий">
+				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" type="date" nulls="false"/>
+				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" type="date" nulls="true"/>
+			</GA>
+		</TABLE>
 		<COMMENT name="Отчётность ИК"/>
 		<TABLE id="ACCOUNTABILITYUIK" name="Отчетность УИК">
 			<A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/>
 			<A id="ELECTCAMPAIGNID" labelwidth="200"/>
-			<A id="POSTSID" labelwidth="300" nulls="false"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="200" type="date" nulls="false" local="true"/>
-			<A id="ELECTCOMMITTEEID" labelwidth="200"/>
+			<A id="ELECTCOMMITTEEID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="200" type="ref" table="ELECTCOMMITTEE_DISTRICT_VIRT" ret="CODE" form="ELECTCOMMITTEE_DISTRICT_VIRT_FRM" nulls="false" local="true"/>
 			<GA id="UIKSTATUSMODEL" name="Статусная модель" caption="Статусная модель">
 				<A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" visible="true" value="1" local="true">
 					<AI id="1" name="Новый / Новый / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK"/>
@@ -63,51 +95,8 @@
 					<AI id="2" name="Отправлен"/>
 				</A>
 			</GA>
+			<TI unique="ELECTCAMPAIGNID,ELECTCOMMITTEEID"/>
 		</TABLE>
-		<!-- <TABLE id="ACCOUNTABILITYUIKVIRT" name="Отчетность УИК" virtual="true" query="select c.* from ACCOUNTABILITYUIK c, ELECTCOMMITTEE P where c.electcommitteeid = p.id and (p.levelelcommittee = 'district')"> -->
-			<!-- <A id="CODE" name="Код отчётности" caption="Код отчётности" labelwidth="400" type="string" nulls="true" visible="false" local="true"/> -->
-			<!-- <A id="ELECTCAMPAIGNID" labelwidth="200"/> -->
-			<!-- <A id="POSTSID" labelwidth="300" nulls="false"/> -->
-			<!-- <A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/> -->
-			<!-- <A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="200" type="date" nulls="false" local="true"/> -->
-			<!-- <A id="ELECTCOMMITTEE" labelwidth="200"/> -->
-			<!-- <GA id="UIKSTATUSMODEL" name="Статусная модель" caption="Статусная модель"> -->
-				<!-- <A id="STATUS" name="Статус" caption="Статус" labelwidth="200" type="list" nulls="false" visible="true" value="1" local="true"> -->
-					<!-- <AI id="1" name="Новый / Новый / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK"/> -->
-					<!-- <AI id="2" name="В работе / Загружен / Нет / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;ImportReportUIK"/> -->
-					<!-- <AI id="3" name="В работе / Расчитан / Нет / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;ImportReportUIK"/> -->
-					<!-- <AI id="4" name="В работе / Расчитан / Без ошибок / Не отправлен" actionlist="FillListOfIndincators;SpecReportsRecountingSumm;CheckReport;SubmitReport;ImportReportUIK"/> -->
-					<!-- <AI id="5" name="Представлен / Расчитан / Без ошибок / Отправлен" actionlist="CheckReport;ImportReportUIK" readonly="true"/> -->
-					<!-- <AI id="6" name="В своде / Расчитан / Без ошибок / Отправлен" actionlist="CheckReport;ImportReportUIK" readonly="true"/> -->
-					<!-- <AI id="7" name="В работе / Не расчитан / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;SpecReportsRecountingSumm"/> -->
-					<!-- <AI id="8" name="В работе / Расчитан / Ошибки / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/> -->
-					<!-- <AI id="9" name="Отклонен / Отклонен / Нет / Не отправлен" actionlist="FillListOfIndincators;ImportReportUIK;CheckReport"/> -->
-				<!-- </A> -->
-				<!-- <A id="STATUSREPORT" name="Статус отчёта" caption="Статус отчёта" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when @STATUS = '1' then '1' when @STATUS = '5' then '3' when @STATUS = '6' then '4' when @STATUS = '9' then '5' else '2' end" value="1" local="true"> -->
-					<!-- <AI id="1" name="Новый"/> -->
-					<!-- <AI id="2" name="В работе"/> -->
-					<!-- <AI id="3" name="Представлен"/> -->
-					<!-- <AI id="4" name="В своде"/> -->
-					<!-- <AI id="5" name="Отклонён"/> -->
-				<!-- </A> -->
-				<!-- <A id="TESTED" name="Состояние отчёта" caption="Состояние отчёта" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when @STATUS = '1' then '1' when @STATUS = '2' then '2' when @STATUS = '7' then '4' when @STATUS = '9' then '5' else '3' end" value="1" local="true"> -->
-					<!-- <AI id="1" name="Новый"/> -->
-					<!-- <AI id="2" name="Загружен"/> -->
-					<!-- <AI id="3" name="Расчитан"/> -->
-					<!-- <AI id="4" name="Не расчитан"/> -->
-					<!-- <AI id="5" name="Отклонён"/> -->
-				<!-- </A> -->
-				<!-- <A id="CHECKED" name="Проверка" caption="Проверка" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when @STATUS = '8' then '3' when (@STATUS = '4') or (@STATUS = '5') or (@STATUS = '6') then '2' else '1' end" value="1" local="true"> -->
-					<!-- <AI id="1" name="Нет"/> -->
-					<!-- <AI id="2" name="Без ошибок"/> -->
-					<!-- <AI id="3" name="Ошибки"/> -->
-				<!-- </A> -->
-				<!-- <A id="SUBMITTED" name="Представление отчёта для вышестоящей организации" caption="Представление отчёта для вышестоящей организации" labelwidth="190" width="50" type="list" nulls="false" virtual="true" formula="select case when (@STATUS = '5') or (@STATUS = '6') then '2' else '1' end" value="1" local="true"> -->
-					<!-- <AI id="1" name="Не отправлен"/> -->
-					<!-- <AI id="2" name="Отправлен"/> -->
-				<!-- </A> -->
-			<!-- </GA> -->
-		<!-- </TABLE> -->
 		<TABLE id="ACCOUNTABILITYUIKS1SD" name="Раздел 1. Исходные данные">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1S1">
@@ -129,7 +118,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
-			<TI unique="CODE,MEASURESOFSHAPEID"/>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="ACCOUNTABILITYUIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
@@ -152,7 +141,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
-			<TI unique="CODE,MEASURESOFSHAPEID"/>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="UIKPRIL2" name="Прил. 2">
 			<A id="ACCOUNTABILITYUIKID"/>
@@ -175,6 +164,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="UIKPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYUIKID"/>
@@ -197,6 +187,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="UIKPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYUIKID"/>
@@ -222,6 +213,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="UIKPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYUIKID"/>
@@ -244,9 +236,10 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="UIKPRIL11" name="Прил. 11">
-			<A id="ACCOUNTABILITYUIKID"/>
+			<A id="ACCOUNTABILITYUIKID" parentkey="cascade"/>
 			<GA id="UIKSTARTGA1P11">
 				<A id="WORDINGOFTHEFORMSID" name="Редакция формы" caption="Редакция формы" labelwidth="100" visible="true"/>
 			</GA>
@@ -272,6 +265,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="UIKPRIL15" name="Прил. 15">
 			<A id="ACCOUNTABILITYUIKID"/>
@@ -294,6 +288,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYUIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="AUDITREPORTSUIK" name="Протоколы проверок">
 			<A id="ACCOUNTABILITYUIKID"/>
@@ -319,7 +314,8 @@
 			<A id="ELECTCAMPAIGNID"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
-			<A id="ELECTCOMMITTEEID"/>
+			<!-- <A id="ELECTCOMMITTEEID"/> -->
+			<A id="ELECTCOMMITTEEID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="200" type="ref" table="ELECTCOMMITTEE_TERRITORY_VIRT" ret="CODE" form="ELECTCOMMITTEE_TERRITORY_VIRT_FRM" nulls="false" local="true"/>
 			<A id="ELECTCOMMITTEEINNVIRT" name="ИНН Юр. Лиц" caption="ИНН Юр. Лиц" labelwidth="400" type="string" nulls="true" virtual="true" formula="select i.INN from ELECTCOMMITTEE i where i.id = @ELECTCOMMITTEEID" local="true"/>
 			<A id="ACTIONMARK" name="Доступность действий по статусу и типу отчета" caption="Доступность действий по статусу и типу отчета" type="string" labelwidth="300" visible="form" readonly="true" virtual="true" formula="@STATUS||'/'||@TYPEDOC">
 				<AI id="1/1" actionlist="FillListOfIndincators;ProvidingDataAccounting"/>
@@ -444,6 +440,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="ACCOUNTABILITYTIKS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -516,6 +513,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENSESTIK;EXPENSESUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL2" name="Прил. 2">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -573,6 +571,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL4" name="Прил. 4">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -637,6 +636,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL5" name="Прил. 5">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -715,6 +715,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTALLEN;TOTNUMOFVOTE"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -772,6 +773,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL7" name="Прил. 7">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -837,6 +839,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIPMENT;TOTAL"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -915,6 +918,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -986,6 +990,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;SUM;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL10" name="Прил. 10">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1057,6 +1062,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL11" name="Прил. 11">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1176,6 +1182,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFCIVIL;TIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL12" name="Прил. 12">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1235,6 +1242,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TYPEPAPPER;FORMATPRINTED;CIRCULATIONPRINTED;TOTAL"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL13" name="Прил. 13">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1337,6 +1345,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATSANDSIZES;MATERIALS;QUANT;TOTAL;QUANT2;TOTAL2;QUANT3;TOTAL3"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL14" name="Прил. 14">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1399,6 +1408,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;COSTOFMANUFACT;QUANT;COSTOFREPLICATION;PLACEMENTS;COSTPLACEMENTS"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="TIKPRIL15" name="Прил. 15">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1473,6 +1483,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYTIKID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="AUDITREPORTSTIK" name="Протоколы проверок">
 			<A id="ACCOUNTABILITYTIKID" parentkey="cascade"/>
@@ -1498,7 +1509,7 @@
 			<A id="ELECTCAMPAIGNID"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="400" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 			<A id="DATECREATE" name="Дата представления отчётности" caption="Дата представления отчётности" labelwidth="400" type="date" nulls="false" local="true"/>
-			<A id="ELECTCOMMITTEEID"/>
+			<A id="ELECTCOMMITTEEID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="200" type="ref" table="ELECTCOMMITTEE_REGION_VIRT" ret="CODE" form="ELECTCOMMITTEE_REGION_VIRT_FRM" nulls="false" local="true"/>
 			<A id="ACTIONMARK" name="Доступность действий по статусу и типу отчета" caption="Доступность действий по статусу и типу отчета" type="string" labelwidth="300" visible="form" readonly="true" virtual="true" formula="@STATUS||'/'||@TYPEDOC">
 				<AI id="1/1" actionlist="FillListOfIndincators"/>
 				<AI id="2/1" actionlist="SpecReportsRecountingSumm"/>
@@ -1626,6 +1637,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;IKSRFREFERENDUMCOMMISSION;OIKREFERENDUMCOMMISSION;TIKREFERENDUMCOMMISSION;UIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="ACCOUNTABILITYIKSRFS2AE" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -1726,6 +1738,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENOIK;EXPENTIK;EXPENUIK;OIKREFERENDUMCOMMISSION"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL1" name="Прил. 1">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -1866,6 +1879,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL3" name="Прил. 3">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -1925,6 +1939,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFVOTE;PAPAREUSE;FORMBALLOT;TOTAL;ALLTOTAL"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL4" name="Прил. 4">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2026,6 +2041,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATGR3;TOTAL;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL5" name="Прил. 5">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2104,6 +2120,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTALLEN;NUMOFVOTE;INFLIGHT;CAMPS;TOTALCOSTOFEXPENSES"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL6" name="Прил. 6">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2194,6 +2211,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL7" name="Прил. 7">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2274,6 +2292,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIPMENT;TOTAL"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL8" name="Прил. 8">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2384,6 +2403,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL9" name="Прил. 9">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2503,6 +2523,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;MEASUREUNIT;QUANTITY;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL10" name="Прил. 10">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2613,6 +2634,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;QUANT;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL11" name="Прил. 11">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2761,6 +2783,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;NUMOFCIVIL;CIVLAWEXPENSES"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL12" name="Прил. 12">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2820,6 +2843,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TYPEPAPPER;FORMATPRINTED;CIRCULATIONPRINTED;TOTAL"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL13" name="Прил. 13">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2926,6 +2950,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;FORMATSANDSIZES;MATERIALS;QUANT;TOTAL;QUANT2;TOTAL2;QUANT3;TOTAL3"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL14" name="Прил. 14">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -2988,6 +3013,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;COSTOFMANUFACT;QUANT;COSTREPLICATION;PLACEMENTS;COSTPLACEMENTS"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL15" name="Прил. 15">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3087,6 +3113,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;EXPENIKSRF;EXPENTIK;EXPENUIK"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL15A_HEADER" name="Прил. 15а (шапка)">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3100,6 +3127,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;PER1KOIB;NOTE"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL15A" name="Прил. 15а">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3148,6 +3176,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;TOTAL;PER1KOIB;NOTE"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL16" name="Прил. 16">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3210,6 +3239,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;STIPULATEDAMOUNT;FACTAMOUNT;TOTAL;UIK;TOTAL2;UIK2"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="IKSRFPRIL17" name="Прил. 17">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3246,6 +3276,7 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true;MEASURESOFSHAPEID;PURCHASEDEQUIP;PRICEUNIT"/>
 			</A>
+			<TI unique="ACCOUNTABILITYIKSRFID,MEASURESOFSHAPEID"/>
 		</TABLE>
 		<TABLE id="AUDITREPORTSIKSRF" name="Протоколы проверок">
 			<A id="ACCOUNTABILITYIKSRFID" parentkey="cascade"/>
@@ -3318,21 +3349,21 @@
 						<TAB name="Раздел 1. Исходные данные">
 							<GRID id="UIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYUIKS1SD" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
-									<MI actionlist="Update;View;SpecReportsRecountingSumm;ConfigTables"/>
+									<MI actionlist="Update;View;ConfigTables"/>
 								</MENU>
 							</GRID>
 						</TAB>
 						<TAB name="Раздел 2. Фактические расходы">
 							<GRID id="UIKSection2ActualExpenditure" name="Раздел 2. Фактические расходы на подготовку и проведение федеральных выборов (Референдума)" table="ACCOUNTABILITYUIKS2AE" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
-									<MI actionlist="Update;View;SpecReportsRecountingSumm;ConfigTables"/>
+									<MI actionlist="Update;View;ConfigTables"/>
 								</MENU>
 							</GRID>
 						</TAB>
 						<TAB name="Прил. 11">
 							<GRID id="UIKPril11" name="Приложение 11" table="UIKPRIL11" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
-									<MI actionlist="Update;View;SpecReportsRecountingSumm;ConfigTables"/>
+									<MI actionlist="Update;View;ConfigTables"/>
 								</MENU>
 							</GRID>
 						</TAB>
@@ -3343,9 +3374,6 @@
 					<GRID id="TestResultsUik" name="Результаты проверок" table="TESTRESULTSUIK"/>
 				</TAB>
 			</TABS>
-		</FORM>
-		<FORM id="AccountabilityUikVirt" name="Отчетность УИК">
-			<GRID id="AccountabilityUikVirt" name="Отчетность УИК" table="ACCOUNTABILITYUIKVIRT"/>
 		</FORM>
 		<FORM id="AccountabilityTik" name="Отчетность ТИК">
 			<TABS>
@@ -3361,7 +3389,7 @@
 						<TAB name="Раздел 1. Исходные данные">
 							<GRID id="TIKSection1SourceData" name="Раздел 1. Исходные данные" table="ACCOUNTABILITYTIKS1SD" actionlist="SpecReportsRecountingSumm;ShowParts" readonly="true">
 								<MENU>
-									<MI actionlist="Update;View;ConfigTables;SpecReportsRecountingSumm"/>
+									<MI actionlist="Update;View;ConfigTables"/>
 								</MENU>
 							</GRID>
 						</TAB>
@@ -3484,9 +3512,6 @@
 				</TAB>
 			</TABS>
 		</FORM>
-		<!-- <FORM id="" name=""> -->
-			<!-- <GRID id="" name="" table=""/> -->
-		<!-- </FORM> -->
 		<FORM id="AccountabilityIksrf" name="Отчетность ИКСРФ">
 			<TABS>
 				<TAB name="Список предоставленной отчетности">
@@ -3656,9 +3681,15 @@
 					<GRID id="TestResultsIksrf" name="Результаты проверок" table="TESTRESULTIKSRF"/>
 				</TAB>
 			</TABS>
-			<!-- <FORM id="" name=""> -->
-			<!-- <GRID id="" name="" table=""/> -->
-			<!-- </FORM> -->
+		</FORM>
+		<FORM id="ELECTCOMMITTEE_DISTRICT_VIRT_FRM" name="Избирательная комиссия">
+			<GRID id="ElCommGRVIRT_DISTRICT" name="Избирательная комиссия" table="ELECTCOMMITTEE_DISTRICT_VIRT"/>
+		</FORM>
+		<FORM id="ELECTCOMMITTEE_TERRITORY_VIRT_FRM" name="Избирательная комиссия">
+			<GRID id="ElCommGRVIRT_TERRITORY" name="Избирательная комиссия" table="ELECTCOMMITTEE_TERRITORY_VIRT"/>
+		</FORM>
+		<FORM id="ELECTCOMMITTEE_REGION_VIRT_FRM" name="Избирательная комиссия">
+			<GRID id="ElCommGRVIRT_REGION" name="Избирательная комиссия" table="ELECTCOMMITTEE_REGION_VIRT"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
