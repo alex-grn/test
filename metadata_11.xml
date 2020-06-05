@@ -99,6 +99,10 @@
 				</MENU>
 				<MI name="Типы документов" formlist="DocTypes"/>
 			</MENU>
+			<MENU name="Загрузки">
+				<MI name="Примеры файлов для загрузки нормативно-справочной информации" formlist="Sample_files"/>
+				<MI name="Загрузка первичных настроек" actionlist="from_HIS_to_SETTINGS_F_xls"/>
+			</MENU>
 			<MENU name="Справка">
 				<MI name="Руководство пользователя" actionlist="HelpNciUser"/>
 			</MENU>
@@ -1434,9 +1438,42 @@
 			<A id="PERCENT" name="Амортизационная премия (процент)" caption="Амортизационная премия (процент)" labelwidth="550" type="int" value="0" local="true"/>
 			<TI id="AMORT_GROUP_UK" unique="CODE"/>
 		</TABLE>
+		<TABLE id="SAMPLE_FILES" name="Примеры файлов для загрузки нормативно-справочной информации">
+			<A id="CODE" name="Назначение" caption="Назначение файла" labelwidth="170" nulls="false"/>
+			<A id="NAME" name="Наименование действия" caption="Наименование действия" labelwidth="170"/>
+			<GA caption="Источник данных">
+				<A id="DATA_SOURCE_TYPE" name="Тип источника данных" caption="Тип" labelwidth="350" type="list" nulls="false" local="true">
+					<AI id="HIS" name="Нерегламентированный"/>
+					<AI id="EB" name="Электронный бюджет"/>
+					<AI id="PORTAL" name="Портал открытых данных"/>
+					<AI id="OTHER" name="Прочие источники данных"/>
+				</A>
+				<A id="DATA_SOURCE_NAME" name="Наименование источника данных" caption="Наименование" labelwidth="100" type="text" nulls="true" visible="form" local="true"/>
+			</GA>
+			<A id="FORMAT" name="Формат файла" caption="Формат файла" width="35" type="list" nulls="false" local="true">
+				<AI id="xls" name="Книга Excel"/>
+				<AI id="xml" name="Файл XML"/>
+				<AI id="json" name="Файл JSON"/>
+				<AI id="txtsep" name="Текстовый файл с разделителями"/>
+				<AI id="txtfix" name="Текстовый файл с полями фиксированной длины"/>
+			</A>
+			<A id="CONCEPTID" name="Ссылка на формат" caption="Ссылка на формат" labelwidth="120" width="65" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание" caption="Описание" type="text" nulls="true"/>
+			<GA caption="Сведения о загруженном файле">
+				<A id="FILELINKSID" name="Имя файла" caption="Имя" readonly="true"/>
+				<A id="SIZEVIRT" name="Размер файла" caption="Размер" labelwidth="300" type="int" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.size from filelinks f where f.id = @FILELINKSID"/>
+				<A id="DOCDATEVIRT" name="Дата загрузки файла" caption="Дата загрузки" labelwidth="500" type="date" nulls="true" visible="form" readonly="true" virtual="true" formula="select f.docdate from filelinks f where f.id = @FILELINKSID"/>
+			</GA>
+			<TI id="SAMPLE_FILES_UK" unique="CODE"/>
+		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
 		<ACTION id="HelpNciUser" name="Руководство Пользователя" type="link" href="help/nci_user" visible="window"/>
+		<COMMENT name="Загрузки с использованием конвертера"/>
+		<ACTION id="from_HIS_to_SETTINGS_F_xls" name="Загрузка первичных настроек" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Первичные настройки"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -1755,6 +1792,13 @@
 		</FORM>
 		<FORM id="Amort_group" name="Амортизационные группы">
 			<GRID id="Amort_group" name="Амортизационные группы" table="AMORT_GROUP" actionlist="Archive"/>
+		</FORM>
+		<FORM id="Sample_files" name="Примеры файлов для загрузки нормативно-справочной информации">
+			<GRID id="Sample_files" name="Примеры файлов для загрузки нормативно-справочной информации" table="SAMPLE_FILES" readonly="true">
+				<MENU>
+					<MI actionlist="addFilelinks;Update;View;Delete;MoveFolder;ConfigTables;loadFilelinks"/>
+				</MENU>
+			</GRID>
 		</FORM>
 	</FORMS>
 </SYSTEM>
