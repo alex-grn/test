@@ -1,0 +1,111 @@
+<SYSTEM id="52" name="Реестр получателей мер социальной поддержки">
+	<MODULES id="Modules" name="Модули">
+		<MODULE id="SocialReg" name="Реестр получателей мер социальной поддержки" menu="SocialReg"/>
+	</MODULES>
+	<GROUPS_MENU name="Группы меню">
+		<MENU id="SocialReg" name="Реестр получателей мер социальной поддержки">
+			<MENU name="Сервис">
+				<MI name="Руководство Пользователя" actionlist="HelpUsers"/>
+				<MI name="Выход" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Реестры">
+				<MI name="Загрузка реестров" formlist="BenefitsPackets"/>
+				<MENU name="Реестры">
+					<MI name="Граждане, подвергшиеся воздействию радиации" formlist="Benefit11"/>
+				</MENU>
+			</MENU>
+			<MENU name="Участники процесса">
+				<MI name="Отправители пакетов" formlist="Senders"/>
+				<!-- <MI name="Получатели" formlist="Socialrecipients"/> -->
+			</MENU>
+			<MENU name="Справочники">
+				<MENU name="Документы">
+					<MI name="Документ, удостоверяющий личность" formlist="Persondocumentdir"/>
+				</MENU>
+					<MI name="Категории получателей" formlist="RecipientsCategoriesdir"/>
+				<MENU name="Пособия">
+					<MI name="Пособия"/>
+					<MI name="Виды пособий" formlist="SocialTypedir"/>
+					<MI name="Индексация пособий" formlist="SocialIndexdir"/>
+				</MENU>
+			</MENU>
+		</MENU>
+	</GROUPS_MENU>
+	<ATTRIBUTES name="Атрибуты">
+		<A id="BENEFIT11ID" name="Граждане, подвергшиеся воздействию радиации" caption="Граждане, подвергшиеся воздействию радиации" type="ref" table="BENEFIT11" ret="BENEFITSRECIPIENTSID" nulls="false"/>
+		
+	</ATTRIBUTES>
+	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		<GA id="INFOPAYMENT">
+			<A id="BENEFITTOTALSUM" name="Выплата"/>
+			<GA id="LASTPERIOD" name="Доплата за прошлые периоды/возврат средств">
+				<GA id="EXTRA" name="Доплата" caption="Доплата">
+					<A id="EXTRASUM" name="Сумма" caption="Сумма" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+					<GA id="EXTRADATE" name="Период" caption="Период">
+						<A id="EXTRADATEFROM" name="Дата с" caption="Дата с" labelwidth="110" type="date" len="30" nulls="true" local="true"/> 
+						<A id="EXTRADATETO" name="Дата по" caption="Дата по" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+					</GA>
+				</GA>
+				<GA id="RETURN" name="Возврат" caption="Возврат">
+					<A id="RETURNSUM" name="Сумма" caption="Сумма" labelwidth="110" type="number" len="18.2" nulls="true" local="true"/>
+					<GA id="RETURNDATE" name="Период возврата" caption="Период возврата">
+						<A id="RETURNDATEFROM" name="Дата с" caption="Дата с" labelwidth="110" type="date" len="30" nulls="true" local="true"/> 
+						<A id="RETURNDATETO" name="Дата по" caption="Дата по" labelwidth="110" type="date" len="30" nulls="true" local="true"/>
+					</GA>
+				</GA>
+				<A id="REASON" name="Причина" labelwidth="125" type="text" len="250" nulls="true" local="true"/>
+			</GA>
+		<A id="SAFEGUARD" name="Законодательный акт" labelwidth="125" type="text" len="250" nulls="true" local="true"/>
+		<A id="MEASURENAME" name="Мера" labelwidth="125" type="text" len="250" nulls="true" local="true"/>
+		<A id="REMARKID" visible="false"/>
+		<A id="REMARKVIRT" name="Примечание" caption="Примечание" labelwidth="120" type="text" nulls="true" visible="true" readonly="true" virtual="true" formula="select r.note from remark r where r.id=@REMARKID ::bigint" local="true"/>
+		</GA>
+		<GA id="HEADER2" name="Сведения о получателе мер социальной поддержки">
+			<A id="BENEFITSTYPEDIRID" parentkey="cascade"/>
+			<A id="BENEFITSPACKETSID" nulls="true" visible="false" readonly="true"/>
+			<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="int" len="11" nulls="true" local="true"/>
+			<A id="BENEFITSRECIPIENTSID" labelwidth="120" nulls="true" visible="false"/>
+			<A id="LASTNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.lastname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<A id="PATRONYMICVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.patronymic from benefitsrecipients b where b.id=@BENEFITSRECIPIENTSID ::bigint" local="true"/>
+			<GA id="PERSONDOCUMENT" name="Документ, удостоверяющий личность" caption="Документ, удостоверяющий личность"/>
+			<A id="BENEFITSRECIPIENTFULLVIRT"/>
+		</GA>
+	</GROUPS_ATTRIBUTES>
+	<TABLES name="Таблицы">
+		<TABLE id="BENEFIT11" name="Граждане, подвергшиеся воздействию радиации">
+			<A id="REGVIRT2" name="Регион" caption="Регион" labelwidth="120" type="string" nulls="true" readonly="true" virtual="true" formula="select d.name from benefitspackets b, subjectsdir d where b.subjectsdirid=d.id and b.id=@BENEFITSPACKETSID ::bigint" local="true"/>
+			<GA id="REPPERIOD"/>
+			<GA id="HEADER2"/>
+			<TI id="IR_BENEFIT11_RECIP" index="BENEFITSRECIPIENTSID"/>
+			<TI id="IR_BENEFIT11_FD" index="BENEFITSPACKETSID,BENEFITSRECIPIENTSID,BENEFITSTYPEDIRID"/>
+			<TI id="IR_BENEFIT11_ID" index="ID"/>
+			<TI id="IR_BENEFIT11_REESTLOAD" index="BENEFITSTYPEDIRID"/>
+		</TABLE>
+		<TABLE id="INFOPAYMENT" name="Сведения о выплате мер социальной поддержки">
+			<A id="BENEFIT11ID" parentkey="cascade"/>
+			<GA id="INFOPAYMENT"/>
+			<TI id="IR_BENEFIT11BASIS_FD" index="BENEFIT11ID,CID"/>
+		</TABLE>
+	</TABLES>
+	<ACTIONS name="Действия">
+	</ACTIONS>
+	<REPORTS name="Отчеты">
+	</REPORTS>
+	<FORMS id="Forms" name="Формы">
+		<FORM id="Benefit11" name="Граждане, подвергшиеся воздействию радиации">
+			<GRID id="BENEFIT11" table="BENEFIT11"/>
+			<TABS>
+				<TAB name="Сведения о выплате мер социальной поддержки">
+					<GRID id="INFOPAYMENT" table="INFOPAYMENT"/>
+				</TAB>
+				<!-- <TAB name="Назначение пособия"> -->
+					<!-- <GRID id="BENEFIT11PURPOSE" name="Назначение пособия" table="BENEFIT11PURPOSE"/> -->
+				<!-- </TAB> -->
+				<!-- <TAB name="Выплата пособия"> -->
+					<!-- <GRID id="BENEFIT01PAYMENT" name="Выплата пособия" table="BENEFIT11PAYMENT"/> -->
+				<!-- </TAB> -->
+			</TABS>
+		</FORM>
+	</FORMS>
+</SYSTEM>
