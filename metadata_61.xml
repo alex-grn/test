@@ -1234,7 +1234,7 @@
 		</TABLE>
 		<TABLE id="CONTRACTSDOCS" name="Контракты с юридическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" visible="true" readonly="true" virtual="false" parentkey="cascade" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="false" parentkey="cascade" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID"/>
 			<GA name="Контракт" caption="Контракт">
@@ -1580,12 +1580,12 @@
 			<A id="PROXYID" parentkey="cascade"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, PROXY p where e.id = p.ELECTCAMPAIGNID and p.id=@PROXYID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, PROXY p where e.id = p.ELECTCAMPAIGNID and p.id=@PROXYID" local="true"/>
-			<A id="ELECTCAMPAIGNID" labelwidth="200" type="ref" visible="true" readonly="true" virtual="false" formula="select p.ELECTCAMPAIGNID from PROXY p where p.id=@PROXYID" local="true"/>
+			<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="200"  visible="false" readonly="true" virtual="false" formula="select p.ELECTCAMPAIGNID from PROXY p where p.id=@PROXYID"/>
 			<A id="CODE" labelwidth="200" type="string" visible="false" readonly="true" virtual="true" formula="select 'Доверенность №'||p.DOCNUMB||' от '||to_char(p.DOCDATE,'dd.mm.yyyy') from PROXYDOCS p where p.id=@ID" local="true"/>
 			<GA name="Доверенность" caption="Доверенность">
-				<A id="DOCTYPEID" labelwidth="100" readonly="true" value="22"/>
-				<A id="DOCNUMB" labelwidth="100"/>
-				<A id="DOCDATE" width="50"/>
+				<A id="DOCTYPEID" labelwidth="100" readonly="true" value="22"  visible="false"/>
+				<A id="DOCNUMB" labelwidth="100" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PROXYDOCS where PROXYID = @PROXYID"/>
+				<A id="DOCDATE" width="50" formula="now()"/>
 				<A id="ENDDATE" name="Срок действия" caption="Срок действия" width="50" type="date" nulls="true" local="true"/>
 				<A id="PERSONID" caption="ФИО МОЛ" labelwidth="100" nulls="false" visible="true"/>
 			</GA>
@@ -1662,7 +1662,7 @@
 					<AI id="2" name="Проведен в учете" actionlist="CashreceiptToTransactionlogRollback" readonly="true"/>
 					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
-				<A id="DOCDATE" labelwidth="50" width="43"/>
+				<A id="DOCDATE" labelwidth="50" width="43" formula="now()"/>
 				<A id="SUMM" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHRECEIPT x where x.CASHRECEIPTHEADERID = @ID::BIGINT"/>
 				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHRECEIPT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
@@ -1709,7 +1709,7 @@
 					<AI id="2" name="Проведен в учете" readonly="true" actionlist="CashpaymentToTransactionlogRollback"/>
 					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
-				<A id="DOCDATE" labelwidth="50" width="43"/>
+				<A id="DOCDATE" labelwidth="50" width="43" formula="now()"/>
 				<A id="SUMM" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @ID::BIGINT"/>
 				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CASHPAYMENT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
@@ -1761,7 +1761,7 @@
 					<AI id="2" name="Проведен в учете" actionlist="StatementToTransactionlogRollback" readonly="true"/>
 					<AI id="3" name="Аннулирован" readonly="true"/>
 				</A>
-				<A id="DOCDATE" labelwidth="50" width="43"/>
+				<A id="DOCDATE" labelwidth="50" width="43" formula="now()"/>
 				<A id="SUMM" labelwidth="49" width="57" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from STATEMENT x where x.STATEMENTHEADERID = @ID::BIGINT"/>
 				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from STATEMENT_HEADER f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 			</GA>
@@ -1886,7 +1886,7 @@
 				<A id="EXPENSEREPORTSID" parentkey="cascade"/>
 				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="25"/>
 				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from EXPENSE_DOCS where EXPENSEREPORTSID = @EXPENSEREPORTSID and cid=0" local="true"/>
-				<A id="DOCDATE" labelwidth="50" width="50"/>
+				<A id="DOCDATE" labelwidth="50" width="50" formula="now()"/>
 				<A id="PERSONID" name="Контрагент" caption="Контрагент" labelwidth="100" width="35" nulls="true"/>
 				<A id="SUMM" labelwidth="50" width="50" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.REPORTSUMM),2) from EXPENDED x where x.EXPENSE_DOCS_ID = @ID::BIGINT"/>
 				<A id="ELECTCOMMITTEEID" name="УИК" caption="УИК" labelwidth="160" nulls="true"/>
@@ -2023,7 +2023,7 @@
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from ACTSDOCS where id=@ACTSDOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600"  type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from ACTSGOODS where ACTSDOCSID = @ACTSDOCSID and cid=0"/>
 			<A id="LEVELESTIMATE" labelwidth="205"/>
-			<A id="CONTRACTSDOCSID" labelwidth="200"  visible="true" readonly="true" virtual="false" formula="select t.CONTRACTSDOCSID from ACTSDOCS t where t.id = @ACTSDOCSID"/>
+			<A id="CONTRACTSDOCSID" labelwidth="200"  visible="false" readonly="true" virtual="false" formula="select t.CONTRACTSDOCSID from ACTSDOCS t where t.id = @ACTSDOCSID"/>
 			<GA name="Спецификация акта" caption="Спецификация акта">
 				<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="200" type="ref" pid="CONTRACTSDOCSID" table="STAGES" ret="CODE" nulls="false"  form="StagesFRM" local="true"/>
 				<A id="DICNOMNS" name="Наименование (номенклатура)" caption="Наименование (номенклатура)" labelwidth="200" type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
