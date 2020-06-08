@@ -1077,10 +1077,10 @@
 			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="false" formula=""/>
 			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select case when k.levelelcommittee ilike 'district' then round(COALESCE(f.SUMFINUIK,0)+COALESCE(f.SUMFINTIKCEN,0),2) when k.levelelcommittee ilike 'territory' or k.levelelcommittee ilike 'circuit' then round(COALESCE(f.SUMFINTIK,0)+COALESCE((select case when t.numbestimate ilike '%апу%' then f.SUMFINTIKCEN else 0 end),0),2) end from FINANCEELCOM f, ELECTCOMMINCAMP e, ELECTCOMMITTEE k, TYPEEXP t where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID and e.ID = f.ELECTCOMMINCAMPID and k.ID = e.ELECTCOMMITTEEID and t.ID = f.TYPEEXPID" local="true"/>
 			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
-			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
-			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/>
-			<!-- <A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/> -->
-			<!-- <A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)-@SUMCOSTS" local="true"/> -->
+			<!-- <A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/> -->
+			<!-- <A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/> -->
+			<A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)" local="true"/>
+			<A id="SUMRES" name="Сумма расхождения" caption="Сумма расхождения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="p_action_finexp_sumpay(@ID)-@SUMPAY" local="true"/>
 		
 			
 			<TI unique="ELECTCOMMINCAMPID,TYPEEXPID"/>
@@ -1319,6 +1319,7 @@
 		</TABLE>
 		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
 			<A id="CONTRACTSID" parentkey="cascade"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="false" parentkey="cascade" formula="select c.ELECTCAMPAIGNID from CONTRACTS c where c.id = @CONTRACTSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CONTRACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@CONTRACTSID" local="true"/>
 			<GA name="Договор" caption="Договор">
@@ -1587,7 +1588,7 @@
 				<A id="DOCNUMB" labelwidth="100" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PROXYDOCS where PROXYID = @PROXYID"/>
 				<A id="DOCDATE" width="50" formula="now()"/>
 				<A id="ENDDATE" name="Срок действия" caption="Срок действия" width="50" type="date" nulls="true" local="true"/>
-				<A id="PERSONID" caption="ФИО МОЛ" labelwidth="100" nulls="false" visible="true"/>
+				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
 			</GA>
 			<GA name="Контракт" caption="Контракт">
 				<A id="CONTRACTSDOCSID" name="Контракт" caption="Контракт" pid="ELECTCAMPAIGNID"/>
@@ -2045,14 +2046,15 @@
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
 			<A id="LEVELESTIMATE" labelwidth="200" width="100"/>
+			
 			<GA name="Внутренний номер документа" caption="Внутренний номер документа">
 				<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="200" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSDOCS where ACTSID = @ACTSID and cid=0"/>
-				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="50"/>
+				<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="200" width="50" formula="now()"/>
 			</GA>
 			<GA name="Акт оказанных услуг" caption="Акт оказанных услуг">
 				<A id="DOCTYPEID" labelwidth="200" width="100" visible="false" readonly="true" value="31"/>
-				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="200" width="50" type="string" local="true"/>
-				<A id="DOCDATEIN" name="Номер" caption="Номер" labelwidth="200" width="50" type="date" local="true"/>
+				<A id="DOCNUMBIN" name="Номер" caption="Номер" labelwidth="200" width="50" type="string" nulls="false" local="true"/>
+				<A id="DOCDATEIN" name="Дата" caption="Дата" labelwidth="200" width="50" type="date" nulls="false"  local="true"/>
 				<A id="DOCNUMBVIRT" name="Номер документа" caption="Номер документа" labelwidth="400" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.DOCNUMBIN||' от '||to_char(f.DOCDATEIN, 'dd.mm.yyyy') from PERS_ACTSDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 				<A id="SUMM" labelwidth="400" width="54" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERS_ACTSGOODS t where t.PERSACTSDOCSID = @ID"/>
 				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="400" type="list" nulls="false" readonly="true" value="1" local="true">
@@ -2061,11 +2063,11 @@
 				</A>
 			</GA>
 			<GA name="Договор" caption="Договор">
-				<A id="PERSON_CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100"/>
+				<A id="PERSON_CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="100" pid="ELECTCAMPAIGNID"/>
 				<A id="CONTRACTDATE" name="Дата договора" caption="Дата договора" width="50" type="date" readonly="true" virtual="true" formula="select t.DOCDATE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID"/>
 				<A id="CONTRTYPE" name="Тип контракта" caption="Тип контракта" width="50" type="string" readonly="true" virtual="true" formula="CASE when (select t.CONTRTYPE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID) = 'product' then 'Поставка товара' when (select t.CONTRTYPE from PERSON_CONTRACTSDOCS t where t.id = @PERSON_CONTRACTSDOCSID) = 'service' then 'Оказание услуг' else 'Выполнение работ' end"/>
-				<A id="CONTRAGENTID" name="Поставщик" caption="Поставщик" type="string" readonly="true" virtual="true" formula="select a.NAME from PERSON_CONTRACTSDOCS t, PERSON a where t.id = @PERSON_CONTRACTSDOCSID and a.id=t.PERSONID"/>
-				<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select c.ELECTCAMPAIGNID from CONTRACTS c, PERSON_CONTRACTSDOCS cd where cd.id=@PERSON_CONTRACTSDOCSID and c.id = cd.CONTRACTSID"/>
+				<A id="CONTRAGENTID" name="Физическое лицо" caption="Физическое лицо" type="string" readonly="true" virtual="true" formula="select a.NAME from PERSON_CONTRACTSDOCS t, PERSON a where t.id = @PERSON_CONTRACTSDOCSID and a.id=t.PERSONID"/>
+				<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="false" formula="select c.ELECTCAMPAIGNID from ACTS c where c.id = @ACTSID"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -2078,11 +2080,12 @@
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERS_ACTSGOODS where PERSACTSDOCSID = @PERSACTSDOCSID and cid=0"/>
 			<A id="LEVELESTIMATE" labelwidth="205" />
 			<GA name="Спецификация акта" caption="Спецификация акта">
-				<A id="PERSON_CONTRACTSDOCSID" labelwidth="200" visible="false" readonly="true" virtual="true" formula="select t.PERSON_CONTRACTSDOCSID from PERS_ACTSDOCS t where t.id = @PERSACTSDOCSID"/>
+				<A id="PERSON_CONTRACTSDOCSID" labelwidth="200" visible="false" readonly="true" virtual="false" formula="select t.PERSON_CONTRACTSDOCSID from PERS_ACTSDOCS t where t.id = @PERSACTSDOCSID"/>
 				<A id="PERSSTAGESID" name="Спецификация" caption="Спецификация" labelwidth="200" type="ref" pid="PERSON_CONTRACTSDOCSID" table="PERSONS_STAGES" ret="CODE" nulls="false" local="true"/>
 				<A id="DICNOMNS" name="Наименование (номенклатура)" caption="Наименование (номенклатура)" labelwidth="200"  type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, PERSONS_STAGES s where t.id = s.DICNOMNSID and s.id=@PERSSTAGESID"/>
-				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="200" width="50" type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, PERSONS_STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@PERSSTAGESID"/>
-				<A id="STAGEQUANTITY" name="Количество" caption="Количество" labelwidth="150" width="50" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from PERSONS_STAGES s where s.id=@PERSSTAGESID"/>
+				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="200"  type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, PERSONS_STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@PERSSTAGESID"/>
+				<A id="STAGEQUANTITY" name="Количество по специкации договора" caption="Количество по специкации договора" labelwidth="200" width="50" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from PERSONS_STAGES s where s.id=@PERSSTAGESID"/>
+				<A id="SUMM_PERSONS_STAGES" name="Сумма по специкации договора" caption="Сумма по специкации договора" labelwidth="150" width="50" type="number" readonly="true" virtual="true" formula="select s.SUMM from PERSONS_STAGES s where s.id=@PERSSTAGESID"/>
 				<A id="QUANTITY" labelwidth="200" width="50" type="number" nulls="false"/>
 				<A id="SUMM" labelwidth="150" width="50" type="number" len="8.2" nulls="true"/>
 			</GA>
@@ -2118,7 +2121,7 @@
 			<TABS>
 				<TAB name="Документ">
 					<A id="INVENTORYID" parentkey="cascade"/>
-					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="true" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
+					<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="false" formula="select ELECTCAMPAIGNID from INVENTORY where id=@INVENTORYID"/>
 					<A id="NUMBPP" name="Номер" caption="Номер" labelwidth="120" width="55" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_DOCS where INVENTORYID = @INVENTORYID and date_trunc('year', DOCDATE) = date_trunc('year', @DOCDATE) and cid=0"/>
 					<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="50" width="45" type="date" nulls="false" formula="now()" local="true"/>
 					<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="120" type="list" nulls="false" readonly="true" value="1" local="true">
@@ -2165,14 +2168,15 @@
 		<TABLE id="INVENTORY_GOODS" name="Спецификация товарных накладных">
 			<A id="INVENTORY_DOCSID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="false" formula="select doctypeid from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
-			<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="150" type="bigint" visible="false" virtual="true" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
+			<A id="CONTRACTSDOCSID" name="Договор" caption="Договор" labelwidth="150" type="bigint" visible="false" virtual="false" formula="select CONTRACTSDOCSID from INVENTORY_DOCS where id=@INVENTORY_DOCSID"/>
 			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600"  type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from INVENTORY_GOODS where INVENTORY_DOCSID = @INVENTORY_DOCSID and cid=0"/>
 			<A id="LEVELESTIMATE" labelwidth="155" />
 			<GA name="Спецификация акта" caption="Спецификация акта">
 				<A id="STAGESID" name="Спецификация" caption="Спецификация" labelwidth="150" type="ref" pid="CONTRACTSDOCSID" table="STAGES" ret="CODE" nulls="false" local="true"/>
 				<A id="DICNOMNS" name="Наименование товара" caption="Наименование товара" labelwidth="150"  type="string" readonly="true" virtual="true" formula="select t.CODE from DICNOMNS t, STAGES s where t.id = s.DICNOMNSID and s.id=@STAGESID"/>
-				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="150" width="50" type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@STAGESID"/>
-				<A id="STAGEQUANTITY" name="Количество" caption="Количество" labelwidth="150" width="50" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
+				<A id="DICMUNTS" name="Единица измерения" caption="Единица измерения" labelwidth="150"  type="string" readonly="true" virtual="true" formula="select d.name from DICNOMNS t, STAGES s, DICMUNTS d where t.id = s.DICNOMNSID and d.id=t.DICMUNTSID and s.id=@STAGESID"/>
+				<A id="STAGEQUANTITY" name="Количество по спецификации контракта" caption="Количество по спецификации контракта" labelwidth="150" width="50" type="number" readonly="true" virtual="true" formula="select s.QUANTITY from STAGES s where s.id=@STAGESID"/>
+				<A id="SUMM_STAGE" name="Сумма по спецификации контракта" caption="Сумма по спецификации контракта" labelwidth="150" width="50" type="number" readonly="true" virtual="true" formula="select s.SUMM from STAGES s where s.id=@STAGESID"/>
 				<A id="QUANTITY" name="Количество" labelwidth="150" width="50" type="number" nulls="false"/>
 				<A id="SUMM" name="Сумма" labelwidth="150" width="50" type="number" nulls="false"/>
 			</GA>
@@ -3230,7 +3234,7 @@
 					<A id="ELECTCAMPAIGN4VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<A id="ELECTCOMMINCAMP4VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
-					<A id="REGISTER4VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
+					<A id="REGISTER4VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select r.CODE from REGISTER r, REGISTERLIST rl where r.ID =rl.REGISTERID and rl.ID = @REGISTERLISTID" local="true"/>
 					<A id="REGISTERLIST4VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
 					<GRID id="WorkTBLGR1" name="Сведения о фактически отработанном времени" table="WORKTBL" readonly="true">
 						<MENU>
@@ -3242,7 +3246,7 @@
 					<A id="ELECTCAMPAIGN5VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<A id="ELECTCOMMINCAMP5VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
-					<A id="REGISTER5VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTER where ID = @REGISTERID" local="true"/>
+					<A id="REGISTER5VIRT" caption="Расчетный документ" labelwidth="180" type="string" readonly="true" virtual="true" formula="select r.CODE from REGISTER r, REGISTERLIST rl where r.ID =rl.REGISTERID and rl.ID = @REGISTERLISTID" local="true"/>
 					<A id="REGISTERLIST5VIRT" caption="Член избирательной комиссии" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from REGISTERLIST where ID = @REGISTERLISTID" local="true"/>
 					<GRID id="PaysGR1" name="Расчет" table="PAYS" readonly="true">
 						<MENU>
