@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="rpt_cln_events_list.xlsx" documentPath="rpt_cln_events_list.xlsx" outputType="xlsx" outputNamePattern="rpt_cln_events_list.xlsx"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+                <queries>
+                    <query name="myQueryHead" type="sql">
+                        <script>
+select to_char( ${date_to} ::date,'dd.mm.yyyy' ) ::text  as date_to, ${depart} ::text  as depart;
+						</script>
+                    </query>
+                </queries>			
+			</band>
+ 		    <band name="Title" orientation="H"></band>
+            <band name="Spec" orientation="H">
+ 				<queries>
+                    <query name="myQuery" type="sql">
+                         <script>
+select "row_number"() OVER (ORDER BY dp.name,doc.DOCDATE ) ::text  as val1,
+doc.id ::text  as val2,
+to_char( doc.DOCDATE ::date,'dd.mm.yyyy' ) ::text   as val3,
+doc.DESCRIPTION ::text  as val4,
+doc.NOTE ::text  as val5,
+p_get_person_code(doc.PERSON_ID ::bigint) ::text as val6,
+p_get_person_code(doc.EXECUTOR_ID ::bigint) ::text as val7,
+dp.name ::text  as val8,
+p_get_status_cln_events_name(doc.status_cln_events ) ::text  as val9 
+from CLN_EVENTS doc inner join DEPART dp on doc.DEPART_ID=dp.id 
+WHERE doc.DOCDATE between  to_date('01.01.2000','dd.mm.yyyy') ::date and  ${date_to} ::date 
+order by dp.name, doc.DOCDATE;						 
+                         </script>
+                    </query>						 
+                </queries>
+			</band>
+            <band name="Footer" orientation="H"> </band>    			
+		</bands>
+    </rootBand>
+</report>
