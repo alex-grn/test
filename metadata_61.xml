@@ -116,6 +116,8 @@
 			<AI id="DEPCHAIRMAN" name="Заместитель председателя"/>
 			<AI id="SECRETARY" name="Секретарь"/>
 			<AI id="ZOTHERCM" name="Член комиссии"/>
+			<AI id="CASHIER" name="Кассир"/>
+			<AI id="BOOKKEEPER" name="Бухгалтер"/>
 		</A>
 		<A id="QUANTITYELECTORMIN" name="Численность избирателей от" caption="Численность избирателей от" type="number" len="17" nulls="true"/>
 		<A id="QUANTITYELECTORMAX" name="Численность избирателей до" caption="Численность избирателей до" type="number" len="17" nulls="true"/>
@@ -426,10 +428,10 @@
 			<A id="CODE" labelwidth="300"/>
 			<A id="NAME" labelwidth="300" nulls="false"/>
 			<A id="LEVELELCOMMITTEE" labelwidth="300"/>
-			<A id="POSTPRINT" labelwidth="300"/>
+			<A id="POSTPRINT" labelwidth="300" nulls="true"/>
 			<A id="QUANTITYELECTORMIN" visible="false"/>
 			<A id="QUANTITYELECTORMAX" visible="false"/>
-			<TI unique="CODE,LEVELELCOMMITTEE"/>
+			<TI unique="CODE,LEVELELCOMMITTEE,coalesce(POSTPRINT,'$')"/>
 		</TABLE>
 		<TABLE id="TYPEDAYS" name="Типы дней">
 			<A id="CODE" labelwidth="300"/>
@@ -447,10 +449,10 @@
 			<A id="CODE" labelwidth="200"/>
 			<A id="COUNTWD" name="Количество рабочих дней" caption="Количество рабочих дней" labelwidth="200" type="number" len="2" nulls="false"/>
 			<GA name="Календарь за" caption="Календарь за">
-				<A id="MONTH" labelwidth="50" width="10"/>
-				<A id="YEAR" labelwidth="50" width="10"/>
+				<A id="MONTH" labelwidth="50" width="10" nulls="false"/>
+				<A id="YEAR" labelwidth="50" width="10" nulls="false"/>
 			</GA>
-			<A id="REGIONSRFID" name="Действует на территории" caption="Действует на территории" labelwidth="200"/>
+			<A id="REGIONSRFID" name="Действует на территории" caption="Действует на территории" labelwidth="200" nulls="false"/>
 			<TI unique="MONTH,YEAR,REGIONSRFID"/>
 		</TABLE>
 		<TABLE id="DAYSWORKCALENDARS" name="Состав рабочего календаря">
@@ -485,7 +487,7 @@
 			<A id="POSTSID" labelwidth="200" nulls="true"/>
 			<A id="REGIONSRFID" labelwidth="200" nulls="true"/>
 			<A id="MCIRCUIT" name="Полномочия ОИК" caption="Полномочия ОИК"/>
-			<TI unique="NAMENORMS, POSTSID, REGIONSRFID, MCIRCUIT"/>
+			<TI unique="FEDELECCAMPID,NAMENORMS, coalesce(POSTSID,0), coalesce(REGIONSRFID,0), MCIRCUIT"/>
 		</TABLE>
 		<TABLE id="PERSON" name="Физические лица">
 			<TABS>
@@ -540,6 +542,7 @@
 				<A id="BEGINDATE" name="Дата с" caption="Дата с" labelwidth="50" width="20" type="date" nulls="true"/>
 				<A id="ENDDATE" name="Дата по" caption="Дата по" labelwidth="50" width="20" type="date" nulls="true"/>
 			</GA>
+			<TI unique="PERSONID,PERSDOCTYPEID,coalesce(DOCOUTDATE,make_date(1900, 1, 1))"/>
 		</TABLE>
 		<TABLE id="PERSONACC" name="Лицевые счета физических лиц">
 			<A id="PERSONID" parentkey="cascade"/>
@@ -569,7 +572,7 @@
 			<A id="VALUE" name="Средняя заработная плата за полный месяц работы" caption="Средняя заработная плата за полный месяц работы" labelwidth="500" type="number" len="8.2" nulls="false" local="true"/>
 			<A id="BEGINDATE" labelwidth="50" width="20" nulls="false" visible="false"/>
 			<A id="ENDDATE" labelwidth="50" width="20" nulls="true" visible="false"/>
-			<TI unique="PERSONID,BEGINDATE "/>
+			<TI unique="PERSONID,ELECTCAMPAIGNID "/>
 		</TABLE>
 		<TABLE id="PERSADDRESSES" name="Адреса">
 			<A id="PERSONID" parentkey="cascade"/>
@@ -592,13 +595,13 @@
 				<AI id="true" readonly="false"/>
 				<AI id="false" readonly="ELECTCOMMITTEEID"/>
 			</A>
-			<TI id="AGENTUK" unique="CODE"/>
+			<TI id="AGENTUK" unique="CODE,coalesce(INN, '$')"/>
 			<TI id="AGENTNAMEIND" index="NAME"/>
 		</TABLE>
 		<TABLE id="AGENTACC" name="Счета, открытые в банках">
 			<A id="AGENTID" parentkey="cascade"/>
 			<A id="CODE"/>
-			<A id="BANKACC" caption="Лицевой счет"/>
+			<A id="BANKACC" caption="Лицевой счет" nulls="false"/>
 			<A id="AGENTBANKSID" name="Банковское учреждение"/>
 			<A id="BIC" name="Код банка (БИК)" readonly="true" virtual="true" formula="select B.BIC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
 			<A id="CORRACC" readonly="true" virtual="true" formula="select B.CORRACC from AGENTBANKS B where B.ID = @AGENTBANKSID::BIGINT"/>
@@ -606,7 +609,7 @@
 				<A id="BEGINDATE" caption="Дата открытия"/>
 				<A id="ENDDATE" caption="Дата закрытия"/>
 			</GA>
-			<TI unique="CODE"/>
+			<TI unique="AGENTID,BANKACC"/>
 		</TABLE>
 		<TABLE id="AGENTBANKS" name="Банковские учреждения">
 			<A id="AGENTID" name="Юридическое лицо"/>
@@ -623,7 +626,7 @@
 			<A id="CODE" labelwidth="200"/>
 			<A id="NAME" labelwidth="200" nulls="false"/>
 			<A id="IDGASREGIONSRF"/>
-			<TI unique="CODE"/>
+			<TI unique="IDGASREGIONSRF"/>
 		</TABLE>
 		<TABLE id="ELECTCOMMITTEE" name="Избирательные комиссии">
 			<TABS>
@@ -671,6 +674,7 @@
 				<A id="POSTBEGINDATE" name="Дата с" caption="Дата с" labelwidth="200" width="40" readonly="true" virtual="true" formula="select t.POSTBEGINDATE from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
 				<A id="POSTENDDATE" name="Дата по" caption="Дата по" labelwidth="200" width="40" readonly="true" virtual="true" formula="select t.POSTENDDATE from ELECTCOMMITTEE t where t.id = @ELECTCOMMITTEEID"/>
 			</GA>
+			<TI unique="ELECTCOMMITTEEID"/>
 		</TABLE>
 		<TABLE id="COMMITTEEMAN" name="Члены избирательных комиссий">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -729,7 +733,7 @@
 				<A id="ENDDATE" caption="Дата закрытия" labelwidth="100" width="50"/>
 			</GA>
 			<A id="SALCONTRACT" name="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" caption="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" type="boolean" nulls="true" local="true"/>
-			<TI unique="LEVELELCAMPAIGN,BANKACC"/>
+			<TI unique="ELECTCOMMITTEEID,BANKACC,BEGINDATE"/>
 		</TABLE>
 		<TABLE id="SALARYCONTRACT" name="Договоры по зарплатному проекту с ПАО СБЕРБАНК">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -757,9 +761,9 @@
 				<A id="BEGINDATE" labelwidth="100" width="50" nulls="false"/>
 				<A id="ENDDATE" labelwidth="100" width="50" nulls="true"/>
 			</GA>
-			<TI unique="ELECTCOMMITTEEID,MFIN"/>
+			<TI unique="ELECTCOMMITTEEID,MFIN,BEGINDATE"/>
 		</TABLE>
-		<TABLE id="DISCOEFF" name="Районные коэффициенты">
+		<!-- <TABLE id="DISCOEFF" name="Районные коэффициенты">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
 			<A id="CODE"/>
 			<A id="LEVELELCAMPAIGN" labelwidth="300"/>
@@ -769,7 +773,7 @@
 				<A id="ENDDATE" labelwidth="300" nulls="true"/>
 			</GA>
 			<TI unique="CODE, BEGINDATE"/>
-		</TABLE>
+		</TABLE> -->
 		<TABLE id="RESPONSPERS" name="Отвественные лица избирательной комиссии">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
 			<A id="CODE" labelwidth="300"/>
@@ -954,7 +958,7 @@
 				<AI id="1" name="Создан" actionlist="SheetsToTransactionlog;DisbandSheet;FormRTransfers;"/>
 				<AI id="2" name="Проведен в учете" actionlist="SheetsToTransactionlogRollback;FormRTransfers" readonly="true"/>
 			</A>
-			<A id="LEVELESTIMATE" labelwidth="120" width="50"/>
+			<A id="LEVELESTIMATE" labelwidth="120" width="50" readonly="true"/>
 			<GA id="DocumentP" name="Документ" caption="Документ">
 				<A id="DOCTYPEID" labelwidth="70" width="200" readonly="true" value="13"/>
 				<A id="DOCPREF" caption="Префикс" labelwidth="70" width="20" nulls="false" readonly="true"/>
@@ -962,7 +966,7 @@
 				<A id="DOCDATE" labelwidth="50" width="20" nulls="false" readonly="true" formula="now()"/>
 			</GA>
 			<A id="ELECTCAMPAIGNID" labelwidth="200" readonly="true"/>
-			<A id="TYPEEXPID" labelwidth="200" nulls="false"/>
+			<A id="TYPEEXPID" labelwidth="200" nulls="false" readonly="true"/>
 			<A id="REGISTERID" name="Расчетный документ" caption="Расчетный документ" readonly="true"/>
 			<A id="ELECTDATE" name="День голосования" caption="День голования" labelwidth="200" type="date" nulls="false" readonly="true"/>
 			<A id="ELECTCOMMINCAMPID" caption="Избирательная комиссия" labelwidth="200" readonly="true"/>
@@ -1118,12 +1122,25 @@
 		</TABLE>
 		<TABLE id="SUBTOTALFINANCEELCOM" name="Сводные данные о финансировании">
 			<A id="ELECTCOMMINCAMPID" name="Избирательная комиссия" parentkey="cascade" pid=""/>
-			<A id="ALLOCATION" name="Выделено средств" caption="Выделено средств" labelwidth="200" type="number" len="8.2" nulls="true" local="true" formula=""/>
-			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID" local="true"/>
-			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID" local="true"/>
-			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINUIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID" local="true"/>
-			<A id="PROVISION" name="Резерв" caption="Резерв" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="@ALLOCATION - (select round(sum(COALESCE(f.SUMFINTIK,0)),2)+round(sum(COALESCE(f.SUMFINUIK,0)),2)+round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID)" local="true"/>
-			<TI unique="ELECTCOMMINCAMPID"/>
+			<A id="ALLOCATION" name="Выделено средств" caption="Выделено средств" labelwidth="200" type="number" len="8.2" nulls="true" local="true" formula="select round(COALESCE(sum(COALESCE(rc.summ,0)),0),2)
+																																								  from ELECTCOMMINCAMP e,
+																																									   PAYACCOUNTS p,
+																																									   JURPERSONS js,
+																																									   RECEIPTSDOCS r,
+																																									   RECEIPTSDOCSCONS rc,
+																																									   TYPICALOPERS t
+																																								 where e.ID = @ELECTCOMMINCAMPID
+																																								   and p.ELECTCAMPAIGNID = e.ELECTCAMPAIGNID
+																																								   and js.ELECTCOMMITTEEID = e.ELECTCOMMITTEEID
+																																								   and r.PAYACCOUNTSID = p.ID
+																																								   and rc.RECEIPTSDOCSID = r.ID
+																																								   and r.status = '2'
+																																								   and t.ID = rc.TYPICALOPERSID
+																																								   and t.CODE ilike '%Поступление%на%счет%фин%ТИК%'"/>
+			<A id="SUMFINTIK" name="Обеспечение ТИК (собственные расходы)" caption="Обеспечение ТИК (собственные расходы)" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE  like '%.%')" local="true"/>
+			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE  like '%.%')" local="true"/>
+			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINUIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE  like '%.%')" local="true"/>
+			<A id="PROVISION" name="Резерв" caption="Резерв" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="@ALLOCATION - (select round(sum(COALESCE(f.SUMFINTIK,0)),2)+round(sum(COALESCE(f.SUMFINUIK,0)),2)+round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE not like '%.%'))" local="true"/><TI unique="ELECTCOMMINCAMPID"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
 			<A id="ELECTCOMMITTEEID" labelwidth="300" readonly="true" virtual="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
@@ -1583,6 +1600,9 @@
 				<A id="DOCNUMB" labelwidth="100" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PROXYDOCS where PROXYID = @PROXYID"/>
 				<A id="DOCDATE" width="50" formula="now()"/>
 				<A id="ENDDATE" name="Срок действия" caption="Срок действия" width="50" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Доверенность выдана" caption="Доверенность выдана">
+				<A id="POSTSID_RPS" name="Должность" caption="Должность" labelwidth="120" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
 				<A id="RESPPERSON" name="МОЛ" caption="МОЛ" labelwidth="120" nulls="false"/>
 			</GA>
 			<GA name="Контракт" caption="Контракт">
@@ -2885,7 +2905,12 @@
 		<REPORT id="WorkdaysErrorLog" name="Протокол проверки сведений о ФОВ" procedure="" template="workdays_error_log.xls"/>
 		<REPORT id="ScheduleTik" name="График работы" procedure="" template="schedule_tik.xls"/>
 		<REPORT id="PaymentOrder" name="Платежное поручение" procedure="" template="payment_order.xls"/>
-		<REPORT id="PROXYREP" name="Доверенность" procedure="" template="proxy.xls"/>
+		<REPORT id="PROXYREP" name="Доверенность" procedure="" template="proxy.xls">
+			<FORM name="Параметры">
+				<A id="RPERSONID" name="Руководитель организации" caption="Руководитель организации" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
+				<A id="BPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false"/>
+			</FORM>
+		</REPORT>
 		<REPORT id="LiabilityAgreement" name="Договор о материальной ответственности" procedure="" template="liability_agreement.xls"/>
 		<REPORT id="AccountCashWarrant" name="Расходный кассовый ордер" procedure="" template="account_cash_warrant.xls">
 			<FORM name="Параметры">
@@ -3277,14 +3302,14 @@
 			<GRID id="PersonaccGR" name="Лицевые счета физических лиц, открытые в кредитных организациях" table="PERSONACC" actionlist="setLID"/>
 		</FORM>
 		<FORM id="SheetsFRM" name="Расчетно-платёжные ведомости">
-			<GRID id="SheetsGR" name="Расчетно-платёжные ведомости" table="SHEETS" reportlist="PaylistReport"  actionlist="SheetsToTransactionlog;SheetsToTransactionlogRollback" >
+			<GRID id="SheetsGR" name="Расчетно-платёжные ведомости" table="SHEETS" reportlist="PaylistReport"  actionlist="SheetsToTransactionlog;SheetsToTransactionlogRollback" readonly="true">
 				<MENU>
-					<MI actionlist="MoveFolder;DisbandSheet;FormRTransfers;ConfigTables"/>
+					<MI actionlist="DisbandSheet;FormRTransfers;ConfigTables"/>
 				</MENU>
 			</GRID>
-			<GRID id="SheetdetailsGR" name="Состав" table="SHEETDETAILS" >
+			<GRID id="SheetdetailsGR" name="Состав" table="SHEETDETAILS" readonly="true" >
 				<MENU>
-					<MI actionlist="setLID;Insert;Update;Delete;MoveFolder;ConfigTables;ExceptionPP;SheetdetailsFormPPDel;ExceptionRKO;SheetdetailsFormRKODel"/>
+					<MI actionlist="ConfigTables;ExceptionPP;SheetdetailsFormPPDel;ExceptionRKO;SheetdetailsFormRKODel"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -3303,7 +3328,7 @@
 		<FORM id="ElcmtacctrFRM" name="Расчетные счета избирательных комиссий">
 			<GRID id="ElcmtacctrGR" name="Расчетные счета избирательных комиссий" table="ELCMTACC">
 				<MENU>
-					<MI actionlist="setLID;View"/>
+					<MI actionlist="View"/>
 				</MENU>
 			</GRID>
 		</FORM>
@@ -3405,7 +3430,11 @@
 			</TABS>
 		</FORM>
 		<FORM id="JurpersonsFRM" name="Принадлежность">
-			<GRID id="JurpersonsGR" name="Принадлежность" table="JURPERSONS" actionlist="setLID"/>
+			<GRID id="JurpersonsGR" name="Принадлежность" table="JURPERSONS" readonly="true" >
+				<MENU>
+					<MI actionlist="ConfigTables" />
+				</MENU>
+			</GRID>
 		</FORM>
 		<FORM id="DicmuntsFRM" name="Единицы измерения">
 			<GRID id="DicmuntsGR" name="Единицы измерения" table="DICMUNTS" actionlist="setLID"/>
