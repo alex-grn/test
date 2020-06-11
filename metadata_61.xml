@@ -188,9 +188,9 @@
 		<A id="ELECTCOMMITTEEID" name="Избирательная комиссия" caption="Избирательная комиссия" labelwidth="150" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false"/>
 		<A id="COMPNUMB" name="Номер состава" caption="Номер состава" type="number" len="3" nulls="true"/>
 		<A id="LEVELELCAMPAIGN" name="Уровень избирательной кампании" caption="Уровень избирательной кампании" type="list" nulls="false">
-			<AI id="territory" name="Муниципальная избирательная кампания"/>
-			<AI id="region" name="Региональная избирательная кампания"/>
+			<!-- <AI id="territory" name="Муниципальная избирательная кампания"/> -->
 			<AI id="central" name="Федеральная избирательная кампания"/>
+			<AI id="region" name="Региональная избирательная кампания"/>
 		</A>
 		<A id="ELECTDATE" name="День голосования" caption="День голосования" type="date" nulls="false"/>
 		<A id="ELECTCAMPAIGNID" name="Избирательная кампания" caption="Избирательная кампания" labelwidth="150" type="ref" table="ELECTCAMPAIGN" ret="CODE" nulls="false"/>
@@ -698,7 +698,7 @@
 			</GA>
 			<A id="IDGASCOMMITTEEMAN" name="Идентификатор члена комиссии в ГАС Выборы" caption="Идентификатор члена комиссии в ГАС Выборы" type="string" nulls="false" visible="false" local="true"/>
 			<TI id="COMMITTEEMAN_CHECK" name="Одно физ.лицо не может занимать две доложности в одной комиссии" check="1 = PERSONID_COUNT  or PERSONID_COUNT is null"/>
-			<TI unique="ELECTCOMMITTEEID, PERSONID, POSTSID, POSTENDDATE"/>
+			<TI unique="ELECTCOMMITTEEID, PERSONID, POSTSID, POSTBEGINDATE"/>
 		</TABLE>
 		<TABLE id="COMMITTEEMANVIRT" name="Члены избирательных комиссий" virtual="true" query="select c.* from COMMITTEEMAN c, POSTS P where c.postsid = p.id and (p.levelelcommittee = 'territory' or p.levelelcommittee = 'circuit')">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -733,7 +733,7 @@
 				<A id="ENDDATE" caption="Дата закрытия" labelwidth="100" width="50"/>
 			</GA>
 			<A id="SALCONTRACT" name="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" caption="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" type="boolean" nulls="true" local="true"/>
-			<TI unique="ELECTCOMMITTEEID,BANKACC,BEGINDATE"/>
+			<TI unique="ELECTCOMMITTEEID,BANKACC"/>
 		</TABLE>
 		<TABLE id="SALARYCONTRACT" name="Договоры по зарплатному проекту с ПАО СБЕРБАНК">
 			<A id="ELECTCOMMITTEEID" parentkey="cascade"/>
@@ -884,7 +884,7 @@
 				<AI id="central/circuit" reportlist="KRF_F_TIK"/>
 				<AI id="region/circuit" reportlist="KRF_R_TIK"/>
 			</A>
-			<TI unique="ELECTCAMPAIGNID, ELECTCOMMINCAMPID, BEGINDATE, DOCTYPEID"/>
+			<TI unique="ELECTCAMPAIGNID, ELECTCOMMINCAMPID, CODE, DOCTYPEID"/>
 		</TABLE>
 		<TABLE id="REGISTERLIST" name="Члены избирательной комиссии по ведомости">
 			<A id="REGISTERID" parentkey="cascade"/>
@@ -1047,7 +1047,7 @@
 			<A id="CODE" name="Направление расходов" caption="Направление расходов" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="PRINT_NAME" name="Направление расходов для печати" caption="Направление расходов для печати" labelwidth="200" type="text" len="240" nulls="false" local="true"/>
 			<A id="REGIONSRFID" labelwidth="200" parentkey="nocascade"/>
-			<GA id="TERRITORYPRM" name="Параметры учета в расходах УИК" caption="Параметры учета в расходах УИК">
+			<GA id="TERRITORYPRM" name="Параметры учета в расходах ТИК" caption="Параметры учета в расходах ТИК">
 				<A id="MESTIMATETIK"  name="Признак исключения из сметы ТИК" caption="Признак исключения из сметы ТИК"/>
 			</GA>
 			<GA id="DISTRICTPRM" name="Параметры учета в расходах УИК" caption="Параметры учета в расходах УИК">
@@ -1061,7 +1061,7 @@
 				<AI id="К" name="Компенсация члену комиссии, работающему с освобождением от основной работы"/>
 				<AI id="Д" name="Допоплата труда (вознаграждение) члену комиссии"/>
 			</A>
-			<TI unique="NUMBESTIMATE,CODE,REGIONSRFID"/>
+			<TI unique="NUMBESTIMATE,REGIONSRFID"/>
 		</TABLE>
 		<TABLE id="TYPEEXPSL" name="Учет выплат при расчете расходов">
 			<A id="TYPEEXPID" parentkey="cascade"/>
@@ -1078,7 +1078,21 @@
 			<A id="NUMBPP" readonly="true" virtual="true" formula="select t.NUMBPP from TYPEEXP t where t.id = @TYPEEXPID"/>
 			<A id="NUMBESTIMATE" readonly="true" virtual="true" formula="select t.NUMBESTIMATE from TYPEEXP t where t.id = @TYPEEXPID"/>
 			<A id="TYPEEXPID" labelwidth="200"/>
-			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="false" formula=""/>
+			<A id="LEVELESTIMATE" labelwidth="200" readonly="true" virtual="false" formula="select case 
+																							  when (k.levelelcommittee ~* 'territory' or k.levelelcommittee ~* 'circuit') and sum(COALESCE(f.sumfintik,0)) > 0 then 'territory'
+																							  when (k.levelelcommittee ~* 'territory' or k.levelelcommittee ~* 'circuit') and sum(COALESCE(f.sumfintik,0)) = 0 and sum(COALESCE(f.sumfintikcen,0)) > 0 then 'terdist'
+																							  when k.levelelcommittee ~* 'district' and sum(COALESCE(f.sumfintikcen,0)) > 0 then 'terdist'
+																							  when k.levelelcommittee ~* 'district' and sum(COALESCE(f.sumfinuik,0)) > 0 then 'district'
+																							 end
+																						into STEMP 
+																						from FINANCEELCOM f,
+																							 ELECTCOMMINCAMP e,
+																							 ELECTCOMMITTEE k
+																					   where f.TYPEEXPID = @TYPEEXPID
+																						 and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID
+																						 and e.ID = f.ELECTCOMMINCAMPID
+																						 and k.ID = e.ELECTCOMMITTEEID
+																					   group by k.LEVELELCOMMITTEE"/>
 			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select case when k.levelelcommittee ilike 'district' then round(COALESCE(f.SUMFINUIK,0)+COALESCE(f.SUMFINTIKCEN,0),2) when k.levelelcommittee ilike 'territory' or k.levelelcommittee ilike 'circuit' then round(COALESCE(f.SUMFINTIK,0)+COALESCE((select case when t.numbestimate ilike '%апу%' then f.SUMFINTIKCEN else 0 end),0),2) end from FINANCEELCOM f, ELECTCOMMINCAMP e, ELECTCOMMITTEE k, TYPEEXP t where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID and e.ID = f.ELECTCOMMINCAMPID and k.ID = e.ELECTCOMMITTEEID and t.ID = f.TYPEEXPID" local="true"/>
 			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
 			<!-- <A id="SUMPAY" name="Сумма расхода по расчету (в программе)" caption="Сумма расхода по расчету (в программе)" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="" local="true"/> -->
@@ -1141,6 +1155,7 @@
 			<A id="SUMFINTIKCEN" name="Обеспечение ТИК за нижестоящие УИК" caption="Обеспечение ТИК за нижестоящие УИК" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE  like '%.%')" local="true"/>
 			<A id="SUMFINUIK" name="Обеспечение УИК" caption="Обеспечение УИК" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(COALESCE(f.SUMFINUIK,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE  like '%.%')" local="true"/>
 			<A id="PROVISION" name="Резерв" caption="Резерв" labelwidth="200" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="@ALLOCATION - (select round(sum(COALESCE(f.SUMFINTIK,0)),2)+round(sum(COALESCE(f.SUMFINUIK,0)),2)+round(sum(COALESCE(f.SUMFINTIKCEN,0)),2) from financeelcom f where f.electcommincampid = @ELECTCOMMINCAMPID and not exists(select 1 from TYPEEXP t where t.ID = f.TYPEEXPID and t.NUMBESTIMATE not like '%.%'))" local="true"/><TI unique="ELECTCOMMINCAMPID"/>
+			<TI unique="ELECTCOMMINCAMPID"/>
 		</TABLE>
 		<TABLE id="MTRESPONSPERS" name="Материально-ответственные лица">
 			<A id="ELECTCOMMITTEEID" labelwidth="300" readonly="true" virtual="true" formula="select electcommitteeid from committeeman where personid = @PERSONID and  postenddate >= now() "/>
@@ -1715,7 +1730,7 @@
 		</TABLE>
 		<TABLE id="CASHPAYMENT_HEADER" name="Расходные кассовые документы">
 			<A id="CASHDOCSID" parentkey="cascade"/>
-			<A id="ELECTCAMPAIGNID" parentkey="cascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
+			<A id="ELECTCAMPAIGNID" parentkey="nocascade" visible="false" readonly="true" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select begindateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
@@ -1816,15 +1831,17 @@
 		<TABLE id="CASHCONTRIBUTION_HEADER" name="Объявления на взнос наличными">
 			<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, CASHDOCS c where e.id = c.ELECTCAMPAIGNID and c.id=@CASHDOCSID" local="true"/>
+			<A id="ELECTCAMPAIGNID" visible="false" readonly="true" virtual="false" formula="select ELECTCAMPAIGNID from CASHDOCS where id=@CASHDOCSID"/>
 			<TABS>
 				<TAB name="Заголовок">
 					<A id="CASHDOCSID" parentkey="cascade"/>
-					<A id="CASHPAYMENTHEADERID" labelwidth="100"/>
+					<A id="CASHPAYMENTHEADERID" labelwidth="100" pid="ELECTCAMPAIGNID"/>
 					<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="36"/>
 					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHCONTRIBUTION_HEADER where CASHDOCSID = @CASHCONTRIBUTION_HEADERID and cid=0" local="true"/>
-					<A id="DOCDATE" labelwidth="50" width="43"/>
-					<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="100" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" readonly="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t, CASHDOCS c where c.id=@CASHDOCSID and t.id = c.JURPERSONSID" local="true"/>
-					<A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
+					<A id="DOCDATE" labelwidth="50" width="43" formula="now()"/>
+					<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="100" visible="false" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" readonly="true" formula="" local="true"/>
+					<!-- <A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="t" formula="select e.ID from CASHDOCS cd, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm, elcmtacc e where cd.ID = @CASHDOCSID and cd.ELECTCAMPAIGNID = ec.ID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  and e.ELECTCOMMITTEEID = ecm.ID  and ec.LEVELELCAMPAIGN = e.LEVELELCAMPAIGN and @DOCDATE>=e.BEGINDATE and (e.ENDDATE>=@DOCDATE or e.ENDDATE is null)"  local="true"/> -->
+					<A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="t" formula=""  local="true"/>
 					<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="100" width="30" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
 					<A id="NOTE" name="Комментарий" caption="Комментарий" labelwidth="100" width="70" type="string" nulls="true" local="true"/>
 					<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Объявление на взнос наличными №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from CASHCONTRIBUTION_HEADER c where c.id = @ID" local="true"/>
@@ -1834,15 +1851,19 @@
 					<A id="SENDERNAME" name="От кого" caption="От кого" labelwidth="100" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select name from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 					<A id="SENDERBANK" name="Банк отправителя" caption="Банк отправителя" labelwidth="100" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select a.name from elcmtacc e, agentbanks ab, agent a where ab.id = e.agentbanksid and a.id = ab.agentid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 					<A id="SENDERBIC" name="БИК" caption="БИК" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select ab.bic from elcmtacc e, agentbanks ab where ab.id = e.agentbanksid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
-					<A id="SENDERACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.bankacc from elcmtacc e where e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="SENDERACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula=""  local="true"/>
+					<!-- <A id="SENDERACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.bankacc from CASHDOCS cd, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm, elcmtacc e where cd.ID = @CASHDOCSID and cd.ELECTCAMPAIGNID = ec.ID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  and e.ELECTCOMMITTEEID = ecm.ID  and ec.LEVELELCAMPAIGN = e.LEVELELCAMPAIGN and @DOCDATE>=e.BEGINDATE and (e.ENDDATE>=@DOCDATE or e.ENDDATE is null)"  local="true"/> -->
+				
 				</TAB>
 				<TAB name="Получатель">
 					<A id="RECIPIENTNAME" name="Получатель" caption="Получатель" labelwidth="100" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select name from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 					<A id="RECIPIENTINN" name="ИНН" caption="ИНН" labelwidth="100" width="50" type="number" nulls="true" visible="form" readonly="true" virtual="true" formula="select inn from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 					<A id="RECIPIENTKPP" name="КПП" caption="КПП" labelwidth="50" width="50" type="number" nulls="true" visible="form" readonly="true" virtual="true" formula="select kpp from electcommittee where id = @ELECTCOMMITTEEID::BIGINT" local="true"/>
-					<A id="RECIPIENTBANK" name="Банк получателя" caption="Банк получателя" labelwidth="100" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select a.name from elcmtacc e, agentbanks ab, agent a where ab.id = e.agentbanksid and a.id = ab.agentid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTBANK" nameSENDERACC="Банк получателя" caption="Банк получателя" labelwidth="100" width="100" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select a.name from elcmtacc e, agentbanks ab, agent a where ab.id = e.agentbanksid and a.id = ab.agentid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
 					<A id="RECIPIENTBIC" name="БИК" caption="БИК" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select ab.bic from elcmtacc e, agentbanks ab where ab.id = e.agentbanksid and e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
-					<A id="RECIPIENTACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.bankacc from elcmtacc e where e.electcommitteeid = @ELECTCOMMITTEEID::BIGINT" local="true"/>
+					<A id="RECIPIENTACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula=""  local="true"/>
+					<!-- <A id="RECIPIENTACC" name="Номер счета" caption="Номер счета" labelwidth="100" width="50" type="string" nulls="true" visible="form" readonly="true" virtual="true" formula="select e.bankacc from CASHDOCS cd, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm, elcmtacc e where cd.ID = @CASHDOCSID and cd.ELECTCAMPAIGNID = ec.ID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  and e.ELECTCOMMITTEEID = ecm.ID  and ec.LEVELELCAMPAIGN = e.LEVELELCAMPAIGN and @DOCDATE>=e.BEGINDATE and (e.ENDDATE>=@DOCDATE or e.ENDDATE is null)"  local="true"/> -->
+				
 				</TAB>
 			</TABS>
 			<TI unique="CASHDOCSID, DOCNUMB"/>
