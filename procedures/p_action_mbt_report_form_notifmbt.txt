@@ -1,0 +1,100 @@
+CREATE OR REPLACE FUNCTION public.p_action_mbt_report_form_notifmbt (
+  idlist text,
+  uid bigint,
+  unit bigint,
+  ownerid bigint,
+  notefdate date,
+  transfert_type text
+)
+RETURNS void AS
+$body$
+/*
+  Сформировать распоряжение на перечисление МБТ    
+*/
+declare
+  nUID  BIGINT:=UID;
+  RC    RECORD;
+  SP    RECORD;
+  next_num integer;
+  nNOTIFMBTID bigint;
+  nNOTIFMBTKBKID bigint;
+  --определим уровень доступа
+  nLID_NOTIFMBT      bigint:=P_SYSTEM_GEN_LID('NOTIFMBT',nUID,UNIT);
+  nLID_NOTIFMBTKBK   bigint:=P_SYSTEM_GEN_LID('NOTIFMBTKBK',nUID,UNIT);
+  adsasd text;
+begin
+
+  for RC in
+      select ms.id,
+             m.year_u,
+             r.agent2_id,
+             d.code as recip_code,
+             b.name as budget_name,
+             l.name as list_name,
+             p.code as purp_code,
+             to_date('01.01.'||m.year_u::text,'dd.mm.yyyy') as fdate,
+             case p_action_mbt_report_form_notifmbt.transfert_type
+               when 'REST_PMBT' then ms.BALANCE_SUM
+               when 'KR_PMBT' then ms.SPENT_SUM
+               else ms.OLDSPENT_SUM
+             end as notif_summ,  
+             ms.BALANCE_SUM,
+             ms.OLDSPENT_SUM,
+             ms.SPENT_SUM,
+             --
+             k.code as kbk_code,
+             l.kbr_id,
+             l.bkd_id,
+             COALESCE(k.code,bk.code) as kbk_rec,
+             ac.AGENT_ID as agent_to,
+             dr.code as glava_to,
+             bs.name as budget_to  
+        from MBT_REPORT m
+  inner join MBT_REPORT_REC ms on ms.MBT_REPORTID = m.ID
+   left join MBT_RECIP r on r.ID = ms.MBT_RECIPID
+   left join AGENT a on a.ID = r.AGENT2_ID
+   left join DIR_RECIP d on d.ID = a.DIR_RECIPID
+   left join BUDGETS b on b.ID = a.BUDGETS_ID
+   left join MBT_LIST l on l.ID = ms.MBT_LISTID
+   left join KBR k on k.ID = l.KBR_ID
+   left join PURP_ARTICLE p on p.ID = k.PURP_ARTICLEID
+   left join BKD bk on bk.ID = l.BKD_ID
+   --
+   left join BUDGETS bs on bs.ID = m.BUDGETS_ID
+   left join AGENT_ACC ac on ac.ID = bs.AGENT_ACC_ID
+   left join AGENT ag on ag.ID = ac.AGENT_ID
+   left join DIR_RECIP dr on dr.ID = ag.DIR_RECIPID
+       where m.ID = any(p_system_get_selectlist(idlist))
+  loop
+      --найдем след номер
+      select coalesce(regexp_replace(max(lpad(n.NOTIFNUMB,80,' ')), '[^0-9]', '', 'g')::int+1,1) 
+        into next_num 
+        from notifmbt n; 
+      
+      --добавим заголовок "уведомления о возвратах межбюджетных трансфертов" 
+      insert into notifmbt(uid,lid,ownerid,FIN_YEAR,NOTIFNUMB,NOTIFDATE,AGENT_FROM,GLAVA_FROM,BUDGET_FROM,
+                           AGENT_TO,GLAVA_TO,BUDGET_TO,TRANSFERT_NAME,TARGET_FUND,TRANSFERT_TYPE,FDATE,NOTIF_SUMM,REST_SUMM_ALL,REST_SUMM_ALL_PY,CONFIRM_COSTS_SUMM_ALL)
+      values(nUID,nLID_NOTIFMBT,p_action_mbt_report_form_notifmbt.OWNERID,RC.YEAR_U,next_num::TEXT,p_action_mbt_report_form_notifmbt.NOTEFDATE,rc.AGENT2_ID,rc.RECIP_CODE,rc.BUDGET_NAME,
+             rc.agent_to,rc.glava_to,rc.budget_to,rc.LIST_NAME,rc.PURP_CODE,p_action_mbt_report_form_notifmbt.TRANSFERT_TYPE,rc.FDATE,rc.NOTIF_SUMM,rc.BALANCE_SUM,rc.OLDSPENT_SUM,rc.SPENT_SUM)
+      returning NOTIFMBT.ID into nNOTIFMBTID;
+      --добавим спецификацию
+      insert into notifmbtkbk(uid,lid,notifmbtid,OWNERID,KBK_PROVIDER,KBR_ID_PROVIDER,BKD_ID_PROVIDER,REST_SUMM,CONFIRM_COSTS_SUMM,KBK_RECIPIENT)
+      values(nUID,nLID_NOTIFMBTKBK,nNOTIFMBTID,p_action_mbt_report_form_notifmbt.OWNERID,rc.KBK_CODE,rc.KBR_ID,rc.BKD_ID,rc.BALANCE_SUM,rc.SPENT_SUM,rc.KBK_REC) 
+      returning notifmbtkbk.ID into nNOTIFMBTKBKID;
+      --создаем связь
+      perform p_system_doclinks_add('MBT_REPORT_REC',rc.ID,'NOTIFMBTKBK',nNOTIFMBTKBKID);
+      
+  end loop;
+  
+  exception when undefined_table then
+  raise using message = 'Таблица '||split_part(upper(SQLERRM),'"',2)||' не существует!'; 
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_mbt_report_form_notifmbt (idlist text, uid bigint, unit bigint, ownerid bigint, notefdate date, transfert_type text)
+  OWNER TO magicbox;
