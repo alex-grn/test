@@ -101,7 +101,16 @@
 			</MENU>
 			<MENU name="Загрузки">
 				<MI name="Примеры файлов для загрузки нормативно-справочной информации" formlist="Sample_files"/>
-				<MI name="Загрузка первичных настроек" actionlist="from_HIS_to_SETTINGS_F_xls"/>
+				<MENU name="Загрузка бюджетной классификации"/>
+				<MENU name="Загрузка общероссийских классификаторов">
+					<MI name="Загрузка Общероссийского классификатора единиц измерения в XML формате" actionlist="from_PORTAL_to_OKEI_F_xml"/>
+				</MENU>
+				<MENU name="Загрузка юридических лиц">
+					<MI name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" actionlist="from_EB_to_AGENT_F_xls"/>
+				</MENU>
+				<MENU name="Прочие загрузки">
+					<MI name="Загрузка первичных настроек" actionlist="from_HIS_to_SETTINGS_F_xls"/>
+				</MENU>
 			</MENU>
 			<MENU name="Справка">
 				<MI name="Руководство пользователя" actionlist="HelpNciUser"/>
@@ -457,10 +466,11 @@
 			<A id="INTERNATIONAL" name="Условное обозначение международное" caption="Условное обозначение международное" labelwidth="550" type="string" local="true"/>
 			<A id="ALFANATIONAL" name="Кодовое буквенное обозначение национальное" caption="Кодовое буквенное обозначение национальное" labelwidth="550" type="string" local="true"/>
 			<A id="ALFAINTERNATIONAL" name="Кодовое буквенное обозначение международное" caption="Кодовое буквенное обозначение международное" labelwidth="550" type="string" local="true"/>
-			<A id="CODE" name="Код" caption="Код" labelwidth="500" nulls="false"/>
+			<A id="CODE" name="Код" caption="Код" labelwidth="500" nulls="true"/>
 			<A id="GLOBAL_ID" name="Глобальный идентификатор" type="string" nulls="true" visible="false"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKEI_UK" unique="CODE"/>
+			<TI id="OKEI_IDX_UK" unique="IDX"/>
 			<TI id="OKEI_NAME_IND" index="NAME"/>
 			<TI id="OKEI_METAID_IND" index="METAID"/>
 		</TABLE>
@@ -498,7 +508,7 @@
 			<A id="BKD_ID" name="КДБ" caption="Бюджетная классификация доходов" labelwidth="400"/>
 			<A id="ACODES_ID" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="400"/>
 			<A id="MBT_TYPE" name="Тип трансферта" caption="Тип трансферта" labelwidth="200" type="string"/>
-			<A id="NOTE" name="" caption="" labelwidth="200"/>
+			<A id="NOTE" labelwidth="200"/>
 			<GA id="DictionaryParam"/>
 			<TI id="MBT_LIST_UK" name="Трансферт с таким кодом уже существует" unique="CODE"/>
 			<TI id="MBT_LIST_KBR_UK" name="Трансферт с такой классификацией расходов и кодом целей уже существует" unique="KBR_ID, ACODES_ID"/>
@@ -508,7 +518,7 @@
 			<A id="NAMEVIRT" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="200" type="string" readonly="true" virtual="true" formula="select NAME from AGENT where id =@AGENT2_ID" local="true"/>
 			<A id="DESCRIPTIONVIRT" name="Полное наименование" caption="Полное наименование" labelwidth="200" type="string" readonly="true" virtual="true" formula="select DESCRIPTION from AGENT where id =@AGENT2_ID" local="true"/>
 			<A id="DIR_RECIP" name="ГРБС" caption="Код главного распорядителя и администратора" labelwidth="600" type="string" nulls="true" formula="select CODE from DIR_RECIP where id =(select DIR_RECIPID from AGENT where id =@AGENT2_ID)" local="true"/>
-			<A id="AGENT2_ACCID" name="л/с" caption="Лицевой счет" labelwidth="150" width="60" type="ref" pid="AGENT2_ID" table="AGENT2_ACC" ret="NAME"/>
+			<A id="AGENT2_ACCID" name="л/с" caption="Лицевой счет" labelwidth="150" width="60" type="ref" pid="AGENT2_ID" pid_ref="AGENT_ID" table="AGENT2_ACC" ret="NAME"/>
 			<A id="BANK_ACCVIRT" name="Номер счета" caption="Номер счета" labelwidth="150" width="40" type="string" readonly="true" virtual="true" formula="select BANK_ACC from AGENT_ACC where id =@AGENT2_ACCID" local="true"/>
 			<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="select CODE from AGENT where id =@AGENT2_ID"/>
 			<GA id="SubjectRF" caption="Субьект РФ">
@@ -1473,6 +1483,14 @@
 		<COMMENT name="Загрузки с использованием конвертера"/>
 		<ACTION id="from_HIS_to_SETTINGS_F_xls" name="Загрузка первичных настроек" type="script" actionlist="LoadAndConvertFile" refresh="all">
 			<P id="convname" value="НСИ Первичные настройки"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_PORTAL_to_OKEI_F_xml" name="Загрузка Общероссийского классификатора единиц измерения в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКЕИ с data.mos.ru1;НСИ Загрузка ОКЕИ с data.mos.ru2"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_EB_to_AGENT_F_xls" name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ ПБС из сводного реестра УБП Электронный бюджет"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
 	</ACTIONS>
