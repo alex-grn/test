@@ -71,7 +71,7 @@
 			<AI id="01" name="Федеральная служба по труду и занятости"/>
 			<AI id="02" name="Нет"/>
 		</A>
-		<A id="PRIMAINFOID" name="Первичная инфомация" caption="Первичная инфомация" labelwidth="120" type="ref" table="PRIMAINFO" ret="PERSON_ID_ret" form="fPrimainfo" nulls="false"/>
+		<A id="PRIMAINFOID" name="Первичная инфомация" caption="222Первичная инфомация" labelwidth="120" type="ref" table="PRIMAINFO" ret="PERSON_ID_ret" form="fPrimainfo" nulls="false"/>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов"/>
 	<TABLES name="Таблицы">
@@ -93,15 +93,15 @@
 			<COMMENT name="Субъект РФ = Ссылка по уровню доступа из таблицы GEO_TERR поле NAME"/>
 			<A id="GEO_TERR_ID" name="Субъект РФ" caption="Субъект РФ" labelwidth="120" type="ref" table="GEO_TERR" ret="NAME" form="fGeoTerr" nulls="false"/>
 			<COMMENT name="Ссылка по уровню доступа из таблицы PERSON"/>
-			<A id="PERSON_ID" name="Сорудник" caption="Сорудник" labelwidth="120" nulls="false" visible="form"/>
+			<A id="PERSON_ID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
 			<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.surname from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 			<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.middlename from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 			<A id="BIRTHDATEVIRT" name="Дата рождения" caption="Дата рождения" labelwidth="450" type="date" nulls="false" visible="grid" readonly="false" virtual="true" formula="select b.date_birth from person b where b.id=@PERSON_ID ::bigint" local="true"/>
-			<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.snils from person b where b.id=@PERSON_ID ::bigint" local="true"/>
-			<A id="POST" name="Должность" caption="Должность" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.post from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+			<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.snils from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+			<A id="POSTVIRT" name="Должность" caption="Должность" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.post from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 			<A id="DEPART" name="Подразделение" caption="Подразделение" labelwidth="120" type="ref" table="DEPART" ret="DESCRIPTION" form="Depart" nulls="false"/>
-			<A id="PHONES" name="Телефон" caption="Телефон" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select left(b.phones,10) from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+			<A id="PHONESVIRT" name="Телефон" caption="Телефон" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select left(b.phones,10) from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 			<A id="EMAILVIRT" name="E-Mail" caption="E-Mail" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.email from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 			<A id="PERMISSIONSUSER" name="Полномочия" caption="Полномочия" labelwidth="120" type="list" nulls="false">
 				<AI id="01" name="должностное лицо"/>
@@ -122,7 +122,9 @@
 				<AI id="16" name="Кадровая служба - внедрение в ЭБ"/>
 				<AI id="17" name="ВУЗ"/>
 			</A>
+			<A id="NUMBERARM" name="№ АРМ" caption="№ АРМ" labelwidth="165" type="string" nulls="true" local="true"/>
 			<A id="NUMBERUSERLICENSES" name="Пользовательская лицензия" caption="Пользовательская лицензия" labelwidth="165" type="string" format="WWWWWWWWWWWW-WWWWWWWWWWWW-WWW" nulls="true" local="true"/>
+			<A id="USERLOGIN" name="Логин" caption="Логин" labelwidth="165" type="string" nulls="false" visible="true" local="true"/>
 			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="165" type="string" nulls="true" readonly="false" local="true"/>
 			<TI id="PRIMAINFO_PERSON_ID_UK" name="Сотрудник уже существует" unique="PERSON_ID"/>
 			<TI id="PRIMAINFO_TERR_IND" index="GEO_TERR_ID,AGENT2"/>
@@ -141,6 +143,23 @@
 			</A>
 			<A id="GROUND" name="Причина" caption="Причина" labelwidth="120" type="text" len="250" nulls="true" local="true"/>
 		</TABLE>
+		
+		
+		
+		<TABLE id="ACCESSLOCK" name="Блокировка доступа">
+			<A id="PRIMAINFOID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+			<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+			<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+			<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+			<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" visible="true" readonly="true" local="true"/>
+			<A id="NUMBERARM" name="№ АРМ" caption="№ АРМ" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberarm from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+			<A id="VIPNET" name="№ ВипНет-сети" caption="№ ВипНет-сети" labelwidth="120" type="string" nulls="true" visible="true" readonly="false" local="true"/>
+			<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.userlogin from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+		</TABLE>
+		
+					
+
+		
 		<TABLE id="CLN_EVENTS" name="События">
 			<GA name="Заголовок" caption="Заголовок">
 				<A id="COD_ID_VIRT" name="N" caption="N" labelwidth="150" type="string" len="18" nulls="true" readonly="true" virtual="true" formula="select @ID::text" local="true"/>
@@ -303,6 +322,58 @@
 				<A id="NOTE" nulls="true"/>
 			</FORM>
 		</ACTION>
+		
+		
+		<ACTION id="RequestBloc" name="Заявка на блокировку" type="procedure" procedure="">
+			<FORM>
+				<A id="PRIMAINFOID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="NUMBERARMVIRT" name="№ АРМ" caption="№ АРМ" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberarm from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+				<A id="VIPNET" name="№ ВипНет-сети" caption="№ ВипНет-сети" labelwidth="120" type="string" nulls="true" visible="true" readonly="false" local="true"/>
+				<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.userlogin from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+			</FORM>
+		</ACTION>
+		
+		<ACTION id="RequestReissue" name="Заявка на перевыпуск" type="procedure" procedure="">
+			<FORM>
+				<A id="PRIMAINFOID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="NUMBERARMVIRT" name="№ АРМ" caption="№ АРМ" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberarm from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+				<A id="NUMBERUSERLICENSESVIRT" name="Лицензия" caption="Лицензия" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberuserlicenses from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+				<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.userlogin from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+			</FORM>
+		</ACTION>
+		<ACTION id="RequestCorrect" name="Заявка на корректировку" type="procedure" procedure="">
+			<FORM>
+				Наименование участника информационного взаимодействия
+				Тип организации 	
+				Наименование вышестоящего органа участника информационного взаимодействия
+				Наименование субъекта РФ
+				<A id="PRIMAINFOID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				Дата рождения
+				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" visible="true" readonly="true" local="true"/>
+				Должность
+				Структурное подразделение
+				Контактный телефон
+				Адрес электронной почты
+				Полномочия пользователя
+				<A id="NUMBERARMVIRT" name="№ АРМ" caption="№ АРМ" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberarm from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+				Заполнять руками
+				<A id="NUMBERUSERLICENSESVIRT" name="Лицензия" caption="Лицензия" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberuserlicenses from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+				<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.userlogin from primainfo b where b.id=@PRIMAINFOID ::bigint" local="true"/>
+			
+		</FORM>
+		</ACTION>
+		
 	</ACTIONS>
 	<REPORTS name="Отчеты">
 		<REPORT id="rClnEventsList" name="Журнал событий" template="rpt_cln_events_list.xlsx">
@@ -321,7 +392,15 @@
 			</GRID>
 		</FORM>
 		<FORM id="fPrimainfo" name="Первичная инфомация">
-			<GRID id="PRIMAINFO" name="Первичная инфомация" table="PRIMAINFO"/>
+			<GRID id="PRIMAINFO" name="Первичная инфомация" table="PRIMAINFO">
+				<MENU>
+					<MENU name="Заявки">
+						<MI actionlist="RequestBloc"/>
+						<MI actionlist="RequestReissue"/>
+						<MI actionlist="RequestReissue"/>
+					</MENU>
+				</MENU>
+			</GRID>
 			<TABS>
 				<TAB name="История изменений">
 					<GRID id="CHANGEHISTORY" name="История изменений" table="CHANGEHISTORY"/>
@@ -329,11 +408,21 @@
 			</TABS>
 		</FORM>
 		<FORM id="fAccessPrim" name="Первичный доступ"/>
+		
 		<FORM id="fIntwork" name="Межсетевое взаимодействие"/>
-		<FORM id="fAccesslock" name="Блокировка доступа"/>
+		
+		
+		<FORM id="fAccesslock" name="Блокировка доступа">
+			<GRID id="ACCESSLOCK" name="Блокировка доступа" table="ACCESSLOCK"/>
+		</FORM>
+		
+		
 		<FORM id="fReissuance" name="Перевыпуск"/>
 		<FORM id="fAccessrights" name="Корректировка прав доступа"/>
 		<FORM id="fAdvancsetting" name="Дополнительные параметры"/>
+		
+		
+		
 		<FORM id="fClnEvents" name="События">
 			<GRID id="gClnEvents" name="События" table="CLN_EVENTS" actionlist="aStatusClnEvents1;aStatusClnEvents2;aStatusClnEvents3;aStatusClnEvents4;aStatusClnEvents5;aStatusClnEvents0">
 				<MENU>
