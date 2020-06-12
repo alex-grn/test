@@ -1898,14 +1898,14 @@
 				<A id="DOCSUM" name="Сумма" caption="Сумма" labelwidth="100" width="50" type="number" len="17.2" local="true"/>
 				<A id="OKTMO" name="ОКТМО" caption="ОКТМО" labelwidth="100" width="50" type="string" len="8" nulls="true" visible="form" local="true"/>
 			</GA>
+			<A id="POSTPERSPAYID" name="Постановление" caption="Постановление" labelwidth="120" width="35" len="15" nulls="true"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI id="iJOURNALPERSPAY_UK" unique="OWNERID,STATEMENTADBDONEID,STATEMENTPBSVPKPID"/>
 		</TABLE>
 		<TABLE id="JOURNALPERSPAYDETAIL" name="Детализация платежа">
 			<A id="JOURNALPERSPAYID" parentkey="cascade"/>
-			<A id="OWNERID" name="Принадлежность" labelwidth="120" width="100"/>
-			<A id="POSTPERSPAYID" name="Постановление" caption="Постановление" labelwidth="120" width="35" len="15" nulls="true"/>			
+			<A id="OWNERID" name="Принадлежность" labelwidth="120" width="100"/>		
 			<A id="YEAR_PERSPAY" name="Год выплаты" caption="Год выплаты" labelwidth="90" width="25" type="string" nulls="true" local="true"/>
 			<A id="SUMM_PERSPAY" name="Сумма" caption="Сумма" labelwidth="85" width="40" type="number" len="17.2" nulls="true" local="true"/>
 			<GA name="Результат отработки" caption="Результат отработки">
@@ -1938,12 +1938,28 @@
 		<COMMENT name="Прочие поступления"/>
 		<TABLE id="JOURNALOTHERS" name="Журнал прочих поступлений">
 			<A id="OWNERID" name="Принадлежность" labelwidth="150" width="100" nulls="false"/>
-			<A id="STATEMENTADBDONEID" name="Идентификатор операции на счете АДБ"/>
-			<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="100" type="list" nulls="true" visible="true" local="true">
+			<A id="STATEMENTADBDONEID" name="Идентификатор операции на счете АДБ" caption="Идентификатор операции на счете АДБ" labelwidth="150" width="80"/>
+			<A id="DOC_DATE_STATE" name="Дата проведения" caption="Дата проведения" labelwidth="120" width="20" type="date" nulls="true" local="true"/>
+			<GA name="Реквизиты документа">
+			<A id="TYPEPAYDOC" name="Тип записи" caption="Тип записи" labelwidth="150" width="30" type="list" nulls="true" visible="true" local="true">
 				<AI id="2" name="Платежное поручение"/>
 				<AI id="3" name="Уведомление (зачет)"/>
 				<AI id="4" name="Возврат"/>
 			</A>
+			<A id="NOM_DOC" name="Номер" caption="Номер" labelwidth="90" width="50" type="string" len="15" nulls="true" local="true"/>
+			<A id="DATE_DOC" name="Дата" caption="Дата" labelwidth="90" width="20" type="date" nulls="true" local="true"/>
+			</GA>
+			<GA name="Данные о плательщике и платеже" caption="Данные о плательщике и платеже">
+				<A id="CNAME_PAY" name="Наименование" caption="Наименование" labelwidth="100" width="100" type="string" local="true"/>
+				<A id="INN_PAY" name="ИНН" caption="ИНН" labelwidth="100" width="50" type="string" len="12" nulls="true" visible="form" local="true"/>
+				<A id="KPP_PAY" name="КПП" caption="КПП" labelwidth="100" width="50" type="string" len="9" nulls="true" visible="form" local="true"/>
+				<A id="PURPOSE" name="Назначение платежа" caption="Назначение платежа" labelwidth="100" width="100" type="text" len="210" local="true"/>
+				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="100" type="string" len="254" visible="form"/>
+				<A id="KBK" name="КБК" caption="КБК" labelwidth="100" width="50" type="string" len="20" local="true"/>
+				<A id="ADD_KLASS" name="Код цели" caption="Код цели" width="50" type="string" len="20" nulls="true" visible="form" local="true"/>
+				<A id="DOCSUM" name="Сумма" caption="Сумма" labelwidth="100" width="50" type="number" len="17.2" local="true"/>
+				<A id="OKTMO" name="ОКТМО" caption="ОКТМО" labelwidth="100" width="50" type="string" len="8" nulls="true" visible="form" local="true"/>
+			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI id="iJOURNALOTHERS_UK" unique="OWNERID,STATEMENTADBDONEID"/>
@@ -2226,6 +2242,7 @@
 		</FORM>
 		<ACTION id="UnGenReturn" name="Расформировать заявку на возврат" type="procedure" procedure="p_action_ungen_return"/>
 		<ACTION id="GenExpToInc" name="Сформировать заявку на расход в доход бюджета" type="procedure" procedure="p_action_gen_exp_to_inc"/>
+		<ACTION id="UnGenExpToInc" name="Сформировать заявку на расход в доход бюджета" type="procedure" procedure="p_action_ungen_exp_to_inc"/>
 		<ACTION id="ReturnToState" name="Вернуть платёж в выписку" type="procedure" procedure="p_action_return_to_statement">
 			<FORM>
 				<A id="SURE" name="Действие необратимо. Подтвердить выполнение" caption="Действие необратимо. Подтвердить выполнение" labelwidth="500" type="list" nulls="false" value="NO">
@@ -2356,6 +2373,16 @@
 			<P id="convname" value="Заявка на возврат (ТФФ 31, Том 1, п. 7.4)"/>
 			<P id="errorone" value="false"/>
 		</ACTION>
+		<ACTION id="CompareWithPostPersPay" name="Сопоставить платеж с постановлением" type="procedure" procedure="p_action_compare_with_postperspay">
+			<FORM>
+				<A id="POSTPERSPAYID" name="Постановление" caption="Постановление" labelwidth="250"/>
+				<A id="POSTPERSPAYID_DEL" name="Удалить постановление" caption="Удалить постановление" labelwidth="25" type="boolean" value="false" local="true">
+				<AI id="true" readonly="POSTPERSPAYID"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<ACTION id="ExportToExternalSys" name="Выгрузить во внешнюю систему" type="procedure" procedure="p_action_export_to_eupp"/>
+		<ACTION id="ImportFromExternalSys" name="Загрузить из внешней системы" type="procedure" procedure="p_action_import_from_eupp"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -2567,8 +2594,8 @@
 			<GRID id="TTLcompMove" name="Движение средств, полученных в качестве обеспечения участия в закупках" table="TTLCOMPMOVE" actionlist="GenReturn;UnGenReturn;GenExpToInc"/>
 		</FORM>
 		<FORM id="Journalperspay" name="Журнал возвратов персонифицированных выплат">
-			<GRID id="Journalperspay" name="Журнал возвратов персонифицированных выплат" table="JOURNALPERSPAY"/>
-			<GRID id="Journalperspaydetail" name="Детализация платежа" table="JOURNALPERSPAYDETAIL" actionlist="GenReturn;UnGenReturn;GenExpToInc"/>
+			<GRID id="Journalperspay" name="Журнал возвратов персонифицированных выплат" table="JOURNALPERSPAY" actionlist="CompareWithPostPersPay;ExportToExternalSys;ImportFromExternalSys;ReturnToState"/>
+			<GRID id="Journalperspaydetail" name="Детализация платежа" table="JOURNALPERSPAYDETAIL" actionlist="GenReturn;UnGenReturn;GenExpToInc;UnGenExpToInc"/>
 		</FORM>
 		<FORM id="Postperspay" name="Постановления">
 			<GRID id="Postperspay" name="Постановления" table="POSTPERSPAY"/>
@@ -2592,7 +2619,7 @@
 			<GRID id="Journalnotifmbt" name="Журнал возвратов межбюджетных трансфертов" table="JOURNALNOTIFMBT" actionlist="SetIdentMBT;LinkToNotifMBT;MakeEntryMBTreturn;DeleteEntryMBTreturn;ReturnToState"/>
 		</FORM>
 		<FORM id="Journalothers" name="Журнал прочих поступлений">
-			<GRID id="Journalothers" name="Журнал прочих поступлений" table="JOURNALOTHERS"/>
+			<GRID id="Journalothers" name="Журнал прочих поступлений" table="JOURNALOTHERS" actionlist="GenUved;UnGenUved;GenReturn;UnGenReturn;ReturnToState"/>
 		</FORM>
 	</FORMS>
 </SYSTEM>
