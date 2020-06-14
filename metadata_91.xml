@@ -21,7 +21,7 @@
 			</MENU>
 			<MENU name="Документы ФК">
 				<MI name="Запросы на уточнение" formlist="Refinereq"/>
-				<MI name="Уведомления на уточнение" formlist="Refinenotif"/>
+				<MI name="Уведомления об уточнении" formlist="Refinenotif"/>
 				<MI name="Заявки на возврат" formlist="Returnreq"/>
 				<MI name="Заявки на кассовый расход" formlist="Zr_doc"/>
 			</MENU>
@@ -32,8 +32,8 @@
 				<MI name="Журнал платежей" formlist="Journalpays"/>
 			</MENU>
 			<MENU name="Временное распоряжение">
-				<MI name="Обеспечение конкурсов и аукционов" formlist="TempordersComp"/>
-				<MI name="Обеспечение государственных контрактов" formlist="TempordersGK"/>
+				<MI name="Обеспечение закупок" formlist="TempordersComp"/>
+				<MI name="Обеспечение заключенных контрактов" formlist="TempordersGK"/>
 			</MENU>
 			<MENU name="Межбюджетные транферты">
 				<MI name="Перечень межбюджетных трансфертов" formlist="Mbt_list"/>
@@ -1027,9 +1027,9 @@
 					<A id="STATEMENTPBSID" parentkey="cascade"/>
 					<A id="OWNERID" name="Принадлежность" labelwidth="150" width="50"/>
 					<A id="STATUSDOC" name="Статус" caption="Статус" labelwidth="75" width="50" type="list" nulls="false" readonly="true">
-						<AI id="0" name="загружено" actionlist="TakeToWorkPBS;Verification;Delete"/>
-						<AI id="1" name="в работе" actionlist="Verification"/>
-						<AI id="2" name="отработано" actionlist="Verification"/>
+						<AI id="0" name="загружено" actionlist="TakeToWorkPBS;Verification;VerificationReturn;VerificationExpToInc"/>
+						<AI id="1" name="в работе" actionlist="Verification;VerificationReturn;VerificationExpToInc"/>
+						<AI id="2" name="отработано" actionlist="Verification;VerificationReturn;VerificationExpToInc"/>
 					</A>
 					<GA name="Документ" caption="Документ">
 						<A id="NUM_DOC" name="Номер" caption="Номер" labelwidth="50" width="30" type="string" len="50"/>
@@ -1109,9 +1109,9 @@
 					<A id="STATEMENTPBSID" parentkey="cascade"/>
 					<A id="OWNERID" name="Принадлежность" labelwidth="150" width="50"/>
 					<A id="STATUSDOC" name="Статус" caption="Статус" labelwidth="75" width="50" type="list" nulls="false" readonly="true">
-						<AI id="0" name="загружено" actionlist="TakeToWorkPBS;Verification;Delete"/>
-						<AI id="1" name="в работе" actionlist="Verification"/>
-						<AI id="2" name="отработано" actionlist="Verification"/>
+						<AI id="0" name="загружено" actionlist="TakeToWorkPBS;Verification;VerificationReturn;VerificationExpToInc"/>
+						<AI id="1" name="в работе" actionlist="Verification;VerificationReturn;VerificationExpToInc"/>
+						<AI id="2" name="отработано" actionlist="Verification;VerificationReturn;VerificationExpToInc"/>
 					</A>
 					<GA name="Документ" caption="Документ">
 						<A id="NUM_DOC" name="Номер" caption="Номер" labelwidth="50" width="30" type="string" len="50"/>
@@ -2468,6 +2468,16 @@
 				</A>
 			</FORM>
 		</ACTION>
+		<ACTION id="VerificationExpToInc" name="Верифицировать заявки на расход" type="procedure" procedure="p_action_verificate_exptoinc">
+			<FORM>
+				<A id="ZR_DOCID" labelwidth="250" >
+					<AI id="*" readonly="CRUSH_MODE"/>
+				</A>
+				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
+					<AI id="true" readonly="ZR_DOCID"/>
+				</A>
+			</FORM>
+		</ACTION>
 		<ACTION id="CallTechsupport" name="Вызвать техническую поддержку" type="link" href="http://yandex.ru"/>
 		<ACTION id="SendtoJornal" name="Отправить в журнал" type="procedure" procedure="p_action_send_to_journal"/>
 		<ACTION id="LoadRR" name="Загрузить реестр" type="procedure" procedure="p_action_load_rr"/>
@@ -2512,9 +2522,9 @@
 			<P id="convname" value="после 1.06.2020 СВР Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
-		<ACTION id="LinkToCompetition" name="Связать с конкурсом" type="procedure" procedure="p_action_link_to_competition">
+		<ACTION id="LinkToCompetition" name="Связать с закупкой" type="procedure" procedure="p_action_link_to_competition">
 			<FORM>
-				<A id="TTLCOMPID" name="Конкурс/аукцион" caption="Конкурс/аукцион" labelwidth="250"/>
+				<A id="TTLCOMPID" name="Закупка (конкурс/аукцион)" caption="Конкурс/аукцион" labelwidth="250"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="LinkToContract" name="Связать с заключенным контрактом" type="procedure" procedure="p_action_link_to_contract">
@@ -2522,7 +2532,7 @@
 				<A id="TTLGOVCONTRID" name="Контракт" caption="Контракт" labelwidth="250"/>
 			</FORM>
 		</ACTION>
-		<ACTION id="UnLinkTTL" name="Разорвать связь с конкурсом/контрактом" type="procedure" procedure="p_action_unlink_ttl"/>
+		<ACTION id="UnLinkTTL" name="Разорвать связь с закупкой/контрактом" type="procedure" procedure="p_action_unlink_ttl"/>
 		<ACTION id="NotifMBTAccept" name="Принять уведомление" type="procedure" procedure="p_action_notifmbt_accept"/>
 		<ACTION id="NotifMBTSignStrong" name="Поставить подпись ЭЦП" type="procedure" procedure="p_action_sign_strong"/>
 		<ACTION id="NotifMBTUnSignStrong" name="Снять подпись ЭЦП" type="procedure" procedure="p_action_unsign_strong"/>
@@ -2588,6 +2598,9 @@
 		<ACTION id="AcceptToInc" name="Принять платежи в доход" type="procedure" procedure="p_action_accept_to_inc"/>
 		<ACTION id="ExportUF" name="Выгрузить уведомления на уточнение" type="procedure" procedure="p_action_export_UF_TFF">
 		</ACTION>
+		<ACTION id="ExportZV" name="Выгрузить заявки на возврат" type="procedure" procedure="p_action_export_ZV_TFF">
+		</ACTION>
+		<ACTION id="SetStatusTTL" name="Установить текущий статус" type="procedure" procedure="p_action_set_status_ttl"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -2721,7 +2734,7 @@
 					<A id="SUM_OUT_K_VIRT" name="На конец дня" caption="На конец дня" labelwidth="100" width="25" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_OUT_K from STATEMENTPBS where id = @STATEMENTPBSID" local="true"/>
 					<GRID id="Statementpbsvppp" name="2.4 Выплаты в валюте РФ" table="STATEMENTPBSVPPP">
 						<MENU>
-							<MI actionlist="TakeToWorkPBS;Verification;Delete"/>
+							<MI actionlist="TakeToWorkPBS;Verification;VerificationReturn;VerificationExpToInc;Delete"/>
 							<MI actionlist="View;MoveFolder;ConfigTables"/>
 						</MENU>
 					</GRID>
@@ -2786,7 +2799,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Returnreq" name="Заявки на возврат">
-			<GRID id="Returnreq" name="Заявки на возврат" table="RETURNREQ" actionlist="LoadFileZV"/>
+			<GRID id="Returnreq" name="Заявки на возврат" table="RETURNREQ" actionlist="LoadFileZV;ExportZV"/>
 			<TABS>
 				<TAB name="Реквизиты заявки на возврат">
 					<GRID id="Returnreqdoc" name="Реквизиты заявки на возврат" table="RETURNREQDOC"/>
@@ -2814,12 +2827,12 @@
 			</TABS>
 		</FORM>
 		<FORM id="TempordersGK" name="Обеспечения ГК">
-			<GRID id="TTLgovcontr" name="Обеспечения ГК" table="TTLGOVCONTR"/>
-			<GRID id="TTLgovcontrMove" name="Движение средств, полученных в качестве обеспечения исполнения государственного контракта" table="TTLGOVCONTRMOVE" actionlist="GenReturn;UnGenReturn;GenExpToInc"/>
+			<GRID id="TTLgovcontr" name="Обеспечения ГК" table="TTLGOVCONTR" actionlist="SetStatusTTL"/>
+			<GRID id="TTLgovcontrMove" name="Движение средств, полученных в качестве обеспечения исполнения государственного контракта" table="TTLGOVCONTRMOVE" actionlist="GenReturn;UnGenReturn;GenExpToInc;UnGenExpToInc"/>
 		</FORM>
 		<FORM id="TempordersComp" name="Обеспечения участия в закупках">
-			<GRID id="TTLcomp" name="Обеспечения участия в закупках" table="TTLCOMP"/>
-			<GRID id="TTLcompMove" name="Движение средств, полученных в качестве обеспечения участия в закупках" table="TTLCOMPMOVE" actionlist="GenReturn;UnGenReturn;GenExpToInc"/>
+			<GRID id="TTLcomp" name="Обеспечения участия в закупках" table="TTLCOMP" actionlist="SetStatusTTL"/>
+			<GRID id="TTLcompMove" name="Движение средств, полученных в качестве обеспечения участия в закупках" table="TTLCOMPMOVE" actionlist="GenReturn;UnGenReturn;GenExpToInc;UnGenExpToInc"/>
 		</FORM>
 		<FORM id="Journalperspay" name="Журнал возвратов персонифицированных выплат">
 			<GRID id="Journalperspay" name="Журнал возвратов персонифицированных выплат" table="JOURNALPERSPAY" actionlist="CompareWithPostPersPay;ExportToEUPP;ImportFromEUPP;ReturnToState"/>
