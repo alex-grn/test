@@ -1428,7 +1428,8 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 				<A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="400" type="ref" pid="ELECTCOMMITTEEID" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" local="true"/>
-				<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID"/>
+				<!-- <A id="ELCMTACCID" name="Расчетный (лицевой) счет избирательной комиссии" caption="Расчетный (лицевой) счет избирательной комиссии" labelwidth="100" type="list" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" pid="ELECTCOMMITTEEID" nulls="true" query="select e.ID,e.bankacc as code from CASHDOCS cd, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm, elcmtacc e where cd.ID = @CASHDOCSID and cd.ELECTCAMPAIGNID = ec.ID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  and e.ELECTCOMMITTEEID = ecm.ID  and ec.LEVELELCAMPAIGN = e.LEVELELCAMPAIGN and @DOCDATE>=e.BEGINDATE and (e.ENDDATE>=@DOCDATE or e.ENDDATE is null)"  local="true"/>  -->
+				<A id="ELECTCOMMITTEEID" visible="false" readonly="true" virtual="false" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -1588,7 +1589,7 @@
 				<A id="LEVELELCAMPAIGN" labelwidth="200" readonly="true" virtual="true" formula="select t.LEVELELCAMPAIGN from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
-				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="true" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
+				<A id="ELECTCOMMITTEEID" labelwidth="200" type="int" visible="false" readonly="true" virtual="false" formula="select t.ELECTCOMMITTEEID from JURPERSONS t where t.id = @JURPERSONSID" local="true"/>
 				<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 				<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e where e.id = @ELECTCAMPAIGNID" local="true"/>
 			</GA>
@@ -1843,8 +1844,8 @@
 					<A id="DOCTYPEID" labelwidth="50" width="55" nulls="false" visible="false" readonly="true" value="36"/>
 					<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="100" width="50" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHCONTRIBUTION_HEADER where CASHDOCSID = @CASHCONTRIBUTION_HEADERID and cid=0" local="true"/>
 					<A id="DOCDATE" labelwidth="50" width="43" formula="now()"/>
-					<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="100" visible="false" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" readonly="true" formula="" local="true"/>
-					 <A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="list" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" query="select e.ID,e.bankacc as code from CASHDOCS cd, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm, elcmtacc e where cd.ID = @CASHDOCSID and cd.ELECTCAMPAIGNID = ec.ID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  and e.ELECTCOMMITTEEID = ecm.ID  and ec.LEVELELCAMPAIGN = e.LEVELELCAMPAIGN and @DOCDATE>=e.BEGINDATE and (e.ENDDATE>=@DOCDATE or e.ENDDATE is null)"  local="true"/> 
+					<A id="ELECTCOMMITTEEID" name="Организация" caption="Организация" labelwidth="100" visible="true" type="ref" table="ELECTCOMMITTEE" ret="CODE" form="ElCommFRM" nulls="false" readonly="true" formula="select jp.ID from CASHDOCS cd, JURPERSONS jp, ELECTCOMMITTEE ecm where cd.ID = @CASHDOCSID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  " local="true"/>
+					 <A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" table="ELCMTACC" ret="BANKACC"  form="ElcmtacctrFRM"  nulls="true" formula="select e.ID from CASHDOCS cd, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm, elcmtacc e where cd.ID = @CASHDOCSID and cd.ELECTCAMPAIGNID = ec.ID and cd.JURPERSONSID = jp.ID  and jp.ELECTCOMMITTEEID=ecm.ID  and e.ELECTCOMMITTEEID = ecm.ID  and ec.LEVELELCAMPAIGN = e.LEVELELCAMPAIGN and coalesce(@DOCDATE, now())>=e.BEGINDATE and (e.ENDDATE>=coalesce(@DOCDATE, now()) or e.ENDDATE is null)"  local="true"/> 
 					<!--<A id="ELCMTACCID" name="Счет" caption="Счет" labelwidth="100" type="ref" table="ELCMTACC" ret="BANKACC" form="ElcmtacctrFRM" nulls="true" formula=""  local="true"/>-->
 					<A id="SUMM" name="Сумма" caption="Сумма" labelwidth="100" width="30" type="number" len="8.2" nulls="true" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHCONTRIBUTION x where x.CASHCONTRIBUTIONID = @ID::BIGINT" local="true"/>
 					<A id="NOTE" name="Комментарий" caption="Комментарий" labelwidth="100" width="70" type="string" nulls="true" local="true"/>
