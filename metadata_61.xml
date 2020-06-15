@@ -1243,7 +1243,7 @@
 				<AI id="1" name="Баланс"/>
 				<AI id="0" name="Забаланс"/>
 			</A>
-			<TI unique="TYPICALOPERSID,ACCOUNTDTID,ECONCLASSDTID,ACCOUNTKTID,ECONCLASSKTID"/>
+			<TI unique="TYPICALOPERSID,coalesce(DTBUDGCLASSID,0),coalesce(ACCOUNTDTID,0),coalesce(ECONCLASSDTID,0),coalesce(KTBUDGCLASSID,0),coalesce(ACCOUNTKTID,0),coalesce(ECONCLASSKTID,0)"/>
 		</TABLE>
 		<TABLE id="DICMUNTS" name="Единицы измерения">
 			<A id="CODE" name="Код" caption="Код" labelwidth="400" type="string" len="17" nulls="false" local="true"/>
@@ -1273,7 +1273,7 @@
 					<AI id="service" name="Оказание услуг"/>
 					<AI id="worksexec" name="Выполнение работ"/>
 				</A>
-				<A id="NUMBPP" name="Номер (внутренний)" caption="Номер (внутренний)" labelwidth="350" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CONTRACTSDOCS where CONTRACTSID = @CONTRACTSID and cid=0" local="true"/>
+				<A id="NUMBPP" name="Номер (внутренний)" caption="Номер (внутренний)" labelwidth="350" type="number" button="true" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CONTRACTSDOCS where CONTRACTSID = @CONTRACTSID and cid=0" local="true"/>
 				<A id="DOCNUMB" name="Номер контракта" caption="Номер контракта"  labelwidth="100" width="50"/>
 				<A id="DOCDATE" labelwidth="100" width="50"/>
 				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="600" type="list" nulls="false" readonly="true" value="1" local="true">
@@ -1306,12 +1306,13 @@
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<TI id="CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
+			<TI unique="CONTRACTSID,NUMBPP"/>
 		</TABLE>
 		<TABLE id="STAGES" name="Спецификация контракта с юридическими лицами">
 			<TABS>
 				<TAB name="Этап договора">
 					<A id="CONTRACTSDOCSID" parentkey="cascade"/>
-					<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600"  type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
+					<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600"  type="number" button="true" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from STAGES where CONTRACTSDOCSID = @CONTRACTSDOCSID and cid=0" local="true"/>
 					<A id="BUDGCLASSID" labelwidth="150" width="50" formula="select t.ID from BUDGCLASS t,CONTRACTSDOCS c, CONTRACTS cr, ELECTCAMPAIGN ec   where c.ID = @CONTRACTSDOCSID and cr.ID = c.CONTRACTSID and cr.ELECTCAMPAIGNID = ec.ID and t.ID = ec.BUDGCLASSID  "/>
 					<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
 					<A id="REGIONSRFID"  labelwidth="150" width="50"  visible="false"  readonly="true"  formula="select case when ec.LEVELELCAMPAIGN='central' then (select r.ID from regionsrf r where r.idgasregionsrf='00') else ecm.REGIONSRFID end from  CONTRACTSDOCS c, CONTRACTS cr, ELECTCAMPAIGN ec,	JURPERSONS jp, ELECTCOMMITTEE ecm,	REGIONSRF t	where c.ID = @CONTRACTSDOCSID and cr.ID = c.CONTRACTSID and cr.ELECTCAMPAIGNID = ec.ID and	cr.JURPERSONSID = jp.ID and	jp.ELECTCOMMITTEEID = ecm.id and	ecm.REGIONSRFID=t.ID"/>
@@ -1341,7 +1342,7 @@
 					<A id="DOCLINKS_IN"/>
 					<A id="DOCLINKS_OUT"/>
 					<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Спецификация №'|| s.NUMBPP ||' к Договору №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c, stages s where c.id = s.CONTRACTSDOCSID and s.id=@ID" local="true"/>
-					<TI unique="CONTRACTSDOCSID, NUMBPP"/>
+					
 				</TAB>
 				<TAB name="Авансовые платежи">
 					<A id="SUPEXPENSE" name="Договор с авансовыми платежами" caption="Договор с авансовыми платежами" type="boolean" nulls="false" local="true"/>
@@ -1350,6 +1351,7 @@
 					<A id="ECONCLASSPREPID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="true" local="true"/>
 					<A id="TYPEEXPPREPID" name="Направление расходов" caption="Направление расходов"  labelwidth="150" type="ref" table="TYPEEXP" ret="CODE" nulls="true" pid="REGIONSRFID" local="true"/>
 				</TAB>
+				<TI unique="CONTRACTSDOCSID, NUMBPP"/>
 			</TABS>
 		</TABLE>
 		<TABLE id="PERSON_CONTRACTSDOCS" name="Договоры с физическими лицами">
@@ -1362,7 +1364,7 @@
 					<AI id="service" name="Оказание услуг"/>
 					<AI id="worksexec" name="Выполнение работ"/>
 				</A>
-				<A id="NUMBPP" name="Номер (внутренний)" caption="Номер (внутренний)" labelwidth="350" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSON_CONTRACTSDOCS where CONTRACTSID = @CONTRACTSID and cid=0" local="true"/>
+				<A id="NUMBPP" name="Номер (внутренний)" caption="Номер (внутренний)" labelwidth="350" type="number" button="true" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(NUMBPP::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSON_CONTRACTSDOCS where CONTRACTSID = @CONTRACTSID and cid=0" local="true"/>
 				<A id="DOCNUMB"  name="Номер договора" caption="Номер договора" labelwidth="150" width="50"/>
 				<A id="DOCDATE" labelwidth="150" width="20"/>
 				<A id="STATUS" name="Статус документа" caption="Статус документа" labelwidth="350" type="list" nulls="false" readonly="true" value="1" local="true">
@@ -1391,10 +1393,11 @@
 			<A id="DOCLINKS_OUT"/>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Договор №'||DOCNUMB||' от '||to_char(DOCDATE,'dd.mm.yyyy') from PERSON_CONTRACTSDOCS c where c.id = @ID"/>
 			<TI id="PERSON_CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
+			<TI unique="CONTRACTSID,NUMBPP"/>
 		</TABLE>
 		<TABLE id="PERSONS_STAGES" name="Спецификация договора с физ.лицами">
 			<A id="PERSON_CONTRACTSDOCSID" parentkey="cascade"/>
-			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
+			<A id="NUMBPP" name="№ п/п" caption="№ п/п" labelwidth="600" type="number" button="true" nulls="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from PERSONS_STAGES where PERSON_CONTRACTSDOCSID = @PERSON_CONTRACTSDOCSID and cid=0" local="true"/>
 			<A id="BUDGCLASSID" labelwidth="150" width="50" formula="select t.ID from BUDGCLASS t,PERSON_CONTRACTSDOCS c, CONTRACTS cr, ELECTCAMPAIGN ec   where c.ID = @PERSON_CONTRACTSDOCSID and cr.ID = c.CONTRACTSID and cr.ELECTCAMPAIGNID = ec.ID and t.ID = ec.BUDGCLASSID  "/>
 			<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
 			<A id="REGIONSRFID"  labelwidth="150" width="50"  visible="false"  readonly="true"  formula="select case when ec.LEVELELCAMPAIGN='central' then (select r.ID from regionsrf r where r.idgasregionsrf='00') else ecm.REGIONSRFID end from  PERSON_CONTRACTSDOCS c, CONTRACTS cr, ELECTCAMPAIGN ec, JURPERSONS jp, ELECTCOMMITTEE ecm,	REGIONSRF t	where c.ID = @PERSON_CONTRACTSDOCSID and cr.ID = c.CONTRACTSID and cr.ELECTCAMPAIGNID = ec.ID and	cr.JURPERSONSID = jp.ID and	jp.ELECTCOMMITTEEID = ecm.id and	ecm.REGIONSRFID=t.ID"/>
