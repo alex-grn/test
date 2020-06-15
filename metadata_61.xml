@@ -1294,6 +1294,10 @@
 				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="150" type="string" nulls="true" local="true"/>
 				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSDOCSID = @ID"/>
 			</GA>
+			<GA name="НДС" caption="НДС">
+				<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" width="50"/>
+				<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="round((select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '0' end)::numeric ,2)" local="true"/>
+			</GA>		
 			<GA name="Исполнение" caption="Исполнение">
 					<A id="SUMMPAY" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
 					<A id="SUMMEXEC" labelwidth="200" width="40"  readonly="true" virtual="true" formula=""/>
@@ -1303,7 +1307,7 @@
 			<A id="DOCLINKS_OUT"/>
 			<TI id="CONTRACTSDOCSDATE_CHECK" name="Дата документа должна быть в периоде работы ТИК" check="ENDDATETIK >= DOCDATE and DOCDATE >= BEGINDATETIK"/>
 		</TABLE>
-		<TABLE id="STAGES" name="Спецификация договора с юридическими лицами">
+		<TABLE id="STAGES" name="Спецификация контракта с юридическими лицами">
 			<TABS>
 				<TAB name="Этап договора">
 					<A id="CONTRACTSDOCSID" parentkey="cascade"/>
@@ -1311,7 +1315,7 @@
 					<A id="BUDGCLASSID" labelwidth="150" width="50" formula="select t.ID from BUDGCLASS t,CONTRACTSDOCS c, CONTRACTS cr, ELECTCAMPAIGN ec   where c.ID = @CONTRACTSDOCSID and cr.ID = c.CONTRACTSID and cr.ELECTCAMPAIGNID = ec.ID and t.ID = ec.BUDGCLASSID  "/>
 					<A id="ECONCLASSKTID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50"/>
 					<A id="REGIONSRFID"  labelwidth="150" width="50"  visible="false"  readonly="true"  formula="select case when ec.LEVELELCAMPAIGN='central' then (select r.ID from regionsrf r where r.idgasregionsrf='00') else ecm.REGIONSRFID end from  CONTRACTSDOCS c, CONTRACTS cr, ELECTCAMPAIGN ec,	JURPERSONS jp, ELECTCOMMITTEE ecm,	REGIONSRF t	where c.ID = @CONTRACTSDOCSID and cr.ID = c.CONTRACTSID and cr.ELECTCAMPAIGNID = ec.ID and	cr.JURPERSONSID = jp.ID and	jp.ELECTCOMMITTEEID = ecm.id and	ecm.REGIONSRFID=t.ID"/>
-					<A id="TYPEEXPID" pid="REGIONSRFID"/>
+					<A id="TYPEEXPID" pid="REGIONSRFID"  labelwidth="150"/>
 					<A id="LEVELESTIMATE" labelwidth="150"/>
 					<GA name="Период действия" caption="Период действия">
 						<A id="BEGINDATE" caption="Дата начала действия" labelwidth="150" width="50" nulls="false"/>
@@ -1330,9 +1334,9 @@
 						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 					</GA>
 					<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" virtual="true" visible="false" formula="select CONTRTYPE from CONTRACTSDOCS c where c.id=@CONTRACTSDOCSID" local="true">
-						<AI id="product" name="Поставка товара" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesFormINV;StagesFormINVDel"/>
-						<AI id="service" name="Оказание услуг" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
-						<AI id="worksexec" name="Выполнение работ" actionlist="setLID;StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
+						<AI id="product" name="Поставка товара" actionlist="StagesFormPP;StagesFormPPDel;StagesFormINV;StagesFormINVDel"/>
+						<AI id="service" name="Оказание услуг" actionlist="StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
+						<AI id="worksexec" name="Выполнение работ" actionlist="StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
 					</A>
 					<A id="DOCLINKS_IN"/>
 					<A id="DOCLINKS_OUT"/>
@@ -2730,6 +2734,8 @@
 		<ACTION id="StagesFormPP" name="Сформировать платежное поручение" type="procedure" procedure="p_action_stages_form_pp">
 			<FORM name="Параметры">
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
+				<A id="DOCTYPEID" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false" value="16" visible="false" local="true"/> 
+				<A id="TYPICALOPERSID" labelwidth="150" width="100" pid="doctypeid"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="StagesFormPPDel" name="Расформировать платежное поручение" type="procedure" procedure="p_action_stages_form_pp_del"/>
@@ -3015,6 +3021,7 @@
 				<A id="MEMORDERID" labelwidth="150"/>
 				<A id="BEGINDATE" labelwidth="150"  width="50"/>
 				<A id="ENDDATE" labelwidth="150"  width="50"/>
+				<A id="PRINT_TYPEEXP" name="Выводить напрвления расходов в проводках" caption="Выводить напрвления расходов в проводках" labelwidth="150" type="boolean" local="true"/>
 				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
 				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" labelwidth="200"   type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
 				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
