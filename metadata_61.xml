@@ -1299,8 +1299,8 @@
 				<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" labelwidth="200" width="40" type="number" readonly="true" virtual="true" formula="round((select round(sum(t.SUMM),2) from STAGES t where t.CONTRACTSDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '0' end)::numeric ,2)" local="true"/>
 			</GA>		
 			<GA name="Исполнение" caption="Исполнение">
-					<A id="SUMMPAY" labelwidth="200" width="40" readonly="true" virtual="true" formula=""/>
-					<A id="SUMMEXEC" labelwidth="200" width="40"  readonly="true" virtual="true" formula=""/>
+					<A id="SUMMPAY" labelwidth="200" width="40" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from STAGES s, doclinks d, PAYDOCSCONS p where s.contractsdocsid = @ID and d.tablein ~~* 'STAGES' and d.keyin = s.id and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout"/>
+					<A id="SUMMEXEC" labelwidth="200" width="40"  readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0)+COALESCE(sum(COALESCE(a.summ,0)),0) from STAGES s inner join doclinks d on d.tablein ~~* 'STAGES' and d.keyin = s.id and upper(d.tableout) in ('INVENTORY_GOODS','ACTSGOODS') left join INVENTORY_GOODS p on p.id = d.keyout left join ACTSGOODS a on a.id = d.keyout where s.contractsdocsid = @ID"/>
 			</GA>
 			<A id="CODE" name="Код" type="string" visible="false" readonly="true" virtual="true" formula="select 'Контракт №'||c.DOCNUMB||' от '||to_char(c.DOCDATE,'dd.mm.yyyy') from CONTRACTSDOCS c where c.id = @ID" local="true"/>
 			<A id="DOCLINKS_IN"/>
@@ -1330,8 +1330,8 @@
 						<A id="SUMM" labelwidth="150" width="50" nulls="false"/>
 					</GA>
 					<GA name="Исполнение" caption="Исполнение">
-						<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
-						<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
+						<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PAYDOCSCONS p where d.tablein ~~* 'STAGES' and d.keyin = @ID and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout"/>
+						<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0)+COALESCE(sum(COALESCE(a.summ,0)),0) from doclinks d left join INVENTORY_GOODS p on p.id = d.keyout left join ACTSGOODS a on a.id = d.keyout where d.tablein ~~* 'STAGES' and d.keyin = @ID and upper(d.tableout) in ('INVENTORY_GOODS','ACTSGOODS')"/>
 						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 					</GA>
 					<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" virtual="true" visible="false" formula="select CONTRTYPE from CONTRACTSDOCS c where c.id=@CONTRACTSDOCSID" local="true">
@@ -1385,8 +1385,8 @@
 				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERSONS_STAGES t where t.PERSON_CONTRACTSDOCSID = @ID"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
-				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
+				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from PERSONS_STAGES s, doclinks d, PAYDOCSCONS p where s.person_contractsdocsid = @ID and d.tablein ~~* 'PERSONS_STAGES' and d.keyin = s.id and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout"/>
+				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from PERSONS_STAGES s, doclinks d, PERS_ACTSGOODS p where s.person_contractsdocsid = @ID and d.tablein ~~* 'PERSONS_STAGES' and d.keyin = s.id and d.tableout ~~* 'PERS_ACTSGOODS' and p.id = d.keyout"/>"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
@@ -1414,8 +1414,8 @@
 				<A id="SUMM" labelwidth="150" width="50" nulls="false"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
-				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula=""/>
+				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PAYDOCSCONS p where d.tablein ~~* 'PERSONS_STAGES' and d.keyin = @ID and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout"/>
+				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PERS_ACTSGOODS p where d.tablein ~~* 'PERSONS_STAGES' and d.keyin = @ID and d.tableout ~~* 'PERS_ACTSGOODS' and p.id = d.keyout"/>
 				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
