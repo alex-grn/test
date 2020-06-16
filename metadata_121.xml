@@ -283,8 +283,9 @@
 					</A>
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
 					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
-						<AI id="0" name="Черновик" actionlist="MakeEntryRR"/>
-						<AI id="1" name="Отработан" actionlist="DeleteEntryRR;To_form_notice;Disband_notice" readonly="true"/>
+						<AI id="0" name="Черновик" actionlist="MakeEntryRR;CancelRR"/>
+						<AI id="1" name="Принято ФК" actionlist="DeleteEntryRR;To_form_notice;Disband_notice" readonly="true"/>
+						<AI id="2" name="Аннулировано" actionlist="ReturnDraftRR;" readonly="true"/>
 					</A>
 				</TAB>
 				<TAB name="Ответственные исполнители">
@@ -1545,6 +1546,12 @@
 			<P id="convname" value="Загрузка казначейских уведомлений в формате ТФФ"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
+		<ACTION id="CancelRR" name="Аннулировать" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="2"/>
+		</ACTION>
+		<ACTION id="ReturnDraftRR" name="Отменить аннулирование" type="procedure" procedure="p_action_set_status">
+			<P id="val" value="0"/>
+		</ACTION>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -1563,7 +1570,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Expshd" name="Расходные расписания">
-			<GRID id="Expshd" name="Расходные расписания" table="EXPSHD" actionlist="MakeEntryRR;DeleteEntryRR"/>
+			<GRID id="Expshd" name="Расходные расписания" table="EXPSHD" actionlist="MakeEntryRR;DeleteEntryRR;CancelRR;ReturnDraftRR"/>
 			<TABS>
 				<TAB name="Бюджетные ассигнования">
 					<GRID id="Expshd_Ba" name="Расходные расписания: Бюджетные ассигнования" table="EXPSHD_BA"/>
