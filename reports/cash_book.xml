@@ -55,12 +55,7 @@
                                     union 
                                     select -1 as pp, null as n_doc, 'ќстаток на начало дн€' as beginer, NULL as corr_acc, r.openbalance as prih, null as rash
                                     from REPORTCASHBOOKS r
-                                    where r.id = ${header1.repid}::bigint
-                                    union all 
-                                    select null,null,null,null,null,null
-                                      from generate_series(1,16) g
-                                    order by pp 
-                                    limit 17) tbl
+                                    where r.id = ${header1.repid}::bigint) tbl
 									;
 								</script>
 							</query>
@@ -76,10 +71,10 @@
 											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${kpersonid}::bigint) as cashier,
 											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh,
 											case 
-												when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),' р')-1)
+												when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header1.repid}::bigint and COALESCE(c.incomecash,0) > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header1.repid}::bigint and COALESCE(c.incomecash,0) > 0)),' р')-1)
 											end as prih,
 											case 
-												when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),' р')-1)
+												when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header1.repid}::bigint and COALESCE(c.expendcash,0) > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header1.repid}::bigint and COALESCE(c.expendcash,0) > 0)),' р')-1)
 											end as rash
 										FROM(
 										select sum(COALESCE(rs.incomecash,0)) as day_prih,
@@ -89,6 +84,22 @@
 										inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id
 										where r.id = ${header1.repid}::bigint 
 										group by r.openbalance) tbl  
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+					<band name="fake_ks1" orientation="H">
+						<queries>
+							<query name="fake_ks1" type="sql">
+								<script>
+									select null as fake_line
+										from generate_series((select count(*) as count_r
+										from REPORTCASHBOOKS r
+										inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id and rs.numbpp between 1 and 17
+										inner join DICACCS d on d.id = rs.dicaccsid
+										left join PERSON p on p.id = rs.personid
+									where r.id = ${header1.repid}::bigint ),15) g
 									;
 								</script>
 							</query>
@@ -201,10 +212,10 @@
 											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${kpersonid}::bigint) as cashier,
 											(select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh,
 											case 
-												when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),' р')-1)
+												when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header2.repid}::bigint and COALESCE(c.incomecash,0) > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header2.repid}::bigint and COALESCE(c.incomecash,0) > 0)),' р')-1)
 											end as prih,
 											case 
-												when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.expendcash > 0)),' р')-1)
+												when tbl.day_rash > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header2.repid}::bigint and COALESCE(expendcash,0) > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${header2.repid}::bigint and COALESCE(c.expendcash,0) > 0)),' р')-1)
 											end as rash
 										FROM(
 										select sum(COALESCE(rs.incomecash,0)) as day_prih,
@@ -214,6 +225,22 @@
 									   inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id
 									   where r.id = ${header2.repid}::bigint 
 									   group by r.openbalance) tbl  
+									;
+								</script>
+							</query>
+						</queries>
+					</band>
+					<band name="fake_ks2" orientation="H">
+						<queries>
+							<query name="fake_ks2" type="sql">
+								<script>
+									select null as fake_line
+										from generate_series((select count(*) as count_r
+										from REPORTCASHBOOKS r
+										inner join REPORTCASHBOOKSSPEC rs on rs.reportcashbooksid = r.id and rs.numbpp > 17
+										inner join DICACCS d on d.id = rs.dicaccsid
+										left join PERSON p on p.id = rs.personid
+									where r.id = ${header2.repid}::bigint ),29) g
 									;
 								</script>
 							</query>
