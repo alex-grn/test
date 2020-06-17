@@ -1,0 +1,217 @@
+CREATE OR REPLACE FUNCTION public.p_action_verificate_done (
+  idlist text,
+  uid bigint,
+  unit bigint,
+  tablename text,
+  refinenotifid bigint,
+  crush_mode boolean
+)
+RETURNS void AS
+$body$
+declare 
+  nUID bigint:=UID;
+  nLID_STATEMENTPBSVPKPKBK bigint;
+  nLID_STATEMENTPBSVPPPKBK bigint;
+  rec record;
+  sp  record;
+  nTTLCOMPMOVEID bigint;
+  sCNAME_PAY text;
+  sINN_PAY text;
+  sKPP_PAY text;
+  nSPECID bigint;
+begin
+  if cardinality(p_system_get_selectlist(idlist)) > 1 THEN
+     raise using message = 'Превышено допустимое количество помеченных записей';
+  end if;
+  
+  select r.cname_pl, r.inn_pl, r.kpp_pl
+    into sCNAME_PAY, sINN_PAY, sKPP_PAY
+    from REFINENOTIF r
+   where r.id = p_action_verificate_done.refinenotifid;
+  
+  if not crush_mode then
+    if tablename ~~* 'STATEMENTADBDONE' then 
+      for rec in
+         select s.ID,
+                s.GUID
+           from STATEMENTADBDONE s
+          where s.ID = ANY(p_system_get_selectlist(idlist))
+      loop     
+        update STATEMENTADBDONE s set cname_pay = sCNAME_PAY, inn_pay = sINN_PAY, kpp_pay = sKPP_PAY where s.id = rec.id;
+        update REFINENOTIF f set STATUS_UF = '3', GUID_FK_UV = rec.GUID where f.ID = p_action_verificate_done.refinenotifid;
+        for sp in select sr.id, r.purpose, row_number() OVER() as numb from REFINENOTIFPP r, REFINENOTIFNEW sr where r.refinenotifid = p_action_verificate_done.refinenotifid and sr.refinenotifppid = r.id
+         loop
+           PERFORM p_system_doclinks_add('REFINENOTIFNEW',sp.id,tablename,rec.id);
+           if sp.numb = 1 then 
+              update STATEMENTADBDONE s set PURPOSE = COALESCE(nullif(s.PURPOSE,''),sp.purpose) where s.id = rec.id; 
+           end if;
+         end loop;
+      end loop; 
+    elsif tablename ~~* 'STATEMENTPBSTTLDONE' then 
+      for rec in
+         select s.ID,
+                s.GUIDTTL
+           from STATEMENTPBSTTLDONE s
+          where s.ID = ANY(p_system_get_selectlist(idlist))
+      loop     
+        update STATEMENTPBSTTLDONE s set cname_pay = sCNAME_PAY, inn_pay = sINN_PAY, kpp_pay = sKPP_PAY where s.id = rec.id;
+        update REFINENOTIF f set STATUS_UF = '3', GUID_FK_UV = rec.GUIDTTL where f.ID = p_action_verificate_done.refinenotifid;
+        for sp in select sr.id, r.purpose, row_number() OVER() as numb from REFINENOTIFPP r, REFINENOTIFNEW sr where r.refinenotifid = p_action_verificate_done.refinenotifid and sr.refinenotifppid = r.id
+         loop
+           PERFORM p_system_doclinks_add('REFINENOTIFNEW',sp.id,tablename,rec.id);
+           if sp.numb = 1 then 
+              update STATEMENTPBSTTLDONE s set PURPOSE = COALESCE(nullif(s.PURPOSE,''),sp.purpose) where s.id = rec.id; 
+           end if;
+         end loop;
+      end loop; 
+    elsif tablename ~~* 'STATEMENTPBSVPKP' then 
+      nLID_STATEMENTPBSVPKPKBK :=P_SYSTEM_GEN_LID('STATEMENTPBSVPKPKBK',nUID,UNIT);
+      for rec in
+         select s.ID,
+                s.GUID
+           from STATEMENTPBSVPKP s
+          where s.ID = ANY(p_system_get_selectlist(idlist))
+      loop     
+        update STATEMENTPBSVPKP s set cname_pay = sCNAME_PAY, inn_pay = sINN_PAY, kpp_pay = sKPP_PAY where s.id = rec.id;
+        update REFINENOTIF f set STATUS_UF = '3', GUID_FK_UV = rec.GUID where f.ID = p_action_verificate_done.refinenotifid;
+        for sp in 
+           select sr.ID,
+                  sr.OWNERID,
+                  sr.TYPE_KBK,
+                  sr.KBK,
+                  sr.ADD_KLASS,
+                  sr.OKATO,
+                  COALESCE(sr.sum,r.sum_pp) as SUM,
+                  0 as SUM_NDS,
+                  0 as DIR_SUM,
+                  r.purpose, 
+                  row_number() OVER() as numb,
+                  COALESCE(sr.cname_ubp,r.cname_pp) as cname_ubp,
+                  COALESCE(sr.inn_ubp,r.inn_pp) as inn_ubp,
+                  COALESCE(sr.kpp_ubp,r.kpp_pp) as kpp_ubp,
+                  COALESCE(sr.okato,r.okato) as okato
+             from REFINENOTIFPP r,
+                  REFINENOTIFNEW sr
+            where r.refinenotifid = p_action_verificate_done.refinenotifid
+              and sr.refinenotifppid = r.id
+        loop     
+           insert into STATEMENTPBSVPKPKBK(uid,lid,statementpbsvpkpid,ownerid,type_kbk,kbk,add_klass,oktmo,sum,sum_nds,dir_sum)
+           values(nUID,nLID_STATEMENTPBSVPKPKBK,rec.ID,sp.OWNERID,sp.TYPE_KBK,sp.KBK,sp.ADD_KLASS,sp.OKATO,sp.SUM,sp.SUM_NDS,sp.DIR_SUM)
+           returning STATEMENTPBSVPKPKBK.ID into nSPECID;
+           PERFORM p_system_doclinks_add('REFINENOTIFNEW',sp.id,'STATEMENTPBSVPKPKBK',nSPECID);
+           if sp.numb = 1 then 
+              update STATEMENTPBSVPKP s set PURPOSE = COALESCE(nullif(s.PURPOSE,''),sp.purpose), 
+                                            CNAME_UBP_RCP = sp.cname_ubp,
+                                            INN_RCP = sp.inn_ubp,
+                                            KPP_RCP = sp.kpp_ubp,
+                                            OKATO = sp.okato
+                                      where s.id = rec.id; 
+           end if;
+        end loop;
+      end loop;
+    elsif tablename ~~* 'STATEMENTPBSVPPP' then 
+      nLID_STATEMENTPBSVPPPKBK := P_SYSTEM_GEN_LID('STATEMENTPBSVPPPKBK',nUID,UNIT);
+      for rec in
+         select s.ID,
+                s.GUID
+           from STATEMENTPBSVPPP s
+          where s.ID = ANY(p_system_get_selectlist(idlist))
+      loop     
+        update STATEMENTPBSVPPP s set cname_pay = sCNAME_PAY, inn_pay = sINN_PAY, kpp_pay = sKPP_PAY where s.id = rec.id;
+        update REFINENOTIF f set STATUS_UF = '3', GUID_FK_UV = rec.GUID where f.ID = p_action_verificate_done.refinenotifid;
+        for sp in 
+           select sr.ID,
+                  sr.OWNERID,
+                  sr.TYPE_KBK,
+                  sr.KBK,
+                  sr.ADD_KLASS,
+                  sr.OKATO,
+                  COALESCE(sr.sum,r.sum_pp) as SUM,
+                  0 as SUM_NDS,
+                  1 as DIR_SUM,
+                  r.purpose, 
+                  row_number() OVER() as numb,
+                  COALESCE(sr.cname_ubp,r.cname_pp) as cname_ubp,
+                  COALESCE(sr.inn_ubp,r.inn_pp) as inn_ubp,
+                  COALESCE(sr.kpp_ubp,r.kpp_pp) as kpp_ubp,
+                  COALESCE(sr.okato,r.okato) as okato
+             from REFINENOTIFPP r,
+                  REFINENOTIFNEW sr
+            where r.refinenotifid = p_action_verificate_done.refinenotifid
+              and sr.refinenotifppid = r.id
+        loop     
+          insert into STATEMENTPBSVPPPKBK(uid,lid,statementpbsvpppid,ownerid,type_kbk,kbk,add_klass,oktmo,sum,sum_nds,dir_sum)
+          values(nUID,nLID_STATEMENTPBSVPPPKBK,rec.ID,sp.OWNERID,sp.TYPE_KBK,sp.KBK,sp.ADD_KLASS,sp.OKATO,sp.SUM,sp.SUM_NDS,sp.DIR_SUM)
+          returning STATEMENTPBSVPPPKBK.ID into nSPECID;
+          PERFORM p_system_doclinks_add('REFINENOTIFNEW',sp.id,'STATEMENTPBSVPPPKBK',nSPECID);
+          if sp.numb = 1 then 
+               update STATEMENTPBSVPPP s set PURPOSE = COALESCE(nullif(s.PURPOSE,''),sp.purpose), 
+                                            CNAME_UBP_RCP = sp.cname_ubp,
+                                            INN_RCP = sp.inn_ubp,
+                                            KPP_RCP = sp.kpp_ubp,
+                                            OKATO = sp.okato
+                                      where s.id = rec.id; 
+           end if;
+        end loop;
+      end loop;
+    end if;
+  else
+    
+    for rec in execute
+      'select s.id from '||tablename||' s where s.id = ANY(p_system_get_selectlist('''||idlist||'''))'
+    loop
+      if tablename ~~* 'STATEMENTPBSVPKP' then
+        for sp in
+           select k.id, d.keyin
+             from STATEMENTPBSVPKPKBK k,
+                  DOCLINKS d
+            where k.statementpbsvpkpid = rec.id
+              and d.tablein ~~* 'REFINENOTIF'
+              and d.tableout ~~* 'STATEMENTPBSVPKPKBK'
+              and d.keyout = k.id
+        loop
+          delete from STATEMENTPBSVPKPKBK s where s.id = sp.id;
+          PERFORM p_system_doclinks_del('REFINENOTIF',NULL,'STATEMENTPBSVPKPKBK',sp.id,false);
+          PERFORM p_system_doclinks_del('REFINENOTIFPP',NULL,'STATEMENTPBSVPKPKBK',sp.id,false);
+          PERFORM p_system_doclinks_del('REFINENOTIFNEW',NULL,'STATEMENTPBSVPKPKBK',sp.id,false);
+        end loop; 
+      elsif tablename ~~* 'STATEMENTPBSVPPP' then
+        for sp in
+           select k.id, d.keyin
+             from STATEMENTPBSVPPPKBK k,
+                  DOCLINKS d
+            where k.statementpbsvpppid = rec.id
+              and d.tablein ~~* 'REFINENOTIF'
+              and d.tableout ~~* 'STATEMENTPBSVPPPKBK'
+              and d.keyout = k.id
+        loop
+          delete from STATEMENTPBSVPKPKBK s where s.id = sp.id;
+          PERFORM p_system_doclinks_del('REFINENOTIF',NULL,'STATEMENTPBSVPPPKBK',sp.id,false);
+          PERFORM p_system_doclinks_del('REFINENOTIFPP',NULL,'STATEMENTPBSVPPPKBK',sp.id,false);
+          PERFORM p_system_doclinks_del('REFINENOTIFNEW',NULL,'STATEMENTPBSVPPPKBK',sp.id,false);
+        end loop;
+      else 
+        execute 'update '||tablename||' s set BS_PAY = null, CNAME_UBP_RCP = null, INN_RCP = null, KPP_RCP = null, OKATO = null where s.id = '||rec.id;
+      end if;
+      update REFINENOTIF r set status_uf = '0', guid_fk_uv = null where EXISTS(select 1
+                                                                               from doclinks d
+                                                                              where d.tablein ~~* 'REFINENOTIF'
+                                                                                and d.keyin = r.id
+                                                                                and d.tableout ~~* tablename
+                                                                                and d.keyout = rec.id);
+      execute 'update '||tablename||' s set cname_pay = null, inn_pay = null, kpp_pay = null where s.id = '||rec.id;
+      PERFORM p_system_doclinks_del('REFINENOTIF',NULL,tablename,rec.id);
+    end loop;
+   
+  end if;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_verificate_done (idlist text, uid bigint, unit bigint, tablename text, refinenotifid bigint, crush_mode boolean)
+  OWNER TO postgres;
