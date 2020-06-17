@@ -1384,7 +1384,7 @@
 				<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PERSONS_STAGES t where t.PERSON_CONTRACTSDOCSID = @ID"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from PERSONS_STAGES s, doclinks d, PAYDOCSCONS p where s.person_contractsdocsid = @ID and d.tablein ~~* 'PERSONS_STAGES' and d.keyin = s.id and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout"/>
+				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) + COALESCE(sum(COALESCE(c.summpay,0)),0) from PERSONS_STAGES s inner join doclinks d on d.tablein ~~* 'PERSONS_STAGES' and d.keyin = s.id and upper(d.tableout) in ('PAYDOCSCONS','CASHPAYMENT') left join PAYDOCSCONS p on p.id = d.keyout left join CASHPAYMENT c on c.id = d.keyout where s.person_contractsdocsid = @ID"/>
 				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from PERSONS_STAGES s, doclinks d, PERS_ACTSGOODS p where s.person_contractsdocsid = @ID and d.tablein ~~* 'PERSONS_STAGES' and d.keyin = s.id and d.tableout ~~* 'PERS_ACTSGOODS' and p.id = d.keyout"/>"/>
 			</GA>
 			<A id="DOCLINKS_IN"/>
@@ -1413,7 +1413,7 @@
 				<A id="SUMM" labelwidth="150" width="50" nulls="false"/>
 			</GA>
 			<GA name="Исполнение" caption="Исполнение">
-				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PAYDOCSCONS p where d.tablein ~~* 'PERSONS_STAGES' and d.keyin = @ID and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout"/>
+				<A id="SUMMPAY" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) + COALESCE(sum(COALESCE(c.summpay,0)),0) from doclinks d left join PAYDOCSCONS p on p.id = d.keyout left join CASHPAYMENT c on c.id = d.keyout where d.tablein ~~* 'PERSONS_STAGES' and d.keyin = @ID and upper(d.tableout) in ('PAYDOCSCONS','CASHPAYMENT')"/>
 				<A id="SUMMEXEC" labelwidth="150" width="50" readonly="true" virtual="true" formula="select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PERS_ACTSGOODS p where d.tablein ~~* 'PERSONS_STAGES' and d.keyin = @ID and d.tableout ~~* 'PERS_ACTSGOODS' and p.id = d.keyout"/>
 				<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 			</GA>
