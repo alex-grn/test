@@ -269,23 +269,24 @@
 					<A id="DATE_UTV_RR" name="Дата введения в действие" caption="Дата введения в действие расходного расписания" labelwidth="600" type="date" local="true"/>
 					<A id="BUDGETS_ID" labelwidth="100" width="60" visible="form"/>
 					<A id="YEAR_U" name="Учетный год" caption="Учетный год" labelwidth="150" width="40" type="int" len="4" nulls="false" formula="to_char(now(),'YYYY')" local="true"/>
-					<A id="SECRET_KU" name="Признак секретности" caption="Признак секретности расходного расписания" labelwidth="400" type="list" visible="form" value="Не секретно" local="true">
-						<AI id="Не секретно" name="Не секретно"/>
-						<AI id="ДСП" name="ДСП"/>
-						<AI id="Секретно" name="Секретно"/>
-						<AI id="Совершенно секретно" name="Совершенно секретно"/>
-						<AI id="Особой важности" name="Особой важности"/>
+					<A id="SECRET_RR" name="Признак секретности" caption="Признак секретности расходного расписания" labelwidth="400" type="list" visible="form" value="0" local="true">
+						<AI id="0" name="Не секретно"/>
+						<AI id="1" name="ДСП"/>
+						<AI id="2" name="Секретно"/>
+						<AI id="3" name="Совершенно секретно"/>
+						<AI id="4" name="Особой важности"/>
 					</A>
+					<A id="CAUSE" name="Пункт перечня" caption="Пункт перечня" type="string" visible="form" local="true"/>
 					<A id="TYPE_KBK" name="Тип КБК" caption="Тип бюджетной классификации" labelwidth="400" type="list" visible="form" value="0" local="true">
-						<AI id="0" name="Расходы"/>
-						<AI id="1" name="Источники внутреннего финансирования дефицита бюджета"/>
-						<AI id="2" name="Источники внешнего финансирования дефицита бюджета"/>
+						<AI id="10" name="Расходы"/>
+						<AI id="31" name="Источники внутреннего финансирования дефицита бюджета"/>
+						<AI id="32" name="Источники внешнего финансирования дефицита бюджета"/>
 					</A>
 					<A id="GUID_FK" name="ГУИД" caption="Глобальный уникальный идентификатор" labelwidth="350" type="string" visible="form" readonly="true" local="true"/>
 					<A id="STATUS" name="Статус" caption="Статус" labelwidth="500" type="list" visible="true" readonly="true" formula="0" value="0" local="true">
-						<AI id="0" name="Черновик" actionlist="MakeEntryRR;CancelRR"/>
-						<AI id="1" name="Принято ФК" actionlist="DeleteEntryRR;To_form_notice;Disband_notice" readonly="true"/>
-						<AI id="2" name="Аннулировано" actionlist="ReturnDraftRR;" readonly="true"/>
+						<AI id="0" name="Черновик" actionlist="MakeEntryRR;CancelRR;to_EB_from_EXPSHD_F_txtsep;from_EB_to_EXPSHD_F_txtsep"/>
+						<AI id="1" name="Принято ФК" actionlist="DeleteEntryRR;To_form_notice;Disband_notice;to_EB_from_EXPSHD_F_txtsep;from_EB_to_EXPSHD_F_txtsep" readonly="true"/>
+						<AI id="2" name="Аннулировано" actionlist="ReturnDraftRR;from_EB_to_EXPSHD_F_txtsep" readonly="true"/>
 					</A>
 				</TAB>
 				<TAB name="Ответственные исполнители">
@@ -340,6 +341,7 @@
 		<TABLE id="EXPSHD_BA" name="Расходные расписания: Бюджетные ассигнования">
 			<A id="EXPSHDID" name="Расходные расписания" caption="Расходные расписания" labelwidth="300" parentkey="cascade" type="ref" table="EXPSHD" ret="NOM_RR" form="Expshd"/>
 			<A id="KBR_ID"/>
+			<A id="ACODES_ID" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="500"/>
 			<A id="SUM_BA_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="SUM_BA_Y2" name="Сумма 1" caption="Сумма на первый год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="SUM_BA_Y3" name="Сумма 2" caption="Сумма на второй год планового периода" labelwidth="500" type="number" len="18.2" local="true"/>
@@ -355,6 +357,7 @@
 		<TABLE id="EXPSHD_LBO" name="Расходные расписания: Лимиты бюджетных обязательств">
 			<A id="EXPSHDID" name="Расходные расписания" caption="Расходные расписания" labelwidth="300" parentkey="cascade" type="ref" table="EXPSHD" ret="NOM_RR" form="Expshd"/>
 			<A id="KBR_ID"/>
+			<A id="ACODES_ID" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="500"/>
 			<A id="CAPOBJECTS_ID"/>
 			<A id="FAIP_CODE" name="Код  ФАИП" caption="Код объекта ФАИП (КМИ)" labelwidth="350" type="string" local="true"/>
 			<A id="SUM_LBO_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
@@ -369,6 +372,7 @@
 		<TABLE id="EXPSHD_POF" name="Расходные расписания: Предельные объемы">
 			<A id="EXPSHDID" name="Расходные расписания" caption="Расходные расписания" labelwidth="300" parentkey="cascade" type="ref" table="EXPSHD" ret="NOM_RR" form="Expshd"/>
 			<A id="KBR_ID"/>
+			<A id="ACODES_ID" name="Аналитический код цели" caption="Аналитический код цели" labelwidth="500"/>
 			<A id="SUM_POF_Y1" name="Сумма" caption="Сумма на текущий финансовый год" labelwidth="500" type="number" len="18.2" local="true"/>
 			<A id="NOTE_POF_STR" name="Примечание" caption="Примечание" labelwidth="200" type="text" local="true"/>
 			<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
@@ -1546,6 +1550,11 @@
 			<P id="convname" value="Загрузка казначейских уведомлений в формате ТФФ"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
+		<ACTION id="from_EB_to_EXPSHD_F_txtsep" name="Загрузка Расходных расписаний" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Загрузка расходных расписаний в формате ТФФ"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="to_EB_from_EXPSHD_F_txtsep" name="Выгрузка Расходных расписаний" type="procedure" procedure="МАЦ-4488"/>
 		<ACTION id="CancelRR" name="Аннулировать" type="procedure" procedure="p_action_set_status">
 			<P id="val" value="2"/>
 		</ACTION>
@@ -1570,7 +1579,7 @@
 			</TABS>
 		</FORM>
 		<FORM id="Expshd" name="Расходные расписания">
-			<GRID id="Expshd" name="Расходные расписания" table="EXPSHD" actionlist="MakeEntryRR;DeleteEntryRR;CancelRR;ReturnDraftRR"/>
+			<GRID id="Expshd" name="Расходные расписания" table="EXPSHD" actionlist="MakeEntryRR;DeleteEntryRR;CancelRR;ReturnDraftRR;to_EB_from_EXPSHD_F_txtsep;from_EB_to_EXPSHD_F_txtsep"/>
 			<TABS>
 				<TAB name="Бюджетные ассигнования">
 					<GRID id="Expshd_Ba" name="Расходные расписания: Бюджетные ассигнования" table="EXPSHD_BA"/>
