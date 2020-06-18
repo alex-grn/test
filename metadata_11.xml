@@ -59,6 +59,7 @@
 				<MI name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" formlist="OKOPF"/>
 				<MI name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" formlist="OKOGU"/>
 				<MI name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" formlist="Okved"/>
+				<MI name="ОКЗ — Общероссийский классификатор занятий" formlist="Okz"/>
 				<MI name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов" formlist="Okpdtr"/>
 				<MI name="ОКЕИ — Общероссийский классификатор единиц измерения" formlist="Okei"/>
 				<MI name="ОКПД — Общероссийский классификатор продукции по видам экономической деятельности" formlist="Okpd2"/>
@@ -105,6 +106,8 @@
 				<MENU name="Загрузка общероссийских классификаторов">
 					<MI name="Загрузка Общероссийского классификатора единиц измерения в XML формате" actionlist="from_PORTAL_to_OKEI_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора видов экономической деятельности в XML формате" actionlist="from_PORTAL_to_OKVED_F_xml"/>
+					<MI name="Загрузка Общероссийского классификатора занятий в XML формате" actionlist="from_PORTAL_to_OKZ_F_xml"/>
+					<MI name="Загрузка Общероссийского классификатора профессий и должностей в XML формате" actionlist="from_PORTAL_to_OKPDTR_F_xml"/>
 				</MENU>
 				<MENU name="Загрузка юридических лиц">
 					<MI name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" actionlist="from_EB_to_AGENT_F_xls"/>
@@ -453,13 +456,27 @@
 			<TI id="OKVED_METAID_IND" index="METAID"/>
 			<TI id="OKVED_IDX_UK" unique="IDX"/>
 		</TABLE>
+		<TABLE id="OKZ" name="ОКЗ — Общероссийский классификатор занятий" hid="CODE">
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="250" type="text" nulls="true"/>
+			<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
+			<A id="OKZCODE" name="Код" caption="Код" labelwidth="550" type="string" formula="" local="true"/>
+			<A id="OKZC" name="Контрольное число" caption="Контрольное число" labelwidth="550" type="string" local="true"/>
+			<GA id="DictionaryParam"/>
+			<TI id="OKZ_UK" unique="CODE"/>
+			<TI id="OKZ_METAID_IND" index="METAID"/>
+		</TABLE>
 		<TABLE id="OKPDTR" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов">
-			<A id="NAME" name="Наименование" caption="Наименование должности" labelwidth="250" type="text" nulls="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование должности/профессии" labelwidth="250" type="text" nulls="true"/>
 			<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 			<A id="OKPDTRCODE" name="Код" caption="Код" labelwidth="550" type="string" formula="" local="true"/>
-			<A id="OKPDTRC" name="Контрольное число" caption="Контрольное число" labelwidth="550" type="string" formula="" local="true"/>
-			<A id="OKPDTRK" name="Код категории" caption="Код категории" labelwidth="550" type="string" formula="" local="true"/>
-			<A id="OKPDTROKZ" name="Код по ОКЗ" caption="Код по ОКЗ" labelwidth="550" type="string" formula="" local="true"/>
+			<A id="OKPDTRC" name="Контрольное число" caption="Контрольное число" labelwidth="550" type="string" local="true"/>
+			<A id="OKPDTRK" name="Категория персонала" caption="Категория персонала" labelwidth="250" type="list" local="true">
+				<AI id="0" name="рабочие"/>
+				<AI id="1" name="руководители"/>
+				<AI id="2" name="специалисты"/>
+				<AI id="3" name="другие работники, относящиеся к служащим"/>
+			</A>
+			<A id="OKZ_ID" name="Код по ОКЗ" caption="Код по ОКЗ" labelwidth="550" type="ref" table="OKZ" ret="CODE" form="Okz" local="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKPDTR_UK" unique="CODE"/>
 			<TI id="OKPDTR_METAID_IND" index="METAID"/>
@@ -1501,6 +1518,14 @@
 			<P id="convname" value="НСИ Загрузка ОКВЭД2 с data.mos.ru1;НСИ Загрузка ОКВЭД2 с data.mos.ru2"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
+		<ACTION id="from_PORTAL_to_OKZ_F_xml" name="Загрузка Общероссийского классификатора занятий в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКЗ с data.mos.ru1;НСИ Загрузка ОКЗ с data.mos.ru2"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_PORTAL_to_OKPDTR_F_xml" name="Загрузка Общероссийского классификатора профессий и должностей в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКПДТР с data.mos.ru"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
 		<ACTION id="from_EB_to_AGENT_F_xls" name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" type="script" actionlist="LoadAndConvertFile" refresh="all">
 			<P id="convname" value="НСИ ПБС из сводного реестра УБП Электронный бюджет"/>
 			<P id="errorone" value="true"/>
@@ -1573,6 +1598,9 @@
 		</FORM>
 		<FORM id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности">
 			<GRID id="Okved" name="ОКВЭД — Общероссийский классификатор видов экономической деятельности" table="OKVED" actionlist="Archive"/>
+		</FORM>
+		<FORM id="Okz" name="ОКЗ — Общероссийский классификатор занятий">
+			<GRID id="Okz" name="ОКЗ — Общероссийский классификатор занятий" table="OKZ" actionlist="Archive"/>
 		</FORM>
 		<FORM id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов">
 			<GRID id="Okpdtr" name="ОКПДТР — Общероссийский классификатор профессий рабочих, должностей служащих и тарифных разрядов" table="OKPDTR" actionlist="Archive"/>
