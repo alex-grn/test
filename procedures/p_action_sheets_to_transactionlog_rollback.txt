@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION public.p_action_sheets_to_transactionlog_rollback (
+  id bigint
+)
+RETURNS text AS
+$body$
+/*Действие: Отмена проведения документа в учете*/
+declare
+  nID    BIGINT:=ID;  
+  REC    record;
+begin
+  --Очистим дату оплаты и сменим статус на "В работе"
+  update SHEETS p set STATUS = '1' where p.ID = nID;
+  --Удалим записи из журнала операций
+  delete from TRANSACTIONLOG_DOCS t 
+   where exists(select d.KEYOUT 
+                  from DOCLINKS d 
+                 where d.TABLEIN ilike 'SHEETS' 
+                   and d.KEYIN = nID 
+                   and d.TABLEOUT ilike 'TRANSACTIONLOG_DOCS'
+                   and t.ID = d.KEYOUT);
+  for rec in (
+      select p.ID
+        from SHEETDETAILS p
+       where p.SHEETSID = nID
+  )
+  loop
+       perform p_system_doclinks_del('SHEETDETAILS',rec.ID,'TRANSACTIONLOG');
+       perform p_system_doclinks_del('SHEETDETAILS',rec.ID,'TRANSACTIONLOG_DOCS');
+       perform p_system_doclinks_del('SHEETDETAILS',rec.ID,'TRANSACTIONLOG_STAGES');
+  end loop;
+  return 'Отмена проведения документа в учёте выполнена';
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_sheets_to_transactionlog_rollback (id bigint)
+  OWNER TO magicbox;
