@@ -26,12 +26,15 @@
 										d2s(d.docoutdate) as date_vid,
 										'Договор № '||COALESCE(c.DOCNUMB,'')||' от '||COALESCE(d2s(c.DOCDATE),'')||', '||
 										COALESCE(p.DOCNAME,'')||' №:'||COALESCE(p.DOCNUMBER,'')||' от '||
-										COALESCE(d2s(p.DOCNAMEDATE),'') as mat_cen
+										COALESCE(d2s(p.DOCNAMEDATE),'') as mat_cen,
+										pp.code as posts_d
 									from proxy pr, proxydocs p
 									left join person k on k.id = p.personid
 									left join CONTRACTSDOCS c on c.id = p.CONTRACTSDOCSID
 									left join agent a on a.id = c.agentid
-									left join persdocs d on d.personid = k.id, 
+									left join mtresponspers kk on kk.id = p.respperson
+									left join posts pp on pp.id = p.postsid_rps
+									left join persdocs d on d.personid = kk.personid, 
 									jurpersons j left join electcommittee i on i.id = j.electcommitteeid
 									left join elcmtacc ecc on ecc.electcommitteeid = j.electcommitteeid
 									left join agentbanks b on b.id = ecc.agentbanksid
