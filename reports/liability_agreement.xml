@@ -12,15 +12,15 @@
 								select i.officialname as name_ik,
 									COALESCE(k.vinsurname,'')||' '||COALESCE(k.vinfirstname,'')||' '||COALESCE(k.vinmiddlename,'') as employer,
 									COALESCE(k.surname,'')||' '||COALESCE(k.firstname,'')||' '||COALESCE(k.middlename,'') as employer2,
-									COALESCE(k1.surname,'')||' '||COALESCE(k1.firstname,'')||' '||COALESCE(k1.middlename,'')||' '||COALESCE(p.name,'') as worker,
+									COALESCE(k1.surname,'')||' '||COALESCE(k1.firstname,'')||' '||COALESCE(k1.middlename,'')||' '||COALESCE(p_find_name_from_list('POSTS','POSTPRINT',p.postprint),'') as worker,
 									COALESCE(k1.surname,'')||' '||COALESCE(k1.firstname,'')||' '||COALESCE(k1.middlename,'') as worker2
 								from LIABILITY l
 								left join jurpersons j on j.id = l.jurpersonsid
 								left join electcommittee i on i.id = j.electcommitteeid
 								left join committeeman c on c.id = l.whoissuedid
 								left join person k on k.id = c.personid
-								left join committeeman c2 on c2.id = l.receivedid
-								left join person k1 on k1.id = c2.personid
+								left join person k1 on k1.id = l.receivedid
+                                left join committeeman c2 on c2.personid = k1.id and CURRENT_DATE >= c2.postbegindate and (c2.postenddate >= current_date or c2.postenddate is null)
 								left join posts p on p.id = c2.postsid
 								where l.id = ${id}::integer
 								;
