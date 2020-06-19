@@ -29,10 +29,10 @@
 										COALESCE(d2s(p.DOCNAMEDATE),'') as mat_cen,
 										pp.code as posts_d
 									from proxy pr, proxydocs p
-									left join person k on k.id = p.personid
 									left join CONTRACTSDOCS c on c.id = p.CONTRACTSDOCSID
 									left join agent a on a.id = c.agentid
 									left join mtresponspers kk on kk.id = p.respperson
+									left join person k on k.id = kk.personid
 									left join posts pp on pp.id = p.postsid_rps
 									left join persdocs d on d.personid = kk.personid, 
 									jurpersons j left join electcommittee i on i.id = j.electcommitteeid
@@ -66,7 +66,17 @@
                      </query>
                 </queries>
 			</band>
-			<band name="floor" orientation="H"/>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+								select (select COALESCE(k.surname,'')||' '||COALESCE(k.firstname,'')||' '||COALESCE(k.middlename,'') from person k where k.id = ${rpersonid}::bigint) as ruk,
+									   (select COALESCE(k.surname,'')||' '||COALESCE(k.firstname,'')||' '||COALESCE(k.middlename,'') from person k where k.id = ${bpersonid}::bigint) as buh
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
         </bands>
         <queries/>
     </rootBand>
