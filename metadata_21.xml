@@ -46,10 +46,6 @@
 		<A id="USERS" name="Инициатор" caption="Инициатор" type="string" nulls="true" readonly="true" virtual="true" formula="select s.name from tasks t, users s where t.ID = @ID::bigint and s.id = t.uid"/>
 		<A id="PROGRESS" name="Ход выполнения" caption="Ход выполнения" type="text" nulls="true"/>
 		<A id="EXECUTOR" name="Исполнитель" caption="Исполнитель" type="ref" table="USERS" ret="NAME" form="Users" nulls="true" visible="grid" readonly="true"/>
-		<A id="STATUS" name="Статус" caption="Статус" type="list" nulls="false" value="0">
-			<AI id="0" name="Ожидает выполнения"/>
-			<AI id="1" name="Выполнено"/>
-		</A>
 	</ATTRIBUTES>
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
 		<GA id="LeadTime" name="Время выполнения" caption="Время выполнения">
@@ -70,7 +66,11 @@
 				<A id="BPACTIVITYID" name="Действие" caption="Действие" labelwidth="100"/>
 			</GA>
 			<GA>
-				<A id="BEGINPR" name="Начало процесса" caption="Начало процесса" type="boolean" nulls="true"/>
+				<A id="TYPEEVENT" name="Тип события" caption="Тип события" type="list" nulls="true">
+					<AI id="TBEGIN" name="Начало события"/>
+					<AI id="TINTERVAL" name="Промежуточное событие"/>
+					<AI id="TEND" name="Конец события"/>
+				</A>
 			</GA>
 			<TI unique="BPPOOLID,CODE"/>
 		</TABLE>
@@ -99,7 +99,7 @@
 			<A id="BPPOOLID" name="Ссылка на заголовок" caption="Ссылка на заголовок" parentkey="cascade"/>
 			<GA id="DictionaryNote"/>
 			<GA id="Output" name="Выход " caption="Выход ">
-				<A id="Expression" name="Логическое выражение" caption="Логическое выражение" labelwidth="400" type="text" value="true" local="true"/>
+				<A id="EXPRESSION" name="Логическое выражение" caption="Логическое выражение" labelwidth="400" type="text" value="true" local="true"/>
 				<A id="BPACTIVITYID" name="Действие ДА" caption="Действие ДА" labelwidth="100" width="50"/>
 				<A id="BPACTIVITYID2" name="Действие НЕТ" caption="Действие НЕТ" labelwidth="100" width="50"/>
 			</GA>
@@ -132,8 +132,14 @@
 				<A id="BPACTIVITYID" readonly="true"/>
 				<A id="STATEID"/>
 				<A id="NOTE"/>
-				<A id="STATUS" readonly="true"/>
+				<A id="STATUS" name="Статус" caption="Статус" type="list" nulls="false" value="0">
+					<AI id="0" name="Ожидает выполнения"/>
+					<AI id="1" name="Выполнено"/>
+				</A>
 			</GA>
+			<A id="DOCLINKS_OUT" name="Записи исходящие" caption="Записи исходящие" query="">
+				<AI id="Expshd" name="Расходные расписания"/>
+			</A>
 		</TABLE>
 		<TABLE id="ACTIVETASKS" name="Активные задачи" tablename="TASKS" virtual="true" query="select t.* from tasks t, state s where s.id = t.stateid and s.statelist = 'No' and t.status = '0'">
 			<GA>
@@ -148,7 +154,10 @@
 				<A id="BPACTIVITYID" readonly="true"/>
 				<A id="STATEID"/>
 				<A id="NOTE"/>
-				<A id="STATUS" readonly="true"/>
+				<A id="STATUS" name="Статус" caption="Статус" type="list" nulls="false" value="0">
+					<AI id="0" name="Ожидает выполнения"/>
+					<AI id="1" name="Выполнено"/>
+				</A>
 			</GA>
 		</TABLE>
 	</TABLES>
@@ -156,8 +165,7 @@
 		<ACTION id="SendForExecution" name="Отправить на исполнение" type="procedure" procedure="p_action_tasks_start"/>
 		<ACTION id="TasksRollBack" name="Откатить" type="procedure" procedure="p_action_tasks_rollback"/>
 	</ACTIONS>
-	<REPORTS name="Отчеты">
-	</REPORTS>
+	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
 		<FORM id="Bppool" name="Процессы">
 			<GRID id="Bppool" name="Процессы" table="BPPOOL"/>
