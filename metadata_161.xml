@@ -174,7 +174,7 @@
 				<A id="VIPNET" name="№ ВипНет-сети" caption="№ ВипНет-сети" labelwidth="165" type="string" nulls="true" visible="true" readonly="false" local="true"/>
 				<A id="USERLOGIN" name="Логин" caption="Логин" labelwidth="165" type="string" nulls="false" visible="true" local="true"/>
 			</GA>
-			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="170" type="string" nulls="true" readonly="false" local="true"/>
+			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="175" type="string" nulls="true" readonly="false" local="true"/>
 			<!-- Получено при первичной загрузке или первичном доступе =ГИТ= -->
 			<!-- Заблокировано=ГИТ= -->
 			<!-- Перевыпущено=ГИТ= -->
@@ -190,8 +190,8 @@
 		</TABLE>
 		<TABLE id="CHANGEHISTORY" name="История изменений">
 			<A id="LICTRACKID" parentkey="cascade"/>
-			<A id="CHANGEDATE" name="Дата изменения" caption="Дата изменения" labelwidth="700" type="date" nulls="true" local="true"/>
-			<!-- <A id="GROUND" name="Причина" caption="Причина" labelwidth="120" type="text" len="250" nulls="true" local="true"/> -->
+			<A id="CHANGEDATE" name="Дата изменения" caption="Дата изменения" labelwidth="650" type="date" nulls="true" local="true"/>
+			<A id="HISTORYSTATUS" name="Статус" caption="Статус" labelwidth="170" type="string" nulls="true" readonly="false" local="true"/>
 		</TABLE>
 		
 		<COMMENT name="Заявки"/>
@@ -201,8 +201,44 @@
 			<COMMENT name="Корректировка прав доступа" formlist="fAccessrights"/>
 			<COMMENT name="Межсетевое взаимодействие" formlist="fIntwork"/>
 		
-		
+		<TABLE id="ACCESSPRIM" name="Первичный доступ">
+			<A id="AGENT2" name="Участник" caption="Участник" labelwidth="120" type="ref" table="AGENT2" ret="DESCRIPTION" form="Agent2" nulls="false"/>
+			<A id="ORGTYPE"/>
+			<A id="HIGHER"/>
+			<A id="GEO_TERR_ID" name="Субъект РФ" caption="Субъект РФ" labelwidth="120" type="ref" table="GEO_TERR" ret="NAME" form="fGeoTerr" nulls="false" local="true"/>
+			<A id="LICTRACKID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+			<A id="PERSON_ID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+			<GA id="PERSONINFO1" name="Сведения о сотруднике" caption="Сведения о сотруднике">
+				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.surname from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.middlename from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="BIRTHDATEVIRT" name="Дата рождения" caption="Дата рождения" labelwidth="450" type="date" nulls="false" visible="grid" readonly="false" virtual="true" formula="select b.date_birth from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.snils from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="POSTVIRT" name="Должность" caption="Должность" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.post from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="DEPART" name="Подразделение" caption="Подразделение" labelwidth="120" type="ref" table="DEPART" ret="DESCRIPTION" form="Depart" nulls="false"/>
+				<A id="PHONESVIRT" name="Телефон" caption="Телефон" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select left(b.phones,10) from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="EMAILVIRT" name="E-Mail" caption="E-Mail" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.email from person b where b.id=@PERSON_ID ::bigint" local="true"/>
+				<A id="PERMISSIONSUSER"/>
+				<A id="NUMBERUSERLICENSES" name="Пользовательская лицензия" caption="Пользовательская лицензия" labelwidth="165" type="string" format="WWWWWWWWWWWW-WWWWWWWWWWWW-WWW" nulls="true" local="true"/>
+			</GA>
+			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="175" type="string" nulls="true" readonly="false" local="true"/>
+			<TI id="ACCESSPRIM_PERSON_ID_UK" name="Сотрудник уже существует" unique="PERSON_ID"/>
+			<TI id="ACCESSPRIM_TERR_IND" index="GEO_TERR_ID,AGENT2"/>
+		</TABLE>
 
+		<TABLE id="REISSUANCE" name="Перевыпуск">
+			<A id="LICTRACKID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+			<GA id="PERSONINFO5" name="Сведения о сотруднике" caption="Сведения о сотруднике">
+				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
+				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" visible="true" readonly="true" local="true"/>
+				<A id="NUMBERARM" name="№ АРМ" caption="№ АРМ" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberarm from lictrack b where b.id=@LICTRACKID ::bigint" local="true"/>
+				<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.userlogin from lictrack b where b.id=@LICTRACKID ::bigint" local="true"/>
+				<A id="NUMBERUSERLICENSESVIRT" name="Лицензия" caption="Лицензия" labelwidth="120" type="string"  nulls="true" format="WWWWWWWWWWWW-WWWWWWWWWWWW-WWW" visible="true" readonly="false" local="true"/>
+			</GA>
+			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="120" type="string" nulls="true" readonly="false" local="true"/>
+		</TABLE>
 		
 		<TABLE id="ACCESSLOCK" name="Блокировка доступа">
 			<A id="LICTRACKID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
@@ -217,19 +253,10 @@
 			</GA >
 			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="120" type="string" nulls="true" readonly="false" local="true"/>
 		</TABLE>
-		<TABLE id="REISSUANCE" name="Перевыпуск">
-			<A id="LICTRACKID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
-			<GA id="PERSONINFO5" name="Сведения о сотруднике" caption="Сведения о сотруднике">
-				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
-				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
-				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="true" readonly="true" local="true"/>
-				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="120" type="string" nulls="false" visible="true" readonly="true" local="true"/>
-				<A id="NUMBERARM" name="№ АРМ" caption="№ АРМ" labelwidth="120" type="string"  nulls="true" readonly="true" virtual="true" formula="select b.numberarm from lictrack b where b.id=@LICTRACKID ::bigint" local="true"/>
-				<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="120" type="string" nulls="false" readonly="true" virtual="true" formula="select b.userlogin from lictrack b where b.id=@LICTRACKID ::bigint" local="true"/>
-				<A id="NUMBERUSERLICENSESVIRT" name="Лицензия" caption="Лицензия" labelwidth="120" type="string"  nulls="true" format="WWWWWWWWWWWW-WWWWWWWWWWWW-WWW" visible="true" readonly="false" local="true"/>
-			</GA>
-			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="120" type="string" nulls="true" readonly="false" local="true"/>
-		</TABLE>
+		
+		
+		
+		<!-- ПРАВИТЬ ССЫЛКУ НА ЧЕЛОВЕКА -->
 		<TABLE id="ACCESSRIGHTS" name="Корректировка прав доступа">
 			<COMMENT name="Участник = Ссылка по уровню доступа из таблицы AGENT2 поле DESCRIPTION"/>
 			<A id="AGENT2" name="Участник" caption="Участник" labelwidth="120" type="ref" table="AGENT2" ret="DESCRIPTION" form="Agent2" nulls="false"/>
@@ -238,7 +265,7 @@
 			<COMMENT name="Субъект РФ = Ссылка по уровню доступа из таблицы GEO_TERR поле NAME"/>
 			<A id="GEO_TERR_ID" name="Субъект РФ" caption="Субъект РФ" labelwidth="120" type="ref" table="GEO_TERR" ret="NAME" form="fGeoTerr" nulls="false" local="true"/>
 			<COMMENT name="Ссылка по уровню доступа из таблицы PERSON"/>
-			<A id="PERSON_ID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
+			<A id="LICTRACKID" name="Сотрудник" caption="Сотрудник" labelwidth="120" nulls="false" visible="form"/>
 			<GA id="PERSONINFO6" name="Сведения о сотруднике" caption="Сведения о сотруднике">
 				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.surname from person b where b.id=@PERSON_ID ::bigint" local="true"/>
 				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" readonly="true" virtual="true" formula="select b.firstname from person b where b.id=@PERSON_ID ::bigint" local="true"/>
@@ -257,6 +284,9 @@
 			<A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="170" type="string" nulls="true" readonly="false" local="true"/>
 			<TI id="PRIMAINFO2_TERR_IND" index="GEO_TERR_ID,AGENT2"/>
 		</TABLE>
+		
+		
+		
 		<!-- <TABLE id="INTWORK" name="Межсетевое взаимодействие"> -->
 			<!-- <COMMENT name="Участник = Ссылка по уровню доступа из таблицы AGENT2 поле DESCRIPTION"/> -->
 			<!-- Инф. о тех. специалистах ОГВ -->
@@ -384,7 +414,7 @@
 			<TI id="CLN_EVENTS_HIST_LOG_IND" index="STATUS_CLN_EVENTS"/>
 			<TI id="CLN_EVENTS_HIST_EXECUTOR_ID_IND" index="EXECUTOR_ID"/>
 		</TABLE>
-		<TABLE id="MESSAGE" name="Сообщения - реестр ">
+		<TABLE id="MESSAGE" name="Сообщения - реестр">
 			<A id="COD_ID_VIRT" name="N" caption="N" labelwidth="150" type="string" len="18" nulls="true" readonly="true" virtual="true" formula="select @ID::text" local="true"/>
 			<A id="DOCDATE" name="Дата регистрации" caption="Дата регистрации" labelwidth="100" type="date" nulls="false" formula="now()" local="true"/>
 			<A id="TEXT_MESS" name="Текст сообщения" caption="Текст сообщения" labelwidth="100" type="text" nulls="false" local="true"/>
@@ -615,7 +645,9 @@
 		
 		
 		<FORM id="fLictrack" name="Учет лицензий">
-			<GRID id="LICTRACK" name="Учет лицензий" table="LICTRACK">
+			<GRID id="LICTRACK" name="Учет лицензий" table="LICTRACK" readonly="true">
+			<MENU>
+				<MI actionlist="View"/>
 				<MENU name="Сформировать заявку">
 					<MI actionlist="RequestNew"/>
 					<MI actionlist="RequestReissue"/>
@@ -623,13 +655,17 @@
 					<MI actionlist="RequestCorrect"/>
 					<MI actionlist="RequestIntwork"/>
 				</MENU>
-				<MENU>
-					<MI actionlist="LicRec"/>
-				</MENU>
+				<MI actionlist="LicRec"/>
+				<MI actionlist="ConfigTables"/>
+			</MENU>
 			</GRID>	
 			<TABS>
 				<TAB name="История изменений">
-					<GRID id="CHANGEHISTORY" name="История изменений" table="CHANGEHISTORY"/>
+					<GRID id="CHANGEHISTORY" name="История изменений" table="CHANGEHISTORY" readonly="true">
+						<MENU>
+							<MI actionlist="ConfigTables"/>
+					</MENU>
+					</GRID>
 				</TAB>
 			</TABS>
 		</FORM>
