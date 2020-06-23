@@ -1,0 +1,139 @@
+CREATE OR REPLACE FUNCTION public.t_jurnalexp_before_i (
+)
+RETURNS trigger AS
+$body$
+ declare
+  res text;
+  rec record;
+  ser record;
+  tKBR KBR%rowtype;
+  body text;
+  leg text;
+ begin 
+   
+  for rec in 
+      select COALESCE(k.DIR_RECIPID,-1) as DIR_RECIPID,
+             COALESCE(k.FUN_CLASSID,-1) as FUN_CLASSID,
+             COALESCE(k.PURP_ARTICLEID,-1) as PURP_ARTICLEID,
+             COALESCE(k.EXP_TYPEID,-1) as EXP_TYPEID
+        from KBR k
+       where k.ID = new.KBR_ID
+  loop  
+    leg:='   and (ek.DIR_RECIPID = '||REC.DIR_RECIPID||' or ek.DIR_RECIPID is null)
+             and (ek.FUN_CLASSID in (WITH RECURSIVE func (ID) AS (
+                                             select f1.ID from FUN_CLASS f1 where f1.ID = '||REC.FUN_CLASSID||'
+                                             union
+                                             select f2.ID from FUN_CLASS f2 inner join FUNC ON (func.ID = f2.HID))
+                                             select id from func) or ek.FUN_CLASSID is null)
+             and (ek.PURP_ARTICLEID in (WITH RECURSIVE purp (id) AS (
+                                             select p1.ID from PURP_ARTICLE p1 where p1.ID = '||REC.PURP_ARTICLEID||'
+                                             union
+                                             select p2.ID from PURP_ARTICLE p2 inner join PURP ON (purp.ID = p2.HID))
+                                             select id from purp) or ek.PURP_ARTICLEID is null)
+             and (ek.EXP_TYPEID in (WITH RECURSIVE exp (ID) AS (
+                                             select p1.ID from EXP_TYPE p1 where p1.ID = '||REC.EXP_TYPEID||'
+                                             union
+                                             select p2.ID from EXP_TYPE p2 inner join exp on (exp.ID = p2.HID))
+                                             select id from exp) or ek.EXP_TYPEID is null)
+          order by e.PRIORITY';
+  
+   if NEW.ECON_CLASS_ID is null THEN
+      for ser in execute
+          'select e.ECON_CLASS_ID
+             from DEFAULT_ECON_CLASS e,
+                  DEFAULT_ECON_CLASS_KBR ek
+           where ek.DEFAULT_ECON_CLASS_ID = e.ID'
+            ||leg
+      loop
+          new.ECON_CLASS_ID := ser.ECON_CLASS_ID;
+      end loop;
+   end if;
+   if NEW.SUBSIDIES_ID is null THEN
+      for ser in execute
+          'select e.SUBSIDIES_ID
+             from DEFAULT_SUBSIDIES e,
+                  DEFAULT_SUBSIDIES_KBR ek
+            where ek.DEFAULT_SUBSIDIES_ID = e.ID'
+            ||leg
+      loop
+          NEW.SUBSIDIES_ID := ser.SUBSIDIES_ID;
+      end loop;
+   end if;
+   if NEW.CAPOBJECTS_ID is null THEN
+      for ser in execute
+          'select e.CAPOBJECTS_ID
+             from DEFAULT_CAPOBJECTS e,
+                  DEFAULT_CAPOBJECTS_KBR ek
+            where ek.DEFAULT_CAPOBJECTS_ID = e.ID'
+            ||leg
+      loop
+          NEW.CAPOBJECTS_ID := ser.CAPOBJECTS_ID;
+      end loop;
+   end if;
+   if new.EVENT_ID is null THEN
+      for ser in execute
+          'select e.EVENT_ID
+             from DEFAULT_EVENT e,
+                  DEFAULT_EVENT_KBR ek
+            where ek.DEFAULT_EVENT_ID = e.id'
+            ||leg
+      loop
+          NEW.EVENT_ID := ser.EVENT_ID;
+      end loop;
+   end if;
+   if new.ACODES_ID is null THEN
+      for ser in execute
+          'select e.ACODES_ID
+             from DEFAULT_ACODES e,
+                 DEFAULT_ACODES_KBR ek
+           where ek.DEFAULT_ACODES_ID = e.id'
+            ||leg
+      loop
+          NEW.ACODES_ID := ser.ACODES_ID;
+      end loop;
+   end if;
+   if NEW.DEPART5_ID is null THEN
+      for ser in execute
+          'select e.DEPART5_ID
+             from DEFAULT_DEPART5 e,
+                  DEFAULT_DEPART5_KBR ek
+            where ek.DEFAULT_DEPART5_ID = e.id'
+            ||leg
+      loop
+          NEW.DEPART5_ID := ser.DEPART5_ID;
+      end loop;
+   end if;
+   if NEW.DEPART_ID is null THEN
+      for ser in execute
+          'select e.DEPART_ID
+             from DEFAULT_DEPART e,
+                  KBR_KAR ek
+            where ek.DEFAULT_DEPART_ID = e.id'
+            ||leg
+      loop
+          NEW.DEPART_ID := ser.DEPART_ID;
+      end loop;
+   end if;
+   if NEW.DEPART_KOM_ID is null THEN
+      for ser in execute
+          'select e.DEPART_ID
+             from DEFAULT_DEPART e,
+                  KBR_KOM ek
+            where ek.DEFAULT_DEPART_ID = e.id'
+            ||leg
+      loop
+          NEW.DEPART_KOM_ID := ser.DEPART_ID;
+      end loop;
+   end if; 
+  end loop;  
+   return new;
+ end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.t_jurnalexp_before_i ()
+  OWNER TO magicbox;
