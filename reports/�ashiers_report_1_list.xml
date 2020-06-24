@@ -58,8 +58,8 @@
 							select tbl.day_prih,
                                    tbl.day_rash,
                                    tbl.ost,
-                                   (select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${kpersonid}::bigint) as cashier,
-                                   (select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = ${bpersonid}::bigint) as gl_buh,
+                                   (select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = COALESCE(nullif(${kpersonid},''),'0')::bigint) as cashier,
+                                   (select COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') from person p where p.id = COALESCE(nullif(${bpersonid},''),'0')::bigint) as gl_buh,
                                    case 
                                      when tbl.day_prih > 0 then substr(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),1, strpos(p_tools_to_propis((select count(*) from REPORTCASHBOOKSSPEC c where c.reportcashbooksid = ${id}::bigint and c.incomecash > 0)),' ð')-1)
                                    end as prih,

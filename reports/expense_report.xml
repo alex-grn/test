@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="expense_report.xls" documentPath="expense_report.xls" outputType="xls" outputNamePattern="expense_report.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+							select r.docnumb as c1,
+								to_char(r.docdate,'dd') as c2_1,
+								p_tools_dmonth_to_smonth(r.docdate,1) as c2_2,
+								to_char(r.docdate,'dd') as c2_3,
+								c.name as c3,
+								c.inn as c4,
+								p.name as c5,
+								(select p_find_name_from_list('posts','postprint',z.postprint) from posts z where z.id = ${postsid}::bigint) as c6,
+								r.purpose as c7,
+								d2s(r.docdate) as c8,
+								r.balancesumm as c9,
+								r.overspending as c10,
+								(select z.code from person z where z.id = 123) as c50,
+								upper(SUBSTR(p_tools_to_propis(COALESCE((select sum(COALESCE(ex.REPORTSUMM)) from EXPENDED ex where ex.expensereportsid = e.id),0)),1,1))||
+								lower(SUBSTR(p_tools_to_propis(COALESCE((select sum(COALESCE(ex.REPORTSUMM)) from EXPENDED ex where ex.expensereportsid = e.id),0)),2)) as c51
+							from EXPENSE_DOCS r
+							inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+							left join jurpersons j on j.id = e.jurpersonsid
+							left join electcommittee c on c.id = j.electcommitteeid
+							left join person p on p.id = r.personid
+							where r.id = ${id}::bigint 
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec" orientation="H">
+				<queries>
+                     <query name="spec" type="sql">
+                        <script>
+							select case 
+									when c.docdate is not null then 'Расходный кассовый ордер от '||d2s(c.docdate)||' № '||c.docnumb
+									when d.docdate is not null then 'Платежное поручение от '||d2s(d.docdate)||' № '||d.docnumb
+									end as c11,
+									case 
+									when c.docdate is not null then round(sum(COALESCE(ch.SUMMPAY,0)),2)
+									when d.docdate is not null then round(sum(COALESCE(dc.SUMM,0)),2)
+									end as c12
+								from EXPENSE_DOCS r
+							   inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+							   inner join PREPAID_EXPENSE p on p.expensereportsid = e.id
+								left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+								left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+								left join PAYDOCS d on d.id = p.paydocsid
+								left join PAYDOCSCONS dc on dc.paydocsid = d.id
+								where r.id = ${id}::bigint 
+								group by c.docdate,c.docnumb,
+										 d.docdate,d.docnumb
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="middle" orientation="H">
+				<queries>
+                     <query name="middle" type="sql">
+                        <script>
+							select tbl.c13,
+								tbl.c14,
+								case 
+								when tbl.c13-tbl.c14 > 0 then tbl.c13-tbl.c14
+								else 0
+								end as c15,
+								case
+								when 0 > tbl.c13-tbl.c14 then abs(tbl.c13-tbl.c14)
+								else 0
+								end as c16,
+								(select p.code from person p where p.id = COALESCE(nullif(${rpersonid},''),'0')::bigint) as c47,  
+								(select p.code from person p where p.id = COALESCE(nullif(${gbpersonid},''),'0')::bigint) as c48, 
+								(select p.code from person p where p.id = COALESCE(nullif(${bbpersonid},''),'0')::bigint) as c49  
+							FROM(
+							select 
+							(select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
+							from PREPAID_EXPENSE p 
+							left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+							left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+							left join PAYDOCS d on d.id = p.paydocsid
+							left join PAYDOCSCONS dc on dc.paydocsid = d.id
+							where p.expensereportsid = e.id) as c13,       
+							(select sum(COALESCE(i.registersumm,0))
+							from EXPENDED i 
+							where i.expensereportsid = e.id) as c14
+							from EXPENSE_DOCS r
+							inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+							where r.id = ${id}::bigint 
+							group by e.id) tbl
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="spec1" orientation="H">
+				<queries>
+                     <query name="spec1" type="sql">
+                        <script>
+								select round(sum(cr.SUMMPAY),2) as c23,
+                                     round(sum(cp.SUMMPAY),2) as c24,
+                                     h.docnumb as c25,
+                                     d2s(h.docdate) as c26
+								from EXPENSE_DOCS r
+						       inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+                               inner join BALANCE_INFORMATION b on b.expensereportsid = e.id
+                                left join CASHRECEIPT cr on cr.cashreceiptheaderid = b.cashreceiptheaderid
+                                left join CASHPAYMENT cp on cp.cashpaymentheaderid = b.cashpaymentheaderid
+                                left join CASHPAYMENT_HEADER h on h.id = cp.cashpaymentheaderid
+                                where r.id = ${id}::bigint 
+                                group by h.docnumb,
+                                         h.docdate
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor" orientation="H">
+				<queries>
+                     <query name="floor" type="sql">
+                        <script>
+							select COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.rodmiddlename,'') as c27,
+                                     r.docnumb as c28,
+                                     d2s(r.docdate) as c29,
+                                     (select sum(COALESCE(i.registersumm,0))
+							            from EXPENDED i 
+							           where i.expensereportsid = e.id) as c30,
+                                       (select p.code from person p where p.id = COALESCE(nullif(${bpersonid},''),'0')::bigint) as c44,  
+								       (select p_find_name_from_list('posts','postprint',z.postprint) from posts z where z.id = ${bkpostsid}::bigint) as c45,
+								       (select p.code from person p where p.id = COALESCE(nullif(${bkpersonid},''),'0')::bigint) as c46,  
+									   to_char(r.docdate,'dd') as c52_1,
+									   p_tools_dmonth_to_smonth(r.docdate,1) as c52_2,
+									   to_char(r.docdate,'dd') as c52_3
+								from EXPENSE_DOCS r
+						       inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+                                left join PERSON p on p.id = r.personid
+                                where r.id = ${id}::bigint 
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="header2" orientation="H"/>
+			<band name="spec2" orientation="H">
+				<queries>
+                     <query name="spec2" type="sql">
+                        <script>
+								select b.docnumb as c31,
+                                     d2s(b.docdate) as c32,
+                                     b.purpose as c34,
+                                     b.reportsumm as c35,
+                                     b.registersumm as c36
+                                from EXPENSE_DOCS r
+                               inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+                               inner join EXPENDED b on b.expensereportsid = e.id
+                                where r.id = ${id}::bigint
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+			<band name="floor2" orientation="H">
+				<queries>
+                     <query name="floor2" type="sql">
+                        <script>
+							select p.code as c43,
+                                     (select sum(COALESCE(b.reportsumm,0)) from EXPENDED b where b.expensereportsid = e.id) as c39,
+                                     (select sum(COALESCE(b.registersumm,0)) from EXPENDED b where b.expensereportsid = e.id) as c40,
+                                     (select round(sum(cr.SUMMPAY),2)
+                                        from BALANCE_INFORMATION b
+                                   left join CASHRECEIPT cr on cr.cashreceiptheaderid = b.cashreceiptheaderid
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = b.cashpaymentheaderid
+                                       where b.expensereportsid = e.id) as c41,
+                                     (select round(sum(cp.SUMMPAY),2)
+                                        from BALANCE_INFORMATION b
+                                   left join CASHRECEIPT cr on cr.cashreceiptheaderid = b.cashreceiptheaderid
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = b.cashpaymentheaderid
+                                       where b.expensereportsid = e.id) as c42
+                                from EXPENSE_DOCS r
+                               inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+                                left join person p on p.id = r.personid
+                                where r.id = ${id}::bigint
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>

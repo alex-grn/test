@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="cash_receipt_order.xls" documentPath="cash_receipt_order.xls" outputType="xls" outputNamePattern="cash_receipt_order.xls"/>
+    </templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+		    <band name="header" orientation="H">
+				<queries>
+                     <query name="header" type="sql">
+                        <script>
+								select tbl.org,
+									tbl.num_doc,
+									tbl.date_doc,
+									tbl.deb,
+									tbl.credit,
+									replace(trim(to_char(tbl.summ,'999999999D99')),',','-') as summ,
+									split_part(trim(to_char(tbl.summ,'999999999D99')),',',1) as summ_r,
+									split_part(trim(to_char(tbl.summ,'999999999D99')),',',2) as summ_k,
+									tbl.accept,
+									tbl.basis,
+									tbl.summ_prop,
+									tbl.d_ord,
+									tbl.m_ord,
+									tbl.y_ord,
+									tbl.attachment,
+									(select pp.name from person pp where pp.id = COALESCE(nullif(${personid},''),'0')::bigint) as gl_buh, 
+									(select pp.name from person pp where pp.id = COALESCE(nullif(${kpersonid},''),'0')::bigint) as kassir 
+								from (
+								select e.name as org,
+									h.docnumb as num_doc,
+									d2s(h.docdate) as date_doc,
+									'1.'||d.accnumb as deb,
+									'1.'||rrk.accnumb as credit,
+									sum(r.summpay) as summ,
+									COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.middlename,'') as accept,
+									h.basis,
+									upper(SUBSTR(p_tools_to_propis(COALESCE(sum(r.summpay),0)),1,1))||
+									lower(SUBSTR(p_tools_to_propis(COALESCE(sum(r.summpay),0)),2)) as summ_prop,
+									to_char(h.docdate,'dd') as d_ord,
+									p_tools_dmonth_to_smonth(h.docdate,1) as m_ord,
+									to_char(h.docdate,'yyyy') as y_ord,
+									h.ATTACHMENT
+								from CASHRECEIPT_HEADER h
+								inner join CASHDOCS c on c.id = h.cashdocsid
+								inner join JURPERSONS j on j.id = c.jurpersonsid
+								left join ELECTCOMMITTEE e on e.id = j.electcommitteeid
+								left join CASHRECEIPT r on r.cashreceiptheaderid = h.id
+								left join TYPICALOPERS t on t.id = r.typicalopersid
+								left join TYPICALOPERSPEC ts on ts.typicalopersid = t.id
+								inner join DICACCS d on d.id = ts.accountdtid and d.accbalance = '1'
+								inner join DICACCS k on k.id = ts.accountktid
+								inner join DICACCS rk on rk.id = k.hid
+								inner join DICACCS rrk on rrk.id = rk.hid
+								inner join PERSON p on p.id = h.personid
+								where h.id = ${id}::bigint 
+								group by e.name,
+										h.docnumb,
+										d2s(h.docdate),
+										d.accnumb,
+										rrk.accnumb,
+										COALESCE(p.rodsurname,'')||' '||COALESCE(p.rodfirstname,'')||' '||COALESCE(p.middlename,''),
+										h.basis,
+										to_char(h.docdate,'dd'),
+										p_tools_dmonth_to_smonth(h.docdate,1),
+										to_char(h.docdate,'yyyy'),
+										h.ATTACHMENT) tbl
+   							   ;
+						</script>
+                     </query>
+                </queries>
+			</band>
+        </bands>
+        <queries/>
+    </rootBand>
+</report>
