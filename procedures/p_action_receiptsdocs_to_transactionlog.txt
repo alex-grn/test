@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.p_action_pers_actsdocs_to_transactionlog(
+CREATE OR REPLACE FUNCTION public.p_action_receiptsdocs_to_transactionlog(
     id bigint,
     uid bigint,
     unit bigint)
@@ -13,41 +13,37 @@ declare
    nTRANSACTIONLOG_DOCSID bigint;
    nTRANSACTIONLOG_STAGESID bigint;
    next_num text;
-   --определим уровни доступа
-   nLID_TRANSACTIONLOG        bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG',nUID,UNIT);
-   nLID_TRANSACTIONLOG_DOCS   bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_DOCS',nUID,UNIT);
-   nLID_TRANSACTIONLOG_STAGES bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT);
 begin
-    for rec in 
+    for rec in (
         select a.ELECTCAMPAIGNID,
                a.JURPERSONSID,
                p.DOCDATE,
-               p.DOCTYPEID,
-               p.DOCNUMBIN,
-               p.DOCDATEIN,
+               p.DOCTYPEINID,
+               p.BASISNUMB,
+               p.BASISDATE,
                sum(COALESCE(ps.SUMM,0)) as SUMM,
                ps.TYPICALOPERSID,
                count(ps.TYPICALOPERSID) OVER() as count_typ,
-               c.PERSONID,
-               p.ID as PERS_ACTSDOCSID,
-               a.ID as ACTSID,
+               p.AGENTID,
+               p.PERSONID,
+               p.ID as RECEIPTSDOCSID,
+               a.ID as PAYACCOUNTSID,
                t.name as TYPENAME
-          from PERS_ACTSDOCS p, 
-               ACTS a,
-               PERS_ACTSGOODS ps,
-               PERSON_CONTRACTSDOCS c,
+          from RECEIPTSDOCS p, 
+               PAYACCOUNTS a,
+               RECEIPTSDOCSCONS ps,
                TYPICALOPERS t
          where p.id = nID 
-           and a.id = p.ACTSID
-           and ps.PERSACTSDOCSID = p.ID
-           and c.ID = p.PERSON_CONTRACTSDOCSID
+           and a.id = p.PAYACCOUNTSID
+           and ps.RECEIPTSDOCSID = p.ID
            and t.ID = ps.TYPICALOPERSID
       group by a.ELECTCAMPAIGNID, a.JURPERSONSID,
-               p.DOCDATE, p.DOCTYPEID, p.DOCNUMBIN, p.DOCDATEIN,
-               ps.TYPICALOPERSID, c.PERSONID, p.ID, a.ID, t.name
+               p.DOCDATE, p.DOCTYPEINID, p.BASISNUMB, p.BASISDATE,
+               ps.TYPICALOPERSID, p.AGENTID, p.PERSONID, p.ID, a.ID, t.name
+    )
     LOOP
-       update PERS_ACTSDOCS p set status = '2' where p.ID = rec.PERS_ACTSDOCSID;
-       if rec.count_typ > 1 then raise using message = 'Для акта указаны разные типовые операции'; end if;
+       update RECEIPTSDOCS p set status = '2' where p.ID = rec.RECEIPTSDOCSID;
+       if rec.count_typ > 1 then raise using message = 'Для кассового поступления указаны разные типовые операции'; end if;
       --найдем заголовок, если нет его, то добавим
        BEGIN
          select t.ID 
@@ -57,15 +53,15 @@ begin
             and t.JURPERSONSID = rec.JURPERSONSID;
        exception when no_data_found THEN 
           insert into transactionlog(uid,lid,electcampaignid,jurpersonsid)
-                              values(nUID,nLID_TRANSACTIONLOG,rec.ELECTCAMPAIGNID,rec.JURPERSONSID) returning TRANSACTIONLOG.ID into nTRANSACTIONLOGID;
+                              values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG',nUID,UNIT),rec.ELECTCAMPAIGNID,rec.JURPERSONSID) returning TRANSACTIONLOG.ID into nTRANSACTIONLOGID;
        end;
        
        --сгенерируем следующий номер
-       select coalesce(regexp_replace(max(lpad(TRANSACTIONNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) into next_num from TRANSACTIONLOG_DOCS where TRANSACTIONLOGID = nTRANSACTIONLOGID;
+       select (max(t.transactionnumb::integer)+1)::text into next_num from TRANSACTIONLOG_DOCS t where t.transactionlogid = nTRANSACTIONLOGID;
        
        --создаем запись в журнале операций
        insert into TRANSACTIONLOG_DOCS(uid,lid,transactionlogid,transactionnumb,transactiondate,doctypeid,docnumb,docdate,docsum,typicalopersid,tponame)
-       values(nUID,nLID_TRANSACTIONLOG_DOCS,nTRANSACTIONLOGID,COALESCE(next_num,'1'),rec.DOCDATE,rec.DOCTYPEID,rec.DOCNUMBIN,rec.DOCDATEIN,rec.SUMM,rec.TYPICALOPERSID,rec.TYPENAME) 
+       values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG_DOCS',nUID,UNIT),nTRANSACTIONLOGID,COALESCE(next_num,'1'),rec.DOCDATE,rec.DOCTYPEINID,rec.BASISNUMB,rec.BASISDATE,rec.SUMM,rec.TYPICALOPERSID,rec.TYPENAME) 
        returning TRANSACTIONLOG_DOCS.ID into nTRANSACTIONLOG_DOCSID;
        
        for sp in (
@@ -78,23 +74,24 @@ begin
                   case when t.ACCOUNTDTID is null and t.typetos = '0' then null else t.ACCOUNTDTID end as ACCOUNTDTID,
                   case when t.ACCOUNTDTID is null and t.typetos = '0' then null else 1 end as dKFO,
                   case when t.ACCOUNTKTID is null and t.typetos = '0' then null else 1 end as kKFO,
-                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else rec.PERSONID end as personid,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else case D.ACCTYPE when '7' then rec.AGENTID end end as AGENTID,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else case D.ACCTYPE when '7' then rec.PERSONID end end as PERSONID,
                   case when t.ACCOUNTKTID is null and t.typetos = '0' then null else t.ACCOUNTKTID end as ACCOUNTKTID,
                   p.SUMM,
                   p.ID,
                   t.MEMORDERID,
-                  p.LEVELESTIMATE
-             from PERS_ACTSGOODS p
+                  p.LEVELESTIMATE 
+             from RECEIPTSDOCSCONS p
              left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
-             left join DICACCS d on d.ID = t.ACCOUNTDTID 
+             left join DICACCS d on d.ID = t.ACCOUNTKTID 
              left join DICACCS k on k.ID = t.ACCOUNTKTID
-            where p.PERSACTSDOCSID = nID
+            where p.RECEIPTSDOCSID = nID
        )
-       LOOP
-           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,personktid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid,levelestimate)
-             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
+       LOOP 
+           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,agentktid,personktid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid,levelestimate)
+             values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT),nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.AGENTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
            returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
-           perform p_system_doclinks_add('PERS_ACTSGOODS',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
+           perform p_system_doclinks_add('RECEIPTSDOCSCONS',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
        end loop; 
        
     END LOOP; 
@@ -103,5 +100,5 @@ end;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.p_action_pers_actsdocs_to_transactionlog(bigint, bigint, bigint)
+ALTER FUNCTION public.p_action_receiptsdocs_to_transactionlog(bigint, bigint, bigint)
   OWNER TO magicbox;

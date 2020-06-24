@@ -1,9 +1,11 @@
-CREATE OR REPLACE FUNCTION public.p_action_cashreceipt_to_transactionlog (
-  id bigint,
-  uid bigint
-)
-RETURNS text AS
-$body$
+
+
+CREATE OR REPLACE FUNCTION public.p_action_cashreceipt_to_transactionlog(
+    id bigint,
+    uid bigint,
+    unit bigint)
+  RETURNS text AS
+$BODY$
 declare 
    nID  bigint:=ID;
    nUID bigint:=UID;
@@ -14,11 +16,11 @@ declare
    nTRANSACTIONLOG_STAGESID bigint;
    next_num text;
    --определим уровни доступа
-   nLID_TRANSACTIONLOG        bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG',nUID);
-   nLID_TRANSACTIONLOG_DOCS   bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_DOCS',nUID);
-   nLID_TRANSACTIONLOG_STAGES bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID);
+   nLID_TRANSACTIONLOG        bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG',nUID,UNIT);
+   nLID_TRANSACTIONLOG_DOCS   bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_DOCS',nUID,UNIT);
+   nLID_TRANSACTIONLOG_STAGES bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT);
 begin
-    for rec in (
+    for rec in 
         select a.ELECTCAMPAIGNID,
                a.JURPERSONSID,
                p.DOCDATE,
@@ -31,7 +33,8 @@ begin
                p.PERSONID,
                p.ID as CASHRECEIPT_HEADERID,
                a.ID as CASHDOCSID,
-               t.name as TYPENAME
+               t.name as TYPENAME,
+               ps.LEVELESTIMATE
           from CASHRECEIPT_HEADER p, 
                CASHDOCS a,
                CASHRECEIPT ps,
@@ -40,18 +43,10 @@ begin
            and a.id = p.CASHDOCSID
            and ps.CASHRECEIPTHEADERID = p.ID
            and t.ID = ps.TYPICALOPERSID
-      group by a.ELECTCAMPAIGNID,
-               a.JURPERSONSID,
-               p.DOCDATE,
-               p.DOCTYPEID,
-               p.DOCNUMB,
-               p.DOCDATE,
-               ps.TYPICALOPERSID,
-               p.PERSONID,
-               p.ID,
-               a.ID,
-               t.name
-    )
+      group by a.ELECTCAMPAIGNID, a.JURPERSONSID,
+               p.DOCDATE, p.DOCTYPEID, p.DOCNUMB,
+               ps.TYPICALOPERSID, p.PERSONID, p.ID, a.ID, t.name,
+               ps.LEVELESTIMATE
     LOOP
        update CASHRECEIPT_HEADER p set docstatus = '2' where p.ID = rec.CASHRECEIPT_HEADERID;
        if rec.count_typ > 1 then raise using message = 'Для платежного поручения указаны разные типовые операции'; end if;
@@ -75,29 +70,30 @@ begin
        values(nUID,nLID_TRANSACTIONLOG_DOCS,nTRANSACTIONLOGID,COALESCE(next_num,'1'),rec.DOCDATE,rec.DOCTYPEID,rec.DOCNUMB,rec.DOCDATE,rec.SUMM,rec.TYPICALOPERSID,rec.TYPENAME) 
        returning TRANSACTIONLOG_DOCS.ID into nTRANSACTIONLOG_DOCSID;
        
-       for sp in (
-           select case when t.ACCOUNTDTID is not null then COALESCE(t.DTBUDGCLASSID,p.BUDGCLASSID) else null end as DTBUDGCLASSID,
-                  case when t.ACCOUNTKTID is not null then COALESCE(t.KTBUDGCLASSID,p.BUDGCLASSID) else null end as KTBUDGCLASSID,
-                  case when t.ACCOUNTKTID is not null then COALESCE(t.ECONCLASSKTID,p.ECONCLASSKTID) else null end as ECONCLASSKTID,
-                  case when t.ACCOUNTDTID is not null then COALESCE(t.ECONCLASSDTID,p.ECONCLASSKTID) else null end as ECONCLASSDTID,
-                  case when t.ACCOUNTDTID is not null then p.TYPEEXPID else null end as DTYPEEXPID,
-                  case when t.ACCOUNTKTID is not null then p.TYPEEXPID else null end as KTYPEEXPID,
-                  t.ACCOUNTDTID,
-                  case when t.ACCOUNTDTID is not null then 1 else null end as dKFO,
-                  case when t.ACCOUNTKTID is not null then 1 else null end as kKFO,
-                  case when t.ACCOUNTKTID is not null then rec.PERSONID else null end as PERSONID,
-                  COALESCE(t.ACCOUNTKTID,p.DICACCSID) as ACCOUNTKTID,
+       for sp in 
+           select case when t.ACCOUNTDTID is null and t.typetos = '0' then null else COALESCE(t.DTBUDGCLASSID,p.BUDGCLASSID) end as DTBUDGCLASSID,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else COALESCE(t.KTBUDGCLASSID,p.BUDGCLASSID) end as KTBUDGCLASSID,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else COALESCE(COALESCE(k.KTECONCLASSID,pl.KTECONCLASSID),t.ECONCLASSKTID,p.ECONCLASSKTID) end as ECONCLASSKTID,
+                  case when t.ACCOUNTDTID is null and t.typetos = '0' then null else COALESCE(COALESCE(d.DTECONCLASSID,pl.DTECONCLASSID),t.ECONCLASSDTID,p.ECONCLASSKTID) end as ECONCLASSDTID,
+                  case when t.ACCOUNTDTID is null and t.typetos = '0' then null else p.TYPEEXPID end as DTYPEEXPID,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else p.TYPEEXPID end as KTYPEEXPID,
+                  case when t.ACCOUNTDTID is null and t.typetos = '0' then null else COALESCE(t.ACCOUNTDTID,p.DICACCSID) end as ACCOUNTDTID,
+                  case when t.ACCOUNTDTID is null and t.typetos = '0' then null else 1 end as dKFO,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else 1 end as kKFO,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else rec.PERSONID end as PERSONID,
+                  case when t.ACCOUNTKTID is null and t.typetos = '0' then null else COALESCE(t.ACCOUNTKTID,p.DICACCSID) end as ACCOUNTKTID,
                   p.SUMMPAY as SUMM,
                   p.ID,
                   t.MEMORDERID
              from CASHRECEIPT p
              left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
              left join DICACCS d on d.ID = t.ACCOUNTDTID 
+             left join DICACCS k on k.ID = t.ACCOUNTKTID
+             left join DICACCS pl on pl.ID = p.DICACCSID 
             where p.CASHRECEIPTHEADERID = nID
-       )
        LOOP
-           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,personktid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid)
-             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid)
+           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,personktid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid,levelestimate)
+             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid,rec.LEVELESTIMATE)
            returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
            perform p_system_doclinks_add('CASHRECEIPT',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
        end loop; 
@@ -105,12 +101,8 @@ begin
     END LOOP; 
     return 'Документ проведён в учёте';  
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_cashreceipt_to_transactionlog (id bigint, uid bigint)
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.p_action_cashreceipt_to_transactionlog(bigint, bigint, bigint)
   OWNER TO magicbox;

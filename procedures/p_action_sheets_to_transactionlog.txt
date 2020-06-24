@@ -1,13 +1,12 @@
-CREATE OR REPLACE FUNCTION public.p_action_sheets_to_transactionlog (
-  id bigint,
-  uid bigint,
-  unit bigint,
-  docdate date,
-  doctypeid bigint,
-  typicalopersid bigint
-)
-RETURNS text AS
-$body$
+CREATE OR REPLACE FUNCTION public.p_action_sheets_to_transactionlog(
+    id bigint,
+    uid bigint,
+    unit bigint,
+    docdate date,
+    doctypeid bigint,
+    typicalopersid bigint)
+  RETURNS text AS
+$BODY$
 declare 
    nID  bigint:=ID;
    nUID bigint:=UID;
@@ -16,12 +15,15 @@ declare
    dDOCDATE date:=DOCDATE;
    nDOCTYPEID bigint:=DOCTYPEID;
    nTYPICALOPERSID bigint:=TYPICALOPERSID;
+   sTYPICALOPERSNAME text:=(select t.name from typicalopers t where t.id = nTYPICALOPERSID);
    nTRANSACTIONLOGID bigint;
    nTRANSACTIONLOG_DOCSID bigint;
    nTRANSACTIONLOG_STAGESID bigint;
    nJURPERSONSID bigint;
    next_num text;
    fl       boolean;
+   dBEGINDATETER date;
+   dENDDATETER   date;
    --определим уровни доступа
    nLID_TRANSACTIONLOG        bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG',nUID,UNIT);
    nLID_TRANSACTIONLOG_DOCS   bigint:=P_SYSTEM_GEN_LID('TRANSACTIONLOG_DOCS',nUID,UNIT);
@@ -54,6 +56,10 @@ begin
         where e.ID = rec.ELECTCOMMINCAMPID;
        fl:=false;
        update SHEETS p set status = '2' where p.ID = rec.SHEETSID;
+       select e.begindateter, e.enddateter
+         into dBEGINDATETER, dENDDATETER
+         from ELECTCAMPAIGN e
+        where e.id = REC.ELECTCAMPAIGNID;
       --найдем заголовок, если нет его, то добавим
        BEGIN
          select t.ID 
@@ -70,8 +76,8 @@ begin
        select coalesce(regexp_replace(max(lpad(TRANSACTIONNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) into next_num from TRANSACTIONLOG_DOCS where TRANSACTIONLOGID = nTRANSACTIONLOGID;
        
        --создаем запись в журнале операций
-       insert into TRANSACTIONLOG_DOCS(uid,lid,transactionlogid,transactionnumb,transactiondate,doctypeid,docnumb,docdate,docsum,typicalopersid)
-       values(nUID,nLID_TRANSACTIONLOG_DOCS,nTRANSACTIONLOGID,COALESCE(next_num,'1'),dDOCDATE,rec.DOCTYPEID,rec.DOCNUMB,rec.DOCDATE,rec.SUMM,nTYPICALOPERSID) 
+       insert into TRANSACTIONLOG_DOCS(uid,lid,transactionlogid,transactionnumb,transactiondate,doctypeid,docnumb,docdate,docsum,typicalopersid,begindatetik,enddatetik,tponame)
+       values(nUID,nLID_TRANSACTIONLOG_DOCS,nTRANSACTIONLOGID,COALESCE(next_num,'1'),dDOCDATE,rec.DOCTYPEID,rec.DOCNUMB,rec.DOCDATE,rec.SUMM,nTYPICALOPERSID,dBEGINDATETER,dENDDATETER,sTYPICALOPERSNAME) 
        returning TRANSACTIONLOG_DOCS.ID into nTRANSACTIONLOG_DOCSID;
        
        
@@ -88,7 +94,8 @@ begin
                   case when t.ACCOUNTKTID is null and t.typetos = '0' then null else t.ACCOUNTKTID end as ACCOUNTKTID,
                   COALESCE(p.sumcomp,0)+COALESCE(p.sumextra12,0)+COALESCE(p.extraa,0) as summ,
                   p.ID,
-                  t.MEMORDERID
+                  t.MEMORDERID,
+                  p.LEVELESTIMATE
              from SHEETDETAILS p 
              left join TYPICALOPERSPEC t on t.TYPICALOPERSID = nTYPICALOPERSID
              left join DICACCS d on d.ID = t.ACCOUNTDTID 
@@ -96,8 +103,8 @@ begin
             where p.SHEETSID = nID
        )
        LOOP
-           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid)
-             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid)
+           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid,levelestimate)
+             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
            returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
            perform p_system_doclinks_add('SHEETDETAILS',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
            
@@ -106,12 +113,8 @@ begin
     END LOOP; 
     return 'Документ проведён в учёте';  
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
-
-ALTER FUNCTION public.p_action_sheets_to_transactionlog (id bigint, uid bigint, unit bigint, docdate date, doctypeid bigint, typicalopersid bigint)
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.p_action_sheets_to_transactionlog(bigint, bigint, bigint, date, bigint, bigint)
   OWNER TO magicbox;
