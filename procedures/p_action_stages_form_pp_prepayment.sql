@@ -1,8 +1,8 @@
-﻿-- Function: public.p_action_stages_form_pp(text, bigint, bigint, date, text, bigint, bigint)
+﻿-- Function: public.p_action_stages_form_pp_prepayment(text, bigint, bigint, date, text, bigint, bigint)
 
--- DROP FUNCTION public.p_action_stages_form_pp(text, bigint, bigint, date, text, bigint, bigint);
+-- DROP FUNCTION public.p_action_stages_form_pp_prepayment(text, bigint, bigint, date, text, bigint, bigint);
 
-CREATE OR REPLACE FUNCTION public.p_action_stages_form_pp(
+CREATE OR REPLACE FUNCTION public.p_action_stages_form_pp_prepayment(
     idlist text,
     uid bigint,
     doctypeid bigint,
@@ -40,10 +40,10 @@ begin
                      C.JURPERSONSID,
                      SS.DOCNUMB,
                      d2s(SS.DOCDATE) as DOCDATE,
-                     COALESCE(S.SUMM, 0)-COALESCE(S.SETOFFPREPAYMENT, 0)  as SUMM,
-                     S.BUDGCLASSID,
-                     S.ECONCLASSKTID,
-                     S.TYPEEXPID,
+                     COALESCE(S.SETOFFPREPAYMENT, 0) as SUMM,
+                     S.BUDGCLASSPREPID,
+                     S.ECONCLASSPREPID,
+                     S.TYPEEXPPREPID,
                      SS.ntax,
                      S.levelestimate,
                      SS.ID as CONTRACTSDOCS
@@ -124,7 +124,7 @@ begin
     insert into PAYDOCSCONS
       (UID, LID, PAYDOCSID, SUMM, NUMBPP, BUDGCLASSID, ECONCLASSKTID, TYPEEXPID, TYPICALOPERSID, levelestimate/*, regionsrfid, doctypeid*/)
     values
-      (nUID, P_SYSTEM_GEN_LID('PAYDOCSCONS',nUID,UNIT), nPAYDOCS, REC.SUMM, NEXT_NUM, REC.BUDGCLASSID, REC.ECONCLASSKTID, REC.TYPEEXPID, NTYPICALOPERSID, rec.levelestimate/*, nREGIONSRF, NDOCTYPEID*/)
+      (nUID, P_SYSTEM_GEN_LID('PAYDOCSCONS',nUID,UNIT), nPAYDOCS, REC.SUMM, NEXT_NUM, REC.BUDGCLASSPREPID, REC.ECONCLASSPREPID, REC.TYPEEXPPREPID, NTYPICALOPERSID, rec.levelestimate/*, nREGIONSRF, NDOCTYPEID*/)
     returning PAYDOCSCONS.ID into NID;
     --Создадим связь
     PERFORM P_SYSTEM_DOCLINKS_ADD('STAGES',REC.ID,'PAYDOCSCONS',NID);
@@ -141,5 +141,5 @@ end;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.p_action_stages_form_pp(text, bigint, bigint, date, text, bigint, bigint)
+ALTER FUNCTION public.p_action_stages_form_pp_prepayment(text, bigint, bigint, date, text, bigint, bigint)
   OWNER TO magicbox;

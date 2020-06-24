@@ -732,7 +732,6 @@
 				<A id="BEGINDATE" caption="Дата открытия" labelwidth="100" width="50"/>
 				<A id="ENDDATE" caption="Дата закрытия" labelwidth="100" width="50"/>
 			</GA>
-			<A id="SALCONTRACT" name="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" caption="Р/С в ПАО СБЕРБАНК для перечислений по зарплатному проекту" type="boolean" nulls="true" local="true"/>
 			<TI unique="ELECTCOMMITTEEID,BANKACC"/>
 		</TABLE>
 		<TABLE id="SALARYCONTRACT" name="Договоры по зарплатному проекту с ПАО СБЕРБАНК">
@@ -1034,7 +1033,7 @@
 			<A id="INN" name="ИНН" caption="ИНН" labelwidth="400" type="string" virtual="true" formula="select INN from ELECTCOMMITTEE ec,ELECTCOMMINCAMP ecc where ecc.ID = @ELECTCOMMINCAMPID and ecc.ELECTCOMMITTEEID = ec.ID" local="true"/>
 			<A id="SALARYCONTRACT_ID" name="Номер договора" caption="Номер договора" labelwidth="400" type="ref" table="SALARYCONTRACT" ret="CONTRACTNUMB" nulls="false"  readonly="true" local="true"/>
 			<A id="AGENTBANKSID" labelwidth="400"  readonly="true"/>
-			<A id="BIC" name="БИК" caption="БИК" labelwidth="400"  type="string" virtual="true" formula="select ab.BIC from ELCMTACC e, agentbanks ab where e.ID = @ELCMTACCID and e.AGENTBANKSID = ab.ID" local="true"/>
+			<A id="BIC" name="БИК" caption="БИК" labelwidth="400"  type="string" virtual="true" formula="select ab.BIC from agentbanks ab where @AGENTBANKSID = ab.ID" local="true"/>
 			<A id="FILENAME" name="Имя файла выгрузки" caption="Имя файла выгрузки" labelwidth="400" type="string" nulls="true" local="true"  readonly="true"/>
 			<A id="FORMDATE" name="Дата формирования" caption="Дата формирования" labelwidth="400" type="string" nulls="true" local="true"  readonly="true"/>
 			<TI unique="DOCPREF,DOCNUMB,DOCDATE"/>
@@ -1340,9 +1339,9 @@
 						<A id="ACTSEXP" name="Учтено в акте" caption="Учтено в акте"  type="boolean" nulls="false" readonly="true"/>
 					</GA>
 					<A id="CONTRTYPE" name="Тип договора" caption="Тип договора" labelwidth="350" type="list" virtual="true" visible="false" formula="select CONTRTYPE from CONTRACTSDOCS c where c.id=@CONTRACTSDOCSID" local="true">
-						<AI id="product" name="Поставка товара" actionlist="StagesFormPP;StagesFormPPDel;StagesFormINV;StagesFormINVDel"/>
-						<AI id="service" name="Оказание услуг" actionlist="StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
-						<AI id="worksexec" name="Выполнение работ" actionlist="StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel"/>
+						<AI id="product" name="Поставка товара" actionlist="StagesFormPP;StagesFormPPPrepayment;StagesFormPPDel;StagesFormPPDelPrepayment;StagesFormINV;StagesFormINVDel"/>
+						<AI id="service" name="Оказание услуг" actionlist="StagesFormPP;StagesFormPPPrepayment;StagesFormPPDel;StagesFormPPDelPrepayment;StagesActsWorkServ;StagesActsWorkServDel"/>
+						<AI id="worksexec" name="Выполнение работ" actionlist="StagesFormPP;StagesFormPPPrepayment;StagesFormPPDel;StagesFormPPDelPrepayment;StagesActsWorkServ;StagesActsWorkServDel"/>
 					</A>
 					<A id="DOCLINKS_IN"/>
 					<A id="DOCLINKS_OUT"/>
@@ -1461,8 +1460,9 @@
 						<A id="DOCDATE" name="Дата" caption="Дата" labelwidth="300" width="50" type="date" formula="now()" local="true"/>
 						<A id="PAYDOCSVIRT" name="Номер документа" caption="Номер документа" labelwidth="200" type="string" nulls="true" visible="false" readonly="true" virtual="true" formula="select d.code||' № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from PAYDOCS f, DOCTYPES d where f.id = @ID and f.doctypeid = d.id" local="true"/>
 						<A id="SUMM" labelwidth="600" readonly="true" virtual="true" formula="select round(sum(t.SUMM),2) from PAYDOCSCONS t where t.PAYDOCSID = @ID"/>
-						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" width="50"/>
+						<A id="NTAX" name="В том числе НДС" caption="В том числе НДС" labelwidth="150" width="50"/>
 						<A id="SUMTAX" name="Сумма НДС" caption="Сумма НДС" width="50" type="number" readonly="true" virtual="true" formula="round((select sum(t.SUMM) from PAYDOCSCONS t where t.PAYDOCSID = @ID)*(case @NTAX when '10' then '0.10' when '20' then '0.20' when '0' then '0' end)::numeric ,2)" local="true"/>
+						<A id="PREPAYMENT" name="Авансовый платеж" caption="Авансовый платеж"  type="boolean" readonly="false" virtual="false" local="true"/>
 					</GA>
 					<GA name="Реквизиты платежа" caption="Реквизиты платежа">
 						<A id="PURPOSE" name="Назначение платежа (24)" caption="Назначение платежа (24) (макс. 235 символов)" type="text" nulls="false" local="true"/>
@@ -2770,7 +2770,16 @@
 				<A id="TYPICALOPERSID" labelwidth="200"  pid="doctypeid"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="StagesFormPPPrepayment" name="Сформировать платежное поручение на перечисление авансовых платежей" type="procedure" procedure="p_action_stages_form_pp_prepayment">
+			<FORM name="Параметры">
+				<A id="DDATE" name="Дата" caption="Дата" labelwidth="600"  type="date" nulls="false" local="true"/>
+				<A id="DOCTYPEID" type="ref" table="DOCTYPES" ret="CODE" form="DocTypes" nulls="false" value="16" visible="false" local="true"/>
+				<A id="PRIORITY" labelwidth="200"/>
+				<A id="TYPICALOPERSID" labelwidth="200"  pid="doctypeid"/>
+			</FORM>
+		</ACTION>
 		<ACTION id="StagesFormPPDel" name="Расформировать платежное поручение" type="procedure" procedure="p_action_stages_form_pp_del"/>
+		<ACTION id="StagesFormPPDelPrepayment" name="Расформировать платежное поручение на перечислени авансовых платежей" type="procedure" procedure=""/>
 		<ACTION id="StagesFormRKO" name="Сформировать расходный кассовый ордер" type="procedure" procedure="p_action_stages_form_rko">
 			<FORM name="Параметры">
 				<A id="DDATE" name="Дата" caption="Дата" labelwidth="200" width="20" type="date" nulls="false" local="true"/>
@@ -3029,32 +3038,32 @@
 		</REPORT>
 		<REPORT id="CashAd" name="Объявление на взнос наличными" procedure="" template="cash_ad.xls"/>
 		<REPORT id="EstimateUIK" name="Смета УИК" procedure="p_report_budget_exp" template="budget_exp_uik.xlsx" type="report_excel">
-			<P id="STYPE_BE" value="UIK"/>
+			<A id="STYPE_BE"  name="Вид сметы" caption="Вид сметы"  type="text" value="UIK"/>
 			<A id="DOCDATE" name="На дату" caption="На дату" labelwidth="150"/>
 		</REPORT>
 		<REPORT id="EstimateTIK" name="Смета ТИК" procedure="p_report_budget_exp" template="budget_exp_tik.xlsx" type="report_excel">
-			<P id="STYPE_BE" value="TIK"/>
+			<A id="STYPE_BE"  name="Вид сметы" caption="Вид сметы" type="text" value="TIK"/>
 			<A id="DOCDATE" name="На дату" caption="На дату" labelwidth="150"/>
 		</REPORT>
 		<REPORT id="EstimateTIK_UIK" name="Смета ТИК за нижестоящие УИК" procedure="p_report_budget_exp" template="budget_exp_tik.xlsx" type="report_excel">
-			<P id="STYPE_BE" value="TIK_UIK"/>
+			<A id="STYPE_BE"  name="Вид сметы" caption="Вид сметы" type="text" value="TIK_UIK"/>
 			<A id="DOCDATE" name="На дату" caption="На дату" labelwidth="150"/>
 		</REPORT>
 		<REPORT id="Report0504833" name="Бухгалтерская справка 0504833" procedure="p_report_transactionlog_docs_accord" template="transactionlog_docs_accord.xlsx" type="report_excel">
 			<FORM name="Параметры">
-				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BPERSONID" name="Исполнитель (расшифровка подписи)" caption="Исполнитель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="BKPOSTSID" name="Ответственный исполнитель (должность)" caption="Ответственный исполнитель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BKPERSONID" name="Ответ.исполнитель (расшифровка подписи)" caption="Ответ.исполнитель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)"  labelwidth="200" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="BPERSONID" name="Исполнитель (расшифровка подписи)" caption="Исполнитель (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="BKPOSTSID" name="Ответственный исполнитель (должность)" caption="Ответственный исполнитель (должность)"  labelwidth="300" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="BKPERSONID" name="Ответ.исполнитель (расшифровка подписи)" caption="Ответ.исполнитель (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="Report0504210" name="Ведомость выдачи материальных ценностей на нужды учреждения 0504210" procedure="МАЦ-4328" template="">
 			<FORM name="Параметры">
-				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BPERSONID" name="Исполнитель (расшифровка подписи)" caption="Исполнитель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="RUPERSONID" name="Руководитель учреждения" caption="Руководитель учреждения" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" labelwidth="200" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="BPERSONID" name="Исполнитель (расшифровка подписи)" caption="Исполнитель (расшифровка подписи)" labelwidth="250" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="RUPERSONID" name="Руководитель учреждения" caption="Руководитель учреждения" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="Memorder" name="Журнал операций" procedure="p_report_memorder" template="Memorder.xlsx" type = "report_excel">
@@ -3063,33 +3072,33 @@
 				<A id="BEGINDATE" labelwidth="150"  width="50"/>
 				<A id="ENDDATE" labelwidth="150"  width="50"/>
 				<A id="PRINT_TYPEEXP" name="Выводить напрвления расходов в проводках" caption="Выводить напрвления расходов в проводках" labelwidth="150" type="boolean" local="true"/>
-				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
 				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" labelwidth="200"   type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="General_ledger" name="Главная книга" procedure="МАЦ-4430" template="">
 			<FORM name="Параметры">
 				<A id="BEGINDATE" labelwidth="150"  width="50"/>
 				<A id="ENDDATE" labelwidth="150"  width="50"/>
-				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="GBPERSONID" name="Главный бухгалтер" caption="Главный бухгалтер" labelwidth="200" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
 				<A id="POSTSID" name="Исполнитель (должность)" caption="Исполнитель (должность)" labelwidth="200"   type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="Report0504230" name="Акт о списании материальных запасов 0504230" procedure="p_report_writeoff_acts_header_out" template="writeoff_acts_header_out.xlsx" type="report_excel">
 			<FORM name="Параметры">
-				<A id="CHAIRMAN_POSTSID" name="Председатель (должность)" caption="Председатель (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="CHAIRMAN" name="Председатель (расшифровка подписи)" caption="Председатель (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID_01" name="Член комиссии 1 (должность)" caption="Член комиссии 1 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="COMMISSION_01" name="Член комиссии 1 (расшифровка подписи)" caption="Член комиссии 1 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID_02" name="Член комиссии 2 (должность)" caption="Член комиссии 2 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="COMMISSION_02" name="Член комиссии 2 (расшифровка подписи)" caption="Член комиссии 2 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID_03" name="Член комиссии 3 (должность)" caption="Член комиссии 3 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="COMMISSION_03" name="Член комиссии 3 (расшифровка подписи)" caption="Член комиссии 3 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="POSTSID_04" name="Член комиссии 4 (должность)" caption="Член комиссии 4 (должность)" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
-				<A id="COMMISSION_04" name="Член комиссии 4 (расшифровка подписи)" caption="Член комиссии 4 (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
-				<A id="DIR_FIO" name="Руководитель учреждения (расшифровка подписи)" caption="Руководитель учреждения (расшифровка подписи)" labelwidth="150" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="false" local="true"/>
+				<A id="CHAIRMAN_POSTSID" name="Председатель (должность)" caption="Председатель (должность)" labelwidth="300" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="CHAIRMAN" name="Председатель (расшифровка подписи)" caption="Председатель (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="POSTSID_01" name="Член комиссии 1 (должность)" caption="Член комиссии 1 (должность)" labelwidth="300" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="COMMISSION_01" name="Член комиссии 1 (расшифровка подписи)" caption="Член комиссии 1 (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="POSTSID_02" name="Член комиссии 2 (должность)" caption="Член комиссии 2 (должность)" labelwidth="300" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="COMMISSION_02" name="Член комиссии 2 (расшифровка подписи)" caption="Член комиссии 2 (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="POSTSID_03" name="Член комиссии 3 (должность)" caption="Член комиссии 3 (должность)" labelwidth="300" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="COMMISSION_03" name="Член комиссии 3 (расшифровка подписи)" caption="Член комиссии 3 (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="POSTSID_04" name="Член комиссии 4 (должность)" caption="Член комиссии 4 (должность)" labelwidth="300" type="ref" table="POSTS" ret="CODE" form="PostsFRM" nulls="true" local="true"/>
+				<A id="COMMISSION_04" name="Член комиссии 4 (расшифровка подписи)" caption="Член комиссии 4 (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
+				<A id="DIR_FIO" name="Руководитель учреждения (расшифровка подписи)" caption="Руководитель учреждения (расшифровка подписи)" labelwidth="300" type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
 			</FORM>
 		</REPORT>
 		<REPORT id="IntMoveGoogs" name="Накладные на внутреннее перемещение МЗ" procedure="p_report_intmovegoods" template="intmoveGoogs.xlsx" type = "report_excel">
@@ -3441,7 +3450,8 @@
 					<A id="ELECTCAMPAIGNVIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<GRID id="ElectСommInCampGR1" name="Избирательные комиссии, участвующие в избирательной кампании" table="ELECTCOMMINCAMP" readonly="true" >
 						<MENU>
-							<MI actionlist="View;ConfigTables;FormFinanceelcom;ConfigTables" reportlist="EstimateUIK;EstimateTIK;EstimateTIK_UIK"/>  
+							<!-- <MI actionlist="View;ConfigTables;FormFinanceelcom;ConfigTables" />   -->
+							<MI actionlist="View;ConfigTables;FormFinanceelcom;ConfigTables" reportlist="EstimateUIK;EstimateTIK;EstimateTIK_UIK"/>
 						</MENU>
 					</GRID>
 				</TAB>
@@ -3498,7 +3508,7 @@
 						</TAB>
 						<TAB name="Спецификация контракта">
 							<A id="DOCNUMBVIRT" name="Документ" caption="Документ" labelwidth="200" type="string" nulls="true" visible="true" readonly="true" virtual="true" formula="select 'Контракт № '||f.docnumb||' от '||to_char(f.docdate, 'dd.mm.yyyy') from CONTRACTSDOCS f where f.id = @CONTRACTSDOCSID" local="true"/>
-							<GRID id="StagesGR" name="Спецификация контракта" table="STAGES" actionlist="StagesFormPP;StagesFormPPDel;StagesActsWorkServ;StagesActsWorkServDel;StagesFormINV;StagesFormINVDel"/>
+							<GRID id="StagesGR" name="Спецификация контракта" table="STAGES" actionlist="StagesFormPP;StagesFormPPPrepayment;StagesFormPPDel;StagesFormPPDelPrepayment;StagesActsWorkServ;StagesActsWorkServDel;StagesFormINV;StagesFormINVDel"/>
 						</TAB>
 					</TABS>
 				</TAB>
