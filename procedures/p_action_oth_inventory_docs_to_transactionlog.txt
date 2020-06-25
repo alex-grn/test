@@ -1,3 +1,7 @@
+-- Function: public.p_action_oth_inventory_docs_to_transactionlog(bigint, bigint, bigint)
+
+-- DROP FUNCTION public.p_action_oth_inventory_docs_to_transactionlog(bigint, bigint, bigint);
+
 CREATE OR REPLACE FUNCTION public.p_action_oth_inventory_docs_to_transactionlog(
     id bigint,
     uid bigint,
@@ -34,8 +38,6 @@ begin
                --c.AGENTID,
                p.AGENTID,
                d.CODE||' № '||p.DOCNUMBIN||' от '||d2s(p.DOCDATEIN) as DOCNUMB_C,
-               
-               ps.LEVELESTIMATE,
                tt.name as tponame
           from OTHER_INVENTORY_DOCS p  
      left join INVENTORY a on a.id = p.INVENTORYID
@@ -52,11 +54,10 @@ begin
                p.ID,a.ID,p.AGENTID,d.CODE,
                /*p.SUPEXPENSE,t.DTBUDGCLASSID,p.BUDGCLASSID,
                t.KTBUDGCLASSID,p.ECONCLASSKTID,p.TYPEEXPID,
-               p.SETOFFPREPAYMENT,t.ACCOUNTDTID,t.ACCOUNTKTID,t.ECONCLASSDTID,t.ECONCLASSKTID,*/tt.name,
-               ps.LEVELESTIMATE
+               p.SETOFFPREPAYMENT,t.ACCOUNTDTID,t.ACCOUNTKTID,t.ECONCLASSDTID,t.ECONCLASSKTID,*/tt.name
     LOOP
        update OTHER_INVENTORY_DOCS p set status = '2' where p.ID = rec.OTHER_INVENTORY_DOCSID;
-       if rec.count_typ > 1 then raise using message = 'Для платежного поручения указаны разные типовые операции'; end if;
+       if rec.count_typ > 1 then raise using message = 'Для товарной накладной указаны разные типовые операции'; end if;
       --найдем заголовок, если нет его, то добавим
        BEGIN
          select t.ID 
@@ -111,7 +112,8 @@ begin
                   case when t.ACCOUNTDTID is null and t.typetos = '0' then null else p.DICNOMNSID end AS DICNOMNSID,
                   case when t.ACCOUNTDTID is null and t.typetos = '0' then null else p.QUANTITY end AS QUANTITY,
                   p.ID,
-                  t.MEMORDERID
+                  t.MEMORDERID,
+                  p.LEVELESTIMATE
              from OTHER_INVENTORY_GOODS p
              left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
              left join DICACCS d on d.ID = t.ACCOUNTDTID
@@ -120,7 +122,7 @@ begin
        )
        LOOP
            insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,dtrespperson,dtdicnomnsid,dtquantity,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,agentktid,summ,memorderid,levelestimate)
-             values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT),nTRANSACTIONLOG_DOCSID,SP.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,rec.RESPPERSON,sp.DICNOMNSID,sp.QUANTITY,SP.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,rec.AGENTID,sp.SUMM,sp.memorderid,rec.LEVELESTIMATE)
+             values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT),nTRANSACTIONLOG_DOCSID,SP.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,rec.RESPPERSON,sp.DICNOMNSID,sp.QUANTITY,SP.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,rec.AGENTID,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
            returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
            --Создаем связи
            perform p_system_doclinks_add('OTHER_INVENTORY_GOODS',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);

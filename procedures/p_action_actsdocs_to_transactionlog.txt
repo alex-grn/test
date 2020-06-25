@@ -1,3 +1,7 @@
+-- Function: public.p_action_actsdocs_to_transactionlog(bigint, bigint, bigint)
+
+-- DROP FUNCTION public.p_action_actsdocs_to_transactionlog(bigint, bigint, bigint);
+
 CREATE OR REPLACE FUNCTION public.p_action_actsdocs_to_transactionlog(
     id bigint,
     uid bigint,
@@ -32,8 +36,7 @@ begin
                c.AGENTID,
                p.ID as ACTSDOCSID,
                a.ID as ACTSID,
-               t.name as TYPENAME,
-               ps.LEVELESTIMATE
+               t.name as TYPENAME
           from ACTSDOCS p, 
                ACTS a,
                ACTSGOODS ps,
@@ -46,12 +49,11 @@ begin
            and t.ID = ps.TYPICALOPERSID
       group by a.ELECTCAMPAIGNID, a.JURPERSONSID, p.DOCDATE,
                p.DOCTYPEID, p.DOCNUMBIN, p.DOCDATEIN,
-               ps.TYPICALOPERSID, c.AGENTID, p.ID, a.ID, t.name,
-               ps.LEVELESTIMATE
+               ps.TYPICALOPERSID, c.AGENTID, p.ID, a.ID, t.name
     LOOP
        fl:=false;
        update ACTSDOCS p set status = '2' where p.ID = rec.ACTSDOCSID;
-       if rec.count_typ > 1 then raise using message = 'Для платежного поручения указаны разные типовые операции'; end if;
+       if rec.count_typ > 1 then raise using message = 'Для акта указаны разные типовые операции'; end if;
       --найдем заголовок, если нет его, то добавим
        BEGIN
          select t.ID 
@@ -117,7 +119,8 @@ begin
                   case when t.ACCOUNTKTID is null and t.typetos = '0' then null else t.ACCOUNTKTID end as ACCOUNTKTID,
                   p.SETOFFPREPAYMENT as summ,
                   p.ID,
-                  t.MEMORDERID
+                  t.MEMORDERID,
+                  p.LEVELESTIMATE
              from ACTSDOCS p
              left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
              left join DICACCS d on d.ID = t.ACCOUNTDTID 
@@ -126,7 +129,7 @@ begin
               and p.SUPEXPENSE 
        loop
           insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,agentdtid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,agentktid,summ,memorderid,levelestimate)
-                values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.AGENTID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.AGENTID,sp.SUMM,sp.MEMORDERID,rec.LEVELESTIMATE)
+                values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.AGENTID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.AGENTID,sp.SUMM,sp.MEMORDERID,sp.LEVELESTIMATE)
           returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
           --Создаем связи
           perform p_system_doclinks_add('ACTSDOCS',nID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);

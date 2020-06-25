@@ -1,3 +1,4 @@
+
 CREATE OR REPLACE FUNCTION public.p_action_cashpayment_to_transactionlog(
     id bigint,
     uid bigint,
@@ -32,7 +33,6 @@ begin
                p.ID as CASHPAYMENT_HEADERID,
                a.ID as CASHDOCSID,
                t.name as TYPENAME,
-               ps.LEVELESTIMATE,
                p.STATEMENTHEADERID
           from CASHPAYMENT_HEADER p, 
                CASHDOCS a,
@@ -45,11 +45,11 @@ begin
       group by a.ELECTCAMPAIGNID, a.JURPERSONSID,
                p.DOCDATE, p.DOCTYPEID, p.DOCNUMB,
                ps.TYPICALOPERSID, p.PERSONID, p.ID, a.ID, t.name,
-               ps.LEVELESTIMATE, p.STATEMENTHEADERID
+               p.STATEMENTHEADERID
     LOOP
        update CASHPAYMENT_HEADER p set docstatus = '2' where p.ID = rec.CASHPAYMENT_HEADERID;
        exit when rec.STATEMENTHEADERID is not null;
-       if rec.count_typ > 1 then raise using message = 'Для платежного поручения указаны разные типовые операции'; end if;
+       if rec.count_typ > 1 then raise using message = 'Для РКО указаны разные типовые операции'; end if;
       --найдем заголовок, если нет его, то добавим
        BEGIN
          select t.ID 
@@ -84,7 +84,8 @@ begin
                   case when t.ACCOUNTKTID is null and t.typetos = '0' then null else COALESCE(t.ACCOUNTKTID,p.DICACCSID) end as ACCOUNTKTID,
                   p.SUMMPAY as SUMM,
                   p.ID,
-                  t.MEMORDERID
+                  t.MEMORDERID,
+                  p.LEVELESTIMATE
              from CASHPAYMENT p
              left join TYPICALOPERSPEC t on t.TYPICALOPERSID = p.TYPICALOPERSID
              left join DICACCS d on d.ID = t.ACCOUNTDTID 
@@ -94,7 +95,7 @@ begin
        )
        LOOP
            insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,persondtid,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,summ,memorderid,levelestimate)
-             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid,rec.LEVELESTIMATE)
+             values(nUID,nLID_TRANSACTIONLOG_STAGES,nTRANSACTIONLOG_DOCSID,sp.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.PERSONID,sp.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
            returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
            perform p_system_doclinks_add('CASHPAYMENT',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
        end loop; 
