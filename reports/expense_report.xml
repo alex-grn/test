@@ -15,86 +15,459 @@
 								to_char(r.docdate,'dd') as c2_3,
 								c.name as c3,
 								c.inn as c4,
-								p.name as c5,
+								pp.name as c5,
 								(select p_find_name_from_list('posts','postprint',z.postprint) from posts z where z.id = COALESCE(nullif(${postsid},''),'0')::bigint) as c6,
 								r.purpose as c7,
 								d2s(r.docdate) as c8,
 								r.balancesumm as c9,
 								r.overspending as c10,
 								(select z.code from person z where z.id = 123) as c50,
-								upper(SUBSTR(p_tools_to_propis(COALESCE((select sum(COALESCE(ex.REPORTSUMM)) from EXPENDED ex where ex.expensereportsid = e.id),0)),1,1))||
-								lower(SUBSTR(p_tools_to_propis(COALESCE((select sum(COALESCE(ex.REPORTSUMM)) from EXPENDED ex where ex.expensereportsid = e.id),0)),2)) as c51
-							from EXPENSE_DOCS r
-							inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
-							left join jurpersons j on j.id = e.jurpersonsid
-							left join electcommittee c on c.id = j.electcommitteeid
-							left join person p on p.id = r.personid
-							where r.id = ${id}::bigint 
-   							   ;
-						</script>
-                     </query>
-                </queries>
-			</band>
-			<band name="spec" orientation="H">
-				<queries>
-                     <query name="spec" type="sql">
-                        <script>
-							select case 
-									when c.docdate is not null then 'Расходный кассовый ордер от '||d2s(c.docdate)||' № '||c.docnumb
-									when d.docdate is not null then 'Платежное поручение от '||d2s(d.docdate)||' № '||d.docnumb
-									end as c11,
-									case 
-									when c.docdate is not null then round(sum(COALESCE(ch.SUMMPAY,0)),2)
-									when d.docdate is not null then round(sum(COALESCE(dc.SUMM,0)),2)
-									end as c12
-								from EXPENSE_DOCS r
-							   inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
-							   inner join PREPAID_EXPENSE p on p.expensereportsid = e.id
+                                upper(SUBSTR(p_tools_to_propis(COALESCE((select sum(COALESCE(ex.REPORTSUMM)) from EXPENDED ex where ex.expense_docs_id = e.id),0)),1,1))||
+                                lower(SUBSTR(p_tools_to_propis(COALESCE((select sum(COALESCE(ex.REPORTSUMM)) from EXPENDED ex where ex.expense_docs_id = e.id),0)),2)) as c51,
+                                
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 1) as c17_1,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 1) as c18_1,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 1) as c19_1,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 2) as c17_2,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 2) as c18_2,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 2) as c19_2,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 3) as c17_3,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 3) as c18_3,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 3) as c19_3,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 4) as c17_4,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 4) as c18_4,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 4) as c19_4,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 5) as c17_5,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 5) as c18_5,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 5) as c19_5,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 6) as c17_6,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 6) as c18_6,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 6) as c19_6,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 7) as c17_7,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 7) as c18_7,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 7) as c19_7,
+                                  (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.dtbudgclassid
+                                   inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.dteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 8) as c17_8,
+                                (select tbl.accnumb
+                                  from (select row_number() OVER(order by t.id) as pp, b.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as accnumb
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   left join BUDGCLASS b on b.id = t.ktbudgclassid
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                   left join ECONCLASS ec on ec.id = t.kteconclassktid
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 8) as c18_8,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl
+                                  where tbl.pp = 8) as c19_8,
+                                 (select sum(COALESCE(t.summ,0))
+                                   from doclinks d,
+                                        TRANSACTIONLOG_STAGES t, DICACCS a
+                                  where d.tablein ilike 'EXPENSE_DOCS' and d.keyin = r.id
+                                    and d.tableout ilike 'TRANSACTIONLOG_STAGES' and t.id = d.keyout
+                                    and a.id = t.accountktid and a.accbalance = '1') as c20,
+                                  (select case 
+									when c.docdate is not null then 'Расходный кассовый ордер № '||c.docnumb||' от '||d2s(c.docdate)
+									when d.docdate is not null then 'Платежное поручение № '||d.docnumb||' от '||d2s(d.docdate)
+									end 
+								from PREPAID_EXPENSE p  
 								left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
 								left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
 								left join PAYDOCS d on d.id = p.paydocsid
 								left join PAYDOCSCONS dc on dc.paydocsid = d.id
-								where r.id = ${id}::bigint 
+								where p.expense_docs_id = r.id
 								group by c.docdate,c.docnumb,
-										 d.docdate,d.docnumb
-   							   ;
-						</script>
-                     </query>
-                </queries>
-			</band>
-			<band name="middle" orientation="H">
-				<queries>
-                     <query name="middle" type="sql">
-                        <script>
-							select tbl.c13,
-								tbl.c14,
-								case 
-								when tbl.c13-tbl.c14 > 0 then tbl.c13-tbl.c14
-								else 0
-								end as c15,
-								case
-								when 0 > tbl.c13-tbl.c14 then abs(tbl.c13-tbl.c14)
-								else 0
-								end as c16,
-								(select p.code from person p where p.id = COALESCE(nullif(${rpersonid},''),'0')::bigint) as c47,  
-								(select p.code from person p where p.id = COALESCE(nullif(${gbpersonid},''),'0')::bigint) as c48, 
-								(select p.code from person p where p.id = COALESCE(nullif(${bbpersonid},''),'0')::bigint) as c49  
-							FROM(
-							select 
-							(select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
+										 d.docdate,d.docnumb) as c11,
+                                (select case 
+									when c.docdate is not null then round(sum(COALESCE(ch.SUMMPAY,0)),2)
+									when d.docdate is not null then round(sum(COALESCE(dc.SUMM,0)),2)
+									end 
+								from PREPAID_EXPENSE p  
+								left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+								left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+								left join PAYDOCS d on d.id = p.paydocsid
+								left join PAYDOCSCONS dc on dc.paydocsid = d.id
+								where p.expense_docs_id = r.id
+								group by c.docdate,c.docnumb,
+										 d.docdate,d.docnumb) as c12,
+                            (select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
 							from PREPAID_EXPENSE p 
 							left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
 							left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
 							left join PAYDOCS d on d.id = p.paydocsid
 							left join PAYDOCSCONS dc on dc.paydocsid = d.id
-							where p.expensereportsid = e.id) as c13,       
-							(select sum(COALESCE(i.registersumm,0))
+							where p.expense_docs_id = r.id) as c13,
+                            (select sum(COALESCE(i.registersumm,0))
 							from EXPENDED i 
-							where i.expensereportsid = e.id) as c14
-							from EXPENSE_DOCS r
-							inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
-							where r.id = ${id}::bigint 
-							group by e.id) tbl
+							where i.expense_docs_id = r.id) as c14,
+                            case when 
+                            (select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
+							from PREPAID_EXPENSE p 
+							left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+							left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+							left join PAYDOCS d on d.id = p.paydocsid
+							left join PAYDOCSCONS dc on dc.paydocsid = d.id
+							where p.expense_docs_id = r.id) - 
+                            (select sum(COALESCE(i.registersumm,0))
+							from EXPENDED i 
+							where i.expense_docs_id = r.id) = 0 
+                            then 
+                            (select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
+							from PREPAID_EXPENSE p 
+							left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+							left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+							left join PAYDOCS d on d.id = p.paydocsid
+							left join PAYDOCSCONS dc on dc.paydocsid = d.id
+							where p.expense_docs_id = r.id) - 
+                            (select sum(COALESCE(i.registersumm,0))
+							from EXPENDED i 
+							where i.expense_docs_id = r.id)
+                            else 0
+                            end as c15,
+                            case when 0 >
+                            (select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
+							from PREPAID_EXPENSE p 
+							left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+							left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+							left join PAYDOCS d on d.id = p.paydocsid
+							left join PAYDOCSCONS dc on dc.paydocsid = d.id
+							where p.expense_docs_id = r.id) - 
+                            (select sum(COALESCE(i.registersumm,0))
+							from EXPENDED i 
+							where i.expense_docs_id = r.id) 
+                            THEN
+                            ABS(
+                            (select sum(COALESCE(ch.SUMMPAY,0)+COALESCE(dc.SUMM,0)) as summ
+							from PREPAID_EXPENSE p 
+							left join CASHPAYMENT_HEADER c on c.id = p.cashpaymentheaderid
+							left join CASHPAYMENT ch on ch.cashpaymentheaderid = c.id
+							left join PAYDOCS d on d.id = p.paydocsid
+							left join PAYDOCSCONS dc on dc.paydocsid = d.id
+							where p.expense_docs_id = r.id) - 
+                            (select sum(COALESCE(i.registersumm,0))
+							from EXPENDED i 
+							where i.expense_docs_id = r.id) 
+                            ) 
+                            else 0
+                            end as c16,
+							(select p.code from person p where p.id = COALESCE(nullif(${rpersonid},''),'0')::bigint) as c47,  
+							(select p.code from person p where p.id = COALESCE(nullif(${gbpersonid},''),'0')::bigint) as c48, 
+							(select p.code from person p where p.id = COALESCE(nullif(${bbpersonid},''),'0')::bigint) as c49
+                            from EXPENSE_DOCS r
+                            inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
+                            left join jurpersons j on j.id = e.jurpersonsid
+                            left join electcommittee c on c.id = j.electcommitteeid
+                            left join person pp on pp.id = r.personid
+                            where r.id = ${id}::bigint
    							   ;
 						</script>
                      </query>
@@ -104,19 +477,53 @@
 				<queries>
                      <query name="spec1" type="sql">
                         <script>
-								select round(sum(cr.SUMMPAY),2) as c23,
-                                     round(sum(cp.SUMMPAY),2) as c24,
-                                     h.docnumb as c25,
-                                     d2s(h.docdate) as c26
+								select 
+								 round(sum(COALESCE(cr.SUMMPAY,rp.SUMM,0)),2) as c23,
+                                     round(sum(COALESCE(cp.SUMMPAY,pc.SUMM,0)),2) as c24,
+                                     d2s(COALESCE(p.docdate,ch.docdate,rh.docdate,rd.docdate)) as c26,
+                                     COALESCE(p.docnumb,ch.docnumb,rh.docnumb,rd.docnumb) as c25,
+                                     COALESCE(b2.code||'.'||t2.dtfinsecurity||'.'||d2.accnumb||'.'||ec2.code,b3.code||'.'||t3.dtfinsecurity||'.'||d3.accnumb||'.'||ec3.code,b1.code||'.'||t1.ktfinsecurity||'.'||d1.accnumb||'.'||ec1.code,b4.code||'.'||t4.ktfinsecurity||'.'||d4.accnumb||'.'||ec4.code) as c22
 								from EXPENSE_DOCS r
 						       inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
-                               inner join BALANCE_INFORMATION b on b.expensereportsid = e.id
-                                left join CASHRECEIPT cr on cr.cashreceiptheaderid = b.cashreceiptheaderid
-                                left join CASHPAYMENT cp on cp.cashpaymentheaderid = b.cashpaymentheaderid
-                                left join CASHPAYMENT_HEADER h on h.id = cp.cashpaymentheaderid
+                               inner join BALANCE_INFORMATION b on b.expense_docs_id = r.id
+                               
+                                left join PAYDOCS p on p.id = b.paydocsid
+                                left join PAYDOCSCONS pc on pc.paydocsid = p.id
+                                left join doclinks dl on dl.tablein ilike 'PAYDOCSCONS' and dl.keyin = pc.id and dl.tableout ilike 'TRANSACTIONLOG_STAGES'
+                                left join TRANSACTIONLOG_STAGES t2 on t2.id = dl.keyout
+                                left join DICACCS d2 on d2.id = t2.accountdtid and d2.accbalance = '1'
+                                left join BUDGCLASS b2 on b2.id = t2.dtbudgclassid
+                                left join ECONCLASS ec2 on ec2.id = t2.dteconclassktid
+                                
+                                left join CASHPAYMENT_HEADER ch on ch.id = b.cashpaymentheaderid 
+                                left join CASHPAYMENT cp on cp.cashpaymentheaderid = ch.id
+                                left join doclinks d on d.tablein ilike 'CASHPAYMENT' and d.keyin = cp.id and d.tableout ilike 'TRANSACTIONLOG_STAGES' 
+                                left join TRANSACTIONLOG_STAGES t3 on t3.id = d.keyout
+                                left join DICACCS d3 on d3.id = t3.accountdtid and d3.accbalance = '1'
+                                left join BUDGCLASS b3 on b3.id = t3.dtbudgclassid
+                                left join ECONCLASS ec3 on ec3.id = t3.dteconclassktid
+                                
+                                left join CASHRECEIPT_HEADER rh on rh.id = b.cashreceiptheaderid
+                                left join CASHRECEIPT cr on cr.cashreceiptheaderid = rh.id
+                                left join doclinks k on k.tablein ilike 'CASHRECEIPT' and k.keyin = cr.id and k.tableout ilike 'TRANSACTIONLOG_STAGES'
+                                left join TRANSACTIONLOG_STAGES t1 on t1.id = k.keyout
+                                left join DICACCS d1 on d1.id = t1.accountktid and d1.accbalance = '1'
+                                left join BUDGCLASS b1 on b1.id = t1.ktbudgclassid
+                                left join ECONCLASS ec1 on ec1.id = t1.kteconclassktid
+                                
+                                left join RECEIPTSDOCS rd on rd.id = b.receiptsdocsid
+                                left join RECEIPTSDOCSCONS rp on rp.receiptsdocsid = rd.id
+                                left join doclinks k1 on k1.tablein ilike 'RECEIPTSDOCSCONS' and k1.keyin = rp.id and k1.tableout ilike 'TRANSACTIONLOG_STAGES'
+                                left join TRANSACTIONLOG_STAGES t4 on t4.id = k1.keyout
+                                left join DICACCS d4 on d4.id = t4.accountktid and d4.accbalance = '1'
+                                left join BUDGCLASS b4 on b4.id = t4.ktbudgclassid
+                                left join ECONCLASS ec4 on ec4.id = t4.kteconclassktid
                                 where r.id = ${id}::bigint 
-                                group by h.docnumb,
-                                         h.docdate
+                                group by COALESCE(p.docdate,ch.docdate,rh.docdate,rd.docdate),
+                                         COALESCE(p.docnumb,ch.docnumb,rh.docnumb,rd.docnumb),
+                                         COALESCE(b2.code||'.'||t2.dtfinsecurity||'.'||d2.accnumb||'.'||ec2.code,b3.code||'.'||t3.dtfinsecurity||'.'||d3.accnumb||'.'||ec3.code,b1.code||'.'||t1.ktfinsecurity||'.'||d1.accnumb||'.'||ec1.code,b4.code||'.'||t4.ktfinsecurity||'.'||d4.accnumb||'.'||ec4.code)
+                                  having COALESCE(b2.code||'.'||t2.dtfinsecurity||'.'||d2.accnumb||'.'||ec2.code,b3.code||'.'||t3.dtfinsecurity||'.'||d3.accnumb||'.'||ec3.code,b1.code||'.'||t1.ktfinsecurity||'.'||d1.accnumb||'.'||ec1.code,b4.code||'.'||t4.ktfinsecurity||'.'||d4.accnumb||'.'||ec4.code) is not null
+                                         
    							   ;
 						</script>
                      </query>
@@ -131,7 +538,7 @@
                                      d2s(r.docdate) as c29,
                                      (select sum(COALESCE(i.registersumm,0))
 							            from EXPENDED i 
-							           where i.expensereportsid = e.id) as c30,
+							           where i.expense_docs_id = e.id) as c30,
                                        (select p.code from person p where p.id = COALESCE(nullif(${bpersonid},''),'0')::bigint) as c44,  
 								       (select p_find_name_from_list('posts','postprint',z.postprint) from posts z where z.id = COALESCE(nullif(${bkpostsid},''),'0')::bigint) as c45,
 								       (select p.code from person p where p.id = COALESCE(nullif(${bkpersonid},''),'0')::bigint) as c46,  
@@ -156,10 +563,22 @@
                                      d2s(b.docdate) as c32,
                                      b.purpose as c34,
                                      b.reportsumm as c35,
-                                     b.registersumm as c36
+                                     b.registersumm as c36,
+									 bg.code||'.'||t.dtfinsecurity||'.'||a.accnumb||'.'||ec.code as c37,
+                                     bg2.code||'.'||t.ktfinsecurity||'.'||a2.accnumb||'.'||ec2.code as c38
                                 from EXPENSE_DOCS r
                                inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
-                               inner join EXPENDED b on b.expensereportsid = e.id
+                               inner join EXPENDED b on b.expense_docs_id = r.id
+							   left join doclinks d on d.tablein ilike 'EXPENDED'
+                                                        and d.keyin = b.id
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                               left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                               left join BUDGCLASS bg on bg.id = t.dtbudgclassid
+                               inner join DICACCS a on a.id = t.accountdtid and a.accbalance = '1'
+                               left join ECONCLASS ec on ec.id = t.dteconclassktid
+                               left join BUDGCLASS bg2 on bg2.id = t.ktbudgclassid
+                               inner join DICACCS a2 on a2.id = t.accountktid and a2.accbalance = '1'
+                               left join ECONCLASS ec2 on ec2.id = t.kteconclassktid
                                 where r.id = ${id}::bigint
    							   ;
 						</script>
@@ -171,18 +590,18 @@
                      <query name="floor2" type="sql">
                         <script>
 							select p.code as c43,
-                                     (select sum(COALESCE(b.reportsumm,0)) from EXPENDED b where b.expensereportsid = e.id) as c39,
-                                     (select sum(COALESCE(b.registersumm,0)) from EXPENDED b where b.expensereportsid = e.id) as c40,
+                                     (select sum(COALESCE(b.reportsumm,0)) from EXPENDED b where b.expense_docs_id = e.id) as c39,
+                                     (select sum(COALESCE(b.registersumm,0)) from EXPENDED b where b.expense_docs_id = e.id) as c40,
                                      (select round(sum(cr.SUMMPAY),2)
                                         from BALANCE_INFORMATION b
                                    left join CASHRECEIPT cr on cr.cashreceiptheaderid = b.cashreceiptheaderid
                                    left join CASHPAYMENT cp on cp.cashpaymentheaderid = b.cashpaymentheaderid
-                                       where b.expensereportsid = e.id) as c41,
+                                       where b.expense_docs_id = e.id) as c41,
                                      (select round(sum(cp.SUMMPAY),2)
                                         from BALANCE_INFORMATION b
                                    left join CASHRECEIPT cr on cr.cashreceiptheaderid = b.cashreceiptheaderid
                                    left join CASHPAYMENT cp on cp.cashpaymentheaderid = b.cashpaymentheaderid
-                                       where b.expensereportsid = e.id) as c42
+                                       where b.expense_docs_id = e.id) as c42
                                 from EXPENSE_DOCS r
                                inner join EXPENSE_REPORTS e on e.id = r.expensereportsid
                                 left join person p on p.id = r.personid
