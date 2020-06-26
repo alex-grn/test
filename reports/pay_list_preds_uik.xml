@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="report">
+    <templates>
+        <template code="DEFAULT" documentName="pay_list_preds_uik" documentPath="pay_list_preds_uik" outputType="xlsx" outputNamePattern="pay_list_preds_uik"/>
+	</templates>
+    <rootBand name="Root" orientation="H">
+        <bands>
+            <band name="Header" orientation="H">
+				<queries>			
+					<query name="header" type="sql">
+                        <script>
+/*
+по образцу отчета sheet_calculation_tik Расчетная ведомость
+Задание: Реализовать ведомости начислений ведомственного коэффициента председателям УИК, членам ТИК. 
+Отчеты формируются в разделе Расчетные документы. register Отчет формируется по 1 записи.
+Входящие параметры: 
+Председатель Избирательной комиссии – здесь нужен выбор из спецификации Ответственные лица избирательной комиссии.
+Бухгалтер - здесь нужен выбор из спецификации Ответственные лица избирательной комиссии.
+Порядок формирования отчетов одинаков.
+Необходима проверка на корректность выбора отчета в зависимости от типа документа. 
+При неверном выборе выводить ошибку «Неверно выбран шаблон печати ведомости для документа типа {тип документа}
+
+Изменения:
+Расчет колонки (sumpay_add_time) Начислено дополни-тельной 
+оплаты труда (вознаграждения) 
+за фактически отработанное время, руб.
+1.для члена комиссии:(не в этом отчете)
+в Расчетном листе (PAYS) по текущему расчетному документу
+суммируем выплаты 
+выплаты 'Начислено ДОТ за ФОВ'
+выплаты 'ДОТ за активную работу'
+
+2.для председателя комиссии 
+находим извирательную кампанию и по ней по всем избиркомам ищем суммы
+выплаты 'Начислено ДОТ за ФОВ'  
+выплаты 'ДОТ за активную работу'
+
+*/
+select r.code,
+	   ik.name,
+       c.officialname
+  from register r,
+	   ELECTCOMMINCAMP k,
+	   ELECTCAMPAIGN c,
+	   ELECTCOMMITTEE ik,
+	   REGIONSRF Reg
+where r.id = any(P_SYSTEM_GET_SELECTLIST(${idlist}::text))
+  and k.id = r.electcommincampid
+  and c.id = k.electcampaignid
+  and ik.id = k.electcommitteeid
+  and reg.id = ik.regionsrfid;
+						</script>
+                     </query>
+                </queries>
+			</band>
+            <band name="Title" orientation="H"/>						
+            <band name="Spec" orientation="H">
+                <queries>
+                    <query name="myQuery" type="sql">
+							<script>
+SELECT ROW_NUMBER() OVER() AS PNUM,
+       SP.POSTBEGINDATE,
+       SP.FIO,
+       MAX(SP.V_COEF) AS DEPCOEFF,
+       SUM(SP.N_SUM) AS SUMPAY,
+       SUM(SP.N_SUM_A) AS SUMPAY_ADD_TIME
+  FROM (SELECT CH.ID,
+               CH.POSTBEGINDATE,
+               COALESCE(PP.SURNAME, '') || ' ' || COALESCE(PP.FIRSTNAME, '') || ' ' || COALESCE(PP.MIDDLENAME, '') AS FIO,
+               COALESCE(R.DEPCOEFF, 0) AS V_COEF,
+               COALESCE((SELECT SUM(COALESCE(PP.SUMPAY, 0))
+                          FROM PAYS          PP,
+                               SLCOMPCHARGES S
+                         WHERE PP.REGISTERLISTID = R.ID
+                           AND S.ID = PP.SLCOMPCHARGESID
+                           AND S.DESCRIPTION = 'EXTRAA'),
+                        0) AS N_SUM,
+               COALESCE((SELECT SUM(COALESCE(PP.SUMPAY, 0))
+                          FROM PAYS          PP,
+                               SLCOMPCHARGES S
+                         WHERE PP.REGISTERLISTID IN (SELECT RL.ID
+                                                       FROM REGISTERLIST RL, --'Члены избирательной комиссии по ведомости';
+                                                            REGISTER     RRL --'Расчетные документы';
+                                                      WHERE RRL.ID = RL.REGISTERID
+                                                        AND RRL.ELECTCAMPAIGNID = IK.ID
+                                                        AND RL.COMMITTEEMANID = R.COMMITTEEMANID)
+                           AND S.ID = PP.SLCOMPCHARGESID
+                           AND S.DESCRIPTION = 'SUMEXTRA12'),
+                        0) AS N_SUM_A
+          FROM REGISTERLIST    R, --'Члены избирательной комиссии по ведомости';
+               COMMITTEEMAN    CH, --'Члены избирательных комиссий';
+               PERSON 		   PP,
+               REGISTER        RR, --'Расчетные документы';
+               ELECTCAMPAIGN   IK, --'Избирательные кампании';
+               ELECTCOMMINCAMP I --'Избирательные комиссии, участвующие в кампании';
+         WHERE R.REGISTERID = any(P_SYSTEM_GET_SELECTLIST(${idlist}::text))
+           AND CH.ID = R.COMMITTEEMANID
+           AND PP.ID = CH.PERSONID
+           AND RR.ID = R.REGISTERID
+           AND IK.ID = RR.ELECTCAMPAIGNID
+           AND I.ID = RR.ELECTCOMMINCAMPID) SP
+ GROUP BY SP.ID,
+          SP.POSTBEGINDATE,
+          SP.FIO
+ ORDER BY SP.POSTBEGINDATE,
+          SP.FIO;
+
+						</script>
+                    </query>
+                </queries>
+            </band>
+            <band name="Footer" orientation="H">                
+			    <queries>
+                    <query name="myQuery" type="sql">
+							<script>
+							select ( select name from PERSON where id= ${supervisor}::bigint )::text as supervisor,( select name from PERSON where id=  ${accountant}::bigint )::text as accountant
+							</script>
+                    </query>
+                </queries>
+            </band>
+			
+        </bands>
+    </rootBand>
+</report>
