@@ -1,0 +1,34 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_disband_dis (
+  idlist text
+)
+RETURNS void AS
+$body$
+declare
+  rec    RECORD;
+begin
+
+  for rec in (
+      select k.id
+        from MBT_CONTRACT k
+       where k.id = any(p_system_get_selectlist(idlist))
+  )  
+  loop
+     delete from DISTRIB_MBT j where exists (select 1
+                                             from DOCLINKS d
+                                            where d.TABLEIN ilike 'MBT_CONTRACT'
+                                              and d.KEYIN = rec.ID
+                                              and d.TABLEOUT ilike 'DISTRIB_MBT'
+                                              and d.KEYOUT = j.ID);
+     PERFORM P_SYSTEM_DOCLINKS_DEL('MBT_CONTRACT',rec.ID,'DISTRIB_MBT');
+  end loop;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_fin_disband_dis (idlist text)
+  OWNER TO magicbox;

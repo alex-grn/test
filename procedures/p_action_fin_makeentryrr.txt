@@ -1,0 +1,126 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_makeentryrr (
+  idlist text,
+  uid bigint
+)
+RETURNS void AS
+$body$
+/*Отработка документа из "Расходные расписания"*/
+declare
+  nUID  BIGINT:=UID;
+  nLID  BIGINT:=P_SYSTEM_GEN_LID('JURNALEXP',nUID);
+  RC    RECORD;
+  JR    RECORD;
+  JURNALEXPID bigint;
+  fl    boolean:=false;
+begin
+
+  for RC in (
+      select F.ID,
+             F.DATE_UTV_RR,
+             F.BUDGETS_ID,
+             F.YEAR_U,
+             F.NOM_RR,
+             F.DATE_FORM_RR,
+             F.AGENT_ACC_ID
+        from EXPSHD f
+       where f.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+  )
+  LOOP
+      /*Если есть связь между расходным расписанием и распределением бюджетных средств, то делаем отработку из распределения бюджетных средств*/ 
+     fl:=false;
+     for JR in (
+         select d.keyin
+           from doclinks d
+          where d.tableout ilike 'EXPSHD'
+            and d.keyout = RC.ID
+            and d.tablein ilike 'DISTRIBDATA'
+     )
+     loop
+          perform p_action_fin_deleteentrydd(JR.keyin::TEXT,nUID);
+          perform p_action_fin_makeentrydd(JR.keyin::TEXT,nUID);
+          PERFORM p_action_set_status('EXPSHD',RC.ID::text,'1');
+          fl:=true;
+     end loop;
+     --если связь есть, то не нужно отрабатывать.
+     if fl then
+        CONTINUE;
+     end if;
+     FOR JR IN (
+         select s.ID,
+                'EXPSHD_BA' as TABLE,
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'IN_BA') as types,
+                s.KBR_ID,
+                COALESCE(s.SUM_BA_Y1,0) as summa,
+                COALESCE(s.SUM_BA_Y2,0) as summa1,
+                COALESCE(s.SUM_BA_Y3,0) as summa2,
+                s.NOTE_BA_STR as note,
+                null as capobjects_id
+           from EXPSHD_BA s
+          where s.EXPSHDID = RC.ID
+          union
+         select s.ID,
+                'EXPSHD_LBO',
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'IN_LBO') as types,
+                s.KBR_ID,
+                COALESCE(s.SUM_LBO_Y1,0),
+                COALESCE(s.SUM_LBO_Y2,0),
+                COALESCE(s.SUM_LBO_Y3,0),
+                s.NOTE_LBO_STR,
+                s.CAPOBJECTS_ID
+           from EXPSHD_LBO s
+          where s.EXPSHDID = RC.ID
+          union
+         select s.ID,
+                'EXPSHD_POF',
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'IN_POF') as types,
+                s.KBR_ID,
+                COALESCE(s.SUM_POF_Y1,0),
+                0,
+                0,
+                s.NOTE_POF_STR,
+                null
+           from EXPSHD_POF s
+          where s.EXPSHDID = RC.ID 
+     )
+     LOOP
+         if JR.SUMMA > 0 then
+           insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,CAPOBJECTS_ID,AGENT_ACC_ID)
+           values(nUID,nLID,JR.TYPES,RC.DATE_UTV_RR,RC.BUDGETS_ID,RC.YEAR_U,JR.KBR_ID,'Расходное расписание',RC.NOM_RR,RC.DATE_FORM_RR,JR.SUMMA,JR.NOTE,JR.CAPOBJECTS_ID,RC.AGENT_ACC_ID)
+           returning JURNALEXP.ID into JURNALEXPID;
+           if not exists(select 1 from DOCLINKS d where d.tablein = 'EXPSHD' and d.keyin = RC.ID and d.tableout = 'JURNALEXP' and d.keyout = JURNALEXPID) then
+              PERFORM p_system_doclinks_add('EXPSHD',RC.ID,'JURNALEXP',JURNALEXPID);
+           end if;
+           PERFORM p_system_doclinks_add(JR.TABLE,JR.ID,'JURNALEXP',JURNALEXPID);
+         end if;
+         if JR.SUMMA1 > 0 then
+           insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,CAPOBJECTS_ID,AGENT_ACC_ID)
+           values(nUID,nLID,JR.TYPES,RC.DATE_UTV_RR,RC.BUDGETS_ID,RC.YEAR_U+1,JR.KBR_ID,'Расходное расписание',RC.NOM_RR,RC.DATE_FORM_RR,JR.SUMMA1,JR.NOTE,JR.CAPOBJECTS_ID,RC.AGENT_ACC_ID)
+           returning JURNALEXP.ID into JURNALEXPID;
+           if not exists(select 1 from DOCLINKS d where d.tablein = 'EXPSHD' and d.keyin = RC.ID and d.tableout = 'JURNALEXP' and d.keyout = JURNALEXPID) then
+              PERFORM p_system_doclinks_add('EXPSHD',RC.ID,'JURNALEXP',JURNALEXPID);
+           end if;
+           PERFORM p_system_doclinks_add(JR.TABLE,JR.ID,'JURNALEXP',JURNALEXPID);
+         end if;
+         if JR.SUMMA2 > 0 then
+           insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,CAPOBJECTS_ID,AGENT_ACC_ID)
+           values(nUID,nLID,JR.TYPES,RC.DATE_UTV_RR,RC.BUDGETS_ID,RC.YEAR_U+2,JR.KBR_ID,'Расходное расписание',RC.NOM_RR,RC.DATE_FORM_RR,JR.SUMMA2,JR.NOTE,JR.CAPOBJECTS_ID,RC.AGENT_ACC_ID)
+           returning JURNALEXP.ID into JURNALEXPID;
+           if not exists(select 1 from DOCLINKS d where d.tablein = 'EXPSHD' and d.keyin = RC.ID and d.tableout = 'JURNALEXP' and d.keyout = JURNALEXPID) then
+              PERFORM p_system_doclinks_add('EXPSHD',RC.ID,'JURNALEXP',JURNALEXPID);
+           end if;
+           PERFORM p_system_doclinks_add(JR.TABLE,JR.ID,'JURNALEXP',JURNALEXPID);
+         end if;
+     END LOOP;
+     PERFORM p_action_set_status('EXPSHD',RC.ID::text,'1');
+  END LOOP;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_fin_makeentryrr (idlist text, uid bigint)
+  OWNER TO magicbox;

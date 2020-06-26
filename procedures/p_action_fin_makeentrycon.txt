@@ -1,0 +1,61 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_makeentrycon (
+  idlist text,
+  uid bigint
+)
+RETURNS void AS
+$body$
+declare
+  nUID  BIGINT:=UID;
+  RC    RECORD;
+  JR    RECORD;
+  JURNALEXPID bigint;
+begin
+
+  for RC in 
+      select F.ID,
+             F.SIGNDATE,
+             F.BUDGETS_ID,
+             F.YEAR_U,
+             L.KBR_ID,
+             p_find_name_from_list('MBT_CONTRACT','CONTRACT_TYPE',F.CONTRACT_TYPE) as CONTRACT_TYPE,
+             F.CONTRACT_NOM,
+             F.CONTRACT_DATE,
+             L.ACODES_ID
+        from MBT_CONTRACT f,
+             MBT_LIST l
+       where f.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+         and l.ID = f.MBT_LISTID
+  
+  LOOP
+     if RC.SIGNDATE is null then 
+        raise using message = 'Отсутствует "Дата утверждения", выполнение действия запрещено!';
+     end if;
+     FOR JR IN 
+         select s.ID,
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'BO') as types,
+                COALESCE(s.ALLOCATED_SUM,0) as summa,
+                r.AGENT2_ACCID,
+                s.NOTE
+           from MBT_CONTACT_REC s,
+                MBT_RECIP R
+          where s.MBT_CONTRACTID = RC.ID
+            and r.ID = s.MBT_RECIPID
+     LOOP
+        insert into JURNALEXP(UID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,AGENT_ACC_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE)
+        values(nUID,JR.TYPES,RC.SIGNDATE,RC.BUDGETS_ID,RC.YEAR_U,RC.KBR_ID,JR.AGENT2_ACCID,RC.CONTRACT_TYPE,RC.CONTRACT_NOM,RC.CONTRACT_DATE,JR.SUMMA,JR.NOTE)
+        returning JURNALEXP.ID into JURNALEXPID;
+        PERFORM p_system_doclinks_add('MBT_CONTACT_REC',JR.ID,'JURNALEXP',JURNALEXPID);
+     END LOOP;
+     PERFORM p_action_set_status('MBT_CONTRACT',RC.ID::text,'1');
+  END LOOP;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_fin_makeentrycon (idlist text, uid bigint)
+  OWNER TO magicbox;

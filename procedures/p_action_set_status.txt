@@ -1,0 +1,22 @@
+CREATE OR REPLACE FUNCTION public.p_action_set_status (
+  tablename text,
+  idlist text,
+  val text
+)
+RETURNS void AS
+$body$
+declare
+ 
+begin 
+    execute 'update '||tablename||' f set status = '||val||' where f.id = any(P_SYSTEM_GET_SELECTLIST($1));'
+    using idlist;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_set_status (tablename text, idlist text, val text)
+  OWNER TO magicbox;

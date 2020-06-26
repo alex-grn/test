@@ -1,0 +1,104 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_makeentryku (
+  idlist text,
+  uid bigint
+)
+RETURNS void AS
+$body$
+declare
+  nUID  BIGINT:=UID;
+  RC    RECORD;
+  JR    RECORD;
+  JURNALEXPID bigint;
+  nLID  bigint:=P_SYSTEM_GEN_LID('JURNALEXP',nUID);
+begin
+
+  for RC in (
+      select F.ID,
+             F.DATE_VKU,
+             F.BUDGETS_ID,
+             F.YEAR_U,
+             F.NOM_KU,
+             F.DATE_KU
+        from UFK_NOTIF f
+       where f.ID = ANY(P_SYSTEM_GET_SELECTLIST(IDLIST))
+  )
+  LOOP
+     FOR JR IN (
+         select s.ID,
+                'UFK_NOTIF_BA' as TABLE,
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'IN_BA') as types,
+                s.KBR_ID,
+                COALESCE(s.SUM_BA_Y1,0) as summa,
+                COALESCE(s.SUM_BA_Y2,0) as summa1,
+                COALESCE(s.SUM_BA_Y3,0) as summa2,
+                s.NOTE_BA_STR as note,
+                null as capobjects_id
+           from UFK_NOTIF_BA s
+          where s.UFK_NOTIFID = RC.ID
+          union
+         select s.ID,
+                'UFK_NOTIF_LBO',
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'IN_LBO') as types,
+                s.KBR_ID,
+                COALESCE(s.SUM_LBO_Y1,0),
+                COALESCE(s.SUM_LBO_Y2,0),
+                COALESCE(s.SUM_LBO_Y3,0),
+                s.NOTE_LBO_STR,
+                s.CAPOBJECTS_ID
+           from UFK_NOTIF_LBO s
+          where s.UFK_NOTIFID = RC.ID
+          union
+         select s.ID,
+                'UFK_NOTIF_POF',
+                (SELECT R.ID FROM RECORD_TYPES R WHERE R.RECORD_TYPE ILIKE 'IN_POF') as types,
+                s.KBR_ID,
+                COALESCE(s.SUM_POF_Y1,0),
+                0,
+                0,
+                s.NOTE_POF_STR,
+                null
+           from UFK_NOTIF_POF s
+          where s.UFK_NOTIFID = RC.ID 
+     )
+     LOOP
+         if JR.SUMMA > 0 then
+           insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,CAPOBJECTS_ID)
+           values(nUID,nLID,JR.TYPES,RC.DATE_VKU,RC.BUDGETS_ID,RC.YEAR_U,JR.KBR_ID,'Казначейское уведомление',RC.NOM_KU,RC.DATE_KU,JR.SUMMA,JR.NOTE,JR.CAPOBJECTS_ID)
+           returning JURNALEXP.ID into JURNALEXPID;
+           if not exists(select 1 from DOCLINKS d where d.tablein = 'UFK_NOTIF' and d.keyin = RC.ID and d.tableout = 'JURNALEXP' and d.keyout = JURNALEXPID) then
+              PERFORM p_system_doclinks_add('UFK_NOTIF',RC.ID,'JURNALEXP',JURNALEXPID);
+           end if;
+           PERFORM p_system_doclinks_add(JR.TABLE,JR.ID,'JURNALEXP',JURNALEXPID);
+         end if;
+         if JR.SUMMA1 > 0 then
+           insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,CAPOBJECTS_ID)
+           values(nUID,nLID,JR.TYPES,RC.DATE_VKU,RC.BUDGETS_ID,RC.YEAR_U+1,JR.KBR_ID,'Казначейское уведомление',RC.NOM_KU,RC.DATE_KU,JR.SUMMA1,JR.NOTE,JR.CAPOBJECTS_ID)
+           returning JURNALEXP.ID into JURNALEXPID;
+           if not exists(select 1 from DOCLINKS d where d.tablein = 'UFK_NOTIF' and d.keyin = RC.ID and d.tableout = 'JURNALEXP' and d.keyout = JURNALEXPID) then
+              PERFORM p_system_doclinks_add('UFK_NOTIF',RC.ID,'JURNALEXP',JURNALEXPID);
+           end if;
+           PERFORM p_system_doclinks_add(JR.TABLE,JR.ID,'JURNALEXP',JURNALEXPID);
+         end if;
+         if JR.SUMMA2 > 0 then
+           insert into JURNALEXP(UID,LID,RECORD_TYPESID,RECORD_DATE,BUDGETS_ID,YEAR_U,KBR_ID,DOCTYPE,DOCNUMB,DOCDATE,SUM,NOTE,CAPOBJECTS_ID)
+           values(nUID,nLID,JR.TYPES,RC.DATE_VKU,RC.BUDGETS_ID,RC.YEAR_U+2,JR.KBR_ID,'Казначейское уведомление',RC.NOM_KU,RC.DATE_KU,JR.SUMMA2,JR.NOTE,JR.CAPOBJECTS_ID)
+           returning JURNALEXP.ID into JURNALEXPID;
+           if not exists(select 1 from DOCLINKS d where d.tablein = 'UFK_NOTIF' and d.keyin = RC.ID and d.tableout = 'JURNALEXP' and d.keyout = JURNALEXPID) then
+              PERFORM p_system_doclinks_add('UFK_NOTIF',RC.ID,'JURNALEXP',JURNALEXPID);
+           end if;
+           PERFORM p_system_doclinks_add(JR.TABLE,JR.ID,'JURNALEXP',JURNALEXPID);
+         end if;
+     END LOOP;
+     PERFORM p_action_set_status('UFK_NOTIF',RC.ID::text,'1');
+  END LOOP;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_fin_makeentryku (idlist text, uid bigint)
+  OWNER TO magicbox;

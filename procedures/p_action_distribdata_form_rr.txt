@@ -1,0 +1,180 @@
+CREATE OR REPLACE FUNCTION public.p_action_distribdata_form_rr (
+  idlist text,
+  uid bigint,
+  ddate_form_rr date,
+  ddate_utv_rr date,
+  rpersonid bigint,
+  opersonid bigint,
+  stel_isp text,
+  ddata_pod_rr date
+)
+RETURNS void AS
+$body$
+declare
+  nUID  BIGINT:=UID;
+  RC    RECORD;
+  SP    RECORD;
+  DOC   RECORD;
+  next_num integer;
+  tOPERSON person%rowtype;
+  tRPERSON person%rowtype;
+  nEXPSHDID bigint;
+  nEXPSHD_BAID bigint;
+  nEXPSHD_LBOID bigint;
+  nEXPSHD_POFID bigint;
+  --определим уровень доступа
+  nLID_EXPSHD      bigint:=P_SYSTEM_GEN_LID('EXPSHD',nUID);
+  nLID_EXPSHD_BA   bigint:=P_SYSTEM_GEN_LID('EXPSHD_BA',nUID);
+  nLID_EXPSHD_LBO  bigint:=P_SYSTEM_GEN_LID('EXPSHD_LBO',nUID);
+  nLID_EXPSHD_POF  bigint:=P_SYSTEM_GEN_LID('EXPSHD_POF',nUID);
+begin
+
+  for RC in (
+      select d.id,da.agent_acc_id, a.codesr, ag.dir_recipid, di.code, ag.code as orgname, 
+             d.budgets_id, d.year_u, b.agent_acc_id as agent_acc_id2,
+             f.codesr as fcode, f.code as fname
+        from DISTRIBDATA d
+        left join BUDGETS b on b.id = d.budgets_id
+        left join AGENT_ACC ba on ba.id = b.agent_acc_id
+        left join AGENT ag on ag.id = ba.agent_id
+        left join AGENT f on f.id = b.agent5_id
+        left join dir_recip di on di.id = ag.dir_recipid
+       inner join DISTRIBDATA_KBR dk on dk.distribdataid = d.id
+        left join EXEC_BUD_KBR kb on kb.id = dk.exec_bud_kbrid
+       inner join DISTRIBDATA_AGENT da on da.distribdata_kbrid = dk.id
+        left join AGENT_ACC ac on ac.id = da.agent_acc_id
+        left join AGENT a on a.id = ac.agent_id
+       where d.id = any(p_system_get_selectlist(idlist))
+       group by d.id,da.agent_acc_id, a.codesr, ag.dir_recipid, di.code, ag.code, 
+                d.budgets_id, d.year_u, b.agent_acc_id,
+                f.codesr, f.code
+  )
+  LOOP
+   --генерируем новый номер
+   select coalesce(regexp_replace(max(lpad(d.nom_rr,80,' ')), '[^0-9]', '', 'g')::int+1,1) into next_num from EXPSHD d where d.cid=0 and d.year_u = RC.year_u;
+   --найдем должность, ФИО, телефон ответственного исполнителя
+   select p.post,
+          trim(COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,''))
+     into tOPERSON.post, tOPERSON.surname
+     from person p
+    where p.id = opersonid;
+   --найдем должность, ФИО, телефон руководителя (уполномоченного им лица)
+   select p.post,
+          trim(COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,''))
+     into tRPERSON.post, tRPERSON.surname
+     from person p
+    where p.id = rpersonid;
+    
+   insert into EXPSHD(UID,LID,NOM_RR, DATE_FORM_RR, KOD_UBP, NAME_UBP, AGENT_ACC_ID, GLAVA_GRS, DIR_RECIPID, DATE_UTV_RR, BUDGETS_ID, YEAR_U, 
+    DOL_ISP, NAME_ISP, TEL_ISP, DOL_RUK, NAME_RUK, DATA_POD_RR, LS_UBP_GRBS, CODE_TOFK, NAME_TOFK, STATUS)
+    values(nUID,nLID_EXPSHD,next_num, ddate_form_rr, RC.CODESR, RC.ORGNAME, RC.agent_acc_id, RC.CODE, RC.DIR_RECIPID, DDATE_UTV_RR, RC.BUDGETS_ID, RC.YEAR_U, 
+    tOPERSON.post, tOPERSON.surname, stel_isp, tRPERSON.post, tRPERSON.surname, DDATA_POD_RR, '', RC.FCODE,RC.FNAME, '0')
+   returning EXPSHD.ID into nEXPSHDID;
+   
+   for SP in (
+       select k.kbr_id, dk.planning_period::integer, sum(da.sum_ba) as sum_ba, array_agg(dk.id) as kbrid, array_agg(da.id) as agentid
+         from DISTRIBDATA_KBR dk
+   inner join DISTRIBDATA_AGENT da on da.distribdata_kbrid = dk.id and da.agent_acc_id = RC.agent_acc_id
+   inner join EXEC_BUD_KBR k on k.id = dk.exec_bud_kbrid 
+        where dk.distribdataid = RC.ID
+          and COALESCE(da.sum_ba,0) != 0 
+        group by k.kbr_id, dk.planning_period
+        order by k.kbr_id, dk.planning_period
+   )
+   loop
+     begin
+       select b.id
+         into STRICT nEXPSHD_BAID
+         from EXPSHD_BA b
+        where b.EXPSHDID = nEXPSHDID
+          and b.KBR_ID = SP.KBR_ID;
+     exception when no_data_found then 
+        insert into EXPSHD_BA(UID, LID, EXPSHDID, KBR_ID)
+            values(nUID, nLID_EXPSHD_BA, nEXPSHDID, SP.KBR_ID)
+            returning EXPSHD_BA.id into nEXPSHD_BAID;
+     end;
+     if SP.planning_period = 0 then
+       update EXPSHD_BA b set sum_ba_y1 = SP.sum_ba where b.id = nEXPSHD_BAID;
+     elsif SP.planning_period = 1 then
+       update EXPSHD_BA b set sum_ba_y2 = SP.sum_ba where b.id = nEXPSHD_BAID;
+     elsif SP.planning_period = 2 then
+       update EXPSHD_BA b set sum_ba_y3 = SP.sum_ba where b.id = nEXPSHD_BAID;
+     end if;
+     for doc in (select d.id from DISTRIBDATA_AGENT d where d.id = ANY(SP.agentid)) 
+     loop PERFORM p_system_doclinks_add('DISTRIBDATA_AGENT',doc.ID,'EXPSHD_BA',nEXPSHD_BAID); end loop;
+   end loop;
+   
+   for SP in (
+       select k.kbr_id, dk.planning_period::integer, sum(da.sum_lbo) as sum_lbo, array_agg(dk.id) as kbrid, array_agg(da.id) as agentid
+         from DISTRIBDATA_KBR dk
+   inner join DISTRIBDATA_AGENT da on da.distribdata_kbrid = dk.id and da.agent_acc_id = RC.agent_acc_id
+   inner join EXEC_BUD_KBR k on k.id = dk.exec_bud_kbrid 
+   inner join EXEC_BUD_DETAIL d on d.id = dk.EXEC_BUD_DETAILID
+    left join CAPOBJECTS c on c.id = d.CAPOBJECTS_ID and c.faip
+        where dk.distribdataid = RC.ID
+          and COALESCE(da.sum_lbo,0) != 0 
+        group by k.kbr_id, dk.planning_period
+        order by k.kbr_id, dk.planning_period
+   )
+   loop
+     begin
+       select b.id
+         into STRICT nEXPSHD_LBOID
+         from EXPSHD_LBO b
+        where b.EXPSHDID = nEXPSHDID
+          and b.KBR_ID = SP.KBR_ID;
+     exception when no_data_found then 
+        insert into EXPSHD_LBO(UID, LID, EXPSHDID, KBR_ID)
+            values(nUID, nLID_EXPSHD_LBO, nEXPSHDID, SP.KBR_ID)
+            returning EXPSHD_LBO.id into nEXPSHD_LBOID;
+     end;
+     if SP.planning_period = 0 then
+       update EXPSHD_LBO b set sum_lbo_y1 = SP.sum_lbo where b.id = nEXPSHD_LBOID;
+     elsif SP.planning_period = 1 then
+       update EXPSHD_LBO b set sum_lbo_y2 = SP.sum_lbo where b.id = nEXPSHD_LBOID;
+     elsif SP.planning_period = 2 then
+       update EXPSHD_LBO b set sum_lbo_y3 = SP.sum_lbo where b.id = nEXPSHD_LBOID;
+     end if;
+     for doc in (select d.id from DISTRIBDATA_AGENT d where d.id = ANY(SP.agentid)) 
+     loop PERFORM p_system_doclinks_add('DISTRIBDATA_AGENT',doc.ID,'EXPSHD_LBO',nEXPSHD_LBOID); end loop;
+   end loop;
+  end loop;
+  
+  for SP in (
+       select k.kbr_id,  sum(da.sum_pof) as sum_pof, array_agg(dk.id) as kbrid, array_agg(da.id) as agentid
+         from DISTRIBDATA_KBR dk
+   inner join DISTRIBDATA_AGENT da on da.distribdata_kbrid = dk.id and da.agent_acc_id = RC.agent_acc_id
+   inner join EXEC_BUD_KBR k on k.id = dk.exec_bud_kbrid 
+        where dk.distribdataid = RC.ID
+          and COALESCE(da.sum_pof,0) != 0 
+          and dk.planning_period::integer = 0
+        group by k.kbr_id
+        order by k.kbr_id
+   )
+   loop
+     begin
+       select b.id
+         into STRICT nEXPSHD_POFID
+         from EXPSHD_POF b
+        where b.EXPSHDID = nEXPSHDID
+          and b.KBR_ID = SP.KBR_ID;
+     exception when no_data_found then 
+        insert into EXPSHD_POF(UID, LID, EXPSHDID, KBR_ID)
+            values(nUID, nLID_EXPSHD_POF, nEXPSHDID, SP.KBR_ID)
+            returning EXPSHD_POF.id into nEXPSHD_POFID;
+     end;
+     update EXPSHD_POF b set sum_pof_y1 = SP.sum_pof where b.id = nEXPSHD_POFID;
+     for doc in (select d.id from DISTRIBDATA_AGENT d where d.id = ANY(SP.agentid)) 
+     loop PERFORM p_system_doclinks_add('DISTRIBDATA_AGENT',doc.ID,'EXPSHD_POF',nEXPSHD_POFID); end loop;
+   end loop;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_distribdata_form_rr (idlist text, uid bigint, ddate_form_rr date, ddate_utv_rr date, rpersonid bigint, opersonid bigint, stel_isp text, ddata_pod_rr date)
+  OWNER TO magicbox;

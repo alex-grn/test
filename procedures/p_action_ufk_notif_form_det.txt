@@ -1,0 +1,253 @@
+CREATE OR REPLACE FUNCTION public.p_action_ufk_notif_form_det (
+  idlist text,
+  uid bigint,
+  snote text,
+  ddate date = 'now'::text::date
+)
+RETURNS void AS
+$body$
+declare
+  nUID  BIGINT:=UID;
+  rec   record;
+  sp    record;
+  ex    record;
+  ndetailid bigint;
+  nDETAIL_KBRID bigint;
+  nDETAIL_KBR_DID bigint;
+  nEXEC_BUD_DETAILID bigint;
+  next_num integer;
+  fl       boolean;
+  buff     bigint;
+  --найдем уровень доступа
+  nLID_DETAIL              bigint:=P_SYSTEM_GEN_LID('DETAIL',nUID);
+  nLID_DETAIL_KBR          bigint:=P_SYSTEM_GEN_LID('DETAIL_KBR',nUID);
+  nLID_DETAIL_KBR_D        bigint:=P_SYSTEM_GEN_LID('DETAIL_KBR_D',nUID);
+  nLID_EXEC_BUD_DETAIL     bigint:=P_SYSTEM_GEN_LID('EXEC_BUD_DETAIL',nUID);
+begin
+  
+  for rec in (
+      select k.id as UFK_NOTIFID,
+             k.YEAR_U,
+             k.NOM_KU,
+             k.DATE_KU,
+             k.BUDGETS_ID
+        from UFK_NOTIF k
+       where k.id = any(p_system_get_selectlist(idlist))
+  )  
+  LOOP
+      select coalesce(regexp_replace(max(lpad(docnumb,80,' ')), '[^0-9]', '', 'g')::int+1,1) 
+        into next_num 
+        from detail 
+       where cid=0 
+         and year_u = rec.year_u;
+
+      insert into detail(
+             uid, 
+             lid, 
+             budgets_id, 
+             docnumb, 
+             docdate, 
+             nom_ku, 
+             date_ku, 
+             year_u, 
+             note, status
+            )
+      values(nUID, 
+             nLID_DETAIL, 
+             rec.BUDGETS_ID, 
+             next_num, 
+             COALESCE(ddate,CURRENT_DATE), 
+             rec.NOM_KU, 
+             rec.DATE_KU, 
+             rec.YEAR_U, 
+             snote, 
+             '0'
+             )
+      returning detail.id into ndetailid;
+     --добавляем лимиты 
+     for sp in (
+         select l.id,
+                l.kbr_id,
+                rec.year_u,
+                COALESCE(l.sum_lbo_y1,0) as summ,
+                'SEP_LBO' as types
+           from UFK_NOTIF_LBO l
+          where l.ufk_notifid = rec.UFK_NOTIFID
+            and l.sum_lbo_y1 is not null
+         union all
+         select l.id,
+                l.kbr_id,
+                rec.year_u+1,
+                COALESCE(l.sum_lbo_y2,0),
+                'SEP_LBO' as types
+           from UFK_NOTIF_LBO l
+          where l.ufk_notifid = rec.UFK_NOTIFID
+            and l.sum_lbo_y2 is not null
+         union all
+         select l.id,
+                l.kbr_id,
+                rec.year_u+2,
+                COALESCE(l.sum_lbo_y3,0),
+                'SEP_LBO' as types
+           from UFK_NOTIF_LBO l
+          where l.ufk_notifid = rec.UFK_NOTIFID
+            and l.sum_lbo_y3 is not null
+     )
+     LOOP 
+        fl := false;
+        insert into DETAIL_KBR(uid, lid, detailid, sum_in, record_type, year_u, kbr_id)
+        values(nUID, nLID_DETAIL_KBR, ndetailid, sp.summ, sp.types, sp.year_u, sp.kbr_id)
+        returning DETAIL_KBR.ID into nDETAIL_KBRID;
+        buff:=0;
+        for ex in (
+            select k.id,
+                   d.id as EXEC_BUD_DETAILID,
+                   d.code
+              from EXEC_BUD e
+        inner join EXEC_BUD_KBR k on k.EXEC_BUDID = e.ID and k.KBR_ID = sp.KBR_ID
+         left join EXEC_BUD_DETAIL d on d.EXEC_BUD_KBRID = k.id
+             where e.YEAR_U = rec.YEAR_U
+          order by d.code
+        )
+        loop
+            if buff = ex.id then
+               sp.summ:=0;
+            else
+               buff:=ex.id;
+            end if;
+            if ex.EXEC_BUD_DETAILID is not null then
+               insert into DETAIL_KBR_D(
+                      uid, 
+                      lid, 
+                      detail_kbrid, 
+                      sum_ser, 
+                      record_type, 
+                      exec_bud_detailid)
+              values( nUID, 
+                      nLID_DETAIL_KBR_D, 
+                      nDETAIL_KBRID, 
+                      sp.summ, 
+                      sp.types, 
+                      ex.EXEC_BUD_DETAILID
+                     )
+           returning DETAIL_KBR_D.ID into nDETAIL_KBR_DID;
+            else
+               insert into EXEC_BUD_DETAIL(uid, lid, exec_bud_kbrid) 
+               VALUES(nUID,nLID_DETAIL_KBR_D,nDETAIL_KBRID)
+               returning EXEC_BUD_DETAIL.ID into nEXEC_BUD_DETAILID;
+               perform p_action_exec_bud_detail_fill(nEXEC_BUD_DETAILID);
+               update EXEC_BUD_DETAIL d 
+               set code = p_action_exec_bud_detail_fill_code(nEXEC_BUD_DETAILID,
+                                                             d.ndepart_id,
+                                                             d.ndepart_kom_id,
+                                                             d.necon_class_id,
+                                                             d.nsubsidies_id,
+                                                             d.ncapobjects_id,
+                                                             d.nevent_id,
+                                                             d.nacodes_id,
+                                                             d.ndepart5_id) 
+               where d.id = nEXEC_BUD_DETAILID;
+               insert into DETAIL_KBR_D(uid, lid, detail_kbrid, sum_ser, record_type, exec_bud_detailid)
+                values(nUID, nLID, nDETAIL_KBRID, sp.summ, sp.types, nEXEC_BUD_DETAILID)
+               returning DETAIL_KBR_D.ID into nDETAIL_KBR_DID;
+            end if;
+            perform p_system_doclinks_add('UFK_NOTIF_LBO',sp.id,'DETAIL_KBR_D',nDETAIL_KBR_DID);
+        end loop;
+        
+     end loop; 
+     
+     --добавляем ассигнования  
+     for sp in (
+         select l.id,
+                l.kbr_id,
+                rec.year_u,
+                COALESCE(l.sum_ba_y1,0) as summ,
+                'SEP_BA' as types
+           from UFK_NOTIF_BA l
+          where l.ufk_notifid = rec.UFK_NOTIFID
+            and l.sum_ba_y1 is not null
+         union all
+         select l.id,
+                l.kbr_id,
+                rec.year_u+1,
+                COALESCE(l.sum_ba_y2,0),
+                'SEP_BA'
+           from UFK_NOTIF_BA l
+          where l.ufk_notifid = rec.UFK_NOTIFID
+            and l.sum_ba_y2 is not null
+          union all
+         select l.id,
+                l.kbr_id,
+                rec.year_u+2,
+                COALESCE(l.sum_ba_y3,0),
+                'SEP_BA'
+           from UFK_NOTIF_BA l
+          where l.ufk_notifid = rec.UFK_NOTIFID
+            and l.sum_ba_y3 is not null
+     )
+     LOOP
+        insert into DETAIL_KBR(uid, lid, detailid, sum_in, record_type, year_u, kbr_id)
+        values(nUID, nLID_DETAIL_KBR, ndetailid, sp.summ, sp.types, sp.year_u, sp.kbr_id)
+        returning DETAIL_KBR.ID into nDETAIL_KBRID;
+        buff:=0;
+        for ex in ( 
+           select bk.id,
+                   d.id as EXEC_BUD_DETAILID, 
+                   d.code as kbr_code,
+                   COALESCE(d.sum_sep_lbo,0) + COALESCE(d.sum_cor_lbo,0) +
+                   COALESCE((select kk.SUM_SER from DETAIL_KBR dd, DETAIL_KBR_D kk 
+                     where dd.detailid = NDETAILID 
+                       and dd.year_u = sp.year_u 
+                       and dd.record_type ilike 'SEP_LBO'
+                       and kk.detail_kbrid = dd.id
+                       and kk.exec_bud_detailid = d.id),0) -
+                   COALESCE(d.sum_sep_ba,0) - COALESCE(d.sum_cor_ba,0) as summ
+              from EXEC_BUD e
+        inner join EXEC_BUD_KBR eb on eb.EXEC_BUDID = e.id
+        inner join kbr kb on kb.id = eb.kbr_id and kb.id = sp.KBR_ID
+        inner join kbr kk on kk.dir_recipid = kb.dir_recipid
+                         and (kk.fun_classid in (WITH RECURSIVE func (ID) AS (
+                                             select f1.ID from FUN_CLASS f1 where f1.ID = kb.FUN_CLASSID
+                                             union
+                                             select f2.ID from FUN_CLASS f2 inner join FUNC ON (func.ID = f2.HID))
+                                             select f.id from func f where not EXISTS(select 1 from FUN_CLASS c where c.hid = f.id)) or kk.FUN_CLASSID is null)
+                         and (kk.purp_articleid in (WITH RECURSIVE purp (id) AS (
+                                             select p1.ID from PURP_ARTICLE p1 where p1.ID = kb.PURP_ARTICLEID
+                                             union
+                                             select p2.ID from PURP_ARTICLE p2 inner join PURP ON (purp.ID = p2.HID))
+                                             select p.id from purp p where not EXISTS(select 1 from PURP_ARTICLE a where a.hid = p.id)) or kk.PURP_ARTICLEID is null)
+                         and (kk.exp_typeid in (WITH RECURSIVE exp (ID) AS (
+                                             select p1.ID from EXP_TYPE p1 where p1.ID = kb.EXP_TYPEID
+                                             union
+                                             select p2.ID from EXP_TYPE p2 inner join exp on (exp.ID = p2.HID))
+                                             select e.id from exp e where not exists(select 1 from EXP_TYPE t where t.hid = e.id)) or kk.EXP_TYPEID is null)
+         inner join EXEC_BUD_KBR bk on bk.kbr_id = kk.id and bk.exec_budid = eb.exec_budid
+         left join EXEC_BUD_DETAIL d on d.EXEC_BUD_KBRID = bk.id
+             where e.YEAR_U = rec.YEAR_U 
+          order by bk.id
+        )
+        loop
+            if buff = ex.id then
+               sp.summ:=0;
+            else
+               buff:=ex.id;
+            end if;
+            insert into DETAIL_KBR_D(uid, lid, detail_kbrid, sum_ser, record_type, exec_bud_detailid)
+             values(nUID, nLID_DETAIL_KBR_D, nDETAIL_KBRID, ex.summ, sp.types, ex.EXEC_BUD_DETAILID)
+            returning DETAIL_KBR_D.ID into nDETAIL_KBR_DID;
+            perform p_system_doclinks_add('UFK_NOTIF_BA',sp.id,'DETAIL_KBR_D',nDETAIL_KBR_DID);
+        end loop;
+     end loop; 
+     PERFORM p_action_set_status('UFK_NOTIF',rec.UFK_NOTIFID::text,'2');
+  END loop;
+  
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_ufk_notif_form_det (idlist text, uid bigint, snote text, ddate date)
+  OWNER TO magicbox;

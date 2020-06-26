@@ -1,0 +1,40 @@
+CREATE OR REPLACE FUNCTION public.p_action_ufk_notif_form_det_rollback (
+  idlist text
+)
+RETURNS void AS
+$body$
+declare
+  rec   record;
+begin
+  
+  for rec in (
+      select k.id/*,
+             d.keyout*/
+        from ufk_notif k/*,
+             doclinks d*/
+       where k.id = any(p_system_get_selectlist(idlist))/*
+         and d.tablein ilike 'UFK_NOTIF'
+         and d.keyin = k.id
+         and d.tableout ilike 'DETAIL'*/
+  )  
+  loop
+       --perform p_system_mdl_table('delete','detail','{"id":'||rec.keyout||'}',NULL,UID);
+     delete from DETAIL j where exists (select 1
+                                             from DOCLINKS d
+                                            where d.TABLEIN ilike 'UFK_NOTIF'
+                                              and d.KEYIN = rec.ID
+                                              and d.TABLEOUT ilike 'DETAIL'
+                                              and d.KEYOUT = j.ID);
+     PERFORM P_SYSTEM_DOCLINKS_DEL('UFK_NOTIF',rec.ID,'DETAIL');
+     PERFORM P_ACTION_SET_STATUS('UFK_NOTIF',rec.ID::text,'1');
+  end loop;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_ufk_notif_form_det_rollback (idlist text)
+  OWNER TO magicbox;

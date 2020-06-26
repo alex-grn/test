@@ -1,0 +1,40 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_deleteentrydet (
+  idlist text
+)
+RETURNS void AS
+$body$
+declare
+  rec    RECORD;
+begin
+
+  for rec in (
+      select k.id/*,
+             d.keyout*/
+        from DETAIL k/*,
+             doclinks d*/
+       where k.id = any(p_system_get_selectlist(idlist))/*
+         and d.tablein ilike 'DETAIL'
+         and d.keyin = k.id
+         and d.tableout ilike 'JURNALEXP'*/
+  )  
+  loop
+      -- perform p_system_mdl_table('delete','jurnalexp','{"id":'||rec.keyout||'}',NULL,UID);
+     delete from JURNALEXP j where exists (select 1
+                                             from DOCLINKS d
+                                            where d.TABLEIN ilike 'DETAIL'
+                                              and d.KEYIN = rec.ID
+                                              and d.TABLEOUT ilike 'JURNALEXP'
+                                              and d.KEYOUT = j.ID);
+     PERFORM P_SYSTEM_DOCLINKS_DEL('DETAIL',rec.ID,'JURNALEXP');
+     PERFORM P_ACTION_SET_STATUS('DETAIL',rec.ID::text,'0');
+  end loop;
+end;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_fin_deleteentrydet (idlist text)
+  OWNER TO magicbox;
