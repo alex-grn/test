@@ -1,8 +1,7 @@
-CREATE OR REPLACE FUNCTION public.p_action_writeoff_acts_to_transactionlog_rollback (
-  id bigint
-)
+﻿CREATE OR REPLACE FUNCTION public.p_action_writeoff_acts_to_transactionlog_rollback(id bigint)
+  
 RETURNS text AS
-$body$
+$BODY$
 /*Действие: Отмена проведения документа в учете*/
 declare
   nID    BIGINT:=ID;  
@@ -47,7 +46,12 @@ begin
                                               INVENTORY_TRIAL_BALANCE_CHANGE s
                                         where dd.INVENTORY_TRIAL_BALANCEDOCSID = t.ID
                                           and s.INVENTORY_TRIAL_BALANCE_DICNOMNSID = dd.ID);
-  
+
+  -- удаляем связи
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'TRANSACTIONLOG',NULL);
+  perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'INVENTORY_TRIAL_BALANCE',NULL);
+
+  /*
   --Удалим все связи с журналом операций
   perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'TRANSACTIONLOG',NULL,false);
   perform p_system_doclinks_del('WRITEOFF_ACTS_HEADER',nID,'TRANSACTIONLOG_DOCS',NULL,false);
@@ -87,15 +91,12 @@ begin
        perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'INVENTORY_TRIAL_BALANCE_DICNOMNS',NULL,false);
        perform p_system_doclinks_del('WRITEOFF_ACTS_GOODS',rec.ID,'INVENTORY_TRIAL_BALANCE_CHANGE',NULL,false);
   end loop;
-  
+*/  
   return 'Отмена проведения документа в учёте выполнена';
 end;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
-ALTER FUNCTION public.p_action_writeoff_acts_to_transactionlog_rollback (id bigint)
+ALTER FUNCTION public.p_action_writeoff_acts_to_transactionlog_rollback(bigint)
   OWNER TO magicbox;
