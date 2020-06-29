@@ -969,7 +969,26 @@
 			<A id="REGISTERID" name="Расчетный документ" caption="Расчетный документ" readonly="true"/>
 			<A id="ELECTDATE" name="День голосования" caption="День голования" labelwidth="200" type="date" nulls="false" readonly="true"/>
 			<A id="ELECTCOMMINCAMPID" caption="Избирательная комиссия" labelwidth="200" readonly="true"/>
-			<A id="STATUS_EXEC" name="Статус" caption="Статус" labelwidth="200" type="string" readonly="true" virtual="true" formula="select case when s1 = s2 then 'ИСПОЛНЕН' when s2 = 0 then 'НЕ ИСПОЛНЕН' when s1-s2 > 0 then 'ЧАСТИЧНО ИСПОЛНЕН' end from (select sum(COALESCE(s.sumcomp,0) + COALESCE(s.sumextra12,0) + COALESCE(s.extraa,0)) as s1, sum(COALESCE(s.sumtrn,0) + COALESCE((select round(sum(x.SUMMPAY),2) from CASHPAYMENT x, SHEETDETAILS s where s.SHEETSID=@id and x.CASHPAYMENTHEADERID = s.CASHPAYMENTHEADERID),0)) as s2  from sheetdetails s where s.sheetsid = @ID) tbl" local="true"/>
+			<A id="STATUS_EXEC" name="Статус" caption="Статус" labelwidth="200" type="string" readonly="true" virtual="true" formula="select case when s1 = s2 then 'ИСПОЛНЕН' 
+																																				when s2 = 0 then 'НЕ ИСПОЛНЕН' 
+																																				when s1-s2 > 0 then 'ЧАСТИЧНО ИСПОЛНЕН' end 
+																																	  from (select sum(COALESCE(s.sumcomp,0) + 
+																																				   COALESCE(s.sumextra12,0) + 
+																																				   COALESCE(s.extraa,0)) as s1, 
+																																				   sum(COALESCE(s.sumtrn,0) + 
+																																				   COALESCE((select (round(sum(x.SUMMPAY),2))
+																																							  from CASHPAYMENT x, 
+																																								SHEETDETAILS s
+																																							where s.SHEETSID=@ID
+																																							  and x.CASHPAYMENTHEADERID = s.CASHPAYMENTHEADERID),0)+
+																																					COALESCE ((select (round(sum(pd.SUMM),2))
+																																								from SHEETDETAILS s,
+																																									PAYDOCSCONS pd
+																																								where s.SHEETSID=@ID
+																																									and pd.PAYDOCSID = s.PAYDOCSID),0)
+																																							   ) as s2   
+																																			  from sheetdetails s 
+																																			  where s.sheetsid = @ID) tbl" local="true"/>
 			<A id="DOCLINKS_IN">
 				<AI id="*" name="Любая связь" />
 			</A>
@@ -1713,7 +1732,7 @@
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="100" visible="false" readonly="true" value="21"/>
-				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
+				<A id="DOCNUMB" name="Номер" caption="Номер" labelwidth="50" width="50" type="number" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 					<AI id="1" name="Создан" actionlist="CashreceiptToTransactionlog"/>
 					<AI id="2" name="Проведен в учете" actionlist="CashreceiptToTransactionlogRollback" readonly="true"/>
@@ -1740,7 +1759,7 @@
 			<A id="CASHRECEIPTHEADERID" parentkey="cascade"/>
 			<A id="DOCTYPEID" name="Тип документа" caption="Тип документа" type="bigint" visible="false" readonly="true" virtual="true" formula="select doctypeid from CASHRECEIPT_HEADER where id=@CASHRECEIPTHEADERID"/>
 			<GA name="Расшифровка платежа" caption="Расшифровка платежа">
-				<A id="NUMBPP" name="№ п/п" caption="№ п/п"  labelwidth="150" width="50"  type="number"  nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT where CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID and cid=0" local="true"/>
+				<A id="NUMBPP" name="№ п/п" caption="№ п/п"  labelwidth="150" width="50"  type="number"  nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(numbpp::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHRECEIPT where CASHRECEIPTHEADERID = @CASHRECEIPTHEADERID and cid=0" local="true"/>
 				<A id="SUMMPAY" name="сумма" caption="сумма"  labelwidth="150" width="50" nulls="false"/>
 				<A id="LEVELESTIMATE"  labelwidth="150" />
 			</GA>
@@ -1761,7 +1780,7 @@
 			<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select enddateter from electcampaign where id = @ELECTCAMPAIGNID" local="true"/>
 			<GA name="Основание" caption="Основание">
 				<A id="DOCTYPEID" labelwidth="50" width="100" nulls="false" visible="false" readonly="true" value="23"/>
-				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="true" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
+				<A id="DOCNUMB" name="№ п/п" caption="№ п/п" labelwidth="50" width="50" type="number" nulls="false" readonly="false" formula="select coalesce(regexp_replace(max(lpad(DOCNUMB::text,80,' ')), '[^0-9]', '', 'g')::int+1,1) from CASHPAYMENT_HEADER where CASHDOCSID = @CASHDOCSID and cid=0 and DOCSTATUS!='3'" local="true"/>
 				<A id="DOCSTATUS" name="Статус" caption="Статус" labelwidth="50" width="50" type="list" readonly="true" value="1">
 					<AI id="1" name="Создан" actionlist="CashpaymentToTransactionlog"/>
 					<AI id="2" name="Проведен в учете" readonly="true" actionlist="CashpaymentToTransactionlogRollback"/>
@@ -1937,6 +1956,12 @@
 				<A id="ELECTDATE" labelwidth="200" readonly="true" virtual="true" formula="select t.ELECTDATE from ELECTCAMPAIGN t where t.id = @ELECTCAMPAIGNID"/>
 				<A id="JURPERSONSID"/>
 			</GA>
+			<A id="DOCLINKS_IN">
+				<AI id="*" name="Любая связь" readonly="true"/>
+			</A>
+			<A id="DOCLINKS_OUT">
+				<AI id="*" name="" readonly="true"/>
+			</A>
 			<TI unique="ELECTCAMPAIGNID,JURPERSONSID"/>
 		</TABLE>
 		<TABLE id="EXPENSE_DOCS" name="Авансовые отчеты">
@@ -3092,7 +3117,7 @@
 				<A id="BPERSONID" name="Исполнитель (ФИО)" caption="Исполнитель (ФИО)" labelwidth="200"   type="ref" table="PERSON" ret="CODE" form="FormPerson" nulls="true" local="true"/>
 			</FORM>
 		</REPORT>
-		<REPORT id="General_ledger" name="Главная книга" procedure="p_report_general_ledger" template="General_ledger.xls"  type="report_excel">
+		<REPORT id="General_ledger" name="Главная книга" procedure="p_report_general_ledger" template="General_ledger.xlsx"  type="report_excel">
 			<FORM name="Параметры">
 				<A id="BEGINDATE" labelwidth="150"  width="50"/>
 				<A id="ENDDATE" labelwidth="150"  width="50"/>

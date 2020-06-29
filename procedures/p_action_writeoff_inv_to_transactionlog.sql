@@ -111,7 +111,7 @@ begin
             where p.WRITEOFF_INVOICE_HEADERID = nID
        LOOP
            insert into TRANSACTIONLOG_STAGES(uid,lid,transactionlog_docsid,dtfinsecurity,dtbudgclassid,dteconclassktid,dttypeexpid,accountdtid,dtdicnomnsid,dtquantity,dtrespperson,ktfinsecurity,ktbudgclassid,kteconclassktid,kttypeexpid,accountktid,ktrespperson,ktdicnomnsid,ktquantity,summ,memorderid,levelestimate)
-             values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT),nTRANSACTIONLOG_DOCSID,SP.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.DTDICNOMNSID,sp.DTQUANTITY,rec.RESPPERSON,SP.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,rec.recipientrespperson,sp.KTDICNOMNSID,sp.KTQUANTITY,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
+             values(nUID,P_SYSTEM_GEN_LID('TRANSACTIONLOG_STAGES',nUID,UNIT),nTRANSACTIONLOG_DOCSID,SP.dKFO,sp.DTBUDGCLASSID,sp.ECONCLASSDTID,sp.DTYPEEXPID,sp.ACCOUNTDTID,sp.DTDICNOMNSID,sp.DTQUANTITY,rec.recipientrespperson,SP.kKFO,sp.KTBUDGCLASSID,sp.ECONCLASSKTID,sp.KTYPEEXPID,sp.ACCOUNTKTID,rec.RESPPERSON ,sp.KTDICNOMNSID,sp.KTQUANTITY,sp.SUMM,sp.memorderid,sp.LEVELESTIMATE)
            returning TRANSACTIONLOG_STAGES.ID into nTRANSACTIONLOG_STAGESID;
            --Создаем связи
            perform P_SYSTEM_DOCLINKS_ADD('WRITEOFF_INVOICE_GOODS',sp.ID,'TRANSACTIONLOG_STAGES',nTRANSACTIONLOG_STAGESID);
