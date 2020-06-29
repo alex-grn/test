@@ -369,12 +369,18 @@
                                   where pe.expense_docs_id = r.id
                                   order by t.id) tbl
                                   where tbl.pp = 8) as c19_8,
-                                 (select sum(COALESCE(t.summ,0))
-                                   from doclinks d,
-                                        TRANSACTIONLOG_STAGES t, DICACCS a
-                                  where d.tablein ilike 'EXPENSE_DOCS' and d.keyin = r.id
-                                    and d.tableout ilike 'TRANSACTIONLOG_STAGES' and t.id = d.keyout
-                                    and a.id = t.accountktid and a.accbalance = '1') as c20,
+                                 (select tbl.summ
+                                  from (select row_number() OVER(order by t.id) as pp, t.summ
+                                   from PREPAID_EXPENSE pe
+                                   left join CASHPAYMENT cp on cp.cashpaymentheaderid = pe.cashpaymentheaderid 
+                                   left join PAYDOCSCONS pc on pc.paydocsid = pe.paydocsid
+                                   left join doclinks d on d.tablein ilike (select case when cp.id is not null then 'CASHPAYMENT' else 'PAYDOCSCONS' end)
+                                                        and d.keyin = COALESCE(cp.id,pc.id)
+                                                        and d.tableout ilike 'TRANSACTIONLOG_STAGES'  
+                                   left join TRANSACTIONLOG_STAGES t on t.id = d.keyout
+                                   inner join DICACCS a on a.id = t.accountktid and a.accbalance = '1'
+                                  where pe.expense_docs_id = r.id
+                                  order by t.id) tbl ) as c20,
                                   (select case 
 									when c.docdate is not null then 'Расходный кассовый ордер № '||c.docnumb||' от '||d2s(c.docdate)
 									when d.docdate is not null then 'Платежное поручение № '||d.docnumb||' от '||d2s(d.docdate)
