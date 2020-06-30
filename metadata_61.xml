@@ -858,25 +858,13 @@
 			<A id="LEVELELCOMMITTEE" labelwidth="200" nulls="false" readonly="true" virtual="true" formula="select IK.LEVELELCOMMITTEE from ELECTCOMMINCAMP k, ELECTCOMMITTEE IK where k.id = @ELECTCOMMINCAMPID and IK.ID = k.ELECTCOMMITTEEid">
 				<AI id="territory" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
 				<AI id="circuit" reportlist="WorktblReport;PayslipReport;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik"/>
-				<AI id="district" reportlist="WorktblReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog"/>
+				<AI id="district" reportlist="WorktblReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;KRF_F_UIK"/>
 			</A>
 			<A id="ELECDISTNUMB" labelwidth="200" nulls="true" visible="false" readonly="true" virtual="true" formula="select IK.ELECDISTNUMB from ELECTCOMMINCAMP k, ELECTCOMMITTEE IK where k.id = @ELECTCOMMINCAMPID and IK.ID = k.ELECTCOMMITTEEid"/>
 			<A id="DATELOADTBL" name="Дата загрузки Сведений о ФОВ" caption="Дата загрузки Сведений о ФОВ" labelwidth="200" type="date" nulls="true"/>
 			<A id="RESPONSPERSID" caption="Ответственный за загрузку табеля" labelwidth="200" nulls="true" visible="false"/>
 			<A id="MCIRCUIT" nulls="false" readonly="true" virtual="true" formula="select IK.MCIRCUIT from ELECTCOMMINCAMP IK where IK.ID = @ELECTCOMMINCAMPID::BIGINT"/>
 			<A id="PRINTREPORT" name="Вывод отчета по выборам" caption="Вывод отчета по выборам" type="boolean" nulls="false" local="true"/>
-			<A id="PRINTKRF" name="PRINTKRF" caption="PRINTKRF" type="string" visible="false" readonly="true" virtual="true" formula="select case e.levelelcampaign when 'territory' then 'region' else e.levelelcampaign end ||'/'||m.mfin||'/'||r.printreport::text||'/'||i.LEVELELCOMMITTEE as value from register r, electcampaign e, electcommincamp ik, electcommittee i, mfin m where r.id = @ID and e.id = r.electcampaignid and ik.id = r.electcommincampid and i.id = ik.electcommitteeid and m.electcommitteeid = i.id and now()::date >= m.begindate and (m.enddate >=now()::date or m.enddate is null)">
-				<AI id="central/1/false/district" reportlist="KRF_F_ZP_NO"/>
-				<AI id="central/2/true/district" reportlist="KRF_F_NE_ZP_O"/>
-				<AI id="central/2/false/district" reportlist="KRF_F_NE_ZP_NO"/>
-				<AI id="central/3/true/district" reportlist="KRF_F_ZP_PL_O"/>
-				<AI id="central/3/false/district" reportlist="KRF_F_ZP_PL_NO"/>
-				<AI id="region/1/false/district" reportlist="KRF_R_ZP_NO"/>
-				<AI id="region/2/true/district" reportlist="KRF_R_NE_ZP_O"/>
-				<AI id="region/2/false/district" reportlist="KRF_R_NE_ZP_NO"/>
-				<AI id="region/3/true/district" reportlist="KRF_R_ZP_PL_O"/>
-				<AI id="region/3/false/district" reportlist="KRF_R_ZP_PL_NO"/>
-			</A>
 			<A id="PRINTKRFTIK" name="PRINTKRFTIK" caption="PRINTKRFTIK" type="string" visible="false" readonly="true" virtual="true" formula="select case e.levelelcampaign when 'territory' then 'region' else e.levelelcampaign end||'/'||i.LEVELELCOMMITTEE as value from register r, electcampaign e, electcommincamp ik, electcommittee i where r.id = @ID and e.id = r.electcampaignid and ik.id = r.electcommincampid and i.id = ik.electcommitteeid">
 				<AI id="central/territory" reportlist="KRF_F_TIK"/>
 				<AI id="region/territory" reportlist="KRF_R_TIK"/>
@@ -2945,18 +2933,7 @@
 			</FORM>
 		</REPORT>
 		<REPORT id="TIK_ZP_VKTIK" name="Комплект расчетных форм ТИК" procedure="" template="7.xls"/>
-		<REPORT id="KRF_F_NE_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_ne_zp_no.xls"/>
-		<REPORT id="KRF_F_NE_ZP_O" name="Комплект расчетных форм УИК" procedure="p_report_set_calculated_form" template="krf_f_ne_zp_o.xlsx" type="report_excel"/>
-		<REPORT id="KRF_F_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_no.xls"/>
-		<REPORT id="KRF_F_ZP_PL_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_no.xls"/>
-		<REPORT id="KRF_F_ZP_PL_O" name="Комплект расчетных форм УИК" procedure="" template="krf_f_zp_pl_o.xls"/>
-		<REPORT id="KRF_R_NE_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_r_ne_zp_no.xls"/>
-		<REPORT id="KRF_R_NE_ZP_O" name="Комплект расчетных форм УИК" procedure="" template="krf_r_ne_zp_o.xls"/>
-		<REPORT id="KRF_R_ZP_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_r_zp_no.xls"/>
-		<REPORT id="KRF_R_ZP_PL_NO" name="Комплект расчетных форм УИК" procedure="" template="krf_r_zp_pl_no.xls"/>
-		<REPORT id="KRF_R_ZP_PL_O" name="Комплект расчетных форм УИК" procedure="" template="krf_r_zp_pl_o.xls"/>
-		<REPORT id="KRF_F_TIK" name="Комплект расчетных форм ТИК" procedure="" template="krf_f_tik.xls"/>
-		<REPORT id="KRF_R_TIK" name="Комплект расчетных форм ТИК" procedure="" template="krf_r_tik.xls"/>
+		<REPORT id="KRF_F_UIK" name="Комплект расчетных форм УИК" procedure="p_report_set_calculated_form" template="krf_f_ne_zp_o.xlsx" type="report_excel"/>
 		<REPORT id="rep_pay_list_preds_uik" name="Ведомость начислений вознаграждения за активную работу председателям УИК" procedure="p_report_pay_list_preds_uik" template="pay_list_preds_uik.xlsx">
 			<FORM name="Параметры">
 				<A id="SUPERVISOR" name="Руководитель организации" caption="Руководитель организации" labelwidth="200" type="ref" table="PERSON" ret="NAME" form="FormPerson" nulls="false"/>
@@ -3354,7 +3331,7 @@
 					<A id="ELECTCAMPAIGN2VIRT" caption="Избирательная кампания" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCAMPAIGN where ID = @ELECTCAMPAIGNID" local="true"/>
 					<A id="ELECTCOMMINCAMP2VIRT" caption="Избирательная комиссия" labelwidth="180" type="string" readonly="true" virtual="true" formula="select CODE from ELECTCOMMINCAMP where ID = @ELECTCOMMINCAMPID" local="true"/>
 					<A id="MFIN" caption="Порядок финансирования" labelwidth="180" type="string" nulls="true" readonly="true" virtual="true" formula="select case m.mfin when '1' then 'участник зарплатного проекта' when '2' then 'не участник зарплатного проекта' when '3' then 'участник зарплатного проекта и подотчетное лицо' end from electcampaign e, electcommincamp s, mfin m where s.id = @ELECTCOMMINCAMPID and e.id = s.electcampaignid and m.electcommitteeid = s.electcommitteeid and e.electdate >= m.begindate and (m.enddate >= e.electdate or m.enddate is null)" local="true"/>
-					<GRID id="RegisterGR1" name="Расчетные документы" table="REGISTER" reportlist="TIK_ZP_VKTIK;KRF_F_NE_ZP_NO;KRF_F_NE_ZP_O;KRF_F_ZP_NO;KRF_F_ZP_PL_NO;KRF_F_ZP_PL_O;KRF_R_NE_ZP_NO;KRF_R_NE_ZP_O;KRF_R_ZP_NO;KRF_R_ZP_PL_NO;KRF_R_ZP_PL_O;KRF_F_TIK;KRF_R_TIK;WorktblReport;PayslipReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik">
+					<GRID id="RegisterGR1" name="Расчетные документы" table="REGISTER" reportlist="TIK_ZP_VKTIK;KRF_F_UIK;WorktblReport;PayslipReport;PayslipReport2;rep_pay_list_preds_uik;rep_pay_list_memb_uik;WorkdaysErrorLog;ScheduleTik">
 						<MENU>
 							<MI actionlist="Delete;MoveFolder;ImportRegExcel;FormSheet;ConfigTables"/>
 						</MENU>

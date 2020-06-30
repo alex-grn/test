@@ -9,6 +9,10 @@ declare
   sp  record; 
   idx numeric;
   sELECTNAME text;
+  nIND integer;
+  sUCHZP TEXT[]:=ARRAY['Смета','Справка о выплатах','Платежная ведомость ОКУД','Аренда ТС','Оказание услуг','Выполнение работ','Приложение 11','Авансовый отчет','Фактические расходы'];
+  sUCHZPIPD TEXT[]:=ARRAY['Справка о выплатах','Платежная ведомость ОКУД'];
+  sMFIN text;
   --константы листа "Настройки ТИК"
   SHEET_OPTIONS_TIK             constant text := 'Настройки ТИК';
   OPTTIK_CELL_SUB_RF            constant text := 'sub_rf';
@@ -16,6 +20,7 @@ declare
   OPTTIK_CELL_DOPPAY_CHRMN      constant text := 'dop_pay_chairman';
   OPTTIK_CELL_DOPPAY_PRCHRMN    constant text := 'dop_pay_prchairman';
   OPTTIK_CELL_DOPPAY_SCRT       constant text := 'dop_pay_secret';
+  OPTTIK_CELL_COMPENSATION      constant text := 'compensation';
   OPTTIK_CELL_NAME_CHOICE       constant text := 'name_choice';
   OPTTIK_CELL_MFIN              constant text := 'mfin';
   OPTTIK_CELL_DOF_CHOICE        constant text := 'date_of_choice';
@@ -37,6 +42,7 @@ declare
   OPTTIK_CELL_ID_TER            constant text := 'id_ter';
   OPTTIK_CELL_ID_DOC            constant text := 'id_doc';
   OPTTIK_CELL_ID_CHOISE         constant text := 'id_choise';
+  OPTTIK_CELL_OPT_COUNT_D       constant text := 'opt_count_d';
   
   --константы листа "Настройки УИК"
   SHEET_OPTIONS_UIK             constant text := 'Настройки УИК';
@@ -54,6 +60,8 @@ declare
   OPTUIK_L_CELL_EDATE1          constant text := 'edate1';
   OPTUIK_L_CELL_AVG_SUM1        constant text := 'avg_sum1';
   OPTUIK_L_CELL_POST1           constant text := 'post1';
+  OPTUIK_L_CELL_COMP_1D         constant text := 'comp_1d';
+  OPTUIK_L_CELL_COMP_2D         constant text := 'comp_2d';
   OPTUIK_L_CELL_ID_FIO1         constant text := 'id_fio1';
   
   --константы листа "Смета"
@@ -71,12 +79,21 @@ declare
   line_gr                       constant text := 'gr_line';
   OPTGR_L_CELL_GR_DATE          constant text := 'gr_date';
   OPTGR_L_CELL_GR_TYPE          constant text := 'gr_type';
+  OPTGR_L_CELL_GR_F1_S1         constant text := 'gr_f1_summ_1';
+  OPTGR_L_CELL_GR_F1_S2         constant text := 'gr_f1_summ_2';
   
   --константы листа "Сведения ФОВ"
   SHEET_OPTIONS_SF              constant text := 'Сведения ФОВ';
   line_sf                       constant text := 'line_sf';
   OPTSF_L_CELL_SF_DATE          constant text := 'sf_date';
   OPTSF_L_CELL_SF_TYPE          constant text := 'sf_type';
+  
+  --константы листа "Сведения ФОВ ПЕЧАТЬ"
+  SHEET_OPTIONS_SFP             constant text := 'Сведения ФОВ ПЕЧАТЬ';
+  LINE_SFP                      constant text := 'line_sfp';
+  OPTSFP_L_CELL_SFP_DATE        constant text := 'sfp_date';
+  OPTSFP_L_CELL_SFP_TYPE        constant text := 'sfp_type';
+  OPTSFP_L_CELL_SFP_PP          constant text := 'sfp_pp';
   
   --константы листа "Фактические расходы"
   SHEET_OPTIONS_FR              constant text := 'Фактические расходы';
@@ -85,9 +102,63 @@ declare
   OPTFR_L_CELL_FR_RASHOD        constant text := 'fr_rashod';
   OPTFR_L_CELL_FR_NUMB          constant text := 'fr_numb';
   OPTFR_L_CELL_FR_TYPER         constant text := 'fr_typer';
+  
+  --константы листа "В авансовый отчет"
+  SHEET_OPTIONS_VAR             constant text := 'В авансовый отчет';
+  line_var                      constant text := 'var_line';
+  OPTVAR_L_CELL_VAR_PP          constant text := 'var_pp';
+  OPTVAR_L_CELL_VAR_RASHOD      constant text := 'var_rashod';
+  OPTVAR_L_CELL_VAR_SUMM        constant text := 'var_summ';
  
 begin
+
   perform p_excel_prepare();
+  /*Удаляем листы*/
+  for rec in 
+   select case E.LEVELELCAMPAIGN
+         when 'territory' then
+          'region'
+         else
+          E.LEVELELCAMPAIGN
+       end,
+       M.MFIN,
+       R.PRINTREPORT,
+       I.LEVELELCOMMITTEE
+  from REGISTER        R,
+       ELECTCAMPAIGN   E,
+       ELECTCOMMINCAMP IK,
+       ELECTCOMMITTEE  I,
+       MFIN            M
+ where R.ID = nID
+   and E.ID = R.ELECTCAMPAIGNID
+   and IK.ID = R.ELECTCOMMINCAMPID
+   and I.ID = IK.ELECTCOMMITTEEID
+   and M.ELECTCOMMITTEEID = I.ID
+   and I.LEVELELCOMMITTEE ~~* 'district'
+   and CURRENT_DATE >= M.BEGINDATE
+   and (M.ENDDATE >= CURRENT_DATE or M.ENDDATE is null)
+  loop
+    if rec.LEVELELCAMPAIGN ~~* 'central' and rec.PRINTREPORT then
+      perform p_excel_sheet_delete('Отчет УИК РБ');
+    elsif rec.LEVELELCAMPAIGN ~~* 'region' and rec.PRINTREPORT then
+      perform p_excel_sheet_delete('Отчет УИК');
+    elsif not rec.PRINTREPORT then
+      perform p_excel_sheet_delete('Отчет УИК');
+      perform p_excel_sheet_delete('Отчет УИК РБ');
+    end if;
+    if rec.MFIN = '1' then
+      FOREACH sMFIN in array sUCHZP
+      loop
+        perform p_excel_sheet_delete(sMFIN);
+      end loop;
+    elsif rec.MFIN = '3' then
+      FOREACH sMFIN in array sUCHZPIPD
+      loop
+        perform p_excel_sheet_delete(sMFIN);
+      end loop;
+    end if;
+  end loop;
+  
   /* Настройки ТИК */
   perform p_excel_sheet_select(SHEET_OPTIONS_TIK);
   perform p_excel_cell_describe(OPTTIK_CELL_SUB_RF        );
@@ -95,6 +166,7 @@ begin
   perform p_excel_cell_describe(OPTTIK_CELL_DOPPAY_CHRMN  );
   perform p_excel_cell_describe(OPTTIK_CELL_DOPPAY_PRCHRMN);
   perform p_excel_cell_describe(OPTTIK_CELL_DOPPAY_SCRT   );
+  perform p_excel_cell_describe(OPTTIK_CELL_COMPENSATION  );
   perform p_excel_cell_describe(OPTTIK_CELL_NAME_CHOICE   );
   perform p_excel_cell_describe(OPTTIK_CELL_MFIN          );
   perform p_excel_cell_describe(OPTTIK_CELL_DOF_CHOICE    );
@@ -116,7 +188,7 @@ begin
   perform p_excel_cell_describe(OPTTIK_CELL_ID_TER        );
   perform p_excel_cell_describe(OPTTIK_CELL_ID_DOC        );
   perform p_excel_cell_describe(OPTTIK_CELL_ID_CHOISE     );
-  
+  perform p_excel_cell_describe(OPTTIK_CELL_OPT_COUNT_D   );
   
   for rec in
        select reg.name as sub_rf,
@@ -175,7 +247,8 @@ begin
                            and p.id = c.postsid
                            and lower(p.postprint) = 'chairman'
                            and w.registerlistid = rs.id
-                           and r.begindate = w.datetbl) as count_w
+                           and r.begindate = w.datetbl) as count_w,
+                     r.enddate-r.begindate+1 as count_d
 				from register r			--Расчетные документы
 					inner join electcommincamp el on el.id = r.electcommincampid	--Избирательные комиссии, участвующие в кампании
 					inner join ELECTCOMMITTEE IK on ik.id = el.electcommitteeid	--Избирательные комиссии
@@ -212,6 +285,7 @@ begin
       perform p_excel_cell_value_write(OPTTIK_CELL_DOPPAY_CHRMN    , rec.dop_pay_chairman);
       perform p_excel_cell_value_write(OPTTIK_CELL_DOPPAY_PRCHRMN  , rec.dop_pay_prchairman);
       perform p_excel_cell_value_write(OPTTIK_CELL_DOPPAY_SCRT     , rec.dop_pay_secret);
+      perform p_excel_cell_value_write(OPTTIK_CELL_COMPENSATION    , rec.compensation);
       perform p_excel_cell_value_write(OPTTIK_CELL_NAME_CHOICE     , rec.name_choice);
       perform p_excel_cell_value_write(OPTTIK_CELL_MFIN            , rec.mfin);
       perform p_excel_cell_value_write(OPTTIK_CELL_DOF_CHOICE      , rec.date_of_choice);
@@ -233,7 +307,7 @@ begin
       perform p_excel_cell_value_write(OPTTIK_CELL_ID_TER          , rec.id_ter);
       perform p_excel_cell_value_write(OPTTIK_CELL_ID_DOC          , rec.id_doc);
       perform p_excel_cell_value_write(OPTTIK_CELL_ID_CHOISE       , rec.id_choise);
-      
+      perform p_excel_cell_value_write(OPTTIK_CELL_OPT_COUNT_D     , rec.count_d);
   end loop;
   
    /* Настройки УИК */
@@ -253,6 +327,8 @@ begin
   perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_AVG_SUM1);
   perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_POST1   );
   perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_ID_FIO1 );
+  perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_COMP_1D );
+  perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_COMP_2D );
   
   for rec in 
     select IK.name as name_ik,
@@ -269,16 +345,16 @@ begin
 		left join mfin m on m.electcommitteeid = ik.id and now() >= m.begindate and (m.enddate >=now() or m.enddate is null) and m.mfin::integer in (1,3)
 		where r.id = nID
    loop
-        perform p_excel_cell_value_write(OPTUIK_CELL_NAME_IK , rec.name_ik);
-        perform p_excel_cell_value_write(OPTUIK_CELL_ROD_UIK , rec.rod_uik);
-        perform p_excel_cell_value_write(OPTUIK_CELL_DAT_UIK , rec.dat_uik);
-        perform p_excel_cell_value_write(OPTUIK_CELL_TV_UIK  , rec.tv_uik);
-        perform p_excel_cell_value_write(OPTUIK_CELL_NUM_IK  , rec.num_ik);
-        perform p_excel_cell_value_write(OPTUIK_CELL_COUNT_IK, rec.count_ik);
-        perform p_excel_cell_value_write(OPTUIK_CELL_ID_IK   , rec.id_ik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_NAME_IK  , rec.name_ik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_ROD_UIK  , rec.rod_uik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_DAT_UIK  , rec.dat_uik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_TV_UIK   , rec.tv_uik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_NUM_IK   , rec.num_ik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_COUNT_IK , rec.count_ik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_ID_IK    , rec.id_ik);
    end loop;
   
-  
+   nIND:=22;
    for rec in								
 		select COALESCE(k.surname,'')||' '||COALESCE(k.firstname,'')||' '||COALESCE(k.middlename,'') as FIO_UIK, 
                case p.POSTPRINT 
@@ -308,12 +384,15 @@ begin
    loop
         rec.POST1:=nullif(rec.POST1,'zzz');
         idx := p_excel_line_append(line_uik);
-        perform p_excel_cell_value_write(OPTUIK_L_CELL_FIO_UIK , 0, idx, COALESCE(rec.FIO_UIK,' '));
-        perform p_excel_cell_value_write(OPTUIK_L_CELL_BDATE1  , 0, idx, COALESCE(rec.BDATE1,' '));
-        perform p_excel_cell_value_write(OPTUIK_L_CELL_EDATE1  , 0, idx, COALESCE(rec.EDATE1,' '));
-        perform p_excel_cell_value_write(OPTUIK_L_CELL_AVG_SUM1, 0, idx, COALESCE(rec.AVG_SUM1::text,' '));
-        perform p_excel_cell_value_write(OPTUIK_L_CELL_POST1   , 0, idx, COALESCE(rec.POST1,' '));
-        perform p_excel_cell_value_write(OPTUIK_L_CELL_ID_FIO1 , 0, idx, COALESCE(rec.ID_FIO1,' '));
+        perform p_excel_cell_value_write(OPTUIK_L_CELL_FIO_UIK  , 0, idx, COALESCE(rec.FIO_UIK,' '));
+        perform p_excel_cell_value_write(OPTUIK_L_CELL_BDATE1   , 0, idx, COALESCE(rec.BDATE1,' '));
+        perform p_excel_cell_value_write(OPTUIK_L_CELL_EDATE1   , 0, idx, COALESCE(rec.EDATE1,' '));
+        perform p_excel_cell_value_write(OPTUIK_L_CELL_AVG_SUM1 , 0, idx, COALESCE(rec.AVG_SUM1,0));
+        perform p_excel_cell_value_write(OPTUIK_L_CELL_POST1    , 0, idx, COALESCE(rec.POST1,' '));
+        perform p_excel_cell_value_write(OPTUIK_L_CELL_ID_FIO1  , 0, idx, COALESCE(rec.ID_FIO1,' '));
+        --perform p_excel_cell_formula_write(OPTUIK_L_CELL_COMP_1D, 0, idx, '=H'||nIND||'/''Настройки ТИК''!$C$24');
+        --perform p_excel_cell_formula_write(OPTUIK_L_CELL_COMP_2D, 0, idx, '=H'||nIND||'/''Настройки ТИК''!$C$25');
+        nIND:=nIND+1;
    end loop;
    perform p_excel_line_delete(line_uik);
   
@@ -329,7 +408,7 @@ begin
   perform p_excel_line_cell_describe(line_smet, OPTSM_L_CELL_SM_TYPER    );
   
   for rec in
-       select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
+        select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
             from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
                          t.print_name as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
                     from TYPEEXP T,
@@ -340,28 +419,33 @@ begin
                      and rf.id = t.regionsrfid
                      and fl.id = t.hid
                   group by t.numbestimate, t.print_name, t.typeestimate, fl.name) T
+                  
             left join 
-              (select case when (mf.mfin = '1' or mf.mfin = '3') then case when not f.typeexpid is null and tp.typeestimate = 'П' then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end 
-				else case when not f.typeexpid is null then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end end   as summ, 
-				rr.idgasregionsrf, tp.numbestimate, ec.levelelcampaign
+              (select  sum(tbl.summ) as summ,tbl.numbestimate, tbl.idgasregionsrf, tbl.levelelcampaign, tbl.typeexpid, tbl.typeestimate, tbl.mfin
+     from (
+  select case when (mf.mfin = '1' or mf.mfin = '3') then case when not f.typeexpid is null and tp.typeestimate = 'П' then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end 
+                else case when not f.typeexpid is null then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end end   as summ, 
+                rr.idgasregionsrf, tp.numbestimate, ec.levelelcampaign,f.typeexpid, tp.typeestimate, mf.mfin--,COALESCE(f.sumfintikcen,0),COALESCE(f.sumfinuik,0) 
                  from FOLDERS fol, TYPEEXP tp left join FINANCEELCOM f on f.typeexpid = tp.id, REGISTER r 
             left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
             left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
             left join MFIN mf on mf.ELECTCOMMITTEEID = ik.id
             left join REGIONSRF rr on rr.id = ik.regionsrfid
             left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
-            where r.id = nID 
-					    and fol.tablename='typeexp'
-					    and (f.electcommincampid=r.electcommincampid or f.electcommincampid is null)
-                        and tp.hid = (select case when ec.levelelcampaign = 'central' then (select ff.id from folders ff where ff.tablename='typeexp' and ff.name like '%Федерал%') else (select ff.id from folders ff where ff.tablename='typeexp' and ff.name like '%Регионал%') end as value)
+            where r.id = NID 
+                        and fol.tablename='typeexp'
+                        and (f.electcommincampid=r.electcommincampid or f.electcommincampid is null)
+                        and tp.hid = (select case when ec.levelelcampaign = 'central' then (select ff.id from folders ff where ff.tablename='typeexp' and ff.name ilike '%Федерал%') else (select ff.id from folders ff where ff.tablename='typeexp' and ff.name ilike '%Регионал%') end as value)
                         and ec.electdate >= mf.begindate and (mf.enddate >= ec.electdate or mf.enddate is null)
-                       group by tp.numbestimate, rr.idgasregionsrf, ec.levelelcampaign, f.typeexpid, tp.typeestimate, mf.mfin, f.sumfintikcen, f.sumfinuik) s on s.numbestimate = t.numbestimate
-                       where (t.regcode ilike '%'||(select rf.idgasregionsrf
+                       group by tp.numbestimate, rr.idgasregionsrf, ec.levelelcampaign, f.typeexpid, tp.typeestimate, mf.mfin, f.sumfintikcen, f.sumfinuik) tbl
+                  group by tbl.numbestimate, tbl.idgasregionsrf, tbl.levelelcampaign, tbl.typeexpid, tbl.typeestimate, tbl.mfin ) s on s.numbestimate = t.numbestimate
+                      
+             where (t.regcode ilike '%'||(select rf.idgasregionsrf
                                                     from register r,
                                                          ELECTCOMMINCAMP e,
                                                          ELECTCOMMITTEE ik,
                                                          REGIONSRF rf
-                                                  where r.id = nID
+                                                  where r.id = NID
                                                     and e.id = r.electcommincampid
                                                     and ik.id = e.electcommitteeid
                                                     and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
@@ -381,12 +465,13 @@ begin
   perform p_excel_line_delete(line_smet);
   
   /*График работы*/
-  
+  nIND:=18;
   perform p_excel_sheet_select(SHEET_OPTIONS_GR);
   perform p_excel_line_describe(line_gr);
   perform p_excel_line_cell_describe(line_gr, OPTGR_L_CELL_GR_DATE );
   perform p_excel_line_cell_describe(line_gr, OPTGR_L_CELL_GR_TYPE );
-         
+  perform p_excel_line_cell_describe(line_gr, OPTGR_L_CELL_GR_F1_S1);
+  perform p_excel_line_cell_describe(line_gr, OPTGR_L_CELL_GR_F1_S2);       
   for rec in
     select d2s(w.datetbl) as dates, t.code 
       from registerlist r
@@ -394,13 +479,18 @@ begin
       left join typedays t on t.id = w.typedayid
      where r.registerid = nID
      group by w.datetbl, t.code
-     order by dates
+     order by w.datetbl
   loop
-     idx := p_excel_line_append(line_gr);
+     nIND:=nIND+1;
+     idx := p_excel_line_continue(line_gr);
      perform p_excel_cell_value_write(OPTGR_L_CELL_GR_DATE , 0, idx, COALESCE(rec.dates,' '));
      perform p_excel_cell_value_write(OPTGR_L_CELL_GR_TYPE , 0, idx, COALESCE(rec.code,' '));
+     --perform p_excel_cell_formula_write(OPTGR_L_CELL_GR_F1_S1, 0, idx, '=IF(VALUE(INDIRECT("''Настройки УИК''!$F$22"))>0;(IF(AND(VALUE(MID($A'||nIND||';4;2))=VALUE(MID(''Настройки ТИК''!$C$17;4;2));$B'||nIND||'=" ";C'||nIND||'=8);C'||nIND||';0))*INDIRECT("''Настройки УИК''!$I$22")/8;0)');
+     --perform p_excel_cell_formula_write(OPTGR_L_CELL_GR_F1_S2, 0, idx, '=IF(VALUE(INDIRECT("''Настройки УИК''!$F$22"))>0;(IF(AND(VALUE(MID($A'||nIND||';4;2))=VALUE(MID(''Настройки ТИК''!$D$17;4;2));$B'||nIND||'=" ";C'||nIND||'=8);C'||nIND||';0))*INDIRECT("''Настройки УИК''!$J$22")/8;0)');
+    -- perform p_excel_cell_formula_write(OPTGR_L_CELL_GR_F1_S1, 0, idx, '=INDIRECT("''Настройки УИК''!$F$22")' );
+    -- perform p_excel_cell_formula_write(OPTGR_L_CELL_GR_F1_S2, 0, idx, '=C'||nIND||'+ B'||nIND);
   end loop;              
-  perform p_excel_line_delete(line_gr);   
+ perform p_excel_line_delete(line_gr);   
    
   /*Сведения ФОВ*/
    
@@ -416,13 +506,37 @@ begin
       left join typedays t on t.id = w.typedayid
      where r.registerid = nID
      group by w.datetbl, t.code
-     order by dates
+     order by w.datetbl
   loop
      idx := p_excel_line_append(line_sf);
      perform p_excel_cell_value_write(OPTSF_L_CELL_SF_DATE , 0, idx, COALESCE(rec.dates,' '));
      perform p_excel_cell_value_write(OPTSF_L_CELL_SF_TYPE , 0, idx, COALESCE(rec.code,' '));
   end loop;              
   perform p_excel_line_delete(line_sf); 
+  
+  /*Сведения ФОВ ПЕЧАТЬ*/
+  
+  perform p_excel_sheet_select(SHEET_OPTIONS_SFP);
+  perform p_excel_line_describe(line_sfp);
+  perform p_excel_line_cell_describe(line_sfp, OPTSFP_L_CELL_SFP_DATE );
+  perform p_excel_line_cell_describe(line_sfp, OPTSFP_L_CELL_SFP_TYPE );
+  perform p_excel_line_cell_describe(line_sfp, OPTSFP_L_CELL_SFP_PP   );
+         
+  for rec in
+    select d2s(w.datetbl) as dates, t.code, row_number() OVER(order by w.datetbl) as numb
+      from registerlist r
+     inner join worktbl w on w.registerlistid = r.id
+      left join typedays t on t.id = w.typedayid
+     where r.registerid = nID
+     group by w.datetbl, t.code
+     order by w.datetbl
+  loop
+     idx := p_excel_line_append(line_sfp);
+     perform p_excel_cell_value_write(OPTSFP_L_CELL_SFP_DATE , 0, idx, COALESCE(rec.dates,' '));
+     perform p_excel_cell_value_write(OPTSFP_L_CELL_SFP_TYPE , 0, idx, COALESCE(rec.code,' '));
+     perform p_excel_cell_value_write(OPTSFP_L_CELL_SFP_PP   , 0, idx, rec.numb);
+  end loop;              
+  perform p_excel_line_delete(line_sfp); 
   
   /*Фактические расходы*/
   
@@ -433,45 +547,50 @@ begin
   perform p_excel_line_cell_describe(line_fr, OPTFR_L_CELL_FR_NUMB );
   perform p_excel_line_cell_describe(line_fr, OPTFR_L_CELL_FR_TYPER);
   for rec in
-       select t.numbestimate::text as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
-              from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
-                           t.print_name as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
-                      from TYPEEXP T,
-                           REGIONSRF Rf,
-                           folders fl
-                     where not t.NOACTUAL_COST
-                       and t.numbestimate not ilike '%АПУ%'
-                       and rf.id = t.regionsrfid
-                       and fl.id = t.hid
-                    group by t.numbestimate, t.print_name, t.typeestimate, fl.name) T
-              left join 
-                (select case when (mf.mfin = '1' or mf.mfin = '3') then case when not f.typeexpid is null and tp.typeestimate = 'П' then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end 
-				else case when not f.typeexpid is null then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end end   as summ, 
-				rr.idgasregionsrf, tp.numbestimate, ec.levelelcampaign
-                   from FOLDERS fol, TYPEEXP tp left join FINANCEELCOM f on f.typeexpid = tp.id, REGISTER r 
-              left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
-              left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
-              left join MFIN mf on mf.ELECTCOMMITTEEID = ik.id
-              left join REGIONSRF rr on rr.id = ik.regionsrfid
-              left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
-              where r.id = nID 
-				and fol.tablename='typeexp'
-				and (f.electcommincampid=r.electcommincampid or f.electcommincampid is null)
-                and tp.hid = (select case when ec.levelelcampaign = 'central' then (select ff.id from folders ff where ff.tablename='typeexp' and ff.name like '%Федерал%') else (select ff.id from folders ff where ff.tablename='typeexp' and ff.name like '%Регионал%') end as value)
-                and ec.electdate >= mf.begindate and (mf.enddate >= ec.electdate or mf.enddate is null)
-                      group by tp.numbestimate, rr.idgasregionsrf, ec.levelelcampaign, f.typeexpid, tp.typeestimate, mf.mfin, f.sumfintikcen, f.sumfinuik) s on s.numbestimate = t.numbestimate
-                      where (t.regcode ilike '%'||(select rf.idgasregionsrf
-                                                     from register r,
-                                                          ELECTCOMMINCAMP e,
-                                                          ELECTCOMMITTEE ik,
-                                                          REGIONSRF rf
-                                                   where r.id = nID
-                                                     and e.id = r.electcommincampid
-                                                     and ik.id = e.electcommitteeid
-                                                     and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
-                        and (s.levelelcampaign ilike 'region' and t.foldername ilike '%Регион%' 
-                          Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%Федер%')
-                      order by t.numbpp 
+       select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
+            from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
+                         t.print_name as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
+                    from TYPEEXP T,
+                         REGIONSRF Rf,
+                         folders fl
+                   where not t.NOACTUAL_COST
+                     and t.numbestimate not ilike '%АПУ%'
+                     and rf.id = t.regionsrfid
+                     and fl.id = t.hid
+                  group by t.numbestimate, t.print_name, t.typeestimate, fl.name) T
+                  
+            left join 
+              (select  sum(tbl.summ) as summ,tbl.numbestimate, tbl.idgasregionsrf, tbl.levelelcampaign, tbl.typeexpid, tbl.typeestimate, tbl.mfin
+     from (
+  select case when (mf.mfin = '1' or mf.mfin = '3') then case when not f.typeexpid is null and tp.typeestimate = 'П' then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end 
+                else case when not f.typeexpid is null then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end end   as summ, 
+                rr.idgasregionsrf, tp.numbestimate, ec.levelelcampaign,f.typeexpid, tp.typeestimate, mf.mfin--,COALESCE(f.sumfintikcen,0),COALESCE(f.sumfinuik,0) 
+                 from FOLDERS fol, TYPEEXP tp left join FINANCEELCOM f on f.typeexpid = tp.id, REGISTER r 
+            left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
+            left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
+            left join MFIN mf on mf.ELECTCOMMITTEEID = ik.id
+            left join REGIONSRF rr on rr.id = ik.regionsrfid
+            left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
+            where r.id = NID 
+                        and fol.tablename='typeexp'
+                        and (f.electcommincampid=r.electcommincampid or f.electcommincampid is null)
+                        and tp.hid = (select case when ec.levelelcampaign = 'central' then (select ff.id from folders ff where ff.tablename='typeexp' and ff.name ilike '%Федерал%') else (select ff.id from folders ff where ff.tablename='typeexp' and ff.name ilike '%Регионал%') end as value)
+                        and ec.electdate >= mf.begindate and (mf.enddate >= ec.electdate or mf.enddate is null)
+                       group by tp.numbestimate, rr.idgasregionsrf, ec.levelelcampaign, f.typeexpid, tp.typeestimate, mf.mfin, f.sumfintikcen, f.sumfinuik) tbl
+                  group by tbl.numbestimate, tbl.idgasregionsrf, tbl.levelelcampaign, tbl.typeexpid, tbl.typeestimate, tbl.mfin ) s on s.numbestimate = t.numbestimate
+                      
+             where (t.regcode ilike '%'||(select rf.idgasregionsrf
+                                                    from register r,
+                                                         ELECTCOMMINCAMP e,
+                                                         ELECTCOMMITTEE ik,
+                                                         REGIONSRF rf
+                                                  where r.id = NID
+                                                    and e.id = r.electcommincampid
+                                                    and ik.id = e.electcommitteeid
+                                                    and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
+                         and (s.levelelcampaign ilike 'region' and t.foldername ilike '%Регион%' 
+                           Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%Федер%')
+                       order by t.numbpp 
   loop
      idx := p_excel_line_append(line_fr);
      perform p_excel_cell_value_write(OPTFR_L_CELL_FR_PP     , 0, idx, COALESCE(rec.pp,' '));
@@ -481,6 +600,65 @@ begin
   end loop;              
   perform p_excel_line_delete(line_fr); 
   
+  /*В авансовый отчет*/
+  perform p_excel_sheet_select(SHEET_OPTIONS_VAR);
+  perform p_excel_line_describe(line_var);
+  perform p_excel_line_cell_describe(line_var, OPTVAR_L_CELL_VAR_PP );
+  perform p_excel_line_cell_describe(line_var, OPTVAR_L_CELL_VAR_RASHOD  );
+  perform p_excel_line_cell_describe(line_var, OPTVAR_L_CELL_VAR_SUMM  );
+  
+  for rec in
+        select t.numbestimate as pp, t.tcode as rashod,  t.tcode as id_rashod, t.typeestimate as typer,  s.summ, row_number() over(order by t.numbpp) as numb
+            from (select t.numbestimate, string_agg(rf.idgasregionsrf,';') as regcode,
+                         t.print_name as tcode, t.typeestimate, MAX(t.numbpp) as numbpp, fl.name as foldername
+                    from TYPEEXP T,
+                         REGIONSRF Rf,
+                         folders fl
+                   where t.person_contract
+                     and t.numbestimate not ilike '%АПУ%'
+                     and rf.id = t.regionsrfid
+                     and fl.id = t.hid
+                  group by t.numbestimate, t.print_name, t.typeestimate, fl.name) T
+                  
+            left join 
+              (select  sum(tbl.summ) as summ,tbl.numbestimate, tbl.idgasregionsrf, tbl.levelelcampaign, tbl.typeexpid, tbl.typeestimate, tbl.mfin
+     from (
+  select case when (mf.mfin = '1' or mf.mfin = '3') then case when not f.typeexpid is null and tp.typeestimate = 'П' then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end 
+                else case when not f.typeexpid is null then COALESCE(f.sumfintikcen,0)+COALESCE(f.sumfinuik,0) else null end end   as summ, 
+                rr.idgasregionsrf, tp.numbestimate, ec.levelelcampaign,f.typeexpid, tp.typeestimate, mf.mfin--,COALESCE(f.sumfintikcen,0),COALESCE(f.sumfinuik,0) 
+                 from FOLDERS fol, TYPEEXP tp left join FINANCEELCOM f on f.typeexpid = tp.id, REGISTER r 
+            left join ELECTCOMMINCAMP e on e.id = r.electcommincampid
+            left join ELECTCOMMITTEE ik on ik.id = e.electcommitteeid
+            left join MFIN mf on mf.ELECTCOMMITTEEID = ik.id
+            left join REGIONSRF rr on rr.id = ik.regionsrfid
+            left join ELECTCAMPAIGN ec on ec.id = e.electcampaignid
+            where r.id = NID 
+                        and fol.tablename='typeexp'
+                        and (f.electcommincampid=r.electcommincampid or f.electcommincampid is null)
+                        and tp.hid = (select case when ec.levelelcampaign = 'central' then (select ff.id from folders ff where ff.tablename='typeexp' and ff.name ilike '%Федерал%') else (select ff.id from folders ff where ff.tablename='typeexp' and ff.name ilike '%Регионал%') end as value)
+                        and ec.electdate >= mf.begindate and (mf.enddate >= ec.electdate or mf.enddate is null)
+                       group by tp.numbestimate, rr.idgasregionsrf, ec.levelelcampaign, f.typeexpid, tp.typeestimate, mf.mfin, f.sumfintikcen, f.sumfinuik) tbl
+                  group by tbl.numbestimate, tbl.idgasregionsrf, tbl.levelelcampaign, tbl.typeexpid, tbl.typeestimate, tbl.mfin ) s on s.numbestimate = t.numbestimate
+                      
+             where (t.regcode ilike '%'||(select rf.idgasregionsrf
+                                                    from register r,
+                                                         ELECTCOMMINCAMP e,
+                                                         ELECTCOMMITTEE ik,
+                                                         REGIONSRF rf
+                                                  where r.id = NID
+                                                    and e.id = r.electcommincampid
+                                                    and ik.id = e.electcommitteeid
+                                                    and rf.id = ik.regionsrfid)||'%' or t.regcode ilike '%00%')
+                         and (s.levelelcampaign ilike 'region' and t.foldername ilike '%Регион%' 
+                           Or s.levelelcampaign not ilike 'region' and t.foldername ilike '%Федер%')
+                       order by t.numbpp 
+  loop
+       idx := p_excel_line_append(line_var);
+       perform p_excel_cell_value_write(OPTVAR_L_CELL_VAR_PP     , 0, idx,    rec.pp);
+       perform p_excel_cell_value_write(OPTVAR_L_CELL_VAR_RASHOD , 0, idx,    COALESCE(rec.rashod,' '));
+       perform p_excel_cell_value_write(OPTVAR_L_CELL_VAR_SUMM   , 0, idx,    COALESCE(rec.summ,0));
+  end loop;
+  perform p_excel_line_delete(line_var);
   
 end;
 $body$
