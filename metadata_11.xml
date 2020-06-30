@@ -108,6 +108,7 @@
 					<MI name="Загрузка Общероссийского классификатора видов экономической деятельности в XML формате" actionlist="from_PORTAL_to_OKVED_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора занятий в XML формате" actionlist="from_PORTAL_to_OKZ_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора профессий и должностей в XML формате" actionlist="from_PORTAL_to_OKPDTR_F_xml"/>
+					<MI name="Загрузка Общероссийского классификатора органов государственной власти и управления в XML формате" actionlist="from_PORTAL_to_OKOGU_F_xml"/>
 				</MENU>
 				<MENU name="Загрузка юридических лиц">
 					<MI name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" actionlist="from_EB_to_AGENT_F_xls"/>
@@ -249,7 +250,7 @@
 			<A id="END_DATE" name="Дата окончания действия" caption="Дата окончания действия" labelwidth="220" width="50" type="date" nulls="true" visible="form" local="true"/>
 			<COMMENT name="formula select (cid=0) from @TABLENAME where id = @ID"/>
 			<A id="ACTIVE_VIRT" name="Актуальная запись" caption="Актуальная запись" labelwidth="220" type="boolean" visible="false" readonly="true" virtual="true" formula="" local="true"/>
-			<A id="METAID" name="Идентификатор записи в мастер системе" type="string" nulls="true" visible="false"/>
+			<A id="METAID" name="Идентификатор записи в мастер системе" type="string" nulls="true" visible="false" formula="null"/>
 		</GA>
 		<GA id="YEAR_BUDGET" caption="Годовой бюджет">
 			<A id="BUDGETS_ID" labelwidth="300" width="60" visible="form"/>
@@ -400,13 +401,13 @@
 		</TABLE>
 		<TABLE id="KBR" name="КРБ Классификатор расходов бюджетов">
 			<GA caption="Коды классификации расходов бюджетов">
-				<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500" visible="form"/>
-				<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500" visible="form"/>
-				<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500" visible="form"/>
-				<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500" visible="form"/>
+				<A id="DIR_RECIPID" name="Код главного распорядителя бюджетных средств" caption="Код главного распорядителя бюджетных средств" labelwidth="500" visible="true"/>
+				<A id="FUN_CLASSID" name="Код раздела и подраздела" caption="Код раздела и подраздела" labelwidth="500" visible="true"/>
+				<A id="PURP_ARTICLEID" name="Код целевой статьи" caption="Код целевой статьи" labelwidth="500" visible="true"/>
+				<A id="EXP_TYPEID" name="Код вида расходов" caption="Код вида расходов" labelwidth="500" visible="true"/>
 			</GA>
 			<A id="CODE" name="Код КРБ" caption="Код классификации расходов бюджетов" labelwidth="450" type="string" nulls="true" readonly="true" formula="COALESCE((select  v.CODE from DIR_RECIP v where v.id = @DIR_RECIPID),'000')||COALESCE((select  v.CODE from FUN_CLASS v where v.id = @FUN_CLASSID),'0000')||COALESCE((select  v.CODE from PURP_ARTICLE v where v.id = @PURP_ARTICLEID),'0000000000')||COALESCE((select  v.CODE from EXP_TYPE v where v.id = @EXP_TYPEID),'000')" value="00000000000000000000"/>
-			<A id="NAME" labelwidth="100"/>
+			<A id="NAME" labelwidth="100" formula="(select  v.NAME from FUN_CLASS v where v.id = @FUN_CLASSID)||' '||(select  v.NAME from PURP_ARTICLE v where v.id = @PURP_ARTICLEID)||' '||(select  v.NAME from EXP_TYPE v where v.id = @EXP_TYPEID)" button="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="KBR_UK" unique="CODE"/>
 			<TI id="KBR_METAID_IND" index="METAID"/>
@@ -440,6 +441,7 @@
 		</TABLE>
 		<TABLE id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" hid="CODE">
 			<GA id="Dictionary"/>
+			<A id="SHORTNAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="250" type="string" local="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKOGU_UK" unique="CODE"/>
 			<TI id="OKOGU_METAID_IND" index="METAID"/>
@@ -1530,6 +1532,10 @@
 		</ACTION>
 		<ACTION id="from_EB_to_AGENT_F_xls" name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" type="script" actionlist="LoadAndConvertFile" refresh="all">
 			<P id="convname" value="НСИ ПБС из сводного реестра УБП Электронный бюджет"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_PORTAL_to_OKOGU_F_xml" name="Загрузка Общероссийского классификатора органов государственной власти и управления в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКОГУ с data.mos.ru1;НСИ Загрузка ОКОГУ с data.mos.ru2"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
 	</ACTIONS>
