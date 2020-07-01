@@ -1000,6 +1000,12 @@
 				<AI id="true"/>
 				<AI id="false" readonly="true"/>
 			</A>
+			<A id="TRPERSONIDBLOCK" name="Блокировка записей" caption="Блокировка записей" type="number" visible="false" virtual="true" formula="select case when s.TRPERSONID is null then 1 when s.PAYDOCSID is not null then 2 when s.CASHPAYMENTHEADERID is not null then 3 else 4 end from SHEETDETAILS s where s.id = @ID">
+				<AI id="1" actionlist="ExceptionPP;SheetdetailsFormPPDel;ExceptionRKO;SheetdetailsFormRKODel"/>
+				<AI id="2" actionlist="SheetdetailsFormPPDel"/>
+				<AI id="3" actionlist="SheetdetailsFormRKODel"/>
+				<AI id="4"/>
+			</A>
 			<TI unique="SHEETSID, COMMITTEEMANID"/>
 		</TABLE>
 		<TABLE id="REGISTERSTRANSFERS" name="Документы на перечисление">
@@ -1343,6 +1349,18 @@
 					<A id="BUDGCLASSPREPID" name="КПС" caption="КПС" labelwidth="150" width="50" type="ref" table="BUDGCLASS" ret="CODE" nulls="true" local="true" />
 					<A id="ECONCLASSPREPID" name="КОСГУ" caption="КОСГУ" labelwidth="150" width="50" type="ref" table="ECONCLASS" ret="CODE" nulls="true" local="true"/>
 					<A id="TYPEEXPPREPID" name="Направление расходов" caption="Направление расходов"  labelwidth="150" type="ref" table="TYPEEXP" ret="CODE" nulls="true" pid="REGIONSRFID" local="true"/>
+					<A id="ACTIONBLOCK" name="Блокировка действий" caption="Блокировка действий" type="number" visible="false" virtual="true" formula="select case 
+																					when s.SUPEXPENSE then 1 
+																					when (s.SUMM != (select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PAYDOCSCONS p where d.tablein ~~* 'STAGES' and d.keyin = @ID and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout)) and (s.SUMM != (select COALESCE(sum(COALESCE(p.summ,0)),0)+COALESCE(sum(COALESCE(a.summ,0)),0) from doclinks d left join INVENTORY_GOODS p on p.id = d.keyout left join ACTSGOODS a on a.id = d.keyout where d.tablein ~~* 'STAGES' and d.keyin = @ID and upper(d.tableout) in ('INVENTORY_GOODS','ACTSGOODS'))) then 5 
+																					when s.SUMM != (select COALESCE(sum(COALESCE(p.summ,0)),0) from doclinks d, PAYDOCSCONS p where d.tablein ~~* 'STAGES' and d.keyin = @ID and d.tableout ~~* 'PAYDOCSCONS' and p.id = d.keyout) then 2 
+																					when s.SUMM != (select COALESCE(sum(COALESCE(p.summ,0)),0)+COALESCE(sum(COALESCE(a.summ,0)),0) from doclinks d left join INVENTORY_GOODS p on p.id = d.keyout left join ACTSGOODS a on a.id = d.keyout where d.tablein ~~* 'STAGES' and d.keyin = @ID and upper(d.tableout) in ('INVENTORY_GOODS','ACTSGOODS')) then 3 
+																					else 4 end from STAGES s where s.id = @ID">
+						<AI id="1" actionlist="StagesFormPPPrepayment;StagesFormPPDelPrepayment"/>
+						<AI id="2" actionlist="StagesFormPP;StagesFormPPPrepayment"/>
+						<AI id="3" actionlist="StagesActsWorkServ;StagesFormINV"/>
+						<AI id="4"/>
+						<AI id="5" actionlist="StagesActsWorkServ;StagesFormINV;StagesActsWorkServ;StagesFormINV"/>
+					</A>
 				</TAB>
 			</TABS>
 			<TI unique="CONTRACTSDOCSID, NUMBPP"/>
