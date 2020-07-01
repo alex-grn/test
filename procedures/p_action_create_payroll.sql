@@ -1,15 +1,12 @@
-﻿-- Function: public.p_action_create_payroll(bigint, date, boolean, boolean, bigint)
-
--- DROP FUNCTION public.p_action_create_payroll(bigint, date, boolean, boolean, bigint);
-
-CREATE OR REPLACE FUNCTION public.p_action_create_payroll(
-    id bigint,
-    ddocdate date,
-    bpay boolean,
-    bchairman boolean,
-    uid bigint)
-  RETURNS text AS
-$BODY$
+﻿CREATE OR REPLACE FUNCTION public.p_action_create_payroll (
+  id bigint,
+  ddocdate date,
+  bpay boolean,
+  bchairman boolean,
+  uid bigint
+)
+RETURNS text AS
+$body$
 declare 
     IDENT   BIGINT := ID;
 	RC      RECORD;
@@ -155,6 +152,7 @@ begin
             INNER JOIN REGISTERLIST rs on rs.REGISTERID = t.ID
             INNER JOIN PAYS p on p.REGISTERLISTID = rs.ID
             INNER JOIN SLCOMPCHARGES sl on sl.ID = p.SLCOMPCHARGESID and upper(sl.DESCRIPTION) in ('COMPENSATION','EXTRAA','SUMEXTRA12')
+         where REPLACE(upper(sl.DESCRIPTION),'SUMEXTRA12','EXTRAA') = 'COMPENSATION' and PA = 1 or REPLACE(upper(sl.DESCRIPTION),'SUMEXTRA12','EXTRAA') = 'EXTRAA' and PA = 2
         group by t.ELECTCAMPAIGNID,t.ELECTDATE,t.ELECTCOMMINCAMPID,t.ID,t.LEVELEST,
                  t.STATUS,t.REGIONSRFID,REPLACE(upper(sl.DESCRIPTION),'SUMEXTRA12','EXTRAA') 
         having COALESCE(sum(COALESCE(p.SUMPAY,0)),0) > 0
@@ -313,7 +311,7 @@ begin
                                                                                                                   WHERE UPPER(SL.DESCRIPTION) = 'COMPENSATION' AND PA = 1
                                                                                                                      OR UPPER(SL.DESCRIPTION) = 'SUMEXTRA12' AND PA = 2
                                                                                                                      OR UPPER(SL.DESCRIPTION) = 'EXTRAA' AND PA = 2);
-                
+               --raise using message = ; 
             END LOOP;
         END IF;
         
@@ -327,8 +325,12 @@ begin
   end loop; 
     RETURN NULL;    
 end;
-$BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100;
-ALTER FUNCTION public.p_action_create_payroll(bigint, date, boolean, boolean, bigint)
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+ALTER FUNCTION public.p_action_create_payroll (id bigint, ddocdate date, bpay boolean, bchairman boolean, uid bigint)
   OWNER TO magicbox;
