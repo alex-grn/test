@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.p_action_stages_pers_form_pp_del (
+CREATE OR REPLACE FUNCTION public.p_action_stages_del_pp_prepayment (
   idlist text,
   uid bigint
 )
@@ -12,14 +12,13 @@ declare
   MPAYACCOUNTS   BIGINT[];
   MPAYDOCS		 BIGINT[];
 begin
-  for REC in (select S.ID from PERSONS_STAGES S where S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
+  for REC in (select S.ID from STAGES S where S.ID = any(P_SYSTEM_GET_SELECTLIST(IDLIST)))
   loop
     -- получение ID
-    MPAYACCOUNTS := P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('PERSONS_STAGES', REC.ID, 'PAYACCOUNTS');
-    MPAYDOCS     := P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('PERSONS_STAGES', REC.ID, 'PAYDOCS');
+    MPAYACCOUNTS := P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('STAGES', REC.ID, 'PAYACCOUNTS');
+    MPAYDOCS     := P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('STAGES', REC.ID, 'PAYDOCS');
     if MPAYACCOUNTS is null and MPAYDOCS is null then return 'Документов для расформирования не найдено'; end if;
-    if COALESCE(cardinality(P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('PERSONS_STAGES', REC.ID, 'PAYDOCSCONS')),0) <> 0
-    then
+	if COALESCE(cardinality(P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('STAGES', REC.ID, 'PAYDOCSCONS')),0) <> 0 then
       -- проверяем на наличие исходяжих документов
       foreach D in array MPAYDOCS
       loop
@@ -27,16 +26,20 @@ begin
       end loop;
 
       -- удаляем линк
-      /*foreach D in array P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('PERSONS_STAGES', REC.ID, 'PAYDOCSCONS')
+      /*foreach D in array P_SYSTEM_GET_DOCLINKS_OUT_IDLIST('STAGES', REC.ID, 'PAYDOCSCONS')
       loop
-        PERFORM P_SYSTEM_DOCLINKS_DEL('PERSONS_STAGES', REC.ID, 'PAYDOCSCONS', D);
+        if (select p.PREPAYMENT from PAYDOCS p, PAYDOCSCONS c where p.ID = c.PAYDOCSID and c.ID = D) then
+          PERFORM P_SYSTEM_DOCLINKS_DEL('STAGES', REC.ID, 'PAYDOCSCONS', D);
+        end if;
       end loop;*/
       foreach D in array MPAYDOCS
       loop
-        PERFORM P_SYSTEM_DOCLINKS_DEL('PERSONS_STAGES', REC.ID, 'PAYDOCS', D);
+        if (select p.PREPAYMENT from PAYDOCS p where p.ID = D) then
+          PERFORM P_SYSTEM_DOCLINKS_DEL('STAGES', REC.ID, 'PAYDOCS', D);
+        end if;
       end loop;
       -- удаляем ПП
-      delete from PAYDOCS where PAYDOCS.id = ANY(MPAYDOCS);
+      delete from PAYDOCS p where p.id = ANY(MPAYDOCS) and p.PREPAYMENT;
 
       -- проверка и удаление Расчетные (лицевые) счета в банке
       delete from PAYACCOUNTS
@@ -54,5 +57,5 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
 
-ALTER FUNCTION public.p_action_stages_pers_form_pp_del (idlist text, uid bigint)
+ALTER FUNCTION public.p_action_stages_del_pp_prepayment (idlist text, uid bigint)
   OWNER TO magicbox;
