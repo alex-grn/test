@@ -1079,11 +1079,13 @@
 																							 end
 																						from FINANCEELCOM f,
 																							 ELECTCOMMINCAMP e,
-																							 ELECTCOMMITTEE k
-																					   where f.TYPEEXPID = @TYPEEXPID
-																						 and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID
+																							 ELECTCOMMITTEE k,
+																							 FINEXP fe
+																					   where f.TYPEEXPID = fe.TYPEEXPID
+																						 and f.ELECTCOMMINCAMPID = fe.ELECTCOMMINCAMPID
 																						 and e.ID = f.ELECTCOMMINCAMPID
 																						 and k.ID = e.ELECTCOMMITTEEID
+																						 and fe.id=@ID
 																					   group by k.LEVELELCOMMITTEE"/>
 			<A id="SUMFIN" name="Сумма финансового обеспечения" caption="Сумма финансового обеспечения" labelwidth="200" type="number" len="8.2" readonly="true" virtual="true" formula="select case when k.levelelcommittee ilike 'district' then round(COALESCE(f.SUMFINUIK,0)+COALESCE(f.SUMFINTIKCEN,0),2) when k.levelelcommittee ilike 'territory' or k.levelelcommittee ilike 'circuit' then round(COALESCE(f.SUMFINTIK,0)+COALESCE((select case when t.numbestimate ilike '%апу%' then f.SUMFINTIKCEN else 0 end),0),2) end from FINANCEELCOM f, ELECTCOMMINCAMP e, ELECTCOMMITTEE k, TYPEEXP t where f.TYPEEXPID = @TYPEEXPID and f.ELECTCOMMINCAMPID = @ELECTCOMMINCAMPID and e.ID = f.ELECTCOMMINCAMPID and k.ID = e.ELECTCOMMITTEEID and t.ID = f.TYPEEXPID" local="true"/>
 			<A id="SUMCOSTS" name="Сумма расхода по данным КРФ" caption="Сумма расхода по данным КРФ" labelwidth="200" type="number" len="8.2" nulls="true" local="true"/>
