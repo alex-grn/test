@@ -104,11 +104,14 @@
 				<MI name="Примеры файлов для загрузки нормативно-справочной информации" formlist="Sample_files"/>
 				<MENU name="Загрузка бюджетной классификации"/>
 				<MENU name="Загрузка общероссийских классификаторов">
+					<MI name="Загрузка Общероссийского классификатора форм собственности в XML формате" actionlist="from_PORTAL_to_OKFS_F_xml"/>
+					<MI name="Загрузка Общероссийского классификатора организационно-правовых форм в XML формате" actionlist="from_PORTAL_to_OKOPF_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора единиц измерения в XML формате" actionlist="from_PORTAL_to_OKEI_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора видов экономической деятельности в XML формате" actionlist="from_PORTAL_to_OKVED_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора занятий в XML формате" actionlist="from_PORTAL_to_OKZ_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора профессий и должностей в XML формате" actionlist="from_PORTAL_to_OKPDTR_F_xml"/>
 					<MI name="Загрузка Общероссийского классификатора органов государственной власти и управления в XML формате" actionlist="from_PORTAL_to_OKOGU_F_xml"/>
+					<MI name="Загрузка Общероссийского классификатора основных фондов в XML формате" actionlist="from_PORTAL_to_OKOF_F_xml"/>
 				</MENU>
 				<MENU name="Загрузка юридических лиц">
 					<MI name="Загрузка ПБС из сводного реестра УБП Электронный бюджет" actionlist="from_EB_to_AGENT_F_xls"/>
@@ -428,19 +431,24 @@
 			<TI id="KIF_METAID_IND" index="METAID"/>
 		</TABLE>
 		<TABLE id="OKFS" name="ОКФС — Общероссийский классификатор форм собственности" hid="CODE">
-			<GA id="Dictionary"/>
+			<A id="CODE" labelwidth="500"/>
+			<A id="NAME" labelwidth="120"/>
+			<A id="ALG" name="Алгоритм" caption="Алгоритм" labelwidth="120" type="string" local="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKFS_UK" unique="CODE"/>
 			<TI id="OKFS_METAID_IND" index="METAID"/>
 		</TABLE>
 		<TABLE id="OKOPF" name="ОКОПФ — Общероссийский классификатор организационно-правовых форм" hid="CODE">
-			<GA id="Dictionary"/>
+			<A id="CODE" labelwidth="500"/>
+			<A id="NAME" labelwidth="120"/>
+			<A id="DESCRIPTION" labelwidth="120"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKOPF_UK" unique="CODE"/>
 			<TI id="OKOPF_METAID_IND" index="METAID"/>
 		</TABLE>
 		<TABLE id="OKOGU" name="ОКОГУ — Общероссийский классификатор органов государственной власти и управления" hid="CODE">
-			<GA id="Dictionary"/>
+			<A id="CODE"/>
+			<A id="NAME"/>
 			<A id="SHORTNAME" name="Сокращенное наименование" caption="Сокращенное наименование" labelwidth="250" type="string" local="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKOGU_UK" unique="CODE"/>
@@ -515,10 +523,9 @@
 			<TI id="OKPD2_IDX_UK" unique="IDX"/>
 		</TABLE>
 		<TABLE id="OKOF" name="ОКОФ — Общероссийский классификатор основных фондов" hid="CODE">
-			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="100" type="text" nulls="true"/>
 			<A id="CODE" name="Код" caption="Код" labelwidth="500" nulls="false"/>
-			<A id="NOMDESCR" name="Описание" caption="Описание" labelwidth="100" type="text" nulls="true"/>
-			<A id="GLOBAL_ID" name="Глобальный идентификатор" type="string" nulls="true" visible="false"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="100" type="text" nulls="true"/>
+			<A id="DESCRIPTION" name="Описание" caption="Описание" labelwidth="100" type="text" nulls="true"/>
 			<GA id="DictionaryParam"/>
 			<TI id="OKOF_UK" unique="CODE"/>
 			<TI id="OKOF_METAID_IND" index="METAID"/>
@@ -597,10 +604,10 @@
 					<GA caption="Коды классификаторов">
 						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" nulls="true" visible="form" local="true"/>
 						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" nulls="true" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
@@ -817,12 +824,12 @@
 					<A id="SUBJECTMSB" name="Субъект МСП" caption="Субъект малого и среднего предпринимательства" labelwidth="400" type="boolean"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
-						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
-						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="true" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="true" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Контактная информация">
@@ -858,12 +865,12 @@
 					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" format="DDDDDDDDD" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
-						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
-						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="true" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="true" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
@@ -912,12 +919,12 @@
 					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" format="DDDDDDDDD" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''),@BIC)"/>
 					<GA caption="Коды классификаторов">
-						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
-						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="true" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="true" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Банковское учреждение">
@@ -959,12 +966,12 @@
 					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" format="DDDDDDDDD" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''),@CODETOFK)"/>
 					<GA caption="Коды классификаторов">
-						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
-						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="true" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="true" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
@@ -1021,12 +1028,12 @@
 					<A id="KPP" name="КПП" caption="Код причины постановки на учёт (КПП)" labelwidth="500" type="string" len="9" format="DDDDDDDDD" formula="NULLIF(@KPP,'')" local="true"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false" formula="COALESCE(NULLIF(@CODE,''), @NAME)"/>
 					<GA caption="Коды классификаторов">
-						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
-						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="true" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="true" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
@@ -1082,12 +1089,12 @@
 					<A id="SUBJECTMSB" name="Субъект МСП" caption="Субъект малого и среднего предпринимательства" labelwidth="400" type="boolean"/>
 					<A id="CODE" name="Код для отображения" caption="Код для отображения в системе" labelwidth="250" nulls="false"/>
 					<GA caption="Коды классификаторов">
-						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="form" local="true"/>
-						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="form" local="true"/>
-						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="form"/>
-						<A id="OKOGU_ID" visible="form"/>
-						<A id="OKOPF_ID" visible="form"/>
-						<A id="OKFS_ID" visible="form"/>
+						<A id="OGRN" name="ОГРН" caption="Основной государственный регистрационный номер (ОГРН)" labelwidth="500" type="string" len="13" visible="true" local="true"/>
+						<A id="OKPO" name="ОКПО" caption="Общероссийский классификатор предприятий и организаций (ОКПО)" labelwidth="500" type="string" len="10" visible="true" local="true"/>
+						<A id="OKVED_ID" caption="Основной вид деятельности (ОКВЭД)" visible="true"/>
+						<A id="OKOGU_ID" visible="true"/>
+						<A id="OKOPF_ID" visible="true"/>
+						<A id="OKFS_ID" visible="true"/>
 					</GA>
 				</TAB>
 				<TAB name="Участник бюджетного процесса">
@@ -1536,6 +1543,18 @@
 		</ACTION>
 		<ACTION id="from_PORTAL_to_OKOGU_F_xml" name="Загрузка Общероссийского классификатора органов государственной власти и управления в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
 			<P id="convname" value="НСИ Загрузка ОКОГУ с data.mos.ru1;НСИ Загрузка ОКОГУ с data.mos.ru2"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_PORTAL_to_OKFS_F_xml" name="Загрузка Общероссийского классификатора форм собственности в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКФС с data.mos.ru"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_PORTAL_to_OKOPF_F_xml" name="Загрузка Общероссийского классификатора организационно-правовых форм в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКОПФ с data.mos.ru1;НСИ Загрузка ОКОПФ с data.mos.ru2"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="from_PORTAL_to_OKOF_F_xml" name="Загрузка Общероссийского классификатора основных фондов в XML формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="НСИ Загрузка ОКОФ с data.mos.ru1;НСИ Загрузка ОКОФ с data.mos.ru2"/>
 			<P id="errorone" value="true"/>
 		</ACTION>
 	</ACTIONS>
