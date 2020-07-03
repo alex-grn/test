@@ -123,7 +123,7 @@ begin
          else
           E.LEVELELCAMPAIGN
        end,
-       COALESCE(M.MFIN::text,'') as MFIN,
+       M.MFIN,
        R.PRINTREPORT,
        I.LEVELELCOMMITTEE
   from REGISTER        R,
@@ -137,8 +137,8 @@ begin
    and I.ID = IK.ELECTCOMMITTEEID
    and M.ELECTCOMMITTEEID = I.ID
    and I.LEVELELCOMMITTEE ~~* 'district'
-   and (CURRENT_DATE >= M.BEGINDATE or 1>=(select count(c.id) from mfin c where ELECTCOMMITTEEID = I.ID))
-   and (M.ENDDATE >= CURRENT_DATE or M.ENDDATE is null)
+   and E.ELECTDATE >= M.BEGINDATE 
+   and (M.ENDDATE >= E.ELECTDATE or M.ENDDATE is null)
   loop
     if rec.LEVELELCAMPAIGN ~~* 'central' and rec.PRINTREPORT then
       perform p_excel_sheet_delete('Отчет УИК РБ');
