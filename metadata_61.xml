@@ -994,17 +994,23 @@
 				<A id="DOCDATEPS" name="Дата" caption="Дата" labelwidth="40" width="40" type="date" readonly="true" virtual="true" formula="select x.DOCDATE from CASHPAYMENT_HEADER x where x.ID = @CASHPAYMENTHEADERID" local="true"/>
 				<A id="SUMPS" name="Сумма РКО" caption="Сумма РКО" labelwidth="70" width="30" type="number" len="8.2" readonly="true" virtual="true" formula="select round(sum(x.SUMMPAY),2) from CASHPAYMENT x where x.CASHPAYMENTHEADERID = @CASHPAYMENTHEADERID" local="true"/>
 			</GA>
+			<A id="PP_VIRT" name="Доступность формироавания ПП" caption="Ссылка" type="boolean" visible="false" virtual="true" formula="select case when @TRPERSONID is not null and @PAYDOCSID is null and @REGISTERSTRANSFERSID is null and @CASHPAYMENTHEADERID is null then true end">
+				<AI id="true" actionlist="ExceptionPP"/>
+			</A>
+			<A id="RKO_VIRT" name="Доступность формироавания РКО" caption="Ссылка" type="boolean" visible="false" virtual="true" formula="select case when @CASHPAYMENTHEADERID is null and @REGISTERSTRANSFERSID is null then true end">
+				<AI id="true" actionlist="ExceptionRKO"/>
+			</A>
+			<A id="PP_DEL_VIRT" name="Доступность расформироавания ПП" caption="Ссылка" type="boolean" visible="false" virtual="true" formula="select case when @TRPERSONID is not null and @PAYDOCSID is not null and @REGISTERSTRANSFERSID is null then true end">
+				<AI id="true" actionlist="SheetdetailsFormPPDel"/>
+			</A>
+			<A id="RKO_DEL_VIRT" name="Доступность расформироавания РКО" caption="Ссылка" type="boolean" visible="false" virtual="true" formula="select case when @PAYDOCSID is null and @CASHPAYMENTHEADERID is not null and @REGISTERSTRANSFERSID is null then true end">
+				<AI id="true" actionlist="SheetdetailsFormRKODel"/>
+			</A>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 			<A id="BLOCKREC" name="Блокировка записей" caption="Блокировка записей" type="boolean" visible="false" virtual="true" formula="select case when s.PAYDOCSID is null and s.CASHPAYMENTHEADERID is null then true else false end from SHEETDETAILS s where s.id = @ID">
 				<AI id="true"/>
 				<AI id="false" readonly="true"/>
-			</A>
-			<A id="TRPERSONIDBLOCK" name="Блокировка записей" caption="Блокировка записей" type="number" visible="false" virtual="true" formula="select case when s.TRPERSONID is null then 1 when s.PAYDOCSID is not null then 2 when s.CASHPAYMENTHEADERID is not null then 3 else 4 end from SHEETDETAILS s where s.id = @ID">
-				<AI id="1" actionlist="ExceptionPP;SheetdetailsFormPPDel;ExceptionRKO;SheetdetailsFormRKODel"/>
-				<AI id="2" actionlist="SheetdetailsFormPPDel"/>
-				<AI id="3" actionlist="SheetdetailsFormRKODel"/>
-				<AI id="4"/>
 			</A>
 			<TI unique="SHEETSID, COMMITTEEMANID"/>
 		</TABLE>
@@ -2061,7 +2067,7 @@
 		<TABLE id="ACTSDOCS" name="Акты выполненных работ и услуг юр.лиц">
 			<TABS>
 				<TAB name="Документ">
-					<A id="ACTSID" parentkey="castcade"/>
+					<A id="ACTSID" parentkey="cascade"/>
 					<A id="BEGINDATETIK" name="Дата начала работы ТИК" type="date" visible="false" readonly="true" formula="select e.begindateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
 					<A id="ENDDATETIK" name="Дата окончания работы ТИК" type="date" visible="false" readonly="true" formula="select e.enddateter from electcampaign e, ACTS c where e.id = c.ELECTCAMPAIGNID and c.id=@ACTSID" local="true"/>
 					<GA name="Внутренний номер документа" caption="Внутренний номер документа">
