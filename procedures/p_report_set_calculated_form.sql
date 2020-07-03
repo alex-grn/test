@@ -53,6 +53,8 @@ declare
   OPTUIK_CELL_NUM_IK            constant text := 'num_ik';
   OPTUIK_CELL_COUNT_IK          constant text := 'count_ik';
   OPTUIK_CELL_ID_IK             constant text := 'id_ik';
+  OPTUIK_CELL_SUM_ALL_IK        constant text := 'sum_all_uik';
+  OPTUIK_CELL_SUM_DOP_IK        constant text := 'sum_all_uik_dop';
   
   line_uik                      constant text := 'uik_line';
   OPTUIK_L_CELL_FIO_UIK         constant text := 'fio_uik';
@@ -121,7 +123,7 @@ begin
          else
           E.LEVELELCAMPAIGN
        end,
-       M.MFIN,
+       COALESCE(M.MFIN::text,'') as MFIN,
        R.PRINTREPORT,
        I.LEVELELCOMMITTEE
   from REGISTER        R,
@@ -135,7 +137,7 @@ begin
    and I.ID = IK.ELECTCOMMITTEEID
    and M.ELECTCOMMITTEEID = I.ID
    and I.LEVELELCOMMITTEE ~~* 'district'
-   and CURRENT_DATE >= M.BEGINDATE
+   and (CURRENT_DATE >= M.BEGINDATE or 1>=(select count(c.id) from mfin c where ELECTCOMMITTEEID = I.ID))
    and (M.ENDDATE >= CURRENT_DATE or M.ENDDATE is null)
   loop
     if rec.LEVELELCAMPAIGN ~~* 'central' and rec.PRINTREPORT then
@@ -320,6 +322,8 @@ begin
   perform p_excel_cell_describe(OPTUIK_CELL_NUM_IK     );
   perform p_excel_cell_describe(OPTUIK_CELL_COUNT_IK   );
   perform p_excel_cell_describe(OPTUIK_CELL_ID_IK      );
+  perform p_excel_cell_describe(OPTUIK_CELL_SUM_ALL_IK      );
+  perform p_excel_cell_describe(OPTUIK_CELL_SUM_DOP_IK      );
   perform p_excel_line_describe(line_uik);
   perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_FIO_UIK );
   perform p_excel_line_cell_describe(line_uik, OPTUIK_L_CELL_BDATE1  );
@@ -337,7 +341,9 @@ begin
 			i.countvtr as count_ik,
 			ik.rnameec as rod_uik,
 			ik.dnameec as dat_uik,
-			ik.tnameec as tv_uik
+			ik.tnameec as tv_uik,
+			(select sum(COALESCE(f1.sumfintikcen,0)+COALESCE(f1.sumfinuik,0)) from FINANCEELCOM f1, TYPEEXP ts1 where f1.electcommincampid = el.id and ts1.id = f1.typeexpid and lower(trim(ts1.code)) like '%компенсация%') as sum_all_uik,
+            (select sum(COALESCE(f1.sumfintikcen,0)+COALESCE(f1.sumfinuik,0)) from FINANCEELCOM f1, TYPEEXP ts1 where f1.electcommincampid = el.id and ts1.id = f1.typeexpid and lower(trim(ts1.code)) like '%вознаграждение%') as sum_all_uik_dop
 		from register r
 		inner join electcampaign el on el.id = r.electcampaignid
 		inner join electcommincamp i on i.id = r.electcommincampid
@@ -352,6 +358,8 @@ begin
         perform p_excel_cell_value_write(OPTUIK_CELL_NUM_IK   , rec.num_ik);
         perform p_excel_cell_value_write(OPTUIK_CELL_COUNT_IK , rec.count_ik);
         perform p_excel_cell_value_write(OPTUIK_CELL_ID_IK    , rec.id_ik);
+        perform p_excel_cell_value_write(OPTUIK_CELL_SUM_ALL_IK    , COALESCE(rec.sum_all_uik,0));
+        perform p_excel_cell_value_write(OPTUIK_CELL_SUM_DOP_IK    , COALESCE(rec.sum_all_uik_dop,0));  		
    end loop;
   
    nIND:=22;
@@ -595,7 +603,7 @@ begin
      idx := p_excel_line_append(line_fr);
      perform p_excel_cell_value_write(OPTFR_L_CELL_FR_PP     , 0, idx, COALESCE(rec.pp,' '));
      perform p_excel_cell_value_write(OPTFR_L_CELL_FR_RASHOD , 0, idx, COALESCE(rec.rashod,' '));
-     perform p_excel_cell_value_write(OPTFR_L_CELL_FR_NUMB   , 0, idx, COALESCE(rec.numb::text,' '));
+     perform p_excel_cell_value_write(OPTFR_L_CELL_FR_NUMB   , 0, idx, COALESCE(rec.numb,0));
      perform p_excel_cell_value_write(OPTFR_L_CELL_FR_TYPER  , 0, idx, COALESCE(rec.typer,' '));
   end loop;              
   perform p_excel_line_delete(line_fr); 
