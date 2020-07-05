@@ -35,7 +35,7 @@
 				<MI name="Обеспечение закупок" formlist="TempordersComp"/>
 				<MI name="Обеспечение заключенных контрактов" formlist="TempordersGK"/>
 			</MENU>
-			<MENU name="Межбюджетные транферты">
+			<MENU name="Межбюджетные трансферты">
 				<MI name="Перечень межбюджетных трансфертов" formlist="Mbt_list"/>
 				<MI name="Уведомления о возвратах межбюджетных трансфертов" formlist="NotifMBT"/>
 				<MI name="Журнал возвратов межбюджетных трансфертов" formlist="Journalnotifmbt"/>
@@ -532,7 +532,7 @@
 				</TAB>
 				<TAB name="Результат отработки">
 					<A id="SIGN_FAIT" name="Статус" caption="Статус" labelwidth="150" width="100" type="list" nulls="true" readonly="true" local="true">
-						<AI id="0" name="Сквитировано" actionlist="DeleteParity"/>
+						<AI id="0" name="Сквитировано" actionlist="GenUvedFromJournInc;GenReturn;DeleteParity"/>
 						<AI id="1" name="Уточнено" actionlist="FineSelect;GenUvedFromJournInc;GenReturn;ReturnToState;DeleteParity"/>
 						<AI id="2" name="Возвращено" actionlist="FineSelect;DeleteParity"/>
 						<AI id="3" name="Поступило" actionlist="FineSelect;GenUvedFromJournInc;GenReturn;ReturnToState"/>
@@ -754,8 +754,8 @@
 			</GA>
 			<GA name="Данные о получателе" caption="Данные о получателе">
 				<A id="CNAME_UBP_RCP" name="Получатель" caption="Наименование" labelwidth="100" width="100" type="string" nulls="true" local="true"/>
-				<A id="INN_ADB" name="ИНН АДБ" caption="ИНН АДБ" labelwidth="100" width="50" type="string" len="10" nulls="true" visible="form" local="true"/>
-				<A id="KPP_ADB" name="КПП АДБ" caption="КПП АДБ" labelwidth="100" width="50" type="string" len="9" nulls="true" visible="form" local="true"/>
+				<A id="INN_ADB" name="ИНН" caption="ИНН" labelwidth="100" width="50" type="string" len="10" nulls="true" visible="form" local="true"/>
+				<A id="KPP_ADB" name="КПП" caption="КПП" labelwidth="100" width="50" type="string" len="9" nulls="true" visible="form" local="true"/>
 				<GA name="Реквизиты получателя" caption="Реквизиты получателя">
 					<A id="BS_RCP" name="Расчетный счет" caption="Счет" labelwidth="100" width="70" type="string" len="20" nulls="true" visible="form" local="true"/>
 					<A id="BIC_RCP" name="БИК" caption="БИК" labelwidth="85" width="30" type="string" len="9" nulls="true" visible="form" local="true"/>
@@ -1851,7 +1851,7 @@
 			</GA>
 		</TABLE>		
 		<COMMENT name="Временное распоряжение"/>
-		<TABLE id="TTLGOVCONTR" name="Обеспечение исполнения государственных контрактов">
+		<TABLE id="TTLGOVCONTR" name="Обеспечение исполнения заключенных контрактов">
 			<A id="OWNERID" name="Принадлежность" labelwidth="120" width="100"/>
 			<GA name="Государственный контракт" caption="Государственный контракт">
 				<A id="IKZ" name="ИКЗ" caption="ИКЗ" labelwidth="120" width="75" type="string" nulls="true" visible="form" local="true"/>
@@ -1880,24 +1880,25 @@
 				<A id="BO_NUMB" name="Учетный номер" caption="Учетный номер" width="80" type="string" nulls="true" visible="form" local="true"/>
 				<A id="BO_DATE" name="Дата" caption="Дата" labelwidth="120" width="20" type="date" nulls="true" visible="form" local="true"/>
 			</GA>
-			<GA name="Обеспечение контракта" caption="Обеспечение контракта">
+			<GA name="Обеспечение заключенного контракта" caption="Обеспечение заключенного контракта">
 				<A id="CONDITION_RETURN" name="Условие возврата" caption="Условие возврата" width="40" type="list">
 					<AI id="0" name="После исполнения контракта"/>
 					<AI id="1" name="Не подлежит возврату"/>
 				</A>
-				<A id="TERM_ORDER" name="Срок возврата в днях" caption="Срок возврата" width="30" type="int" len="17" nulls="true" local="true"/>
+				<A id="TERM_ORDER" name="Срок возврата в днях" caption="Срок возврата" width="30" type="int" len="17" visible="form"  nulls="true" local="true"/>
 				<A id="DATE_ORDER" name="Предполагаемая дата возврата" caption="Предполагаемая дата возврата" labelwidth="200" width="30" type="date" nulls="true" formula="(case when @CONDITION_RETURN = '0' then @DATE_END + @TERM_ORDER else null end) " local="true"/>
 				<GA name="Движение средств, полученных в качестве обеспечения" caption="Движение средств, полученных в качестве обеспечения">
-					<A id="SUMM_ORDER" name="Поступило" caption="Поступило" width="24" type="number" len="17.2" nulls="true" local="true"/>
-					<A id="SUMM_RETURN" name="Возвращено поставщику" caption="Возвращено поставщику" width="26" type="number" len="17.2" nulls="true" local="true"/>
-					<A id="SUMM_INC" name="Отправлено в доход" caption="Отправлено в доход" width="26" type="number" len="17.2" nulls="true" local="true"/>
-					<A id="REST_ORDER" name="Остаток" caption="Остаток" width="24" type="number" len="17.2" nulls="true" visible="grid" local="true"/>
+					<A id="SUMM_ORDER" name="Поступило" caption="Поступило" width="24" type="number" len="17.2" nulls="true" virtual="true" formula="coalesce((select sum(SUMM_POST) from TTLGOVCONTRMOVE where ttlgovcontrid = @ID), 0)" local="true"/>
+					<A id="SUMM_RETURN" name="Возвращено поставщику" caption="Возвращено поставщику" width="26" type="number" len="17.2" nulls="true" virtual="true" formula="coalesce((select sum(SUMM_VYP) from TTLGOVCONTRMOVE where ttlgovcontrid = @ID and SENT_TO_INC = false), 0)" local="true"/>
+					<A id="SUMM_INC" name="Отправлено в доход" caption="Отправлено в доход" width="26" type="number" len="17.2" nulls="true" virtual="true" formula="coalesce((select sum(SUMM_VYP) from TTLGOVCONTRMOVE where ttlgovcontrid = @ID and SENT_TO_INC = true), 0)" local="true"/>
+					<A id="REST_ORDER" name="Остаток" caption="Остаток" width="24" type="number" len="17.2" nulls="true" visible="grid" virtual="true" formula="select (coalesce((select sum(SUMM_POST) from TTLGOVCONTRMOVE where ttlgovcontrid = @ID), 0)) - (coalesce((select sum(SUMM_VYP) from TTLGOVCONTRMOVE where ttlgovcontrid = @ID and SENT_TO_INC = false), 0)) - (coalesce((select sum(SUMM_VYP) from TTLGOVCONTRMOVE where ttlgovcontrid = @ID and SENT_TO_INC = true), 0))" local="true"/>
 				</GA>
-				<A id="REST_DAYS" name="Осталось дней до предельной даты возврата" caption="Осталось дней до предельной даты возврата" labelwidth="450" type="number" virtual="true" formula="(select @DATE_ORDER - current_date)"/>
-				<A id="STATUS_ORDER" name="Статус" caption="Статус" labelwidth="450" width="100" type="list" local="true">
-					<AI id="0" name="Получено"/>
-					<AI id="1" name="Возвращено"/>
-					<AI id="2" name="Просрочено"/>
+				<A id="REST_DAYS" name="Осталось дней до предельной даты возврата" caption="Осталось дней до предельной даты возврата" labelwidth="450" type="number" virtual="true" formula="case when @STATUS_ORDER !='2' then (select @DATE_ORDER - current_date) else 0 end"/>
+				<A id="STATUS_ORDER" name="Статус" caption="Статус" labelwidth="450" width="100" type="list" value="0" local="true">
+					<AI id="0" name="новый"/>
+					<AI id="1" name="получено"/>
+					<AI id="2" name="возвращено / не подлежит возврату"/>
+					<AI id="3" name="просрочено"/>
 				</A>
 			</GA>
 			<A id="DOCLINKS_IN"/>
@@ -1916,11 +1917,12 @@
 			<A id="SUMM_VYP" name="Сумма выплаты" caption="Сумма выплаты" labelwidth="250" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="CNAME_PAY" name="Плательщик" caption="Плательщик" labelwidth="100" width="100" type="string" nulls="true" local="true"/>
 			<A id="CNAME_UBP_RCP" name="Получатель" caption="Получатель" labelwidth="100" width="100" type="string" nulls="true" local="true"/>
+ 			<A id="SENT_TO_INC" name="Отправлено в доход" caption="Отправлено в доход" width="25" type="boolean" nulls="false" value="false"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 		</TABLE>
 		<TABLE id="TTLCOMP" name="Обеспечения участия в закупках">
-			<GA name="Основные данные" caption="Основные данные">
+			<GA name="Закупка" caption="Закупка">
 				<A id="OWNERID" name="Принадлежность" labelwidth="250" width="100"/>
 				<A id="TYPECOMP" name="Способ определения поставщика (подрядчика, исполнителя)" caption="Способ определения поставщика (подрядчика, исполнителя)" labelwidth="250" width="100" type="list">
 					<AI id="1" name="Открытый конкурс"/>
@@ -1941,7 +1943,7 @@
 				</A>
 				<A id="NUMB_COMP" name="Номер закупки" caption="Номер закупки" width="100" type="string" nulls="false" local="true"/>
 				<A id="SUMM_COMPET" name="Сумма" caption="Сумма" labelwidth="100" width="100" type="number" len="17.2" nulls="true" local="true"/>
-				<A id="SUBJ_COMPET" name="Наименование объекта закупки" caption="Наименование объекта закупки" type="text" len="2000" nulls="true" local="true"/>
+				<A id="SUBJ_COMPET" name="Наименование объекта закупки" caption="Наименование объекта закупки" type="text" len="2000" nulls="true" visible="form" local="true"/>
 				<A id="IKZ" name="ИКЗ" caption="ИКЗ" labelwidth="100" width="100" type="string" nulls="true" local="true"/>
 				<GA name="Срок действия" caption="Срок действия">
 					<A id="DATE_BEGIN" name="Дата начала" caption="Дата начала" labelwidth="120" width="33" type="date" nulls="true" visible="form" local="true"/>
@@ -1950,18 +1952,22 @@
 				</GA>
 			</GA>
 			<GA name="Обеспечение участия" caption="Обеспечение участия">
-				<A id="TERM_ORDER" name="Срок возврата в днях" caption="Срок возврата" width="30" type="int" nulls="true" value="5" local="true"/>
+				<A id="TERM_ORDER" name="Срок возврата в днях" caption="Срок возврата" width="30" type="int" nulls="true" visible="form" value="5" local="true"/>
 				<A id="DATE_ORDER" name="Предполагаемая дата возврата участникам" caption="Предполагаемая дата возврата участникам" width="30" type="date" nulls="true" formula="select @DATE_END + @TERM_ORDER" local="true"/>
-				<A id="DATE_ORDER_WINNER" name="Предполагаемая дата возврата победителю" caption="Предполагаемая дата возврата победителю" width="30" type="date" nulls="true" formula="select @DATE_CONCL + @TERM_ORDER" local="true"/>
+				<A id="DATE_ORDWIN" name="Предполагаемая дата возврата победителю" caption="Предполагаемая дата возврата победителю" width="30" type="date" nulls="true" formula="select @DATE_CONCL + @TERM_ORDER" local="true"/>
 				<GA name="Движение средств, полученных в качестве обеспечения" caption="Движение средств, полученных в качестве обеспечения">
-					<A id="SUMM_ORDER" name="Сумма" caption="Сумма" width="24" type="number" len="17.2" nulls="true" local="true"/>
-					<A id="SUMM_RETURN" name="Сумма возврата" caption="Сумма возврата" width="26" type="number" len="17.2" nulls="true" local="true"/>
-					<A id="SUMM_INC" name="Сумма дохода" caption="Сумма дохода" width="26" type="number" len="17.2" nulls="true" local="true"/>
-					<A id="REST_ORDER" name="Остаток" caption="Остаток" width="24" type="number" len="17.2" nulls="true" visible="grid" local="true"/>
+					<A id="SUMM_ORDER" name="Сумма" caption="Сумма" width="24" type="number" len="17.2" nulls="true" virtual="true" formula="coalesce((select sum(SUMM_POST) from TTLCOMPMOVE where ttlcompid = @ID), 0)" local="true"/>
+					<A id="SUMM_RETURN" name="Сумма возврата" caption="Сумма возврата" width="26" type="number" len="17.2" nulls="true" virtual="true" formula="coalesce((select sum(SUMM_VYP) from TTLCOMPMOVE where ttlcompid = @ID and SENT_TO_INC = false), 0)" local="true"/>
+					<A id="SUMM_INC" name="Сумма дохода" caption="Сумма дохода" width="26" type="number" len="17.2" nulls="true" virtual="true" formula="coalesce((select sum(SUMM_VYP) from TTLCOMPMOVE where ttlcompid = @ID and SENT_TO_INC = true), 0)" local="true"/>
+					<A id="REST_ORDER" name="Остаток" caption="Остаток" width="24" type="number" len="17.2" nulls="true" visible="grid" virtual="true" formula="select coalesce((select sum(SUMM_POST) from TTLCOMPMOVE where ttlcompid = @ID), 0) - (coalesce((select sum(SUMM_VYP) from TTLCOMPMOVE where ttlcompid = @ID and SENT_TO_INC = false), 0)) - (coalesce((select sum(SUMM_VYP) from TTLCOMPMOVE where ttlcompid = @ID and SENT_TO_INC = true), 0))" local="true"/>
 				</GA>
-				<A id="STATUS_ORDER" name="Статус" caption="Статус" width="33" type="list" local="true">
-					<AI id="0" name="Возвращено"/>
-					<AI id="1" name="Просрочено"/>
+				<A id="REST_DAYS" name="Осталось дней до предельной даты возврата участникам" caption="Осталось дней до предельной даты возврата участникам" labelwidth="450" type="number" virtual="true" formula="case when @STATUS_ORDER !='2' then (select @DATE_ORDER - current_date) else 0 end"/>
+				<A id="REST_DAYS_WINNER" name="Осталось дней до предельной даты возврата победителю" caption="Осталось дней до предельной даты возврата победителю" labelwidth="450" type="number" virtual="true" formula="case when @STATUS_ORDER !='2' then (select (@DATE_ORDWIN) - current_date) else 0 end"/>
+				<A id="STATUS_ORDER" name="Статус" caption="Статус" labelwidth="450" width="100" type="list" value="0" local="true">
+					<AI id="0" name="новый"/>
+					<AI id="1" name="получено"/>
+					<AI id="2" name="возвращено / не подлежит возврату"/>
+					<AI id="3" name="просрочено"/>
 				</A>
 			</GA>
 			<A id="DOCLINKS_IN"/>
@@ -1979,6 +1985,7 @@
 			<A id="SUMM_VYP" name="Сумма выплаты" caption="Сумма выплаты" labelwidth="250" type="number" len="17.2" nulls="true" local="true"/>
 			<A id="CNAME_PAY" name="Плательщик" caption="Плательщик" labelwidth="100" width="100" type="string" nulls="true" local="true"/>
 			<A id="CNAME_UBP_RCP" name="Получатель" caption="Получатель" labelwidth="100" width="100" type="string" nulls="true" local="true"/>
+ 			<A id="SENT_TO_INC" name="Отправлено в доход" caption="Отправлено в доход" width="25" type="boolean" nulls="false" value="false"/>
 			<A id="DOCLINKS_IN"/>
 			<A id="DOCLINKS_OUT"/>
 		</TABLE>
@@ -2042,7 +2049,7 @@
 		<TABLE id="POSTPERSPAY" name="Постановления">
 			<A id="OWNERID" name="Принадлежность" labelwidth="120" width="100"/>
 			<A id="POSTPERSPAY_NUMB" name="Номер" caption="Номер" labelwidth="120" type="string" len="254" nulls="false" visible="true"/>
-			<A id="POSTPERSPAY_NAME" name="Наименование" caption="Наименование" labelwidth="120" type="string" len="254" visible="true"/>
+			<A id="POSTPERSPAY_NAME" name="Наименование" caption="Наименование" labelwidth="120" type="text" len="254" visible="true"/>
 			<A id="POSTPERSPAY_TYPE" name="Тип" caption="Тип" labelwidth="120" type="list" len="254" visible="true">
 			<AI id="1" name="Постановление правительства РФ"/>
 			<AI id="2" name="Федеральный закон"/>
@@ -2063,6 +2070,7 @@
 				<AI id="1" name="уточнено уведомлением"/>
 				<AI id="2" name="принято в доход"/>
 				<AI id="3" name="возвращено отправителю"/>
+				<AI id="4" name="отправлено в доход"/>	
 			</A>
 			<A id="STATEMENTADBDONEID" name="Идентификатор операции на счете АДБ" caption="Идентификатор операции на счете АДБ" visible="false"/>
 			<A id="STATEMENTPBSVPKPID" name="Идентификатор операции на счете ПБС (поступления)" caption="Идентификатор операции на счете ПБС (поступления)" visible="false"/>
@@ -2219,11 +2227,21 @@
 		</TABLE>
 	</TABLES>
 	<ACTIONS name="Действия">
-		<COMMENT name="Действия для модуля Администрирование штрафов"/>
-		<COMMENT name="Действия для работы с начислениями"/>
+		<COMMENT name="Действия для модуля Администрирование доходов"/>	
+		<COMMENT name="Действия для загрузки штрафов"/>
 		<ACTION id="FileloadingImport" name="Загрузить данные" type="procedure" procedure="p_fileloading_importevidence"/>
 		<ACTION id="ResetStatus" name="Сменить статус на «Новый»" type="procedure" procedure="p_reset_status"/>
 		<ACTION id="FineloadingImport" name="Подтвердить начисление" type="procedure" procedure="p_fineloading_importevidence"/>
+		<ACTION id="LoadFileLoadFINE" name="Загрузить в формате контрольно-надзорной системы" type="script" actionlist="LoadAndConvertFile">
+			<P id="convname" value="Постановления из АСУ КНД"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="LoadAndConvertUBR" name="Загрузить и конвертировать файл" type="procedure" procedure="p_action_file_convert_ubr">
+			<P id="convname" value="Постановления из АСУ КНД"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="LoadAndConvertFine" name="Загрузить данные" type="script" actionlist="FilelinksToFilebuffer;LoadAndConvertUBR"/>		
+		<COMMENT name="Действия для смены статусов штрафов"/>
 		<ACTION id="StatusTo1" name="Не вступил в силу" type="procedure" procedure="p_action_status_change" refresh="select">
 			<FORM>
 				<A id="STATUS_FROM" caption="Статус откуда" type="string" visible="false" value="0" local="true"/>
@@ -2285,6 +2303,14 @@
 				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="150" type="text" nulls="true" local="true"/>
 			</FORM>
 		</ACTION>
+		<ACTION id="ChangeBKD" name="Изменение КБК" type="procedure" procedure="p_action_change_fine_bkd" refresh="select">
+			<FORM>
+				<A id="DATE" name="Дата изменения" caption="Дата изменения" labelwidth="150" type="date" nulls="false" formula="now()" local="true"/>
+				<A id="BKD_ID" name="Новый КБК" caption="Новый КБК" labelwidth="150"/>
+				<A id="NOTE" name="Примечание" caption="Примечание" labelwidth="150" type="text" nulls="true" local="true"/>
+			</FORM>
+		</ACTION>
+		<COMMENT name="Действия для подбора оплаты"/>
 		<ACTION id="PaySelectFillingBuff" name="Наполнение буферной таблицы подбора оплаты" type="procedure" procedure="p_action_select_pay_fillbuff">
 			<FORM>
 				<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" value="false" local="true"/>
@@ -2312,26 +2338,7 @@
 		<ACTION id="PaySelectBuffClear" name="Подбор оплаты очистка буфера" schedule_period="0" schedule_start="0" type="procedure" procedure="p_action_select_pay_clear"/>
 		<ACTION id="PaySelectMove" name="Переносить" type="procedure" procedure="p_action_select_pay_move"/>
 		<ACTION id="PaySelectNoMove" name="Не переносить" type="procedure" procedure="p_action_select_pay_nomove"/>
-		<COMMENT name="Действия для модуля Администрирование штрафов"/>
-		<COMMENT name="Действия для работы с поступлениями"/>
-		<ACTION id="TakeToWork" name="Взять в работу" type="procedure" procedure="p_action_take_to_work" refresh="select">
-			<FORM>
-				<A id="DESTINATION" name="Назначение" caption="Назначение" labelwidth="350" type="list" local="true">
-					<AI id="0" name="Штрафы"/>
-					<AI id="1" name="Возвраты межбюджетных трансфертов"/>
-					<AI id="2" name="Возвраты персонифицированных выплат"/>
-					<AI id="3" name="Прочие поступления"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="TakeToWorkPBS" name="Взять в работу" type="procedure" procedure="p_action_take_to_work" refresh="select">
-			<FORM>
-				<A id="DESTINATION" name="Назначение" caption="Назначение" labelwidth="350" type="list" local="true">
-					<AI id="2" name="Возвраты персонифицированных выплат"/>
-					<AI id="3" name="Прочие поступления"/>
-				</A>
-			</FORM>
-		</ACTION>
+		<COMMENT name="Действия для подбора начисления"/>
 		<ACTION id="FineSelectFillingBuff" name="Наполнение буферной таблицы подбора начисления" type="procedure" procedure="p_action_select_fine_fillbuff">
 			<FORM>
 				<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" value="false" local="true"/>
@@ -2359,7 +2366,173 @@
 		<ACTION id="FineSelectBuffClear" name="Подбор начисления очистка буфера" schedule_period="0" schedule_start="0" type="procedure" procedure="p_action_select_fine_clear"/>
 		<ACTION id="FineSelectMove" name="Переносить" type="procedure" procedure="p_action_select_fine_move"/>
 		<ACTION id="FineSelectNoMove" name="Не переносить" type="procedure" procedure="p_action_select_fine_nomove"/>
+		<COMMENT name="Действия для загрузок документов в формате ТФФ"/>
+		<COMMENT name="Действия для загрузок документов в формате ТФФ АДБ"/>
+		<ACTION id="LoadFileADB" name="Загрузить выписку" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Выписка из лицевого счета администратора доходов бюджета (основная информация об операциях) с подбором уведомлений к строкам выписки"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="LoadFileADBBD" name="Загрузить расчетные документы в последнем формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="после 1.06.2020 АДБ Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="LoadFileADBBD_before01-06-2020" name="Загрузить расчетные документы в формате до 01.06.2020" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="до 1.06.2020 АДБ Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31, Том 2, п. 7.8)"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<COMMENT name="Действия для загрузок документов в формате ТФФ ПБС"/>
+		<ACTION id="LoadFileSTPBS" name="Загрузить выписку" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Выписка из лицевого счета получателя бюджетных средств (ТФФ 31, Том 2, п. 7.2) (основная информация об операциях) с подбором уведомлений к строкам выписки"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="LoadFileSTPBSBD" name="Загрузить расчетные документы в последнем формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="после 1.06.2020 ПБС Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="LoadFileSTPBSBD_before01-06-2020" name="Загрузить расчетные документы в формате до 01.06.2020" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="до 1.06.2020 ПБС Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31, Том 2, п. 7.8)"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<COMMENT name="Действия для загрузок документов в формате ТФФ СВР"/>
+		<ACTION id="LoadFileSTPBSTTL" name="Загрузить выписку" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Выписка из лицевого счета для учета операций по средствам, поступившим во временное распоряжение (ТФФ 31, Том 2, п.  7.4)"/>
+			<P id="errorone" value="true"/>
+		</ACTION>
+		<ACTION id="LoadFileSTPBSTTLBD" name="Загрузить расчетные документы в последнем формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="после 1.06.2020 СВР Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
+			<P id="errorone" value="true"/>
+		</ACTION>	
+		<COMMENT name="Действия для загрузок документов в формате ТФФ документы"/>
+		<ACTION id="LoadFileZF" name="Загрузить запросы на уточнение" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Запрос на выяснение принадлежности платежа (ТФФ 31, Том 2, п. 7.1)"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="LoadFileUF" name="Загрузить уведомления на уточнение" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Уведомление об уточнении вида и принадлежности платежа (ТФФ 31, Том 1, п. 7.6)"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<ACTION id="LoadFileZV" name="Загрузить заявку на возврат" type="script" actionlist="LoadAndConvertFile" refresh="all">
+			<P id="convname" value="Заявка на возврат (ТФФ 31, Том 1, п. 7.4)"/>
+			<P id="errorone" value="false"/>
+		</ACTION>
+		<COMMENT name="Действия для выгрузок документов в формате ТФФ документы"/>
+		<ACTION id="ExportUF" name="Выгрузить уведомления на уточнение" type="procedure" procedure="p_action_export_UF_TFF">
+		</ACTION>
+		<ACTION id="ExportZV" name="Выгрузить заявки на возврат" type="procedure" procedure="p_action_export_ZV_TFF">
+		</ACTION>
+		<COMMENT name="Действия для взятия в работу платежей в журналы"/>
+		<ACTION id="TakeToWork" name="Взять в работу" type="procedure" procedure="p_action_take_to_work" refresh="select">
+			<FORM>
+				<A id="DESTINATION" name="Назначение" caption="Назначение" labelwidth="350" type="list" local="true">
+					<AI id="0" name="Штрафы"/>
+					<AI id="1" name="Возвраты межбюджетных трансфертов"/>
+					<AI id="2" name="Возвраты персонифицированных выплат"/>
+					<AI id="3" name="Прочие поступления"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<ACTION id="TakeToWorkPBS" name="Взять в работу" type="procedure" procedure="p_action_take_to_work" refresh="select">
+			<FORM>
+				<A id="DESTINATION" name="Назначение" caption="Назначение" labelwidth="350" type="list" local="true">
+					<AI id="2" name="Возвраты персонифицированных выплат"/>
+					<AI id="3" name="Прочие поступления"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<COMMENT name="Действия для журналов общие"/>
+		<ACTION id="ReturnToState" name="Вернуть платёж в выписку" type="procedure" procedure="p_action_return_to_statement">
+			<FORM>
+				<A id="SURE" name="Действие необратимо. Подтвердить выполнение" caption="Действие необратимо. Подтвердить выполнение" labelwidth="500" type="list" nulls="false" value="NO">
+					<AI id="NO" name="Нет"/>
+					<AI id="YES" name="Да"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<COMMENT name="Действия для выписок общие для верификации документов со строками исполненных операций"/>
+		<ACTION id="Verification" name="Верифицировать уведомления" type="procedure" procedure="p_action_verificate_done">
+			<FORM>
+				<A id="REFINENOTIFID" name="Уведомление об уточнении" caption="Уведомление об уточнении" labelwidth="250" type="ref" table="REFINENOTIFNOTQUIT" ret="NOM_UF" form="RefinenotifNotQuit" local="true">
+					<AI id="*" readonly="CRUSH_MODE"/>
+				</A>
+				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
+					<AI id="true" readonly="REFINENOTIFID"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<ACTION id="VerificationReturn" name="Верифицировать заявки на возврат" type="procedure" procedure="p_action_verificate_return">
+			<FORM>
+				<A id="RETURNREQID" name="Заявка на возврат" caption="Заявка на возврат" labelwidth="250" type="ref" table="RETURNREQNOTQUIT" ret="NOM_ZV" form="ReturnreqNotQuit" local="true">
+					<AI id="*" readonly="CRUSH_MODE"/>
+				</A>
+				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
+					<AI id="true" readonly="RETURNREQID"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<ACTION id="VerificationExpToInc" name="Верифицировать заявки на расход" type="procedure" procedure="p_action_verificate_exptoinc">
+			<FORM>
+				<A id="ZR_DOCID" name="Заявка на кассовый расход" caption="Заявка на кассовый расход" labelwidth="250" type="ref" table="ZR_DOC" ret="NOM_ZR" form="Zr_doc">
+					<AI id="*" readonly="CRUSH_MODE"/>
+				</A>
+				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
+					<AI id="true" readonly="ZR_DOCID"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<COMMENT name="Действия для Журнала платежей и Детализации платежей по штрафам специальные"/>
+		<ACTION id="LoadRR" name="Загрузить реестр" type="procedure" procedure="p_action_load_rr"/>
+		<ACTION id="SendtoJornal" name="Отправить в журнал" type="procedure" procedure="p_action_send_to_journal"/>
 		<ACTION id="DeleteParity" name="Удалить квитовку" type="procedure" procedure="p_action_delete_ticket"/>
+		<COMMENT name="Действия для Журнала возвратов по МБТ специальные"/>
+		<ACTION id="SetIdentMBT" name="Идентифицировать МБТ" type="procedure" procedure="p_action_set_ident_MBT_return">
+			<FORM>
+				<TABS>
+					<TAB name="Параметры идентификации">
+						<A id="MBT_RETURN_TYPE" name="Тип возврата" caption="Тип возврата" labelwidth="250" width="100" type="list" nulls="true" visible="true" local="true">
+							<AI id="0" name="Возврат неиспользованного трансферта"/>
+							<AI id="1" name="Возврат дебиторской задолженности прошлых лет"/>
+						</A>
+						<A id="MBT_LISTID" labelwidth="250"/>
+						<A id="MBT_LISTID_II" name="Подобрать код межбюджетного трансферта по коду цели" caption="Подобрать код межбюджетного трансферта по коду цели" labelwidth="250" type="boolean" value="false" local="true">
+							<AI id="true" readonly="MBT_LISTID"/>
+						</A>
+						<A id="AGENT_ID" name="Получатель МБТ" caption="Получатель МБТ" labelwidth="250"/>
+						<A id="AGENT_ID_II" name="Подобрать получателя межбюджетного трансферта по ИНН/КПП плательщика" caption="Подобрать получателя межбюджетного трансферта по ИНН/КПП плательщика" labelwidth="250" type="boolean" value="false" local="true">
+							<AI id="true" readonly="AGENT_ID"/>
+						</A>
+					</TAB>
+					<TAB name="Параметры удаления идентификации">
+						<A id="MBT_RETURN_TYPE_DEL" name="Удалить тип возврата" caption="Удалить тип возврата" labelwidth="25" type="boolean" value="false" local="true"/>
+						<A id="MBT_LISTID_DEL" name="Удалить код межбюджетного трансферта" caption="Удалить код межбюджетного трансферта" labelwidth="25" type="boolean" value="false" local="true"/>
+						<A id="AGENT_ID_DEL" name="Удалить получателя межбюджетного трансферта" caption="Удалить получателя межбюджетного трансферта" labelwidth="25" type="boolean" value="false" local="true"/>
+					</TAB>
+				</TABS>
+			</FORM>
+		</ACTION>
+		<ACTION id="LinkToNotifMBT" name="Связать с уведомлением о возврате МБТ" type="procedure" procedure="p_action_link_to_notifmbt">
+			<FORM>
+				<A id="NOTIFMBTID" name="Уведомление о возврате межбюджетного трансферта" caption="Уведомление о возврате межбюджетного трансферта" labelwidth="350"/>
+				<A id="CRUSH_MODE" name="Удалить связь" caption="Удалить связь" labelwidth="25" type="boolean" value="false">
+					<AI id="true" readonly="NOTIFMBTID"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<ACTION id="MakeEntryMBTreturn" name="Отработать" type="procedure" procedure="p_action_make_entry_MBT_return"/>
+		<ACTION id="DeleteEntryMBTreturn" name="Снять отработку" type="procedure" procedure="p_action_delete_entry_MBT_return"/>
+		<COMMENT name="Действия для Журнала возвратов персонифицированных выплат специальные"/>
+		<ACTION id="CompareWithPostPersPay" name="Сопоставить платеж с постановлением" type="procedure" procedure="p_action_compare_with_postperspay">
+			<FORM>
+				<A id="POSTPERSPAYID" name="Постановление" caption="Постановление" labelwidth="250"/>
+				<A id="POSTPERSPAYID_DEL" name="Удалить постановление" caption="Удалить постановление" labelwidth="25" type="boolean" value="false" local="true">
+				<AI id="true" readonly="POSTPERSPAYID"/>
+				</A>
+			</FORM>
+		</ACTION>
+		<ACTION id="ExportToEUPP" name="Выгрузить в Единую унифицированную программную платформу" type="procedure" procedure="p_action_export_to_eupp"/>
+		<ACTION id="ImportFromEUPP" name="Загрузить из Единой унифицированной программной платформы" type="procedure" procedure="p_action_import_from_eupp"/>
+		<COMMENT name="Действия для Журнала прочих поступлений специальные"/>
+		<ACTION id="AcceptToInc" name="Принять платежи в доход" type="procedure" procedure="p_action_accept_to_inc"/>
+		<COMMENT name="Действия для формирования и расформирования документов (запросы и журналы)"/>
 		<ACTION id="GenUved" name="Сформировать уведомление об уточнении" type="procedure" procedure="p_action_gen_uved" refresh="select">
 			<FORM>
 				<A id="AGENT_ACCID" name="Лицевой счет" caption="Лицевой счет" labelwidth="200" type="ref" len="160" table="AGENT_ACC" ret="BANK_ACC" local="true"/>
@@ -2389,7 +2562,6 @@
 				</GA>
 			</FORM>
 		</ACTION>
-		<ACTION id="UnGenUved" name="Расформировать уведомление об уточнении" type="procedure" procedure="p_action_ungen_uved" refresh="select"/>
 		<ACTION id="GenUvedFromJournPersPay" name="Сформировать уведомление об уточнении" type="procedure" procedure="p_action_gen_uved" refresh="select">
 			<FORM>
 				<GA name="Уточнённые данные о получателе" caption="Уточнённые данные о получателе">
@@ -2433,174 +2605,47 @@
 				</GA>
 			</FORM>
 		</ACTION>
-		<ACTION id="GenReturn" name="Сформировать заявку на возврат" type="procedure" procedure="p_action_gen_return"/>
+		<ACTION id="UnGenUved" name="Расформировать уведомление об уточнении" type="procedure" procedure="p_action_ungen_uved" refresh="select"/>
+		<ACTION id="GenReturn" name="Сформировать заявку на возврат" type="procedure" procedure="p_action_gen_return">
 		<FORM>
-			<A id="AUIN" name="УИН" caption="УИН" type="boolean" nulls="false" local="true"/>
+			<A id="DATE_ZVR" name="Дата" caption="Дата" type="date" nulls="false" local="true"/>
+			<A id="PURPOSE_ZVR" name="Назначение платежа" caption="Назначение платежа" type="text" len="210" nulls="false" local="true"/>
+			<A id="SUMM_ZVR" name="Сумма возврата" caption="Сумма возврата" type="number" len="17.2" nulls="false" local="true"/>
 		</FORM>
+		</ACTION>
 		<ACTION id="UnGenReturn" name="Расформировать заявку на возврат" type="procedure" procedure="p_action_ungen_return"/>
 		<ACTION id="GenExpToInc" name="Сформировать заявку на расход в доход бюджета" type="procedure" procedure="p_action_gen_exp_to_inc"/>
 		<ACTION id="UnGenExpToInc" name="Сформировать заявку на расход в доход бюджета" type="procedure" procedure="p_action_ungen_exp_to_inc"/>
-		<ACTION id="ReturnToState" name="Вернуть платёж в выписку" type="procedure" procedure="p_action_return_to_statement">
-			<FORM>
-				<A id="SURE" name="Действие необратимо. Подтвердить выполнение" caption="Действие необратимо. Подтвердить выполнение" labelwidth="500" type="list" nulls="false" value="NO">
-					<AI id="NO" name="Нет"/>
-					<AI id="YES" name="Да"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="Verification" name="Верифицировать уведомления" type="procedure" procedure="p_action_verificate_done">
-			<FORM>
-				<A id="REFINENOTIFID" name="Уведомление об уточнении" caption="Уведомление об уточнении" labelwidth="250" type="ref" table="REFINENOTIFNOTQUIT" ret="NOM_UF" form="RefinenotifNotQuit" local="true">
-					<AI id="*" readonly="CRUSH_MODE"/>
-				</A>
-				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
-					<AI id="true" readonly="REFINENOTIFID"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="VerificationReturn" name="Верифицировать заявки на возврат" type="procedure" procedure="p_action_verificate_return">
-			<FORM>
-				<A id="RETURNREQID" name="Заявка на возврат" caption="Заявка на возврат" labelwidth="250" type="ref" table="RETURNREQNOTQUIT" ret="NOM_ZV" form="ReturnreqNotQuit" local="true">
-					<AI id="*" readonly="CRUSH_MODE"/>
-				</A>
-				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
-					<AI id="true" readonly="RETURNREQID"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="VerificationExpToInc" name="Верифицировать заявки на расход" type="procedure" procedure="p_action_verificate_exptoinc">
-			<FORM>
-				<A id="ZR_DOCID" labelwidth="250" >
-					<AI id="*" readonly="CRUSH_MODE"/>
-				</A>
-				<A id="CRUSH_MODE" name="Снять верификацию" caption="Снять верификацию" type="boolean" value="false">
-					<AI id="true" readonly="ZR_DOCID"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="CallTechsupport" name="Вызвать техническую поддержку" type="link" href="http://yandex.ru"/>
-		<ACTION id="SendtoJornal" name="Отправить в журнал" type="procedure" procedure="p_action_send_to_journal"/>
-		<ACTION id="LoadRR" name="Загрузить реестр" type="procedure" procedure="p_action_load_rr"/>
-		<ACTION id="LoadFileADB" name="Загрузить выписку" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="Выписка из лицевого счета администратора доходов бюджета (основная информация об операциях) с подбором уведомлений к строкам выписки"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
-		<ACTION id="LoadFileADBBD" name="Загрузить расчетные документы в последнем формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="после 1.06.2020 АДБ Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
-			<P id="errorone" value="false"/>
-		</ACTION>
-		<ACTION id="LoadFileADBBD_before01-06-2020" name="Загрузить расчетные документы в формате до 01.06.2020" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="до 1.06.2020 АДБ Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31, Том 2, п. 7.8)"/>
-			<P id="errorone" value="false"/>
-		</ACTION>
-		<ACTION id="LoadFileLoadFINE" name="Загрузить в формате контрольно-надзорной системы" type="script" actionlist="LoadAndConvertFile">
-			<P id="convname" value="Постановления из АСУ КНД"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
-		<ACTION id="LoadAndConvertUBR" name="Загрузить и конвертировать файл" type="procedure" procedure="p_action_file_convert_ubr">
-			<P id="convname" value="Постановления из АСУ КНД"/>
-			<P id="errorone" value="false"/>
-		</ACTION>
-		<ACTION id="LoadAndConvertFine" name="Загрузить данные" type="script" actionlist="FilelinksToFilebuffer;LoadAndConvertUBR"/>
-		<ACTION id="LoadFileSTPBS" name="Загрузить выписку" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="Выписка из лицевого счета получателя бюджетных средств (ТФФ 31, Том 2, п. 7.2) (основная информация об операциях) с подбором уведомлений к строкам выписки"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
-		<ACTION id="LoadFileSTPBSBD" name="Загрузить расчетные документы в последнем формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="после 1.06.2020 ПБС Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
-		<ACTION id="LoadFileSTPBSBD_before01-06-2020" name="Загрузить расчетные документы в формате до 01.06.2020" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="до 1.06.2020 ПБС Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31, Том 2, п. 7.8)"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
-		<ACTION id="LoadFileSTPBSTTL" name="Загрузить выписку" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="Выписка из лицевого счета для учета операций по средствам, поступившим во временное распоряжение (ТФФ 31, Том 2, п.  7.4)"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
-		<ACTION id="LoadFileSTPBSTTLBD" name="Загрузить расчетные документы в последнем формате" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="после 1.06.2020 СВР Информация из расчетных документов, подтверждающих банковские операции клиентов Федерального казначейства при расчетах (ТФФ 31 доп. 2, Том 2, п. 7.8)"/>
-			<P id="errorone" value="true"/>
-		</ACTION>
+		<COMMENT name="Действия для работы с обеспечениями участия в закупках и иполнения заключенных контрактов"/>
 		<ACTION id="LinkToCompetition" name="Связать с закупкой" type="procedure" procedure="p_action_link_to_competition">
 			<FORM>
-				<A id="TTLCOMPID" name="Закупка (конкурс/аукцион)" caption="Конкурс/аукцион" labelwidth="250"/>
+				<A id="TTLCOMPID" name="Код закупки" caption="Код закупки" labelwidth="250"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="LinkToContract" name="Связать с заключенным контрактом" type="procedure" procedure="p_action_link_to_contract">
 			<FORM>
-				<A id="TTLGOVCONTRID" name="Контракт" caption="Контракт" labelwidth="250"/>
+				<A id="TTLGOVCONTRID" name="Номер заключенного контракта" caption="Номер заключенного контракта" labelwidth="250"/>
 			</FORM>
 		</ACTION>
 		<ACTION id="UnLinkTTL" name="Разорвать связь с закупкой/контрактом" type="procedure" procedure="p_action_unlink_ttl"/>
+		<ACTION id="SetStatusTTL" name="Установить текущий статус" type="procedure" procedure="p_action_set_status_ttl">
+		<FORM>
+			<A id="STATUS_ORDER" name="Статус" caption="Статус" labelwidth="450" width="100" type="list" value="0" local="true">
+				<AI id="0" name="новый"/>
+				<AI id="1" name="получено"/>
+				<AI id="2" name="возвращено/не подлежит возврату"/>
+				<AI id="3" name="просрочено"/>
+			</A>
+		</FORM>
+		</ACTION>
+		<COMMENT name="Действия для работы с уведомлениями о возвратах МБТ"/>
 		<ACTION id="NotifMBTAccept" name="Принять уведомление" type="procedure" procedure="p_action_notifmbt_accept"/>
 		<ACTION id="NotifMBTSignStrong" name="Поставить подпись ЭЦП" type="procedure" procedure="p_action_sign_strong"/>
 		<ACTION id="NotifMBTUnSignStrong" name="Снять подпись ЭЦП" type="procedure" procedure="p_action_unsign_strong"/>
 		<ACTION id="NotifMBTLinkToPP" name="Связать с платёжным документом" type="procedure" procedure="p_action_link_to_pp"/>
 		<ACTION id="NotifMBTUnLinkToPP" name="Удалить связь" type="procedure" procedure="p_action_unlink_to_pp"/>
-		<ACTION id="SetIdentMBT" name="Идентифицировать МБТ" type="procedure" procedure="p_action_set_ident_MBT_return">
-			<FORM>
-				<TABS>
-					<TAB name="Параметры идентификации">
-						<A id="MBT_RETURN_TYPE" name="Тип возврата" caption="Тип возврата" labelwidth="250" width="100" type="list" nulls="true" visible="true" local="true">
-							<AI id="0" name="Возврат неиспользованного трансферта"/>
-							<AI id="1" name="Возврат дебиторской задолженности прошлых лет"/>
-						</A>
-						<A id="MBT_LISTID" labelwidth="250"/>
-						<A id="MBT_LISTID_II" name="Подобрать код межбюджетного трансферта по коду цели" caption="Подобрать код межбюджетного трансферта по коду цели" labelwidth="250" type="boolean" value="false" local="true">
-							<AI id="true" readonly="MBT_LISTID"/>
-						</A>
-						<A id="AGENT_ID" name="Получатель МБТ" caption="Получатель МБТ" labelwidth="250"/>
-						<A id="AGENT_ID_II" name="Подобрать получателя межбюджетного трансферта по ИНН/КПП плательщика" caption="Подобрать получателя межбюджетного трансферта по ИНН/КПП плательщика" labelwidth="250" type="boolean" value="false" local="true">
-							<AI id="true" readonly="AGENT_ID"/>
-						</A>
-					</TAB>
-					<TAB name="Параметры удаления идентификации">
-						<A id="MBT_RETURN_TYPE_DEL" name="Удалить тип возврата" caption="Удалить тип возврата" labelwidth="25" type="boolean" value="false" local="true"/>
-						<A id="MBT_LISTID_DEL" name="Удалить код межбюджетного трансферта" caption="Удалить код межбюджетного трансферта" labelwidth="25" type="boolean" value="false" local="true"/>
-						<A id="AGENT_ID_DEL" name="Удалить получателя межбюджетного трансферта" caption="Удалить получателя межбюджетного трансферта" labelwidth="25" type="boolean" value="false" local="true"/>
-					</TAB>
-				</TABS>
-			</FORM>
-		</ACTION>
-		<ACTION id="LinkToNotifMBT" name="Связать с уведомлением о возврате МБТ" type="procedure" procedure="p_action_link_to_notifmbt">
-			<FORM>
-				<A id="NOTIFMBTID" name="Уведомление о возврате межбюджетного трансферта" caption="Уведомление о возврате межбюджетного трансферта" labelwidth="350"/>
-				<A id="CRUSH_MODE" name="Удалить связь" caption="Удалить связь" labelwidth="25" type="boolean" value="false">
-					<AI id="true" readonly="NOTIFMBTID"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="MakeEntryMBTreturn" name="Отработать" type="procedure" procedure="p_action_make_entry_MBT_return"/>
-		<ACTION id="DeleteEntryMBTreturn" name="Снять отработку" type="procedure" procedure="p_action_delete_entry_MBT_return"/>
-		<ACTION id="LoadFileZF" name="Загрузить запросы на уточнение" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="Запрос на выяснение принадлежности платежа (ТФФ 31, Том 2, п. 7.1)"/>
-			<P id="errorone" value="false"/>
-		</ACTION>
-		<ACTION id="LoadFileUF" name="Загрузить уведомления на уточнение" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="Уведомление об уточнении вида и принадлежности платежа (ТФФ 31, Том 1, п. 7.6)"/>
-			<P id="errorone" value="false"/>
-		</ACTION>
-		<ACTION id="LoadFileZV" name="Загрузить заявку на возврат" type="script" actionlist="LoadAndConvertFile" refresh="all">
-			<P id="convname" value="Заявка на возврат (ТФФ 31, Том 1, п. 7.4)"/>
-			<P id="errorone" value="false"/>
-		</ACTION>
-		<ACTION id="CompareWithPostPersPay" name="Сопоставить платеж с постановлением" type="procedure" procedure="p_action_compare_with_postperspay">
-			<FORM>
-				<A id="POSTPERSPAYID" name="Постановление" caption="Постановление" labelwidth="250"/>
-				<A id="POSTPERSPAYID_DEL" name="Удалить постановление" caption="Удалить постановление" labelwidth="25" type="boolean" value="false" local="true">
-				<AI id="true" readonly="POSTPERSPAYID"/>
-				</A>
-			</FORM>
-		</ACTION>
-		<ACTION id="ExportToEUPP" name="Выгрузить в Единую Унифицированную Программную Платформу" type="procedure" procedure="p_action_export_to_eupp"/>
-		<ACTION id="ImportFromEUPP" name="Загрузить из Единой Унифицированной Программной Платформы" type="procedure" procedure="p_action_import_from_eupp"/>
-		<ACTION id="AcceptToInc" name="Принять платежи в доход" type="procedure" procedure="p_action_accept_to_inc"/>
-		<ACTION id="ExportUF" name="Выгрузить уведомления на уточнение" type="procedure" procedure="p_action_export_UF_TFF">
-		</ACTION>
-		<ACTION id="ExportZV" name="Выгрузить заявки на возврат" type="procedure" procedure="p_action_export_ZV_TFF">
-		</ACTION>
-		<ACTION id="SetStatusTTL" name="Установить текущий статус" type="procedure" procedure="p_action_set_status_ttl"/>
+		<COMMENT name="Иные действия"/>
+		<ACTION id="CallTechsupport" name="Вызвать техническую поддержку" type="link" href="http://yandex.ru"/>
 	</ACTIONS>
 	<REPORTS name="Отчеты"/>
 	<FORMS id="Forms" name="Формы">
@@ -2762,13 +2807,13 @@
 					<GRID id="Statementpbsttl" name="Выписки получателя средств во временное распоряжение" table="STATEMENTPBSTTL" actionlist="LoadFileSTPBSTTL;LoadFileSTPBSTTLBD"/>
 				</TAB>
 				<TAB name="Исполненные операции со средствами во временном распоряжении">
-					<A id="LS_UBPVIRT" name="Дата выписки" caption="Дата выписки" labelwidth="70" width="10" type="string" readonly="true" virtual="true" formula="select LS_UBP from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
-					<A id="IDENTSTATEVIRT" name="Дата выписки" caption="Дата выписки" labelwidth="60" width="5" type="date" readonly="true" virtual="true" formula="select DATE_OTCH from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
-					<A id="SUM_BEGIN_VIRT" name="Остаток на начало дня" caption="Остаток на начало дня" labelwidth="150" width="15" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_BEGIN from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
-					<A id="SUM_POST_TTL_VIRT" name="Поступления" caption="Поступления" labelwidth="100" width="15" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_POST_TTL from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
-					<A id="SUM_VYP_TTL_VIRT" name="Выплаты" caption="Выплаты" labelwidth="90" width="15" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_VYP_TTL from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
-					<A id="SUM_END_VIRT" name="Остаток на конец дня" caption="Остаток на конец дня" labelwidth="150" width="15" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_END from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
-					<GRID id="Statementpbsttldone" name="Информация по исполненным операциям со средствами во временном распоряжении" table="STATEMENTPBSTTLDONE" actionlist="LinkToCompetition;LinkToContract;UnLinkTTL;VerificationReturn"/>
+					<A id="LS_UBPVIRT" name="Лицевой счет" caption="Лицевой счет" labelwidth="80" width="13" type="string" readonly="true" virtual="true" formula="select LS_UBP from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
+					<A id="IDENTSTATEVIRT" name="Дата выписки" caption="Дата выписки" labelwidth="84" width="10" type="date" readonly="true" virtual="true" formula="select DATE_OTCH from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
+					<A id="SUM_BEGIN_VIRT" name="Остаток на начало дня" caption="Остаток на начало дня" labelwidth="150" width="13" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_BEGIN from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
+					<A id="SUM_POST_TTL_VIRT" name="Поступления" caption="Поступления" labelwidth="100" width="13" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_POST_TTL from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
+					<A id="SUM_VYP_TTL_VIRT" name="Выплаты" caption="Выплаты" labelwidth="90" width="13" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_VYP_TTL from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
+					<A id="SUM_END_VIRT" name="Остаток на конец дня" caption="Остаток на конец дня" labelwidth="150" width="13" type="number" len="17.2" readonly="true" virtual="true" formula="select SUM_END from STATEMENTPBSTTL where id = @STATEMENTPBSTTLID" local="true"/>
+					<GRID id="Statementpbsttldone" name="Информация по исполненным операциям со средствами во временном распоряжении" table="STATEMENTPBSTTLDONE" actionlist="LinkToCompetition;LinkToContract;UnLinkTTL;VerificationReturn;VerificationExpToInc"/>
 				</TAB>
 			</TABS>
 		</FORM>
@@ -2826,8 +2871,8 @@
 				</TAB>
 			</TABS>
 		</FORM>
-		<FORM id="TempordersGK" name="Обеспечения ГК">
-			<GRID id="TTLgovcontr" name="Обеспечения ГК" table="TTLGOVCONTR" actionlist="SetStatusTTL"/>
+		<FORM id="TempordersGK" name="Обеспечения исполнения заключенных контрактов">
+			<GRID id="TTLgovcontr" name="Обеспечения исполнения заключенных контрактов" table="TTLGOVCONTR" actionlist="SetStatusTTL"/>
 			<GRID id="TTLgovcontrMove" name="Движение средств, полученных в качестве обеспечения исполнения государственного контракта" table="TTLGOVCONTRMOVE" actionlist="GenReturn;UnGenReturn;GenExpToInc;UnGenExpToInc"/>
 		</FORM>
 		<FORM id="TempordersComp" name="Обеспечения участия в закупках">
