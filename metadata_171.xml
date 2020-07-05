@@ -1,20 +1,148 @@
-<SYSTEM id="171" name="Учет доступа в ЕИСУКС">
+<SYSTEM id="171" name="Учет доступа к ЕИСУКС">
 	<MODULES id="Modules" name="Модули">
-		<MODULE id="" name="Учет доступа в ЕИСУКС" menu=""/>
+		<MODULE id="YZA" name="Учет доступа к ЕИСУКС" menu="YZA"/>
 	</MODULES>
 
 	<GROUPS_MENU name="Группы меню">
-		<MENU id="" name="Меню модуля Учет доступа в ЕИСУКС">
+		<MENU id="YZA" name="Учет доступа">
+			<MENU name="Сервис">
+				<MI name="Руководство Пользователя" actionlist="HelpUsers"/>
+				<MI name="Выход" actionlist="Exit"/>
+			</MENU>
+			<MENU name="Доступ к ЕИСУКС">
+				<MI name="Первичная инфомация" formlist="Primainfo"/>
+				<MI name="Учет лицензий" formlist="Lictrack"/>
+				<MENU name="Заявки на доступ">
+					<MI name="Первичный доступ" formlist="AccessPrim"/>
+					<MI name="Перевыпуск" formlist="Reissuance"/>
+					<MI name="Блокировка доступа" formlist="Accesslock"/>
+					<MI name="Корректировка прав доступа" formlist="Accessrights"/>
+					<MI name="Межсетевое взаимодействие" formlist="Intwork"/>
+				</MENU>
+				<MENU name="Настройки">
+					<MI name="Управление лицензиями" formlist="Licmanager"/>
+					<MI name="Получатели уведомлений о состоянии заявок" formlist="Recipientmail"/>
+				</MENU>
+			</MENU>
 		</MENU>
+		
 	</GROUPS_MENU>
 
 	<ATTRIBUTES name="Атрибуты">
+		<A id="SUBJECTSDIRID" name="Участник" caption="Организация" type="ref" table="SUBJECTSDIR" ret="NAME" local="true"/>
+		<A id="PERSONID" name="Сотрудник" caption="Сотрудник" type="ref" table="PERSON" ret="SURNAME" local="true"/>
+		
+
+		
+		
+		<A id="PERMISSIONSUSER" name="Полномочия" caption="Полномочия" labelwidth="120" type="list" nulls="false" local="true">
+			<AI id="01" name="должностное лицо"/>
+			<AI id="02" name="администратор субъекта РФ - внедрение"/>
+			<AI id="03" name="администратор субъекта РФ - интеграция"/>
+			<AI id="04" name="администратор по ИБ"/>
+			<AI id="05" name="администратор ФГО"/>
+			<AI id="06" name="уполномоченный сотрудник - ведение кадровых процедур"/>
+			<AI id="07" name="уполномоченный сотрудник - ведение кадровых процедур (все подчиненные органы)"/>
+			<AI id="08" name="уполномоченный сотрудник - ведение кадровых процедур (без материального стимулирования)"/>
+			<AI id="09" name="уполномоченный сотрудник - противодействие коррупции"/>
+			<AI id="10" name="уполномоченный сотрудник - противодействие коррупции (все подчиненные органы)"/>
+			<AI id="11" name="уполномоченный сотрудник - интеграция"/>
+			<AI id="12" name="уполномоченный сотрудник - интеграция (все подчиненные органы)"/>
+			<AI id="13" name="уполномоченный сотрудник - ведение табеля"/>
+			<AI id="14" name="уполномоченный сотрудник Минтруда РФ"/>
+			<AI id="15" name="уполномоченный сотрудник – ведение материального стимулирования"/>
+			<AI id="16" name="Кадровая служба - внедрение в ЭБ"/>
+			<AI id="17" name="ВУЗ"/>
+		</A>
 	</ATTRIBUTES>
 
 	<GROUPS_ATTRIBUTES name="Группы атрибутов">
+		
 	</GROUPS_ATTRIBUTES>
 
 	<TABLES name="Таблицы">
+		<TABLE id="SUBJECTSDIR" name="Участники взаимодействия">
+			<A id="CODE" name="Код" caption="Код" labelwidth="700" type="int" len="2" nulls="false" local="true"/>
+			<A id="NAME" name="Наименование" caption="Наименование" labelwidth="120" type="string" nulls="false" local="true"/>
+			<A id="GEOTERR" name="Субъект РФ" caption="Субъект РФ" labelwidth="120" type="string" ret="NAME" nulls="false" local="true"/>
+			<A id="ORGTYPE" name="Тип организации" caption="Тип организации" labelwidth="120" type="list" nulls="false" value="01" local="true">
+				<AI id="01" name="Территориальный орган"/>
+				<AI id="02" name="ФОИВ"/>
+			</A>
+			<A id="HIGHER" name="Вышестоящий орган" caption="Вышестоящий орган" labelwidth="120" type="list" nulls="false" value="01">
+				<AI id="01" name="Роструд"/>
+				<AI id="02" name="Минтруд"/>
+			</A>
+			<TI id="SUBJECTSDIR_UK1" unique="NAME"/>
+			<TI id="SUBJECTSDIR_UK2" unique="CODE"/>
+		</TABLE>
+		
+		
+		<TABLE id="PERSON">
+			<TABS>
+				<TAB name="Основная информация">
+					<A id="SUBJECTSDIRID" name="Организация" caption="Организация" nulls="false"/>
+					<A id="SURNAME" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="false" local="true"/>
+					<A id="FIRSTNAME" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="false" local="true"/>
+					<A id="MIDDLENAME" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" local="true"/>
+					<A id="BIRTHDATE" name="Дата рождения" caption="Дата рождения" labelwidth="450" type="date" nulls="false" local="true"/>
+					<A id="SNILS" name="СНИЛС" caption="СНИЛС" labelwidth="110" type="string" format="DDD-DDD-DDD DD" nulls="false" local="true"/>
+					<A id="POST" name="Должность" caption="Должность" labelwidth="110" type="string" nulls="false" local="true"/>
+					<A id="DEPART" name="Подразделение" caption="Подразделение" labelwidth="110" type="string" nulls="false" local="true"/>
+				</TAB>
+				<TAB name="Контактная информация">
+					<A id="PHONES" name="Телефон" caption="Телефон" labelwidth="110" type="string" format="DDDDDDDDDD" nulls="false" local="true"/>
+					<A id="EMAIL" name="E-Mail" caption="E-Mail" labelwidth="110" type="string" nulls="false" local="true"/>
+				</TAB>	
+			</TABS>
+			<TI id="PERSON_EMAIL_UK" name="E-Mail уже существует" unique="EMAIL"/>
+			<TI id="PERSON_SNILS_UK" name="СНИЛС уже существует" unique="SNILS"/>
+		</TABLE>	
+		
+	
+		<TABLE id="PRIMAINFO" name="Первичная инфомация">
+		<COMMENT name="Участник = Ссылка по уровню доступа из таблицы SUBJECTSDIR"/>
+			<A id="SUBJECTSDIRID" nulls="false"/>
+			<A id="ORGTYPEVIRT" name="Тип организации" caption="Тип организации" type="list" visible="grid" virtual="true" formula="select b.orgtype from subjectsdir b where b.id=@SUBJECTSDIRID ::bigint" local="true">
+				<AI id="01" name="Территориальный орган"/>
+				<AI id="02" name="ФОИВ"/>
+			</A>
+			<A id="HIGHERVIRT" name="Вышестоящий орган" caption="Вышестоящий орган" labelwidth="120" type="list" visible="grid" virtual="true" formula="select b.higher from subjectsdir b where b.id=@SUBJECTSDIRID ::bigint" local="true">
+				<AI id="01" name="Роструд"/>
+				<AI id="02" name="Минтруд"/>
+			</A>
+			<A id="GEOTERRVIRT" name="Субъект РФ" caption="Субъект РФ" labelwidth="120" type="string" visible="grid" virtual="true" formula="select b.geoterr from subjectsdir b where b.id=@SUBJECTSDIRID ::bigint" local="true"/>
+		<COMMENT name="Сотрудник = Ссылка по уровню доступа из таблицы PERSON"/>
+			<A id="PERSONID" nulls="false" visible="form"/>
+			<!-- <A id="PERSON" name="Сотрудник" caption="Сотрудник" type="ref" table="PERSON" formula="select trim(COALESCE(surname,'')||' '||COALESCE(firstname,'')||' '||COALESCE(middlename,'')) from person d where d.id = @PERSONID ::bigint" local="true"/> -->
+			<GA id="PERSONINFO" name="Сведения о сотруднике">
+				<A id="SURNAMEVIRT" name="Фамилия" caption="Фамилия" labelwidth="120" type="string" nulls="true" visible="grid" virtual="true" formula="select b.surname from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="FIRSTNAMEVIRT" name="Имя" caption="Имя" labelwidth="120" type="string" nulls="true" visible="grid" virtual="true" formula="select b.firstname from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="MIDDLENAMEVIRT" name="Отчество" caption="Отчество" labelwidth="120" type="string" nulls="true" visible="grid" virtual="true" formula="select b.middlename from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="BIRTHDATEVIRT" name="Дата рождения" caption="Дата рождения" labelwidth="450" type="date" nulls="true" visible="grid" virtual="true" formula="select b.birthdate from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="SNILSVIRT" name="СНИЛС" caption="СНИЛС" labelwidth="110" type="string" nulls="true" visible="grid" virtual="true" formula="select b.snils from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="POSTVIRT" name="Должность" caption="Должность" labelwidth="110" type="string" nulls="true" visible="grid" virtual="true" formula="select b.post from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="DEPARTVIRT" name="Подразделение" caption="Подразделение" labelwidth="110" type="string" nulls="true" visible="grid" virtual="true" formula="select b.depart from person b where b.id=@PERSONID ::bigint" local="true"/>
+			</GA>
+			<GA id="CONTACTINFO" caption="Контактная инфомация">
+				<A id="PHONESVIRT" name="Телефон" caption="Телефон" labelwidth="110" type="string" nulls="true" visible="grid" virtual="true" formula="select b.phones from person b where b.id=@PERSONID ::bigint" local="true"/>
+				<A id="EMAILVIRT" name="E-Mail" caption="E-Mail" labelwidth="110" type="string" nulls="true" visible="grid" virtual="true" formula="select b.email from person b where b.id=@PERSONID ::bigint" local="true"/>
+			</GA>
+			<GA id="ACCESSINFO" name="Сведения о доступе" caption="Сведения о доступе">	
+				<A id="PERMISSIONSUSER"/>
+				<A id="NUMBERUSERLICENSES" name="Пользовательская лицензия" caption="Пользовательская лицензия" labelwidth="165" type="string" format="WWWWWWWWWWWW-WWWWWWWWWWWW-WWW" nulls="false" local="true"/>
+				<A id="NUMBERARM" name="№ АРМ" caption="№ АРМ" labelwidth="165" type="string" nulls="true" local="true"/>
+				<!-- <A id="VIPNET" name="№ ВипНет-сети" caption="№ ВипНет-сети" labelwidth="165" type="string" nulls="true" local="true"/> -->
+				<A id="USERLOGINVIRT" name="Логин" caption="Логин" labelwidth="165" type="string" nulls="true" visible="grid" virtual="true" formula="select b.email from person b where b.id=@PERSONID ::bigint" local="true"/>
+			</GA>
+		</TABLE>
+			
+		
+		<!-- <A id="CHANGESTATUS" name="Статус" caption="Статус" labelwidth="120" type="string" nulls="true" readonly="true" local="true"/> -->
+		<!-- <A id="REASON" name="Примечание" caption="Примечание" labelwidth="120" type="text" nulls="true" readonly="true" local="true"/> -->
+		<!-- <TI id="PRIMAINFO_PERSON_ID_UK" name="Сотрудник уже существует" unique="PERSON_ID"/> -->
+		<!-- <TI id="PRIMAINFO_TERR_IND" index="GEO_TERR_ID,AGENT2"/> -->
+	
 	</TABLES>
 
 	<ACTIONS name="Действия">
@@ -24,5 +152,93 @@
 	</REPORTS>
 
 	<FORMS id="Forms" name="Формы">
+		<FORM id="Primainfo" name="Первичная инфомация">
+			<GRID id="PRIMAINFO" name="Первичная инфомация" table="PRIMAINFO">
+				<MENU>
+					<MI actionlist="SendRT"/>
+					<MENU name="Соглассование">
+						<MI actionlist="Ratify"/>
+						<MI actionlist="Deny"/>
+					</MENU>
+					<MI actionlist="Agreed;ConfigTables"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		
+		
+		
+		
+		
+		
+		
+		
+		<FORM id="Licmanager" name="Управление лицензиями">
+			<GRID id="LICMANAGER" name="Управление лицензиями" table="LICMANAGER"/>
+				<TABS>
+					<TAB name="История изменений">
+						<GRID id="LICHISTORY" name="История изменений" table="LICHISTORY"/>
+					</TAB>
+				</TABS>
+		</FORM>
+		
+		
+		<FORM id="Recipientmail" name="Получатели уведомлений о состоянии заявок">
+			<GRID id="RECIPIENTMAIL" name="Получатели уведомлений о состоянии заявок" table="RECIPIENTMAIL"/>
+		</FORM>
+		
+
+		
+		<FORM id="Lictrack" name="Учет лицензий">
+			<GRID id="LICTRACK" name="Учет лицензий" table="LICTRACK" readonly="true">
+				<MENU>
+					<MI actionlist="View"/>
+					<MENU name="Сформировать заявку">
+						<MI actionlist="RequestNew"/>
+						<MI actionlist="RequestReissue"/>
+						<MI actionlist="RequestBloc"/>
+						<MI actionlist="RequestCorrect"/>
+						<MI actionlist="RequestIntwork"/>
+					</MENU>
+					<MI actionlist="LicRec"/>
+					<MI actionlist="ConfigTables"/>
+				</MENU>
+			</GRID>	
+			<TABS>
+				<TAB name="История изменений">
+					<GRID id="CHANGEHISTORY" name="История изменений" table="CHANGEHISTORY" readonly="true">
+						<MENU>
+							<MI actionlist="ConfigTables"/>
+						</MENU>
+					</GRID>
+				</TAB>
+			</TABS>
+		</FORM>
+		
+		<FORM id="AccessPrim" name="Первичный доступ">
+			<GRID id="ACCESSPRIM" name="Первичный доступ" table="ACCESSPRIM">
+				<MENU>
+					<MI actionlist="SendMS"/>
+				</MENU>
+			</GRID>
+		</FORM>
+		<FORM id="Reissuance" name="Перевыпуск">
+			<GRID id="REISSUANCE" name="Перевыпуск" table="REISSUANCE"/>
+		</FORM>
+		<FORM id="Accesslock" name="Блокировка доступа">
+			<GRID id="ACCESSLOCK" name="Блокировка доступа" table="ACCESSLOCK"/>
+		</FORM>
+		
+		<FORM id="Accessrights" name="Корректировка прав доступа">
+			<GRID id="ACCESSRIGHTS" name="Корректировка прав доступа" table="ACCESSRIGHTS"/>
+		</FORM>
+		
+		
+		<FORM id="Intwork" name="Межсетевое взаимодействие">
+			<GRID id="INTWORK" name="Блокировка доступа" table="INTWORK"/>
+		</FORM>
+		
+		
+
+	
 	</FORMS>
 </SYSTEM>
