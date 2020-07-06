@@ -1,0 +1,215 @@
+CREATE OR REPLACE FUNCTION public.p_action_fin_to_form_notice (
+  idlist text,
+  uid bigint,
+  ownerid bigint,
+  notifdate date,
+  transfert_type text = 'OUT14_LBO'::text
+)
+RETURNS text AS
+$body$
+/*
+  Сформировать уведомления по расчетам между бюджетами"  id="To_form_notice"
+  Автор: Хрусталёв А.А.
+  Ограничения: Нет
+
+  История:
+    Кто              Когда    Версия  Что изменено
+  ============================================================================
+   Хрусталёв А.А.   03.07.20    01    Создание
+  
+*/
+DECLARE
+  nUID                 BIGINT := uid;
+  --Уровни доступа к таблицам
+  nLID_notifmbt        BIGINT := P_SYSTEM_GEN_LID('NOTIFMBT',nUID);    
+  nLID_notifmbtkbk     BIGINT := P_SYSTEM_GEN_LID('NOTIFMBTKBK',nUID);
+
+  rmbt                 RECORD;
+  spec                 RECORD;
+  nnotifmbtid          notifmbt.id%TYPE;          -- ИД уведомления
+  snotifnumb           notifmbt.notifnumb%TYPE;   -- номер уведомления
+  nnotif_summ          notifmbt.notif_summ%TYPE;  -- Сумма уведомления
+  
+  nkbr_id_provider     expshd_lbo.kbr_id%TYPE;    --КБР
+  skbk_provider        kbr.code%TYPE;             --Классификатор расходов бюджета
+  nconfirm_costs_summ  expshd_lbo.sum_lbo_y1%TYPE;--Расходы, подтвержденные документами
+  ntmp                 BIGINT := 0;
+BEGIN
+  FOR rmbt IN 
+    SELECT e.id expshd_id, e.year_u fin_year, e.glava_grs glava_from,
+           notif.kbr_id kbr_id_provider, notif.acodes_id,
+           ml.id mbt_listid, ml.name transfert_name,
+           agn_f.agent_id agent_from,
+           dr_f.code glava_from_code,
+           bdg_f.name budget_from, 
+           agn_t.agent_id agent_to,
+           dr_t.code glava_to,
+           bdg_t.name budget_to,
+           pa.code target_fund
+      FROM public.expshd                  e
+           INNER JOIN (SELECT el.expshdid expshd_id,
+                              COALESCE(el.acodes_id, -9999) acodes_id,
+                              COALESCE(el.kbr_id, -9999) kbr_id
+                       FROM public.expshd_lbo el
+                       GROUP BY el.expshdid, el.acodes_id, el.kbr_id
+                      )                   notif ON notif.expshd_id = e.id
+           INNER JOIN public.mbt_list     ml    ON ml.acodes_id = notif.acodes_id AND
+                                                   ml.kbr_id = notif.kbr_id
+           LEFT JOIN public.budgets       bdg_f ON bdg_f.id = e.budgets_id
+           LEFT JOIN public.agent_acc     agn_f ON agn_f.id = bdg_f.agent_acc_id
+           LEFT JOIN public.dir_recip     dr_f  ON dr_f.id = e.dir_recipid
+           LEFT JOIN public.agent_acc     agn_t ON agn_t.id = e.agent_acc_id
+           LEFT JOIN public.agent         a_t   ON a_t.id = agn_t.agent_id
+           LEFT JOIN public.dir_recip     dr_t  ON dr_t.id = a_t.dir_recipid
+           LEFT JOIN public.budgets       bdg_t ON bdg_t.id = a_t.budgets_id
+           LEFT JOIN public.kbr           k     ON k.id = ml.kbr_id
+           LEFT JOIN public.purp_article  pa    ON pa.id = k.purp_articleid
+      WHERE e.id = ANY(p_system_get_selectlist(idlist))
+        AND ml.cid = 0
+  LOOP
+    BEGIN
+      SELECT max((notifnumb)) INTO snotifnumb FROM public.notifmbt WHERE year_u = rmbt.fin_year;
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        snotifnumb := '0';
+    END;
+    snotifnumb := TO_CHAR(TO_NUMBER(snotifnumb) + 1);
+
+    SELECT SUM(sum_lbo_y1) INTO nnotif_summ
+      FROM public.expshd_lbo el
+      WHERE el.expshdid = rmbt.expshd_id
+        AND el.acodes_id = rmbt.acodes_id
+        AND el.kbr_id = rmbt.kbr_id_provider;
+    
+    nnotifmbtid := nextval('notifmbt_id_seq'::regclass);
+    
+    INSERT INTO public.notifmbt(
+        id,
+        lid,
+        uid,
+        ownerid,
+        status_notifmbt,
+        fin_year,
+        notifnumb,
+        notifdate,
+        agent_from,
+        glava_from,
+        budget_from,
+        oktmo_from,
+        agent_to,
+        glava_to,
+        budget_to,
+        oktmo_to,
+        transfert_name,
+        target_fund,
+        transfert_law,
+        transfert_type,
+        fdate,
+        notif_summ,
+        confirm_req_summ,
+        rest_summ_all,
+        rest_summ_all_py,
+        limit_summ_all,
+        confirm_costs_summ_all,
+        confirm_costs_summ_all_py,
+        mbt_listid
+       )
+      VALUES (
+        nnotifmbtid,         --id
+        nLID_notifmbt,       --lid
+        nUID,                --uid
+        ownerid,
+        NULL,                --status_notifmbt
+        rmbt.fin_year,       --fin_year
+        snotifnumb,          --notifnumb
+        notifdate,
+        rmbt.agent_from,     --agent_from
+        COALESCE(rmbt.glava_from, rmbt.glava_from_code),   --glava_from
+        rmbt.budget_from,    --budget_from
+        NULL,                --oktmo_from
+        rmbt.agent_to,       --agent_to
+        rmbt.glava_to,       --glava_to
+        rmbt.budget_to,      --budget_to
+        NULL,                --oktmo_to
+        rmbt.transfert_name, --transfert_name
+        rmbt.target_fund,    --target_fund
+        NULL,                --transfert_law
+        transfert_type,      --transfert_type
+        TO_DATE('01.01.' || TO_CHAR(rmbt.year_u), 'DD.MM.YYYY'), --fdate
+        nnotif_summ,         --notif_summ
+        NULL,                --confirm_req_summ
+        NULL,                --rest_summ_all
+        NULL,                --rest_summ_all_py
+        NULL,                --limit_summ_all
+        NULL,                --confirm_costs_summ_all
+        NULL,                --confirm_costs_summ_all_py
+        rmbt.mbt_listid      --mbt_listid
+      );
+     ntmp := ntmp + 1;
+
+    FOR spec IN 
+      SELECT el.kbr_id kbr_id_provider, el.sum_lbo_y1 confirm_costs_summ,
+             k.code kbk_provider
+        FROM public.expshd_lbo              el
+             LEFT JOIN public.kbr           k     ON k.id = el.kbr_id
+        WHERE el.expshdid = rmbt.expshd_id
+    LOOP
+      INSERT INTO public.notifmbtkbk(
+          lid,
+          uid,
+          notifmbtid,
+          kbk_provider,
+          rest_summ,
+          limit_summ,
+          confirm_costs_summ,
+          kbk_recipient,
+          rest_firstjan,
+          require_firstjan,
+          bkd_id_provider,
+          ownerid,
+          kbr_id_provider,
+          agent_id
+         )
+        VALUES (
+          nLID_notifmbtkbk,        --lid
+          nUID,                    --uid
+          nnotifmbtid,             --notifmbtid
+          spec.kbk_provider,       --kbk_provider
+          NULL,                    --rest_summ
+          NULL,                    --limit_summ
+          spec.confirm_costs_summ, --confirm_costs_summ
+          NULL,                    --kbk_recipient
+          NULL,                    --rest_firstjan
+          NULL,                    --require_firstjan
+          NULL,                    --bkd_id_provider
+          ownerid,                 --ownerid
+          spec.kbr_id_provider,    --kbr_id_provider
+          rmbt.agent_to            --agent_id
+        );
+    END LOOP;
+  END LOOP;
+  IF ntmp = 0 THEN
+    RETURN 'В расходном расписании нет межбюджетных трансфертов';
+  ELSE
+    RETURN 'Для расходных расписаний создано ' || TO_CHAR(ntmp) || ' уведомлений.';
+  END IF;
+/*
+EXCEPTION
+WHEN exception_name THEN
+  statements;
+*/
+END;
+$body$
+LANGUAGE 'plpgsql'
+VOLATILE
+CALLED ON NULL INPUT
+SECURITY INVOKER
+COST 100;
+
+COMMENT ON FUNCTION public.p_action_fin_to_form_notice(idlist text, uid bigint, ownerid bigint, notifdate date, transfert_type text)
+IS 'Функция формироет уведомления по расчетам между бюджетами
+ИД действия: "To_form_notice"
+Заявка:      МАЦ-4489';
+
+ALTER FUNCTION public.p_action_fin_to_form_notice (idlist text, uid bigint, ownerid bigint, notifdate date, transfert_type text)
+  OWNER TO magicbox;
