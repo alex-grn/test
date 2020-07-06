@@ -12,32 +12,32 @@
 							select right(to_char(s.electdate,'yyyy'),2) as year, 
 									${dateform} as datee, 
 									case 
-                                    when ik.levelelcommittee = 'district' then CASE 
+                                    when c.levelelcommittee = 'district' then CASE 
                                     						when p_tools_dmonth_to_nmonth(i.begindate)-p_tools_dmonth_to_nmonth(i.enddate) != 0 then p_tools_dmonth_to_smonth(i.begindate)||'-'||p_tools_dmonth_to_smonth(i.enddate)--уик
                                                             else p_tools_dmonth_to_smonth(i.begindate)
                                                          end
-                                    when  ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then CASE 
+                                    when  c.levelelcommittee = 'territory' or c.levelelcommittee = 'circuit' then CASE 
                                     						when p_tools_dmonth_to_nmonth(i.begindateter)-p_tools_dmonth_to_nmonth(i.enddateter) != 0 then p_tools_dmonth_to_smonth(i.begindateter)||'-'||p_tools_dmonth_to_smonth(i.enddateter)--уик
                                                             else p_tools_dmonth_to_smonth(i.begindateter)
                                                          end --тик
 								   end	as month, 
 								  case 
-                                  when ik.levelelcommittee = 'district' then 
+                                  when c.levelelcommittee = 'district' then 
 									(select k.name from ELECTCOMMITTEE k where k.idgasecom = c.IDGASPARECOM)		
-                                  when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then 
+                                  when c.levelelcommittee = 'territory' or c.levelelcommittee = 'circuit' then 
 									c.name
 								   end	as institution,
                                     case 
-                                  when ik.levelelcommittee = 'district' then 
+                                  when c.levelelcommittee = 'district' then 
 									(select k.inn from ELECTCOMMITTEE k where k.idgasecom = c.IDGASPARECOM)		
-                                  when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then 
-									c.inn
+                                  when c.levelelcommittee = 'territory' or c.levelelcommittee = 'circuit' then 
+									coalesce(c.inn,'')
 								   end	as inn,
                                     case 
-                                  when ik.levelelcommittee = 'district' then 
+                                  when c.levelelcommittee = 'district' then 
 									(select k.kpp from ELECTCOMMITTEE k where k.idgasecom = c.IDGASPARECOM)		
-                                  when ik.levelelcommittee = 'territory' or ik.levelelcommittee = 'circuit' then 
-									c.kpp
+                                  when c.levelelcommittee = 'territory' or c.levelelcommittee = 'circuit' then 
+									coalesce(c.kpp,'')
 								   end	as kpp,
 							      (SELECT S.NAME FROM PERSON S WHERE S.ID = ${supervisor}::bigint) as ruk
 							  from sheets s,
@@ -58,7 +58,8 @@
 				<queries>
                      <query name="spec" type="sql">
                         <script>
-							select row_number() over() as pp, COALESCE(sp.sumcomp,0)+COALESCE(sp.sumextra12,0)+COALESCE(sp.extraa,0) as summ,COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio
+							select row_number() over() as pp, COALESCE(sp.sumcomp,0)+COALESCE(sp.sumextra12,0)+COALESCE(sp.extraa,0) as summ,
+							COALESCE(p.surname,'')||' '||COALESCE(p.firstname,'')||' '||COALESCE(p.middlename,'') as fio
 							  from sheets s,
 							       SHEETDETAILS sp,
  							       COMMITTEEMAN ik,
